@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: finance_postgres
     restart: unless-stopped
     environment:
@@ -30,6 +30,7 @@ services:
     volumes:
       - .:/app
       - /app/__pycache__
+      - ..:/workspace:ro
     depends_on:
       postgres:
         condition: service_healthy

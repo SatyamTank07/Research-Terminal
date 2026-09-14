@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import app.agents  # Ensures agents self-register with AgentRegistry
 from app.database import init_db
-from app.routers import chat, conversations, health, users
+from app.routers import chat, conversations, documents, health, users
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,3 +38,4 @@ app.include_router(health.router)
 app.include_router(users.router)
 app.include_router(conversations.router)
 app.include_router(chat.router)
+app.include_router(documents.router)

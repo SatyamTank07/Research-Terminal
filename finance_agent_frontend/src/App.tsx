@@ -6,14 +6,16 @@ import { useConversations } from '@/features/conversations/hooks/useConversation
 import { ChatWindow } from '@/features/chat/ChatWindow'
 import { ChatInput } from '@/features/chat/ChatInput'
 import { useChat } from '@/features/chat/hooks/useChat'
+import { useDocuments } from '@/features/documents/hooks/useDocuments'
 
 export function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth >= 768 : true
   )
 
-  // 1. Centralized user identity
+  // 1. Centralized user identity & documents
   const { user } = useBackendHealth()
+  const { documents, refreshDocuments } = useDocuments()
 
   // 2. Conversation management and URL state
   const {
@@ -72,6 +74,7 @@ export function App() {
           user={user}
           onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
           isSidebarOpen={isSidebarOpen}
+          documentsCount={documents.length}
         />
 
         {/* Main Research Workspace */}
@@ -83,6 +86,7 @@ export function App() {
           <ChatInput
             onSendMessage={sendMessage}
             isLoading={isLoading}
+            onDocumentIngested={refreshDocuments}
           />
         </main>
       </div>

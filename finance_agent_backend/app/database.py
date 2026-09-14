@@ -49,6 +49,14 @@ def init_db():
     """Creates database tables and seeds the default single user if absent."""
     import app.models as models
 
+    logger.info("Ensuring pgvector extension is enabled...")
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+            conn.commit()
+    except Exception as e:
+        logger.warning(f"Could not enable vector extension automatically (may already exist or insufficient privileges): {e}")
+
     logger.info("Initializing database tables...")
     Base.metadata.create_all(bind=engine)
 
