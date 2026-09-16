@@ -320,6 +320,7 @@ def retrieve_10k_tables_tool(
     statement_type: Optional[str] = None,
     keyword_filter: Optional[str] = None,
     section_item: Optional[str] = "Item 8",
+    limit: int = 1,
 ) -> List[Dict[str, Any]]:
     """
     Retrieve audited multi-year Markdown financial tables from a company's SEC 10-K filing.
@@ -334,6 +335,7 @@ def retrieve_10k_tables_tool(
                         'cash_flow', or 'segments'.
         keyword_filter: Optional text filter for specific line items or footnote disclosures.
         section_item: Filing item (default 'Item 8' for audited statements, or 'Item 7' for MD&A).
+        limit: Maximum number of tables to return (default 1 to prioritize primary statements).
 
     Returns:
         List of structured table dictionaries containing clean markdown grids and citations.
@@ -344,6 +346,41 @@ def retrieve_10k_tables_tool(
         statement_type=statement_type,
         keyword_filter=keyword_filter,
         section_item=section_item,
-        limit=5,
+        limit=limit,
     )
     return [r.model_dump() for r in results]
+
+
+@tool
+def retrieve_multiyear_financial_series_tool(
+    ticker: str,
+    statement_type: str = "income_statement",
+    section_item: Optional[str] = "Item 8",
+    limit: int = 2,
+) -> List[Dict[str, Any]]:
+
+    """
+    Queries across ALL available 10-K filings in the database for a given ticker,
+    ordered by fiscal_year DESC.
+
+    Use this tool to compare financial statements across multiple consecutive 10-K filings,
+    audit retrospective restatements, and verify multi-year historical trends
+    under the Latest Filing Precedence Rule.
+
+    Args:
+        ticker: Stock ticker symbol (e.g. 'AAPL', 'TSLA').
+        statement_type: Target statement type ('income_statement', 'balance_sheet', 'cash_flow').
+        section_item: Target 10-K section (defaults to 'Item 8').
+        limit: Maximum number of yearly statements to return.
+
+    Returns:
+        List of structured table dictionaries containing clean markdown grids and citations across multiple filings.
+    """
+    results = retrieve_multiyear_financial_series(
+        ticker=ticker,
+        statement_type=statement_type,
+        section_item=section_item,
+        limit=limit,
+    )
+    return [r.model_dump() for r in results]
+
