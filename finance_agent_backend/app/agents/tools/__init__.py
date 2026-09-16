@@ -11,6 +11,15 @@ from app.agents.tools.dcf_tools import (
     calculate_dcf_with_sensitivity,
     calculate_dcf_tool,
 )
+from app.agents.tools.financial_math_tools import (
+    AnnualFinancialInput,
+    BalanceSheetInput,
+    FinancialAuditResult,
+    calculate_financial_ratios,
+    detect_forensic_red_flags,
+    audit_financial_metrics,
+    audit_financial_metrics_tool,
+)
 from app.agents.tools.tavily_search import get_tavily_tool
 
 __all__ = [
@@ -21,5 +30,12 @@ __all__ = [
     "DCFCalculationResult",
     "calculate_dcf_with_sensitivity",
     "calculate_dcf_tool",
+    "AnnualFinancialInput",
+    "BalanceSheetInput",
+    "FinancialAuditResult",
+    "calculate_financial_ratios",
+    "detect_forensic_red_flags",
+    "audit_financial_metrics",
+    "audit_financial_metrics_tool",
     "get_tavily_tool",
 ]
