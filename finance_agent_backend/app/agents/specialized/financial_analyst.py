@@ -17,8 +17,13 @@ logger = logging.getLogger("finance_agent.agents.financial_analyst")
 class FinancialAnalystAgent(BaseAgent):
     """General financial assistant and market research analyst."""
 
-    def __init__(self, model_name: str = "openai:gpt-4o-mini"):
+    def __init__(
+        self,
+        model_name: str = "openai:gpt-4o-mini",
+        recursion_limit: int = 10,
+    ):
         self.model_name = model_name
+        self.recursion_limit = recursion_limit
         self._cached_agent = None
         self._last_tavily_key: Optional[str] = None
 
@@ -45,7 +50,10 @@ class FinancialAnalystAgent(BaseAgent):
 
     def run(self, messages: List[Dict[str, str]]) -> AgentOutput:
         active_agent = self._get_or_create_agent()
-        result = active_agent.invoke({"messages": messages})
+        result = active_agent.invoke(
+            {"messages": messages},
+            config={"recursion_limit": self.recursion_limit},
+        )
 
         response_content = result["messages"][-1].content
         if isinstance(response_content, list):
