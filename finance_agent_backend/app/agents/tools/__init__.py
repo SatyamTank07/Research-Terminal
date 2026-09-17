@@ -20,6 +20,12 @@ from app.agents.tools.financial_math_tools import (
     audit_financial_metrics,
     audit_financial_metrics_tool,
 )
+from app.agents.tools.wacc_tools import (
+    WACCInput,
+    WACCCalculationResult,
+    calculate_wacc,
+    calculate_wacc_tool,
+)
 from app.agents.tools.tavily_search import get_tavily_tool
 
 __all__ = [
@@ -37,5 +43,9 @@ __all__ = [
     "detect_forensic_red_flags",
     "audit_financial_metrics",
     "audit_financial_metrics_tool",
+    "WACCInput",
+    "WACCCalculationResult",
+    "calculate_wacc",
+    "calculate_wacc_tool",
     "get_tavily_tool",
 ]

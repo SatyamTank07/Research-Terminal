@@ -273,6 +273,10 @@ class ProfitabilityRatiosResult(BaseModel):
 
 class SolvencyRatiosResult(BaseModel):
     """Solvency, leverage, and liquidity ratios."""
+    ebitda: Optional[float] = Field(
+        None,
+        description="Base fiscal year EBITDA in $ millions (Operating Income + D&A). None if D&A omitted."
+    )
     net_debt_to_ebitda: Optional[float] = None
     net_debt_to_ebitda_interpretation: str
     current_ratio: Optional[float] = None
@@ -491,6 +495,7 @@ def calculate_financial_ratios(
     )
 
     solv_res = SolvencyRatiosResult(
+        ebitda=ebitda,
         net_debt_to_ebitda=net_debt_ebitda,
         net_debt_to_ebitda_interpretation=ebitda_interp,
         current_ratio=current_ratio,
