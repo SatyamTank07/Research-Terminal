@@ -1,4 +1,4 @@
-﻿"""Deterministic Discounted Cash Flow (DCF) & Sensitivity Engine.
+"""Deterministic Discounted Cash Flow (DCF) & Sensitivity Engine.
 
 Enforces Architectural Principle #2: Zero Mathematical Hallucination.
 Offloads valuation calculations and sensitivity grids to pure, deterministic Python functions.
@@ -211,7 +211,7 @@ def calculate_dcf_with_sensitivity(
 
     for w in wacc_steps:
         row_label = f"**{w * 100:.1f}%**"
-        if abs(w - wacc) < 1e-6:
+        if w == wacc_steps[2]:
             row_label += " *(Base)*"
         cells = [row_label]
 
@@ -227,7 +227,7 @@ def calculate_dcf_with_sensitivity(
             cell_equity = cell_ev - net_debt
             cell_share_price = cell_equity / diluted_shares
 
-            if abs(w - wacc) < 1e-6 and abs(g - terminal_growth_rate) < 1e-6:
+            if w == wacc_steps[2] and g == growth_steps[2]:
                 cells.append(f"**${cell_share_price:.2f}**")
             else:
                 cells.append(f"${cell_share_price:.2f}")
@@ -295,11 +295,14 @@ def calculate_dcf_tool(
         Dictionary containing enterprise_value, equity_value, fair_value_per_share,
         terminal_value_pct_of_ev, discounting_convention, and sensitivity_matrix_markdown.
     """
-    return calculate_dcf_with_sensitivity(
-        projected_fcfs=projected_fcfs,
-        wacc=wacc,
-        terminal_growth_rate=terminal_growth_rate,
-        net_debt=net_debt,
-        diluted_shares=diluted_shares,
-        mid_year_convention=mid_year_convention,
-    )
+    try:
+        return calculate_dcf_with_sensitivity(
+            projected_fcfs=projected_fcfs,
+            wacc=wacc,
+            terminal_growth_rate=terminal_growth_rate,
+            net_debt=net_debt,
+            diluted_shares=diluted_shares,
+            mid_year_convention=mid_year_convention,
+        )
+    except Exception as e:
+        return {"error": f"calculate_dcf_tool failed: {e}"}
