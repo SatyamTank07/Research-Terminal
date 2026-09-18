@@ -166,6 +166,9 @@ from app.agents.tools.forecast_tools import (
 ForecastYear = ForecastYearResult
 
 
+GuidanceSource = Literal["md&a_explicit", "historical_cagr_decay"]
+
+
 class ForecastOutput(BaseModel):
     """Structured artifact emitted by the Financial Forecasting Analyst Agent."""
 
@@ -178,6 +181,10 @@ class ForecastOutput(BaseModel):
     average_annual_fcf: float = Field(..., description="Average annual UFCF in $ Millions")
     provenance_mode: ProvenanceMode = Field(
         ..., description="Accounting bridge used: 'comprehensive_line_item' or 'simplified_nopat_less_capex'"
+    )
+    guidance_source: GuidanceSource = Field(
+        default="md&a_explicit",
+        description="Provenance of forward growth assumptions: 'md&a_explicit' (derived from 10-K Item 7 guidance) or 'historical_cagr_decay' (deterministic 75bps/yr decay from historical 3-year CAGR)",
     )
     tax_rate_pct: float = Field(..., description="Effective tax rate percentage used")
 
