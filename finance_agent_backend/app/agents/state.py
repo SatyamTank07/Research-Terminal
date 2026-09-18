@@ -207,8 +207,126 @@ class ForecastOutput(BaseModel):
     )
 
 
+
 # ==============================================================================
-# 4. Central LangGraph State Graph Definition (Multi-Agent Coordinator)
+# 4. Business & Moat Strategist Output Schema (Milestone 5)
+# ==============================================================================
+class SegmentDetail(BaseModel):
+    """Detailed breakdown of a primary business segment or product line."""
+
+    name: str = Field(..., description="Segment or product line name (e.g. 'iPhone', 'Services')")
+    description: str = Field(..., description="What the segment offers and how it monetizes")
+    growth_drivers: List[str] = Field(
+        default_factory=list, description="Key secular or product growth drivers disclosed in 10-K"
+    )
+
+
+class BusinessMoatOutput(BaseModel):
+    """Structured qualitative artifact emitted by the Business & Moat Strategist Agent."""
+
+    ticker: str = Field(..., description="Stock ticker symbol (e.g. AAPL)")
+    fiscal_year: int = Field(..., description="10-K fiscal year analyzed")
+
+    # 1. Business Architecture & Segments
+    business_summary: str = Field(
+        ..., description="Concise executive synthesis of the operating model and competitive positioning"
+    )
+    revenue_architecture: str = Field(
+        ..., description="How the company monetizes (hardware, recurring SaaS/services, licenses, transactions)"
+    )
+    primary_product_segments: List[str] = Field(
+        ..., description="List of primary operating or reporting segments (e.g. ['iPhone', 'Mac', 'Services'])"
+    )
+    segment_details: List[SegmentDetail] = Field(
+        default_factory=list,
+        description="Granular segment breakdown feeding directly into Forecaster's per-segment growth model",
+    )
+
+    # 2. Economic Moat Evaluation (Porter / Morningstar framework)
+    economic_moat_type: Literal[
+        "Network Effects",
+        "Cost Advantage",
+        "High Switching Costs",
+        "Intangible Assets / Brand",
+        "Efficient Scale",
+        "None",
+    ] = Field(..., description="Primary economic moat classification")
+    moat_durability: Literal["Wide", "Narrow", "None"] = Field(
+        ..., description="Durability rating (ability to defend ROIC > WACC for 10-20 years)"
+    )
+    moat_trajectory: Literal["Expanding", "Stable", "Deteriorating"] = Field(
+        ..., description="Whether the competitive moat is strengthening, stable, or eroding"
+    )
+    moat_rationale: str = Field(
+        ..., description="Rigorous, evidence-backed defense of moat classification cited from Item 1"
+    )
+
+    # 3. Market Power Disclosures
+    pricing_power_assessment: str = Field(
+        ..., description="Evidence of pricing power vs margin vulnerability from Item 1"
+    )
+    customer_concentration: str = Field(
+        ..., description="Disclosed customer concentration (e.g. 'no single customer > 10% of sales')"
+    )
+
+    # 4. Audit Trail
+    citations: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Chunk IDs, breadcrumbs, and sections retrieved"
+    )
+
+
+# ==============================================================================
+# 5. Risk & Red Flag Analyst Output Schema (Milestone 5)
+# ==============================================================================
+class RiskItem(BaseModel):
+    """Individual material risk factor extracted from Item 1A."""
+
+    risk_category: Literal[
+        "Operational",
+        "Regulatory & Legal",
+        "Supply Chain & Concentration",
+        "Macroeconomic & Geopolitical",
+        "Technological & Cybersecurity",
+    ] = Field(..., description="Domain categorization of the risk")
+    risk_title: str = Field(..., description="Concise headline of the specific risk")
+    risk_summary: str = Field(
+        ..., description="Specific company disclosure from Item 1A (avoiding generic boilerplate)"
+    )
+    severity: Literal["Severe", "Moderate", "Low"] = Field(
+        ..., description="Estimated impact on cash flows or terminal value if realized"
+    )
+    mitigating_factors: Optional[str] = Field(
+        None, description="Disclosed management offsets or hedging strategies, if stated in the filing"
+    )
+
+
+class RiskAuditOutput(BaseModel):
+    """Structured qualitative artifact emitted by the Risk & Red Flag Analyst Agent."""
+
+    ticker: str = Field(..., description="Stock ticker symbol (e.g. AAPL)")
+    fiscal_year: int = Field(..., description="10-K fiscal year analyzed")
+
+    # 1. Material Risk Inventory (5 to 8 items, sorted by severity)
+    identified_risks: List[RiskItem] = Field(
+        ..., description="Curated list of 5-8 material, non-boilerplate risks sorted by severity"
+    )
+
+    # 2. Structural / Existential Assessment
+    primary_existential_threat: str = Field(
+        ..., description="The single biggest structural threat disclosed in Item 1A that could impair terminal value"
+    )
+    overall_risk_profile: Literal["High", "Moderate", "Conservative"] = Field(
+        ..., description="One-line aggregate qualitative risk rating used directly by the Lead Synthesizer"
+    )
+
+    # 3. Audit Trail
+    citations: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Chunk IDs, breadcrumbs, and sections retrieved"
+    )
+
+
+# ==============================================================================
+# 6. Central LangGraph State Graph Definition (Multi-Agent Coordinator)
 # ==============================================================================
 class EquityResearchState(TypedDict, total=False):
     """Centralized TypedDict tracking the state across all 6 specialized agents."""
@@ -222,14 +340,15 @@ class EquityResearchState(TypedDict, total=False):
     query_type: str
 
     # Sub-agent structured payloads
-    business_moat: Optional[Dict[str, Any]]
+    business_moat: Optional[BusinessMoatOutput]
     financial_audit: Optional[FinancialAuditOutput]
     forecast: Optional[ForecastOutput]
     dcf_valuation: Optional[DCFValuationOutput]
-    risk_audit: Optional[Dict[str, Any]]
+    risk_audit: Optional[RiskAuditOutput]
 
     # Final compiled output
     final_report: Optional[Dict[str, Any]]
     sources: List[Dict[str, Any]]
     error_message: Optional[str]
+
 
