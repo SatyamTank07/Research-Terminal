@@ -5,7 +5,7 @@ from pydantic import BaseModel
 class ChatRequest(BaseModel):
     message: str
     conversation_id: Optional[str] = None
-    agent_type: Optional[str] = "financial_analyst"
+    agent_type: Optional[str] = "multi_agent"
 
 
 class ChatResponse(BaseModel):

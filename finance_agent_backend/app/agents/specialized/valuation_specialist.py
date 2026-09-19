@@ -113,6 +113,18 @@ class ValuationSpecialistAgent(BaseAgent):
                 financial_audit.solvency_and_liquidity_ratios, "ebitda", None
             )
 
+        # Fallback to book stockholders_equity or target capital structure if neither price nor market_cap passed
+        if share_price is None and market_cap is None:
+            book_equity = getattr(financial_audit.balance_sheet, "stockholders_equity", None)
+            if book_equity is not None and book_equity > 0:
+                market_cap = float(book_equity)
+            else:
+                market_cap = max(float(total_debt) * 4.0, 10000.0)
+            logger.info(
+                f"Neither share_price nor market_cap provided for {ticker}. "
+                f"Defaulted capital structure equity to: ${market_cap:,.2f}M"
+            )
+
         market_context_str = ""
         if share_price is not None:
             market_context_str += f"   - Current Share Price: ${share_price:.2f}\n"

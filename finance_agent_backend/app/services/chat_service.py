@@ -1,5 +1,8 @@
+import asyncio
+import json
 import logging
 import os
+from typing import AsyncIterator
 from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -11,18 +14,13 @@ from app.schemas.chat import ChatRequest, ChatResponse
 logger = logging.getLogger("finance_agent.services.chat")
 
 
-def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
-    """Orchestrates conversation lookup/creation, message history, agent execution, and persistence."""
-    if not os.getenv("OPENAI_API_KEY"):
-        raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set.")
-
-    # 1. Prepare conversation auto-title from first prompt snippet
+def _resolve_conversation(request: ChatRequest, user: User, db: Session) -> Conversation:
+    """Helper to retrieve or initialize a conversation thread."""
     prompt_snippet = request.message.strip().replace("\n", " ")
     snippet_title = (
         (prompt_snippet[:38] + "...") if len(prompt_snippet) > 38 else (prompt_snippet or "New Chat")
     )
 
-    # 2. Lookup or create conversation thread
     conversation = None
     if request.conversation_id:
         conversation = (
@@ -46,7 +44,18 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
         conversation.title = snippet_title
         db.commit()
 
-    # 3. Persist user message in PostgreSQL
+    return conversation
+
+
+def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
+    """Orchestrates conversation lookup/creation, message history, multi-agent execution, and persistence."""
+    if not os.getenv("OPENAI_API_KEY"):
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set.")
+
+    # 1. Resolve conversation thread
+    conversation = _resolve_conversation(request=request, user=user, db=db)
+
+    # 2. Persist user message in PostgreSQL
     user_msg = ChatMessage(
         conversation_id=conversation.id,
         user_id=user.id,
@@ -57,7 +66,7 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
     db.commit()
     db.refresh(user_msg)
 
-    # 4. Load past messages for multi-turn conversational context (last 10 turns)
+    # 3. Load past messages for multi-turn conversational context (last 10 turns)
     past_messages = (
         db.query(ChatMessage)
         .filter(
@@ -77,13 +86,16 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
     ]
     history_payload.append({"role": "user", "content": request.message})
 
-    # 5. Resolve and execute Agent via Registry (DIP / OCP / LSP)
-    agent_type = request.agent_type or "financial_analyst"
+    # 4. Resolve and execute Agent via Registry (defaults to multi-agent system)
+    agent_type = request.agent_type or "multi_agent"
+    if agent_type == "financial_analyst":
+        agent_type = "multi_agent"
+
     try:
         agent = AgentRegistry.get(agent_type)
         output = agent.run(history_payload)
 
-        # 6. Persist assistant reply in PostgreSQL
+        # 5. Persist assistant reply in PostgreSQL
         assistant_msg = ChatMessage(
             conversation_id=conversation.id,
             user_id=user.id,
@@ -119,3 +131,104 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
         except Exception:
             pass
         raise HTTPException(status_code=500, detail=err_str)
+
+
+async def stream_chat_service(
+    request: ChatRequest, user: User, db: Session
+) -> AsyncIterator[str]:
+    """Streams real-time intermediate node progress milestones and final response via SSE."""
+    if not os.getenv("OPENAI_API_KEY"):
+        yield f"data: {json.dumps({'type': 'error', 'message': 'OPENAI_API_KEY is not set.'})}\n\n"
+        return
+
+    # 1. Resolve conversation thread
+    conversation = _resolve_conversation(request=request, user=user, db=db)
+
+    # 2. Persist user message in PostgreSQL
+    user_msg = ChatMessage(
+        conversation_id=conversation.id,
+        user_id=user.id,
+        role="user",
+        content=request.message,
+    )
+    db.add(user_msg)
+    db.commit()
+    db.refresh(user_msg)
+
+    # 3. Resolve agent (defaulting to multi_agent)
+    agent_type = request.agent_type or "multi_agent"
+    if agent_type == "financial_analyst":
+        agent_type = "multi_agent"
+
+    try:
+        agent = AgentRegistry.get(agent_type)
+        if hasattr(agent, "astream_run"):
+            async for event in agent.astream_run(user_query=request.message):
+                if event.get("type") == "result":
+                    # Persist assistant reply in PostgreSQL
+                    assistant_msg = ChatMessage(
+                        conversation_id=conversation.id,
+                        user_id=user.id,
+                        role="assistant",
+                        content=event.get("response", ""),
+                        sources=event.get("sources", []),
+                        is_error=False,
+                    )
+                    db.add(assistant_msg)
+                    conversation.updated_at = func.now()
+                    db.commit()
+                    db.refresh(assistant_msg)
+
+                    payload = {
+                        "type": "result",
+                        "response": event.get("response", ""),
+                        "conversation_id": conversation.id,
+                        "message_id": assistant_msg.id,
+                        "sources": event.get("sources", []),
+                    }
+                    yield f"data: {json.dumps(payload)}\n\n"
+                else:
+                    yield f"data: {json.dumps(event)}\n\n"
+        else:
+            # Fallback for non-streaming agents
+            output = await asyncio.to_thread(
+                agent.run, [{"role": "user", "content": request.message}]
+            )
+            assistant_msg = ChatMessage(
+                conversation_id=conversation.id,
+                user_id=user.id,
+                role="assistant",
+                content=output.content,
+                sources=output.sources,
+                is_error=False,
+            )
+            db.add(assistant_msg)
+            conversation.updated_at = func.now()
+            db.commit()
+            db.refresh(assistant_msg)
+
+            payload = {
+                "type": "result",
+                "response": output.content,
+                "conversation_id": conversation.id,
+                "message_id": assistant_msg.id,
+                "sources": output.sources,
+            }
+            yield f"data: {json.dumps(payload)}\n\n"
+
+    except Exception as e:
+        err_str = str(e)
+        logger.error(f"Error during stream chat execution: {err_str}")
+        try:
+            err_msg = ChatMessage(
+                conversation_id=conversation.id,
+                user_id=user.id,
+                role="assistant",
+                content=f"Error communicating with agent: {err_str}",
+                is_error=True,
+            )
+            db.add(err_msg)
+            db.commit()
+        except Exception:
+            pass
+        yield f"data: {json.dumps({'type': 'error', 'message': err_str})}\n\n"
