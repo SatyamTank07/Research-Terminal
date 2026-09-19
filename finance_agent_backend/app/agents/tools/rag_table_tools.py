@@ -9,6 +9,7 @@ any public company filing without hardcoding company-specific products or divisi
 """
 
 import logging
+import re
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -110,34 +111,89 @@ class TableChunkResult(BaseModel):
 # ==============================================================================
 # 3. Core Deterministic Retrieval Functions
 # ==============================================================================
+def _score_statement_table(chunk_content: str, statement_type: Optional[str]) -> int:
+    """Scores candidate table chunk to prioritize primary Consolidated Statements over footnotes and segment stubs."""
+    if not statement_type:
+        return len(chunk_content) // 100
+
+    c = chunk_content.lower()
+
+    # Disqualify non-financial tables, certifications, clawback, and exhibits
+    if any(pat in c for pat in [
+        "certification of",
+        "pursuant to 18 u.s.c",
+        "clawback policy",
+        "exhibit",
+        "index to consolidated financial statements",
+    ]):
+        return -500
+
+    score = 0
+    # Core consolidated statement header boost
+    if "consolidated statement" in c or "consolidated statements" in c or "consolidated balance sheet" in c:
+        score += 80
+    elif "statement of" in c or "statements of" in c or "balance sheet" in c:
+        score += 40
+
+    if statement_type == "income_statement":
+        if "net income" in c or "net earnings" in c or "net loss" in c:
+            score += 60
+        if "earnings per share" in c or "per share" in c or "diluted" in c or "basic" in c:
+            score += 40
+        if "total operating expenses" in c or "costs and expenses" in c or "operating expenses" in c:
+            score += 30
+        if "operating income" in c or "income from operations" in c:
+            score += 30
+        # Standard GAAP/IFRS segment or geographic footnote disclosures that lack consolidated net income
+        if any(seg in c for seg in ["segment", "reportable segment", "disaggregated", "geographic information", "geographic area"]) and not any(ni in c for ni in ["net income", "net earnings", "net loss"]):
+            score -= 60
+
+    elif statement_type == "balance_sheet":
+        if "total assets" in c:
+            score += 80
+        if "total liabilities" in c or "liabilities and stockholders" in c or "liabilities and shareholders" in c:
+            score += 60
+        if "stockholders' equity" in c or "stockholders’ equity" in c or "shareholders’ equity" in c:
+            score += 50
+        if "current assets" in c:
+            score += 30
+        if len(chunk_content) < 600:
+            score -= 50
+
+    elif statement_type == "cash_flow":
+        if "operating activities" in c or "cash provided by operating activities" in c:
+            score += 60
+        if "investing activities" in c or "capital expenditures" in c:
+            score += 40
+        if "financing activities" in c:
+            score += 30
+        if "net income" in c or "net earnings" in c:
+            score += 30
+        if len(chunk_content) < 800:
+            score -= 50
+
+    # Multi-year coverage boost (tables containing multiple fiscal years)
+    years_found = set(re.findall(r"\b(20[12]\d)\b", chunk_content))
+    score += min(len(years_found) * 15, 45)
+
+    # Favor substantial, complete statements over tiny truncated table chunks
+    score += min(len(chunk_content) // 100, 30)
+
+    return score
+
+
 def retrieve_10k_tables(
     ticker: str,
     fiscal_year: int,
     statement_type: Optional[str] = None,
     keyword_filter: Optional[str] = None,
     section_item: Optional[str] = "Item 8",
-    limit: int = 5,
-    db: Optional[Session] = None,
+    limit: int = 1,
+    db: Optional[Any] = None,
 ) -> List[TableChunkResult]:
     """
-    Directly retrieves exact multi-year Markdown tables from a target 10-K filing.
-    
-    Filters strictly by DocumentChunk.chunk_type == 'table', bypassing vector search.
-    Preserves filing reading order (chunk_index ASC) so primary financial statements
-    appear before detailed footnote schedules. Excludes Table of Contents / Index tables.
-
-    Args:
-        ticker: Stock ticker symbol (e.g. 'AAPL', 'TSLA').
-        fiscal_year: Target 10-K fiscal year (e.g. 2025).
-        statement_type: Optional standard statement filter ('income_statement', 
-                        'balance_sheet', 'cash_flow', 'segments').
-        keyword_filter: Optional arbitrary text keyword (e.g. 'debt', 'leases', 'goodwill').
-        section_item: Target 10-K section (defaults to 'Item 8' for financial statements).
-        limit: Maximum number of tables to return (default 5).
-        db: Optional existing SQLAlchemy session; if None, creates and closes its own.
-
-    Returns:
-        List of TableChunkResult models containing clean markdown grids and citation data.
+    Direct Python function retrieving audited Markdown tables from database.
+    Ranks primary Consolidated Statements above subsidiary footnote/segment tables.
     """
     owns_db = False
     if db is None:
@@ -145,16 +201,6 @@ def retrieve_10k_tables(
         owns_db = True
 
     try:
-        query = (
-            db.query(DocumentChunk, Document)
-            .join(Document, Document.id == DocumentChunk.document_id)
-            .filter(
-                Document.ticker == ticker.strip().upper(),
-                Document.fiscal_year == fiscal_year,
-                DocumentChunk.chunk_type == "table",
-            )
-        )
-
         # Normalize statement type and GAAP signatures
         normalized_statement: Optional[str] = None
         signatures = None
@@ -203,8 +249,18 @@ def retrieve_10k_tables(
                     )
                 )
 
-            # 4. Reading Order: Primary summary statements appear first
-            return q.order_by(DocumentChunk.chunk_index.asc()).limit(limit).all()
+            # Retrieve candidate tables (up to 25) and score them to rank consolidated statements first
+            candidate_chunks = q.order_by(DocumentChunk.chunk_index.asc()).limit(25).all()
+            if normalized_statement and len(candidate_chunks) > 1:
+                candidate_chunks.sort(
+                    key=lambda pair: (
+                        _score_statement_table(pair[0].content, normalized_statement),
+                        -pair[0].chunk_index,
+                    ),
+                    reverse=True,
+                )
+
+            return candidate_chunks[:limit]
 
         results = _execute_query(section_item)
         if not results and section_item:

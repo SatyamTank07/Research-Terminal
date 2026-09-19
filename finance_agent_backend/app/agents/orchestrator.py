@@ -422,78 +422,95 @@ class MultiAgentOrchestrator(BaseAgent):
 
         final_state: Dict[str, Any] = {}
 
-        async for chunk in graph.astream(
-            initial_state,
-            config={"recursion_limit": self.recursion_limit},
-        ):
-            for node_name, node_output in chunk.items():
-                final_state.update(node_output)
+        try:
+            async for chunk in graph.astream(
+                initial_state,
+                config={"recursion_limit": self.recursion_limit},
+            ):
+                for node_name, node_output in chunk.items():
+                    final_state.update(node_output)
 
-                if node_name == "supervisor":
-                    plan: Optional[RoutingPlan] = node_output.get("routing_plan")
-                    t = node_output.get("ticker", "Target")
-                    y = node_output.get("fiscal_year", "")
-                    q = node_output.get("query_type", "full_10k_report")
-                    sub_note = " (substituted year)" if (plan and plan.year_substituted) else ""
-                    yield {
-                        "type": "status",
-                        "node": "supervisor",
-                        "message": f"Resolved filing: {t} FY{y}{sub_note} | Route: {q}",
-                        "details": {
-                            "ticker": t,
-                            "fiscal_year": y,
-                            "query_type": q,
-                            "year_substituted": plan.year_substituted if plan else False,
-                        },
-                    }
-                elif node_name == "business_strategist":
-                    moat: Optional[BusinessMoatOutput] = node_output.get("business_moat")
-                    m_type = moat.economic_moat_type if moat else "Assessed"
-                    yield {
-                        "type": "status",
-                        "node": "business_strategist",
-                        "message": f"Completed economic moat analysis (Moat: {m_type})",
-                    }
-                elif node_name == "financial_auditor":
-                    audit: Optional[FinancialAuditOutput] = node_output.get("financial_audit")
-                    y_count = len(audit.multi_year_history) if audit else 3
-                    yield {
-                        "type": "status",
-                        "node": "financial_auditor",
-                        "message": f"Audited {y_count}-year financial statements, cash flows, and balance sheet",
-                    }
-                elif node_name == "risk_analyst":
-                    risks: Optional[RiskAuditOutput] = node_output.get("risk_audit")
-                    r_count = len(risks.identified_risks) if risks else 0
-                    yield {
-                        "type": "status",
-                        "node": "risk_analyst",
-                        "message": f"Audited material risk factors ({r_count} non-boilerplate risks identified)",
-                    }
-                elif node_name == "forecasting_analyst":
-                    fc: Optional[ForecastOutput] = node_output.get("forecast")
-                    cagr = fc.revenue_cagr_pct if fc else 0.0
-                    yield {
-                        "type": "status",
-                        "node": "forecasting_analyst",
-                        "message": f"Constructed 5-year UFCF projection schedule (Revenue CAGR: {cagr:.1f}%)",
-                    }
-                elif node_name == "valuation_specialist":
-                    val: Optional[DCFValuationOutput] = node_output.get("dcf_valuation")
-                    fv = val.implied_fair_value_per_share if val else 0.0
-                    w = val.wacc_audit.wacc_pct if val else 0.0
-                    yield {
-                        "type": "status",
-                        "node": "valuation_specialist",
-                        "message": f"Derived CAPM WACC ({w:.2f}%) and calculated DCF Fair Value (${fv:.2f}/share)",
-                    }
-                elif node_name == "lead_synthesizer":
-                    report: Optional[Final10KResearchReport] = node_output.get("final_report")
-                    yield {
-                        "type": "status",
-                        "node": "lead_synthesizer",
-                        "message": "Synthesized 3-Pillar Thesis and compiled final publication report.",
-                    }
+                    if node_name == "supervisor":
+                        plan: Optional[RoutingPlan] = node_output.get("routing_plan")
+                        t = node_output.get("ticker", "Target")
+                        y = node_output.get("fiscal_year", "")
+                        q = node_output.get("query_type", "full_10k_report")
+                        sub_note = " (substituted year)" if (plan and plan.year_substituted) else ""
+                        yield {
+                            "type": "status",
+                            "node": "supervisor",
+                            "message": f"Resolved filing: {t} FY{y}{sub_note} | Route: {q}",
+                            "details": {
+                                "ticker": t,
+                                "fiscal_year": y,
+                                "query_type": q,
+                                "year_substituted": plan.year_substituted if plan else False,
+                            },
+                        }
+                    elif node_name == "business_strategist":
+                        moat: Optional[BusinessMoatOutput] = node_output.get("business_moat")
+                        m_type = moat.economic_moat_type if moat else "Assessed"
+                        yield {
+                            "type": "status",
+                            "node": "business_strategist",
+                            "message": f"Completed economic moat analysis (Moat: {m_type})",
+                        }
+                    elif node_name == "financial_auditor":
+                        audit: Optional[FinancialAuditOutput] = node_output.get("financial_audit")
+                        flags_cnt = len(audit.forensic_red_flags) if audit else 0
+                        yield {
+                            "type": "status",
+                            "node": "financial_auditor",
+                            "message": f"Audited financial statements & ratios ({flags_cnt} red flags evaluated)",
+                        }
+                    elif node_name == "risk_analyst":
+                        risk: Optional[RiskAuditOutput] = node_output.get("risk_audit")
+                        top_cnt = len(risk.identified_risks) if risk else 0
+                        yield {
+                            "type": "status",
+                            "node": "risk_analyst",
+                            "message": f"Analyzed Item 1A risks & threats ({top_cnt} key risks identified)",
+                        }
+                    elif node_name == "forecasting_analyst":
+                        fc: Optional[ForecastOutput] = node_output.get("forecast")
+                        cagr = fc.revenue_cagr_pct if fc else 0.0
+                        yield {
+                            "type": "status",
+                            "node": "forecasting_analyst",
+                            "message": f"Constructed 5-year UFCF projection schedule (Revenue CAGR: {cagr:.1f}%)",
+                        }
+                    elif node_name == "valuation_specialist":
+                        val: Optional[DCFValuationOutput] = node_output.get("dcf_valuation")
+                        fv = val.implied_fair_value_per_share if val else 0.0
+                        w = val.wacc_audit.wacc_pct if val else 0.0
+                        yield {
+                            "type": "status",
+                            "node": "valuation_specialist",
+                            "message": f"Derived CAPM WACC ({w:.2f}%) and calculated DCF Fair Value (${fv:.2f}/share)",
+                        }
+                    elif node_name == "lead_synthesizer":
+                        report: Optional[Final10KResearchReport] = node_output.get("final_report")
+                        yield {
+                            "type": "status",
+                            "node": "lead_synthesizer",
+                            "message": "Synthesized 3-Pillar Thesis and compiled final publication report.",
+                        }
+        except ValueError as e:
+            logger.warning(f"astream_run caught catalog resolution error: {e}")
+            yield {
+                "type": "result",
+                "response": (
+                    f"### ℹ️ Research Terminal Guidance\n\n"
+                    f"{str(e)}\n\n"
+                    f"**Suggested Inquiries:**\n"
+                    f"- `Analyze Apple` (triggers full 6-agent equity research report)\n"
+                    f"- `Analyze Tesla` or `Analyze TSLA`\n"
+                    f"- `Analyze NVIDIA` or `Analyze NVDA`\n\n"
+                    f"*Tip: You can also attach any SEC 10-K filing using the **Attach .htm** button.*"
+                ),
+                "sources": [],
+            }
+            return
 
         report_obj = final_state.get("final_report")
         if isinstance(report_obj, Final10KResearchReport):
@@ -514,24 +531,59 @@ class MultiAgentOrchestrator(BaseAgent):
         """Executes the agent synchronously conforming to BaseAgent interface."""
         query = messages[-1]["content"] if messages else ""
 
+        # Scan previous messages backwards if current query does not explicitly specify a ticker
+        extracted_ticker = None
+        if len(messages) > 1:
+            from app.database import SessionLocal
+            db = SessionLocal()
+            try:
+                sup = SupervisorAgent()
+                for m in reversed(messages[:-1]):
+                    candidate = sup._extract_ticker_from_query(m.get("content", ""), db)
+                    if candidate:
+                        extracted_ticker = candidate
+                        break
+            except Exception as e:
+                logger.debug(f"History ticker scan exception: {e}")
+            finally:
+                db.close()
+
         # Safely execute async coroutine inside sync context without blocking or loop collisions
         try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = None
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
 
-        if loop and loop.is_running():
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                state = pool.submit(asyncio.run, self.arun(user_query=query)).result()
-        else:
-            state = asyncio.run(self.arun(user_query=query))
+            if loop and loop.is_running():
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    state = pool.submit(
+                        asyncio.run, self.arun(user_query=query, ticker=extracted_ticker)
+                    ).result()
+            else:
+                state = asyncio.run(self.arun(user_query=query, ticker=extracted_ticker))
 
-        final_report = state.get("final_report")
-        if isinstance(final_report, Final10KResearchReport):
+            final_report = state.get("final_report")
+            if isinstance(final_report, Final10KResearchReport):
+                return AgentOutput(
+                    content=final_report.full_markdown_report,
+                    sources=final_report.all_citations,
+                )
+
+            error = state.get("error_message") or "Equity research execution completed without final report."
+            return AgentOutput(content=error, sources=state.get("sources", []))
+
+        except ValueError as e:
+            logger.warning(f"MultiAgentOrchestrator.run caught resolution error: {e}")
             return AgentOutput(
-                content=final_report.full_markdown_report,
-                sources=final_report.all_citations,
+                content=(
+                    f"### ℹ️ Research Terminal Guidance\n\n"
+                    f"{str(e)}\n\n"
+                    f"**Suggested Inquiries:**\n"
+                    f"- `Analyze Apple` (triggers full 6-agent equity research report)\n"
+                    f"- `Analyze Tesla` or `Analyze TSLA`\n"
+                    f"- `Analyze NVIDIA` or `Analyze NVDA`\n\n"
+                    f"*Tip: You can also attach any SEC 10-K filing using the **Attach .htm** button.*"
+                ),
+                sources=[],
             )
-
-        error = state.get("error_message") or "Equity research execution completed without final report."
-        return AgentOutput(content=error, sources=state.get("sources", []))
