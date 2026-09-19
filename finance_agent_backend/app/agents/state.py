@@ -333,7 +333,105 @@ class RiskAuditOutput(BaseModel):
 
 
 # ==============================================================================
-# 6. Central LangGraph State Graph Definition (Multi-Agent Coordinator)
+# 6. Routing & Lead Supervisor Output Schema (Milestone 6)
+# ==============================================================================
+QueryType = Literal[
+    "full_10k_report",
+    "dcf_valuation_only",
+    "financial_audit_only",
+    "business_moat_only",
+    "risk_factors_only",
+]
+
+
+class RoutingPlan(BaseModel):
+    """Execution blueprint generated deterministically by the Lead Supervisor."""
+
+    ticker: str = Field(..., description="Stock ticker symbol (e.g. AAPL)")
+    company_name: Optional[str] = Field(None, description="Company corporate name")
+    fiscal_year: int = Field(..., description="Resolved target 10-K fiscal year")
+    year_requested: Optional[int] = Field(
+        None, description="Original fiscal year requested by user if explicitly specified"
+    )
+    year_substituted: bool = Field(
+        default=False,
+        description="Explicit provenance flag: True if requested year was unavailable and catalog substituted latest year",
+    )
+    document_id: Optional[str] = Field(None, description="UUID of document in documents table")
+    query_type: QueryType = Field(..., description="Execution path for the pipeline")
+    active_agents: List[str] = Field(
+        ..., description="Ordered list of agent identifiers required to fulfill the query"
+    )
+    routing_provenance: Literal["deterministic_rule", "llm_inferred"] = Field(
+        default="deterministic_rule",
+        description="Provenance tag: whether intent was resolved by deterministic rules or LLM inference",
+    )
+
+
+# ==============================================================================
+# 7. Lead Synthesizer & Final Report Output Schema (Milestone 6)
+# ==============================================================================
+class ThreePillarThesis(BaseModel):
+    """Institutional 3-Pillar Investment Thesis synthesized from sub-agent findings."""
+
+    pillar_1_business_moat: str = Field(
+        ..., description="Pillar 1: Business architecture, competitive moat durability, and pricing power"
+    )
+    pillar_2_financial_durability: str = Field(
+        ..., description="Pillar 2: Earnings quality, balance sheet strength, FCF conversion, and ROIC vs WACC"
+    )
+    pillar_3_valuation_asymmetry: str = Field(
+        ..., description="Pillar 3: Intrinsic value vs market price, margin of safety, and risk/reward asymmetry"
+    )
+
+
+class Final10KResearchReport(BaseModel):
+    """The complete institutional equity research report delivered to the client."""
+
+    ticker: str = Field(..., description="Stock ticker symbol (e.g. AAPL)")
+    company_name: str = Field(..., description="Full legal name of the target entity")
+    fiscal_year: int = Field(..., description="Target fiscal year analyzed")
+
+    # Valuation & Stance Summary
+    implied_fair_value_per_share: float = Field(..., description="DCF fair value per share ($)")
+    current_share_price: Optional[float] = Field(None, description="Current market share price ($)")
+    upside_downside_pct: Optional[float] = Field(
+        None, description="Implied upside/downside % relative to market price"
+    )
+    valuation_stance: Literal["Undervalued", "Fairly Valued", "Overvalued"] = Field(
+        ..., description="High-level investment stance based on margin of safety threshold (+/- 10%)"
+    )
+
+    # Core Institutional Narrative
+    three_pillar_thesis: ThreePillarThesis = Field(
+        ..., description="Structured 3-Pillar Investment Thesis"
+    )
+    executive_summary: str = Field(
+        ..., description="Executive briefing highlighting business model, growth, and risks"
+    )
+
+    # Provenance & Audit Quality Tags
+    synthesis_provenance: Literal["llm_structured", "llm_json_fallback", "template_default"] = Field(
+        default="llm_structured",
+        description="Quality provenance tag: llm_structured, llm_json_fallback, or template_default",
+    )
+    year_substituted: bool = Field(
+        default=False,
+        description="Discloses whether the filing year was substituted due to requested year being unavailable",
+    )
+
+    # Full Publication Report & Audit Trail
+    full_markdown_report: str = Field(
+        ..., description="Complete, institutional-grade Markdown publication report"
+    )
+    all_citations: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Deduplicated consolidation of all chunk IDs and table references used"
+    )
+
+
+# ==============================================================================
+# 8. Central LangGraph State Graph Definition (Multi-Agent Coordinator)
 # ==============================================================================
 class EquityResearchState(TypedDict, total=False):
     """Centralized TypedDict tracking the state across all 6 specialized agents."""
@@ -345,6 +443,7 @@ class EquityResearchState(TypedDict, total=False):
     fiscal_year: int
     document_id: str
     query_type: str
+    routing_plan: Optional[RoutingPlan]
 
     # Sub-agent structured payloads
     business_moat: Optional[BusinessMoatOutput]
@@ -354,8 +453,9 @@ class EquityResearchState(TypedDict, total=False):
     risk_audit: Optional[RiskAuditOutput]
 
     # Final compiled output
-    final_report: Optional[Dict[str, Any]]
+    final_report: Optional[Final10KResearchReport]
     sources: List[Dict[str, Any]]
     error_message: Optional[str]
+
 
 

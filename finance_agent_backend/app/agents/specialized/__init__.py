@@ -4,6 +4,8 @@ from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
 from app.agents.specialized.valuation_specialist import ValuationSpecialistAgent
 from app.agents.specialized.business_strategist import BusinessStrategistAgent
 from app.agents.specialized.risk_analyst import RiskAnalystAgent
+from app.agents.specialized.supervisor import SupervisorAgent
+from app.agents.specialized.lead_synthesizer import LeadSynthesizerAgent
 
 __all__ = [
     "FinancialAnalystAgent",
@@ -12,6 +14,9 @@ __all__ = [
     "ValuationSpecialistAgent",
     "BusinessStrategistAgent",
     "RiskAnalystAgent",
+    "SupervisorAgent",
+    "LeadSynthesizerAgent",
 ]
+
 
 
