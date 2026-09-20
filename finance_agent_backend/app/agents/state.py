@@ -21,7 +21,7 @@ BalanceSheetSnapshot = BalanceSheetResult
 
 
 # ==============================================================================
-# 1. Financial Auditor & Statement Analyst Output Schema (Milestone 2)
+# 1. Financial Auditor & Statement Analyst Output Schema
 # ==============================================================================
 class FinancialAuditOutput(BaseModel):
     """Structured artifact emitted by the Financial Auditor Agent."""
@@ -79,7 +79,7 @@ class FinancialAuditOutput(BaseModel):
 
 
 # ==============================================================================
-# 2. DCF Valuation Specialist Output Schema (Milestone 3)
+# 2. DCF Valuation Specialist Output Schema
 # ==============================================================================
 class WACCAudit(BaseModel):
     """Detailed parameters and provenance of the discount rate derivation."""
@@ -155,7 +155,7 @@ class DCFValuationOutput(BaseModel):
 
 
 # ==============================================================================
-# 3. Financial Forecasting Analyst Output Schema (Milestone 4)
+# 3. Financial Forecasting Analyst Output Schema
 # ==============================================================================
 from app.agents.tools.forecast_tools import (
     ForecastYearResult,
@@ -216,7 +216,7 @@ class ForecastOutput(BaseModel):
 
 
 # ==============================================================================
-# 4. Business & Moat Strategist Output Schema (Milestone 5)
+# 4. Business & Moat Strategist Output Schema
 # ==============================================================================
 class SegmentDetail(BaseModel):
     """Detailed breakdown of a primary business segment or product line."""
@@ -283,7 +283,7 @@ class BusinessMoatOutput(BaseModel):
 
 
 # ==============================================================================
-# 5. Risk & Red Flag Analyst Output Schema (Milestone 5)
+# 5. Risk & Red Flag Analyst Output Schema
 # ==============================================================================
 class RiskItem(BaseModel):
     """Individual material risk factor extracted from Item 1A."""
@@ -333,7 +333,7 @@ class RiskAuditOutput(BaseModel):
 
 
 # ==============================================================================
-# 6. Routing & Lead Supervisor Output Schema (Milestone 6)
+# 6. Routing & Lead Supervisor Output Schema
 # ==============================================================================
 QueryType = Literal[
     "full_10k_report",
@@ -369,7 +369,7 @@ class RoutingPlan(BaseModel):
 
 
 # ==============================================================================
-# 7. Lead Synthesizer & Final Report Output Schema (Milestone 6)
+# 7. Lead Synthesizer & Final Report Output Schema
 # ==============================================================================
 class ThreePillarThesis(BaseModel):
     """Institutional 3-Pillar Investment Thesis synthesized from sub-agent findings."""

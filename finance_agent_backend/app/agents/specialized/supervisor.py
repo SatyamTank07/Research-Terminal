@@ -1,4 +1,4 @@
-"""Lead Supervisor & Intent Router Agent (Milestone 6).
+"""Lead Supervisor & Intent Router Agent.
 
 Responsible for deterministic query triage, filing catalog validation against
 the PostgreSQL `documents` table, and establishing the execution DAG

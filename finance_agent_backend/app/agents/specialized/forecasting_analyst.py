@@ -1,4 +1,4 @@
-"""Financial Forecasting Analyst Agent (Milestone 4).
+"""Financial Forecasting Analyst Agent.
 
 Specialized autonomous agent that models a disciplined 5-year forward financial forecast
 schedule (Revenue, Operating Income / EBIT, and Unlevered Free Cash Flow) grounded in audited
@@ -16,21 +16,15 @@ Architectural Guarantees:
 
 import json
 import logging
-import re
-from typing import Any, Dict, List, Literal, Optional, Union
-from dotenv import load_dotenv
-from langchain.agents import create_agent
-from langchain_openai import ChatOpenAI
+from typing import Any, Dict, List, Literal, Optional
 
-from app.agents.base import AgentOutput, BaseAgent
-from app.agents.prompts import render_prompt
+from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
 from app.agents.state import (
     BusinessMoatOutput,
     FinancialAuditOutput,
     ForecastOutput,
     ForecastYearResult,
-    GuidanceSource,
 )
 from app.agents.tools.forecast_tools import (
     calculate_forecast_schedule,
@@ -44,7 +38,6 @@ from app.agents.tools.rag_table_tools import retrieve_10k_tables_tool
 
 logger = logging.getLogger("finance_agent.agents.forecasting_analyst")
 
-# Deterministic constants for boilerplate MD&A fallback
 FALLBACK_DECAY_RATE_PER_YEAR = 0.0075  # 75 bps / year
 FALLBACK_TERMINAL_GROWTH_FLOOR = 0.0275  # 2.75% long-term GDP floor
 MIN_NARRATIVE_CHUNKS_THRESHOLD = 2
@@ -52,46 +45,17 @@ MIN_NARRATIVE_CHARS_THRESHOLD = 500
 
 
 @AgentRegistry.register("forecasting_analyst")
-class ForecastingAnalystAgent(BaseAgent):
+class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
     """Autonomous agent projecting 5-year financial schedules and Unlevered Free Cash Flows."""
 
-    def __init__(
-        self,
-        model_name: str = "openai:gpt-4o-mini",
-        recursion_limit: int = 50,
-    ):
-        self.model_name = model_name
-        self.recursion_limit = recursion_limit
-        self._cached_agent = None
-
-    def _get_or_create_agent(self):
-        load_dotenv(override=True)
-        if self._cached_agent is not None:
-            return self._cached_agent
-
-        tools = [
-            calculate_forecast_schedule_tool,
-            retrieve_10k_narrative_tool,
-            retrieve_10k_tables_tool,
-        ]
-
-        system_prompt = render_prompt("forecasting_analyst")
-
-        model_clean = self.model_name.replace("openai:", "")
-        llm = ChatOpenAI(
-            model=model_clean,
-            temperature=0,
-            max_retries=5,
-        )
-
-        agent = create_agent(
-            model=llm,
-            tools=tools,
-            system_prompt=system_prompt,
-        )
-
-        self._cached_agent = agent
-        return agent
+    prompt_name = "forecasting_analyst"
+    tools = [
+        calculate_forecast_schedule_tool,
+        retrieve_10k_narrative_tool,
+        retrieve_10k_tables_tool,
+    ]
+    output_schema = ForecastOutput
+    default_recursion_limit = 50
 
     def forecast(
         self,
@@ -103,21 +67,16 @@ class ForecastingAnalystAgent(BaseAgent):
         force_mode: Optional[Literal["comprehensive_line_item", "simplified_nopat_less_capex"]] = None,
     ) -> ForecastOutput:
         """
-        Direct programmatic interface for LangGraph orchestrator and milestone verification tests.
+        Direct programmatic interface for LangGraph orchestrator and verification tests.
 
         Ingests FinancialAuditOutput and optional BusinessMoatOutput, executes deterministic tools,
         and returns a validated ForecastOutput instance.
         """
-        active_agent = self._get_or_create_agent()
-
-        # ----------------------------------------------------------------------
         # Step 1: Ingest Audited Baseline & Normalization
-        # ----------------------------------------------------------------------
         latest_annual = financial_audit.multi_year_history[-1]
         base_revenue = latest_annual.revenue
         base_year = latest_annual.fiscal_year or fiscal_year
 
-        # Resolve effective tax rate as decimal
         ratios = financial_audit.profitability_and_return_ratios
         tax_rate_val = getattr(ratios, "effective_tax_rate_pct", None)
         if tax_rate_val is not None:
@@ -125,17 +84,13 @@ class ForecastingAnalystAgent(BaseAgent):
         else:
             tax_rate = getattr(ratios, "effective_tax_rate", 0.21)
 
-        # Resolve CapEx % of revenue
         latest_capex = latest_annual.capital_expenditures
         capex_pct = (latest_capex / base_revenue) if base_revenue > 0 else 0.03
 
-        # Resolve latest operating margin
         latest_margin_val = latest_annual.operating_margin_pct
         latest_margin = (latest_margin_val / 100.0) if abs(latest_margin_val) > 1.0 else latest_margin_val
 
-        # ----------------------------------------------------------------------
         # Step 2: Deterministic Accounting Mode Precedence (Code-governed)
-        # ----------------------------------------------------------------------
         latest_depr = getattr(latest_annual, "depreciation_amortization", None)
         if latest_depr is None and hasattr(financial_audit, "solvency_and_liquidity_ratios") and financial_audit.solvency_and_liquidity_ratios:
             ebitda = getattr(financial_audit.solvency_and_liquidity_ratios, "ebitda", None)
@@ -153,9 +108,7 @@ class ForecastingAnalystAgent(BaseAgent):
             else:
                 depr_pct = None
 
-        # ----------------------------------------------------------------------
         # Step 3: Compute Historical 3-Year CAGR
-        # ----------------------------------------------------------------------
         history = financial_audit.multi_year_history
         if len(history) >= 2 and history[0].revenue > 0 and history[-1].revenue > 0:
             n_intervals = len(history) - 1
@@ -165,9 +118,7 @@ class ForecastingAnalystAgent(BaseAgent):
         else:
             historical_cagr = 0.05
 
-        # ----------------------------------------------------------------------
         # Step 4: Deterministic MD&A Inspection & Boilerplate Fallback Trigger
-        # ----------------------------------------------------------------------
         try:
             narrative_chunks = retrieve_10k_narrative(
                 ticker=ticker,
@@ -192,7 +143,6 @@ class ForecastingAnalystAgent(BaseAgent):
                 f"({len(narrative_chunks)} chunks, {total_narrative_chars} chars). "
                 f"Applying deterministic CAGR decay ({FALLBACK_DECAY_RATE_PER_YEAR*10000:.0f}bps/yr)."
             )
-            # Deterministic decay: g_t = max(cagr - 0.0075 * t, terminal_floor)
             growth_rates = []
             curr_g = historical_cagr
             for step in range(1, horizon_years + 1):
@@ -250,9 +200,7 @@ class ForecastingAnalystAgent(BaseAgent):
                 citations=citations,
             )
 
-        # ----------------------------------------------------------------------
-        # Step 5: Rich MD&A Available -> Prompt LLM Agent
-        # ----------------------------------------------------------------------
+        # Step 5: Rich MD&A Available -> Execute Agent
         depr_directive = (
             f"Pass depreciation_pct_of_revenue={depr_pct:.4f} to calculate_forecast_schedule_tool "
             f"to operate in 'comprehensive_line_item' mode."
@@ -290,15 +238,18 @@ class ForecastingAnalystAgent(BaseAgent):
             f"4. Emit the complete ForecastOutput JSON with guidance_source='md&a_explicit'."
         )
 
-        result = active_agent.invoke(
-            {"messages": [{"role": "user", "content": query}]},
-            config={"recursion_limit": self.recursion_limit},
-        )
+        fallback_defaults = {
+            "growth_rationale": "Projected 5-year revenue growth trajectory calibrated against Item 7 MD&A disclosures.",
+            "margin_expansion_rationale": "Operating margin progression reflects operating leverage and expected product mix shift.",
+            "reinvestment_rationale": f"CapEx modeled at {capex_pct*100:.2f}% of revenue based on audited capital allocation history.",
+            "guidance_source": "md&a_explicit",
+        }
 
-        return self._extract_forecast_output(
-            result,
+        return self.execute_structured(
+            query,
             ticker=ticker,
             fiscal_year=fiscal_year,
+            fallback_defaults=fallback_defaults,
             base_revenue=base_revenue,
             base_year=base_year,
             tax_rate=tax_rate,
@@ -308,80 +259,24 @@ class ForecastingAnalystAgent(BaseAgent):
             narrative_chunks=narrative_chunks,
         )
 
-    def run(self, messages: List[Dict[str, str]]) -> AgentOutput:
-        """Executes the agent with conversational history conforming to BaseAgent."""
-        active_agent = self._get_or_create_agent()
-        result = active_agent.invoke(
-            {"messages": messages},
-            config={"recursion_limit": self.recursion_limit},
-        )
-
-        structured = result.get("structured_response")
-        if isinstance(structured, ForecastOutput):
-            content = json.dumps(structured.model_dump(), indent=2)
-            sources = structured.citations
-        elif isinstance(structured, dict):
-            content = json.dumps(structured, indent=2)
-            sources = structured.get("citations", [])
-        else:
-            last_msg = result["messages"][-1]
-            content = getattr(last_msg, "content", str(last_msg))
-            sources = self._extract_citations_from_messages(result.get("messages", []))
-
-        return AgentOutput(content=content, sources=sources)
-
-    def _extract_forecast_output(
+    def _post_process_output(
         self,
+        output: ForecastOutput,
         result: Dict[str, Any],
-        ticker: str,
-        fiscal_year: int,
-        base_revenue: float,
-        base_year: int,
-        tax_rate: float,
-        capex_pct: float,
-        depr_pct: Optional[float],
-        horizon_years: int,
-        narrative_chunks: List[Any],
+        base_revenue: Optional[float] = None,
+        base_year: Optional[int] = None,
+        tax_rate: Optional[float] = None,
+        capex_pct: Optional[float] = None,
+        depr_pct: Optional[float] = None,
+        horizon_years: int = 5,
+        narrative_chunks: Optional[List[Any]] = None,
+        **kwargs,
     ) -> ForecastOutput:
-        """Extracts and validates ForecastOutput from agent execution results with zero arithmetic hallucination guards."""
+        """Enforces deterministic math on the forecast schedule using calculate_forecast_schedule."""
+        if base_revenue is None or base_year is None or tax_rate is None or capex_pct is None:
+            return output
+
         messages = result.get("messages", [])
-        tool_schedule_dict = None
-
-        # Inspect messages for the direct output of calculate_forecast_schedule_tool
-        for msg in reversed(messages):
-            msg_type = getattr(msg, "type", "")
-            if msg_type == "tool" or hasattr(msg, "tool_call_id"):
-                name = getattr(msg, "name", "")
-                if name == "calculate_forecast_schedule_tool":
-                    raw_content = getattr(msg, "content", "")
-                    if isinstance(raw_content, str):
-                        try:
-                            parsed = json.loads(raw_content)
-                            if isinstance(parsed, dict) and "projected_fcfs" in parsed:
-                                tool_schedule_dict = parsed
-                                break
-                        except Exception:
-                            pass
-                    elif isinstance(raw_content, dict) and "projected_fcfs" in raw_content:
-                        tool_schedule_dict = raw_content
-                        break
-
-        # Attempt to parse final JSON payload from the assistant's final response
-        last_msg = messages[-1] if messages else None
-        last_content = getattr(last_msg, "content", "") if last_msg else ""
-        parsed_payload = {}
-        if isinstance(last_content, str) and last_content.strip():
-            try:
-                cleaned = last_content.strip()
-                if "```json" in cleaned:
-                    cleaned = cleaned.split("```json")[1].split("```")[0].strip()
-                elif "```" in cleaned:
-                    cleaned = cleaned.split("```")[1].split("```")[0].strip()
-                parsed_payload = json.loads(cleaned)
-            except Exception:
-                pass
-
-        # Extract growth rates and operating margins from tool calls, tool results, or parsed payload
         tool_growth_rates = None
         tool_margins = None
 
@@ -394,23 +289,16 @@ class ForecastingAnalystAgent(BaseAgent):
                         tool_margins = args.get("operating_margins")
                         break
 
-        if tool_schedule_dict:
-            if not tool_growth_rates and "forecast_schedule" in tool_schedule_dict:
-                tool_growth_rates = [y["projected_revenue_growth_pct"] for y in tool_schedule_dict["forecast_schedule"]]
-            if not tool_margins and "forecast_schedule" in tool_schedule_dict:
-                tool_margins = [y["projected_ebit_margin_pct"] for y in tool_schedule_dict["forecast_schedule"]]
-
-        if not tool_growth_rates and parsed_payload.get("forecast_schedule"):
-            tool_growth_rates = [y.get("projected_revenue_growth_pct", 5.0) for y in parsed_payload["forecast_schedule"]]
-            tool_margins = [y.get("projected_ebit_margin_pct", 30.0) for y in parsed_payload["forecast_schedule"]]
+        if not tool_growth_rates and output.forecast_schedule:
+            tool_growth_rates = [y.projected_revenue_growth_pct for y in output.forecast_schedule]
+            tool_margins = [y.projected_ebit_margin_pct for y in output.forecast_schedule]
 
         if not tool_growth_rates:
-            logger.warning(f"ForecastingAnalystAgent: using default growth curve for {ticker}")
             tool_growth_rates = [0.060, 0.055, 0.050, 0.045, 0.040][:horizon_years]
         if not tool_margins:
             tool_margins = [0.30] * horizon_years
 
-        # ALWAYS enforce code-governed accounting mode precedence by executing calculate_forecast_schedule with depr_pct
+        # ALWAYS enforce code-governed accounting mode precedence by executing calculate_forecast_schedule
         verified_schedule = calculate_forecast_schedule(
             base_revenue=base_revenue,
             base_year=base_year,
@@ -421,60 +309,22 @@ class ForecastingAnalystAgent(BaseAgent):
             depreciation_pct_of_revenue=depr_pct,
         )
 
-        growth_rationale = (
-            parsed_payload.get("growth_rationale")
-            or "Projected 5-year revenue growth trajectory calibrated against Item 7 MD&A demand disclosures and secular product trends."
-        )
-        margin_rationale = (
-            parsed_payload.get("margin_expansion_rationale")
-            or "Operating margin progression reflects operating leverage and expected product mix shift."
-        )
-        reinvestment_rationale = (
-            parsed_payload.get("reinvestment_rationale")
-            or f"CapEx modeled at {capex_pct*100:.2f}% of revenue based on audited capital allocation history."
-        )
-        citations = parsed_payload.get("citations") or [
-            {"chunk_id": c.chunk_id, "item": c.item, "breadcrumb": c.breadcrumb}
-            for c in narrative_chunks
-        ]
+        output.base_revenue = verified_schedule["base_revenue"]
+        output.forecast_horizon_years = verified_schedule["forecast_horizon_years"]
+        output.revenue_cagr_pct = verified_schedule["revenue_cagr_pct"]
+        output.cumulative_5yr_fcf = verified_schedule["cumulative_5yr_fcf"]
+        output.average_annual_fcf = verified_schedule["average_annual_fcf"]
+        output.provenance_mode = verified_schedule["provenance_mode"]
+        output.guidance_source = "md&a_explicit"
+        output.tax_rate_pct = verified_schedule["tax_rate_pct"]
+        output.projected_fcfs = verified_schedule["projected_fcfs"]
+        output.forecast_schedule = [ForecastYearResult(**y) for y in verified_schedule["forecast_schedule"]]
+        output.forecast_table_markdown = verified_schedule["forecast_table_markdown"]
 
-        return ForecastOutput(
-            ticker=ticker.upper(),
-            fiscal_year=fiscal_year,
-            base_revenue=verified_schedule["base_revenue"],
-            forecast_horizon_years=verified_schedule["forecast_horizon_years"],
-            revenue_cagr_pct=verified_schedule["revenue_cagr_pct"],
-            cumulative_5yr_fcf=verified_schedule["cumulative_5yr_fcf"],
-            average_annual_fcf=verified_schedule["average_annual_fcf"],
-            provenance_mode=verified_schedule["provenance_mode"],
-            guidance_source="md&a_explicit",
-            tax_rate_pct=verified_schedule["tax_rate_pct"],
-            projected_fcfs=verified_schedule["projected_fcfs"],
-            forecast_schedule=[ForecastYearResult(**y) for y in verified_schedule["forecast_schedule"]],
-            forecast_table_markdown=verified_schedule["forecast_table_markdown"],
-            growth_rationale=growth_rationale,
-            margin_expansion_rationale=margin_rationale,
-            reinvestment_rationale=reinvestment_rationale,
-            citations=citations,
-        )
+        if narrative_chunks and not output.citations:
+            output.citations = [
+                {"chunk_id": c.chunk_id, "item": c.item, "breadcrumb": c.breadcrumb}
+                for c in narrative_chunks
+            ]
 
-    def _extract_citations_from_messages(self, messages: List[Any]) -> List[Dict[str, Any]]:
-        """Extracts source citations from tool messages."""
-        citations = []
-        for msg in messages:
-            if getattr(msg, "type", "") == "tool":
-                content = getattr(msg, "content", "")
-                if isinstance(content, str) and "chunk_id" in content:
-                    try:
-                        data = json.loads(content)
-                        if isinstance(data, list):
-                            for item in data:
-                                if isinstance(item, dict) and "chunk_id" in item:
-                                    citations.append({
-                                        "chunk_id": item["chunk_id"],
-                                        "item": item.get("item", "Item 7"),
-                                        "breadcrumb": item.get("breadcrumb", ""),
-                                    })
-                    except Exception:
-                        pass
-        return citations
+        return output

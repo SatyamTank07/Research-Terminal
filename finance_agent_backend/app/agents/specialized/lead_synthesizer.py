@@ -1,4 +1,4 @@
-"""Lead Synthesizer & Institutional Report Publisher Agent (Milestone 6).
+"""Lead Synthesizer & Institutional Report Publisher Agent.
 
 Ingests structured payloads across all specialized domain agents (Business Strategist,
 Financial Auditor, Forecaster, DCF Valuation Specialist, Risk Analyst), formulates the

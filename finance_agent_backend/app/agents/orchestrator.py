@@ -1,4 +1,4 @@
-"""LangGraph Multi-Agent Orchestrator & State Machine (Milestone 6).
+"""LangGraph Multi-Agent Orchestrator & State Machine.
 
 Coordinates the end-to-end institutional equity research workflow across:
 1. SupervisorAgent (triage, filing resolution, entity extraction, execution planning)
