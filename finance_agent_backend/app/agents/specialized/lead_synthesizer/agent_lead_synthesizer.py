@@ -19,15 +19,16 @@ from langchain_openai import ChatOpenAI
 from app.agents.base import AgentOutput, BaseAgent
 from app.agents.specialized.prompts import render_prompt
 from app.agents.registry import AgentRegistry
-from app.agents.state import (
-    BusinessMoatOutput,
-    DCFValuationOutput,
+from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
+from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
+from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
+from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
+from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
+from app.agents.specialized.lead_synthesizer.state_lead_synthesizer import (
     Final10KResearchReport,
-    FinancialAuditOutput,
-    ForecastOutput,
-    RiskAuditOutput,
     ThreePillarThesis,
 )
+
 
 logger = logging.getLogger("finance_agent.agents.lead_synthesizer")
 

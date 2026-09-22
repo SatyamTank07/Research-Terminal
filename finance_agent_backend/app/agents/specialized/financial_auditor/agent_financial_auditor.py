@@ -12,7 +12,8 @@ from typing import Any, Dict, List, Optional
 
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
-from app.agents.state import FinancialAuditOutput
+from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
+
 from app.agents.tools.financial_math_tools import (
     BalanceSheetResult,
     ProfitabilityRatiosResult,

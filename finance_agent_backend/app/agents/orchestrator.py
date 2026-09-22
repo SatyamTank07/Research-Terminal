@@ -430,10 +430,28 @@ class MultiAgentOrchestrator(BaseAgent):
         session_state: Optional[Dict[str, Any]] = None,
     ) -> AsyncIterator[Dict[str, Any]]:
         """Executes the graph while streaming real-time intermediate node progress milestones."""
+        # Scan previous messages backwards if current query does not explicitly specify a ticker
+        extracted_ticker = ticker.upper() if ticker else ""
+
+        if not extracted_ticker and messages and len(messages) > 1:
+            from app.database import SessionLocal
+            db = SessionLocal()
+            try:
+                sup = SupervisorAgent()
+                for m in reversed(messages[:-1]):
+                    candidate = sup._extract_ticker_from_query(m.get("content", ""), db)
+                    if candidate:
+                        extracted_ticker = candidate
+                        break
+            except Exception as e:
+                logger.debug(f"Stream history ticker scan exception: {e}")
+            finally:
+                db.close()
+
         graph = self.get_graph()
         initial_state: EquityResearchState = {
             "user_query": user_query,
-            "ticker": ticker.upper() if ticker else "",
+            "ticker": extracted_ticker,
             "fiscal_year": fiscal_year or 0,
             "messages": messages,
             "session_state": session_state,
@@ -444,6 +462,7 @@ class MultiAgentOrchestrator(BaseAgent):
             "node": "supervisor",
             "message": "Triaging research inquiry & resolving SEC filing catalog...",
         }
+
 
         final_state: Dict[str, Any] = {}
 

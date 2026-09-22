@@ -9,8 +9,9 @@ emitting a typed RiskAuditOutput schema.
 from typing import Any, Dict
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
-from app.agents.state import RiskAuditOutput
+from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
 from app.agents.tools.rag_narrative_tools import retrieve_10k_narrative_tool
+
 
 
 @AgentRegistry.register("risk_analyst")

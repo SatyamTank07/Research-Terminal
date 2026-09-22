@@ -17,8 +17,9 @@ from pydantic import BaseModel, Field
 from app.agents.base import AgentOutput, BaseAgent
 from app.agents.specialized.prompts import render_prompt
 from app.agents.registry import AgentRegistry
-from app.agents.state import QueryType, RoutingPlan
+from app.agents.specialized.supervisor.state_supervisor import QueryType, RoutingPlan
 from app.database import SessionLocal
+
 from app.models import Document
 
 logger = logging.getLogger("finance_agent.agents.supervisor")

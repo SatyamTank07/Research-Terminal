@@ -20,12 +20,13 @@ from typing import Any, Dict, List, Literal, Optional
 
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
-from app.agents.state import (
-    BusinessMoatOutput,
-    FinancialAuditOutput,
+from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
+from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
+from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import (
     ForecastOutput,
     ForecastYearResult,
 )
+
 from app.agents.tools.forecast_tools import (
     calculate_forecast_schedule,
     calculate_forecast_schedule_tool,

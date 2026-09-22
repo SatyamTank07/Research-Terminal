@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
-import type { Message } from '../types'
+import type { AgentMilestone, Message } from '../types'
 import {
-  sendChatMessage,
+  sendChatMessageStream,
   getConversationMessages,
   clearConversationMessages,
 } from '../chatService'
@@ -16,6 +16,7 @@ export function useChat({
   onConversationUpdated,
 }: UseChatOptions) {
   const [messages, setMessages] = useState<Message[]>([])
+  const [activeMilestones, setActiveMilestones] = useState<AgentMilestone[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   // Load messages whenever activeConversationId changes
@@ -56,12 +57,16 @@ export function useChat({
       }
 
       setMessages((prev) => [...prev, tempUserMessage])
+      setActiveMilestones([])
       setIsLoading(true)
 
       try {
-        const replyData = await sendChatMessage(
+        const replyData = await sendChatMessageStream(
           userPrompt,
-          activeConversationId || undefined
+          activeConversationId || undefined,
+          (milestone) => {
+            setActiveMilestones((prev) => [...prev, milestone])
+          }
         )
 
         const agentMessage: Message = {
@@ -94,6 +99,7 @@ export function useChat({
         setMessages((prev) => [...prev, errorReply])
       } finally {
         setIsLoading(false)
+        setActiveMilestones([])
       }
     },
     [activeConversationId, isLoading, onConversationUpdated]
@@ -103,26 +109,31 @@ export function useChat({
   const clearChat = useCallback(async () => {
     if (!activeConversationId) {
       setMessages([])
+      setActiveMilestones([])
       return
     }
 
     try {
       await clearConversationMessages(activeConversationId)
       setMessages([])
+      setActiveMilestones([])
       if (onConversationUpdated) {
         await onConversationUpdated(activeConversationId)
       }
     } catch (err) {
       console.error('Failed to clear conversation messages:', err)
       setMessages([])
+      setActiveMilestones([])
     }
   }, [activeConversationId, onConversationUpdated])
 
   return {
     messages,
+    activeMilestones,
     isLoading,
     sendMessage,
     clearChat,
     setMessages,
   }
 }
+

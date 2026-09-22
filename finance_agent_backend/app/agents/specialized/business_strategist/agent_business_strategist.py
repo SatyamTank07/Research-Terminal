@@ -8,8 +8,9 @@ emitting a typed BusinessMoatOutput schema.
 
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
-from app.agents.state import BusinessMoatOutput
+from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.tools.rag_narrative_tools import retrieve_10k_narrative_tool
+
 
 
 @AgentRegistry.register("business_strategist")

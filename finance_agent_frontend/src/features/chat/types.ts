@@ -39,3 +39,33 @@ export interface ChatMessageResponse {
   is_error?: boolean
   created_at: string
 }
+
+export interface AgentMilestone {
+  id: string
+  node: string
+  message: string
+  timestamp: Date
+  details?: Record<string, any>
+}
+
+export type StreamingChatEvent =
+  | {
+      type: 'status'
+      node: string
+      message: string
+      details?: Record<string, any>
+    }
+  | {
+      type: 'result'
+      response: string
+      conversation_id: string
+      message_id?: string
+      sources?: SourceItem[]
+      final_report?: Record<string, any>
+      updated_session_state?: Record<string, any>
+    }
+  | {
+      type: 'error'
+      message: string
+    }
+

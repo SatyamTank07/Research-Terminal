@@ -9,9 +9,8 @@ from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
-from app.agents.specialized.prompts import render_prompt
-
 logger = logging.getLogger("finance_agent.agents.base")
+
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -62,10 +61,12 @@ class StructuredAgent(BaseAgent, Generic[T]):
     def get_system_prompt(self) -> str:
         """Renders and returns the system prompt."""
         if self.prompt_name:
+            from app.agents.specialized.prompts import render_prompt
             return render_prompt(self.prompt_name)
         raise NotImplementedError(
             f"Class {self.__class__.__name__} must define 'prompt_name' or override 'get_system_prompt()'."
         )
+
 
     def _get_or_create_agent(self):
         """Initializes and caches the LangChain agent instance."""

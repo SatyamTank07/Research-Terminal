@@ -12,9 +12,14 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
-from app.agents.state import DCFValuationOutput, FinancialAuditOutput, WACCAudit
+from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
+from app.agents.specialized.valuation_specialist.state_valuation_specialist import (
+    DCFValuationOutput,
+    WACCAudit,
+)
 from app.agents.tools.dcf_tools import calculate_dcf_tool
 from app.agents.tools.wacc_tools import calculate_wacc_tool
+
 
 logger = logging.getLogger("finance_agent.agents.valuation_specialist")
 
