@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from langchain.agents import create_agent
 
 from app.agents.base import AgentOutput, BaseAgent
-from app.agents.prompts import render_prompt
+from app.agents.specialized.prompts import render_prompt
 from app.agents.registry import AgentRegistry
 from app.agents.tools.tavily_search import get_tavily_tool
 

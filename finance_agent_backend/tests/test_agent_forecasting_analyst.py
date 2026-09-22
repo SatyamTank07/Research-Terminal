@@ -15,7 +15,7 @@ Validates:
 
 import unittest
 from app.agents.registry import AgentRegistry
-from app.agents.prompts import render_prompt
+from app.agents.specialized.prompts import render_prompt
 from app.agents.state import (
     FinancialAuditOutput,
     ForecastOutput,

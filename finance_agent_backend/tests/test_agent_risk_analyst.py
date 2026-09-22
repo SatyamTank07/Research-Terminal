@@ -15,7 +15,7 @@ Validates:
 
 import unittest
 from app.agents.registry import AgentRegistry
-from app.agents.prompts import render_prompt
+from app.agents.specialized.prompts import render_prompt
 from app.agents.state import RiskAuditOutput
 from app.agents.specialized.risk_analyst import RiskAnalystAgent
 from app.agents.tools.rag_narrative_tools import retrieve_10k_narrative_tool

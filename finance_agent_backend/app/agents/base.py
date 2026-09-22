@@ -9,7 +9,7 @@ from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
-from app.agents.prompts import render_prompt
+from app.agents.specialized.prompts import render_prompt
 
 logger = logging.getLogger("finance_agent.agents.base")
 

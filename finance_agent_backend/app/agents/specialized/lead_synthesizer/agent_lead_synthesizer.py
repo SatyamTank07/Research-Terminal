@@ -17,7 +17,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
 from app.agents.base import AgentOutput, BaseAgent
-from app.agents.prompts import render_prompt
+from app.agents.specialized.prompts import render_prompt
 from app.agents.registry import AgentRegistry
 from app.agents.state import (
     BusinessMoatOutput,
