@@ -20,13 +20,18 @@ T = TypeVar("T", bound=BaseModel)
 class AgentOutput:
     content: str
     sources: List[Dict[str, Any]] = field(default_factory=list)
+    updated_session_state: Optional[Dict[str, Any]] = None
 
 
 class BaseAgent(ABC):
     """Abstract Base Class for all specialized agents (LSP)."""
 
     @abstractmethod
-    def run(self, messages: List[Dict[str, str]]) -> AgentOutput:
+    def run(
+        self,
+        messages: List[Dict[str, str]],
+        session_state: Optional[Dict[str, Any]] = None,
+    ) -> AgentOutput:
         """Executes the agent with conversational history and returns standardized AgentOutput."""
         pass
 
@@ -247,7 +252,11 @@ class StructuredAgent(BaseAgent, Generic[T]):
         output = self._post_process_output(output, result, ticker=ticker, fiscal_year=fiscal_year, **kwargs)
         return output
 
-    def run(self, messages: List[Dict[str, str]]) -> AgentOutput:
+    def run(
+        self,
+        messages: List[Dict[str, str]],
+        session_state: Optional[Dict[str, Any]] = None,
+    ) -> AgentOutput:
         """Executes the agent with conversational history conforming to BaseAgent."""
         active_agent = self._get_or_create_agent()
         result = active_agent.invoke(

@@ -37,9 +37,26 @@ Classify user requests into one of the following 5 standard execution routes:
    - Triggers: Inquiries regarding risk factors, legal/antitrust liabilities, supply chain concentration, geopolitical exposures, or existential threats.
 </routing_taxonomy>
 
+{% if active_session %}
+<active_session_state>
+The conversation currently has active research context:
+- Active Ticker: {{ active_session.active_ticker }}
+{% if active_session.active_company %}
+- Active Company: {{ active_session.active_company }}
+{% endif %}
+{% if active_session.active_fiscal_year %}
+- Active Fiscal Year: {{ active_session.active_fiscal_year }}
+{% endif %}
+{% if active_session.last_query_type %}
+- Last Query Type: {{ active_session.last_query_type }}
+{% endif %}
+If the user's inquiry is a follow-up or uses pronouns like "it", "its", or "the company", use this active session context unless a new entity is explicitly introduced.
+</active_session_state>
+{% endif %}
+
 <rules>
 - Strictly extract the target stock ticker and fiscal year from the user request or catalog context.
 - Never invent ticker symbols or assume entities not referenced or present in the catalog.
-- If no specific fiscal year is mentioned, default to the latest available audited fiscal year.
-- Always output valid structured JSON conforming to `RoutingPlan`.
+- If no specific fiscal year is mentioned, default to the latest available audited fiscal year or active session year.
+- Always output valid structured JSON conforming to `SupervisorExtraction`.
 </rules>

@@ -58,6 +58,8 @@ async def supervisor_node(state: EquityResearchState) -> Dict[str, Any]:
     user_query = state.get("user_query", "")
     ticker = state.get("ticker")
     fiscal_year = state.get("fiscal_year")
+    messages = state.get("messages")
+    session_state = state.get("session_state")
 
     supervisor = SupervisorAgent()
     routing_plan: RoutingPlan = await asyncio.to_thread(
@@ -65,11 +67,13 @@ async def supervisor_node(state: EquityResearchState) -> Dict[str, Any]:
         user_query=user_query,
         ticker=ticker,
         fiscal_year=fiscal_year,
+        session_state=session_state,
+        messages=messages,
     )
 
     logger.info(
         f"[supervisor_node] Resolved {routing_plan.ticker} FY{routing_plan.fiscal_year} "
-        f"route={routing_plan.query_type} (substituted={routing_plan.year_substituted})"
+        f"route={routing_plan.query_type} (needs_confirmation={routing_plan.needs_confirmation})"
     )
 
     return {
@@ -79,6 +83,8 @@ async def supervisor_node(state: EquityResearchState) -> Dict[str, Any]:
         "document_id": routing_plan.document_id,
         "query_type": routing_plan.query_type,
         "routing_plan": routing_plan,
+        "error_message": routing_plan.confirmation_message if routing_plan.needs_confirmation else None,
+        "updated_session_state": routing_plan.updated_session_state,
     }
 
 
@@ -237,10 +243,17 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
 
 async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
     """Node 6: Synthesizes findings, builds 3-Pillar Thesis, and compiles publication report."""
+    routing_plan = state.get("routing_plan")
+    if routing_plan and routing_plan.needs_confirmation:
+        return {
+            "final_report": None,
+            "sources": [],
+            "error_message": routing_plan.confirmation_message,
+        }
+
     ticker = state["ticker"]
     company_name = state.get("company_name", ticker)
     fiscal_year = state["fiscal_year"]
-    routing_plan = state.get("routing_plan")
     year_substituted = routing_plan.year_substituted if routing_plan else False
     user_query = state.get("user_query")
 
@@ -271,6 +284,10 @@ async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
 # ==============================================================================
 def route_from_supervisor(state: EquityResearchState) -> List[str]:
     """Branches execution path based on resolved QueryType."""
+    plan = state.get("routing_plan")
+    if plan and plan.needs_confirmation:
+        return ["lead_synthesizer"]
+
     qtype = state.get("query_type", "full_10k_report")
     if qtype == "business_moat_only":
         return ["business_strategist"]
@@ -334,7 +351,7 @@ def build_equity_research_graph() -> CompiledStateGraph:
     builder.add_conditional_edges(
         "supervisor",
         route_from_supervisor,
-        ["business_strategist", "financial_auditor", "risk_analyst"],
+        ["business_strategist", "financial_auditor", "risk_analyst", "lead_synthesizer"],
     )
 
     # 4. Phase 1 Qualitative & Statement Auditing -> Forecasting Join
@@ -385,6 +402,8 @@ class MultiAgentOrchestrator(BaseAgent):
         user_query: str,
         ticker: Optional[str] = None,
         fiscal_year: Optional[int] = None,
+        messages: Optional[List[Dict[str, str]]] = None,
+        session_state: Optional[Dict[str, Any]] = None,
     ) -> EquityResearchState:
         """Executes the multi-agent graph asynchronously and returns the populated final state."""
         graph = self.get_graph()
@@ -392,6 +411,8 @@ class MultiAgentOrchestrator(BaseAgent):
             "user_query": user_query,
             "ticker": ticker.upper() if ticker else "",
             "fiscal_year": fiscal_year or 0,
+            "messages": messages,
+            "session_state": session_state,
         }
 
         final_state = await graph.ainvoke(
@@ -405,6 +426,8 @@ class MultiAgentOrchestrator(BaseAgent):
         user_query: str,
         ticker: Optional[str] = None,
         fiscal_year: Optional[int] = None,
+        messages: Optional[List[Dict[str, str]]] = None,
+        session_state: Optional[Dict[str, Any]] = None,
     ) -> AsyncIterator[Dict[str, Any]]:
         """Executes the graph while streaming real-time intermediate node progress milestones."""
         graph = self.get_graph()
@@ -412,6 +435,8 @@ class MultiAgentOrchestrator(BaseAgent):
             "user_query": user_query,
             "ticker": ticker.upper() if ticker else "",
             "fiscal_year": fiscal_year or 0,
+            "messages": messages,
+            "session_state": session_state,
         }
 
         yield {
@@ -435,18 +460,30 @@ class MultiAgentOrchestrator(BaseAgent):
                         t = node_output.get("ticker", "Target")
                         y = node_output.get("fiscal_year", "")
                         q = node_output.get("query_type", "full_10k_report")
-                        sub_note = " (substituted year)" if (plan and plan.year_substituted) else ""
-                        yield {
-                            "type": "status",
-                            "node": "supervisor",
-                            "message": f"Resolved filing: {t} FY{y}{sub_note} | Route: {q}",
-                            "details": {
-                                "ticker": t,
-                                "fiscal_year": y,
-                                "query_type": q,
-                                "year_substituted": plan.year_substituted if plan else False,
-                            },
-                        }
+                        if plan and plan.needs_confirmation:
+                            yield {
+                                "type": "status",
+                                "node": "supervisor",
+                                "message": f"Requested year not found. Prompting user to confirm latest FY{plan.suggested_fiscal_year}.",
+                                "details": {
+                                    "ticker": t,
+                                    "needs_confirmation": True,
+                                    "suggested_fiscal_year": plan.suggested_fiscal_year,
+                                },
+                            }
+                        else:
+                            sub_note = " (substituted year)" if (plan and plan.year_substituted) else ""
+                            yield {
+                                "type": "status",
+                                "node": "supervisor",
+                                "message": f"Resolved filing: {t} FY{y}{sub_note} | Route: {q}",
+                                "details": {
+                                    "ticker": t,
+                                    "fiscal_year": y,
+                                    "query_type": q,
+                                    "year_substituted": plan.year_substituted if plan else False,
+                                },
+                            }
                     elif node_name == "business_strategist":
                         moat: Optional[BusinessMoatOutput] = node_output.get("business_moat")
                         m_type = moat.economic_moat_type if moat else "Assessed"
@@ -513,21 +550,28 @@ class MultiAgentOrchestrator(BaseAgent):
             return
 
         report_obj = final_state.get("final_report")
+        updated_state = final_state.get("updated_session_state")
         if isinstance(report_obj, Final10KResearchReport):
             yield {
                 "type": "result",
                 "response": report_obj.full_markdown_report,
                 "sources": report_obj.all_citations,
                 "final_report": report_obj.model_dump(),
+                "updated_session_state": updated_state,
             }
         else:
             yield {
                 "type": "result",
                 "response": final_state.get("error_message") or "Pipeline execution finished.",
                 "sources": final_state.get("sources", []),
+                "updated_session_state": updated_state,
             }
 
-    def run(self, messages: List[Dict[str, str]]) -> AgentOutput:
+    def run(
+        self,
+        messages: List[Dict[str, str]],
+        session_state: Optional[Dict[str, Any]] = None,
+    ) -> AgentOutput:
         """Executes the agent synchronously conforming to BaseAgent interface."""
         query = messages[-1]["content"] if messages else ""
 
@@ -558,20 +602,39 @@ class MultiAgentOrchestrator(BaseAgent):
             if loop and loop.is_running():
                 with concurrent.futures.ThreadPoolExecutor() as pool:
                     state = pool.submit(
-                        asyncio.run, self.arun(user_query=query, ticker=extracted_ticker)
+                        asyncio.run,
+                        self.arun(
+                            user_query=query,
+                            ticker=extracted_ticker,
+                            messages=messages,
+                            session_state=session_state,
+                        ),
                     ).result()
             else:
-                state = asyncio.run(self.arun(user_query=query, ticker=extracted_ticker))
+                state = asyncio.run(
+                    self.arun(
+                        user_query=query,
+                        ticker=extracted_ticker,
+                        messages=messages,
+                        session_state=session_state,
+                    )
+                )
 
             final_report = state.get("final_report")
+            updated_state = state.get("updated_session_state")
             if isinstance(final_report, Final10KResearchReport):
                 return AgentOutput(
                     content=final_report.full_markdown_report,
                     sources=final_report.all_citations,
+                    updated_session_state=updated_state,
                 )
 
             error = state.get("error_message") or "Equity research execution completed without final report."
-            return AgentOutput(content=error, sources=state.get("sources", []))
+            return AgentOutput(
+                content=error,
+                sources=state.get("sources", []),
+                updated_session_state=updated_state,
+            )
 
         except ValueError as e:
             logger.warning(f"MultiAgentOrchestrator.run caught resolution error: {e}")

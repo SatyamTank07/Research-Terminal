@@ -6,6 +6,7 @@ from typing import AsyncIterator
 from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 
 from app.agents import AgentRegistry
 from app.models import ChatMessage, Conversation, User
@@ -93,7 +94,15 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
 
     try:
         agent = AgentRegistry.get(agent_type)
-        output = agent.run(history_payload)
+        try:
+            output = agent.run(history_payload, session_state=conversation.session_state)
+        except TypeError:
+            output = agent.run(history_payload)
+
+        # Update session_state if provided by agent
+        if output.updated_session_state is not None:
+            conversation.session_state = dict(output.updated_session_state)
+            flag_modified(conversation, "session_state")
 
         # 5. Persist assistant reply in PostgreSQL
         assistant_msg = ChatMessage(
@@ -155,7 +164,27 @@ async def stream_chat_service(
     db.commit()
     db.refresh(user_msg)
 
-    # 3. Resolve agent (defaulting to multi_agent)
+    # 3. Load past messages for multi-turn conversational context (last 10 turns)
+    past_messages = (
+        db.query(ChatMessage)
+        .filter(
+            ChatMessage.conversation_id == conversation.id,
+            ChatMessage.id != user_msg.id,
+        )
+        .order_by(ChatMessage.created_at.desc())
+        .limit(10)
+        .all()
+    )
+    past_messages.reverse()
+
+    history_payload = [
+        {"role": msg.role, "content": msg.content}
+        for msg in past_messages
+        if msg.role in ("user", "assistant")
+    ]
+    history_payload.append({"role": "user", "content": request.message})
+
+    # 4. Resolve agent (defaulting to multi_agent)
     agent_type = request.agent_type or "multi_agent"
     if agent_type == "financial_analyst":
         agent_type = "multi_agent"
@@ -163,7 +192,11 @@ async def stream_chat_service(
     try:
         agent = AgentRegistry.get(agent_type)
         if hasattr(agent, "astream_run"):
-            async for event in agent.astream_run(user_query=request.message):
+            async for event in agent.astream_run(
+                user_query=request.message,
+                messages=history_payload,
+                session_state=conversation.session_state,
+            ):
                 if event.get("type") == "result":
                     # Persist assistant reply in PostgreSQL
                     assistant_msg = ChatMessage(
@@ -175,6 +208,9 @@ async def stream_chat_service(
                         is_error=False,
                     )
                     db.add(assistant_msg)
+                    if event.get("updated_session_state") is not None:
+                        conversation.session_state = dict(event["updated_session_state"])
+                        flag_modified(conversation, "session_state")
                     conversation.updated_at = func.now()
                     db.commit()
                     db.refresh(assistant_msg)
@@ -191,9 +227,10 @@ async def stream_chat_service(
                     yield f"data: {json.dumps(event)}\n\n"
         else:
             # Fallback for non-streaming agents
-            output = await asyncio.to_thread(
-                agent.run, [{"role": "user", "content": request.message}]
-            )
+            try:
+                output = await asyncio.to_thread(agent.run, history_payload, conversation.session_state)
+            except TypeError:
+                output = await asyncio.to_thread(agent.run, history_payload)
             assistant_msg = ChatMessage(
                 conversation_id=conversation.id,
                 user_id=user.id,
@@ -203,6 +240,9 @@ async def stream_chat_service(
                 is_error=False,
             )
             db.add(assistant_msg)
+            if output.updated_session_state is not None:
+                conversation.session_state = dict(output.updated_session_state)
+                flag_modified(conversation, "session_state")
             conversation.updated_at = func.now()
             db.commit()
             db.refresh(assistant_msg)

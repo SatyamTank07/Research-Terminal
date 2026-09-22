@@ -1,6 +1,6 @@
 """State and Output Schemas for Lead Supervisor Agent."""
 
-from typing import List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
 QueryType = Literal[
@@ -33,4 +33,17 @@ class RoutingPlan(BaseModel):
     routing_provenance: Literal["deterministic_rule", "llm_inferred"] = Field(
         default="deterministic_rule",
         description="Provenance tag: whether intent was resolved by deterministic rules or LLM inference",
+    )
+    needs_confirmation: bool = Field(
+        default=False,
+        description="True if requested year is missing and requires user confirmation before proceeding",
+    )
+    confirmation_message: Optional[str] = Field(
+        None, description="Message prompting user to confirm proceeding with the latest available fiscal year"
+    )
+    suggested_fiscal_year: Optional[int] = Field(
+        None, description="The latest available fiscal year suggested to the user"
+    )
+    updated_session_state: Optional[Dict[str, Any]] = Field(
+        default=None, description="Updated active session state to persist to PostgreSQL conversation record"
     )

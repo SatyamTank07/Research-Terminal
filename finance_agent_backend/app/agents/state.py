@@ -80,6 +80,9 @@ class EquityResearchState(TypedDict, total=False):
     document_id: str
     query_type: str
     routing_plan: Optional[RoutingPlan]
+    messages: Optional[List[Dict[str, str]]]
+    session_state: Optional[Dict[str, Any]]
+    updated_session_state: Optional[Dict[str, Any]]
 
     # Sub-agent structured payloads
     business_moat: Optional[BusinessMoatOutput]

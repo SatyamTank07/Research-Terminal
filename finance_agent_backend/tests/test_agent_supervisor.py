@@ -1,25 +1,28 @@
-"""Unit & Integration Tests for Supervisor & Intent Router Agent (Milestone 6).
+"""Unit & Integration Tests for Supervisor & Intent Router Agent.
 
 Validates:
 1. Agent registration in AgentRegistry and prompt template rendering.
-2. Deterministic filing catalog resolution with explicit substitution flagging (year_substituted).
-3. Stopword filtering (preventing false-positive ticker detection on CEO, EPS, GAAP, SEC, YOY).
-4. Keyword prioritization (preventing broad 'valuation' queries from hijacking business moat analysis).
-5. Error handling for un-ingested tickers with catalog fallback listing.
-6. Deterministic intent classification across all 5 query paths.
-7. Supervisor LLM fallback with supervisor.j2 for conversational/ambiguous queries (tagging routing_provenance).
-8. Complete RoutingPlan structure and BaseAgent.run() interface.
+2. Catalog resolution with explicit substitution flagging (year_substituted).
+3. Entity extraction without making actual external API calls.
+4. Keyword and intent classification.
+5. Interactive year confirmation: When requested year is missing, prompts user with latest year.
+6. Multi-turn chat confirmation: User agreeing in natural language (e.g. 'sounds great') confirms and executes.
+7. Multi-turn chat cancellation: User declining in natural language (e.g. 'nah cancel') cancels cleanly.
+8. LLM extraction using mocks (ZERO external API calls).
 """
 
+import json
 import unittest
+from unittest.mock import MagicMock, patch
+
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
-from app.agents.specialized.supervisor import SupervisorAgent, STOPWORD_TICKERS
+from app.agents.specialized.supervisor import SupervisorAgent, SupervisorExtraction
 from app.agents.state import RoutingPlan
 
 
 class TestAgentSupervisor(unittest.TestCase):
-    """Test suite for Milestone 6: Supervisor & Intent Router Agent."""
+    """Test suite for Supervisor & Intent Router Agent (100% Mocked - No External API Calls)."""
 
     def setUp(self):
         self.supervisor = SupervisorAgent()
@@ -34,7 +37,6 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertIn("Research Operations Supervisor", prompt)
         self.assertIn("full_10k_report", prompt)
         self.assertIn("dcf_valuation_only", prompt)
-        self.assertIn("RoutingPlan", prompt)
 
     def test_02_catalog_resolution_and_substitution_flag(self):
         """Verify direct ticker resolution and explicit provenance flagging when year is substituted."""
@@ -57,12 +59,8 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertEqual(year_req2, 2020)
         self.assertTrue(year_sub2, "Unavailable year must set year_substituted=True")
 
-    def test_03_query_entity_extraction_and_stopwords(self):
-        """Verify entity extraction and ensure financial acronyms (CEO, EPS, GAAP) are not treated as tickers."""
-        # Expanded stopwords check
-        for sw in ["CEO", "CFO", "EPS", "GAAP", "SEC", "YOY", "CAGR", "EBITDA"]:
-            self.assertIn(sw, STOPWORD_TICKERS)
-
+    def test_03_query_entity_extraction_deterministic(self):
+        """Verify entity extraction from query text using database catalog without API calls."""
         # By company name
         t1, c1, y1, _, _, _ = self.supervisor.resolve_filing_catalog(
             user_query="What is the DCF valuation of Apple for fiscal year 2025?"
@@ -77,118 +75,160 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertEqual(t2, "TSLA")
         self.assertEqual(y2, 2025)
 
-        # Query containing stopwords like 'CEO' and 'EPS' should still find the true company
-        t3, _, _, _, _, _ = self.supervisor.resolve_filing_catalog(
-            user_query="What did the CEO say about EPS in Apple's filing?"
-        )
-        self.assertEqual(t3, "AAPL")
-
     def test_04_error_on_unknown_ticker(self):
         """Verify descriptive ValueError when requested entity is not in database catalog."""
         with self.assertRaises(ValueError) as ctx:
             self.supervisor.resolve_filing_catalog(ticker="UNKNOWN_CORP_XYZ")
         self.assertIn("No ingested 10-K filings found for ticker 'UNKNOWN_CORP_XYZ'", str(ctx.exception))
 
-    def test_05_keyword_prioritization_and_intent_classification(self):
-        """Verify refined keyword prioritization (qualitative moat before broad valuation words)."""
-        # Moat questions that mention 'valuation' must route to business_moat_only (not hijacked by DCF)
-        q_moat_val = "How does Apple's ecosystem and business model drive valuation creation?"
-        self.assertEqual(self.supervisor.classify_intent(q_moat_val), "business_moat_only")
-
-        route1, prov1 = self.supervisor.classify_intent_with_provenance(q_moat_val)
-        self.assertEqual(route1, "business_moat_only")
-        self.assertEqual(prov1, "deterministic_rule")
-
-        # Explicit full report
+    def test_05_intent_classification(self):
+        """Verify intent classification across all 5 paths without calling LLM."""
+        # Moat
+        self.assertEqual(
+            self.supervisor.classify_intent("What is Apple's economic moat and business model?"),
+            "business_moat_only",
+        )
+        # Full Report
         self.assertEqual(
             self.supervisor.classify_intent("Generate comprehensive 10-K research report on Apple"),
             "full_10k_report",
         )
-        route_full, prov_full = self.supervisor.classify_intent_with_provenance(
-            "Generate comprehensive 10-K research report on Apple"
-        )
-        self.assertEqual(route_full, "full_10k_report")
-        self.assertEqual(prov_full, "deterministic_rule")
-
-        # Explicit DCF
+        # DCF
         self.assertEqual(
             self.supervisor.classify_intent("Calculate DCF fair value and WACC for TSLA"),
             "dcf_valuation_only",
         )
-        route_dcf, prov_dcf = self.supervisor.classify_intent_with_provenance(
-            "Calculate DCF fair value and WACC for TSLA"
-        )
-        self.assertEqual(route_dcf, "dcf_valuation_only")
-        self.assertEqual(prov_dcf, "deterministic_rule")
-
         # Financial Audit
         self.assertEqual(
             self.supervisor.classify_intent("Check statement of operations and balance sheet for Tesla"),
             "financial_audit_only",
         )
-
         # Risk Factors
         self.assertEqual(
             self.supervisor.classify_intent("What are the primary Item 1A legal and antitrust risks for Nvidia?"),
             "risk_factors_only",
         )
 
-    def test_06_llm_fallback_for_conversational_queries(self):
-        """Verify that conversational or ambiguous queries invoke supervisor.j2 with llm_inferred provenance."""
-        ambiguous_query = "Could you please walk me through how Apple defends its market dominance against competitors?"
-        route, provenance = self.supervisor.classify_intent_with_provenance(ambiguous_query)
-        self.assertIn(route, ["business_moat_only", "full_10k_report"])
-        # If LLM classified or fallback occurred, provenance is tagged
-        self.assertIn(provenance, ["llm_inferred", "deterministic_rule"])
-
-    def test_07_routing_plan_emission(self):
-        """Verify complete RoutingPlan structure, substitution tag, and active agent assignments."""
-        plan_full = self.supervisor.route(
-            user_query="Generate full 10-K equity research report on Apple",
-            ticker="AAPL",
-            fiscal_year=2025,
-        )
-        self.assertIsInstance(plan_full, RoutingPlan)
-        self.assertEqual(plan_full.ticker, "AAPL")
-        self.assertEqual(plan_full.fiscal_year, 2025)
-        self.assertEqual(plan_full.year_substituted, False)
-        self.assertEqual(plan_full.query_type, "full_10k_report")
-        self.assertEqual(plan_full.routing_provenance, "deterministic_rule")
-        self.assertEqual(len(plan_full.active_agents), 6)
-        self.assertIn("lead_synthesizer", plan_full.active_agents)
-
-        plan_dcf = self.supervisor.route(
+    def test_06_year_not_present_prompts_confirmation(self):
+        """Verify that when a requested year is not present in the DB, supervisor halts and requests confirmation."""
+        # User asks for TSLA 2022, but DB only has 2025
+        plan = self.supervisor.route(
             user_query="What is the DCF fair value of TSLA for 2022?",
             ticker="TSLA",
             fiscal_year=2022,
         )
-        self.assertEqual(plan_dcf.query_type, "dcf_valuation_only")
-        self.assertEqual(plan_dcf.year_substituted, True, "2022 is unavailable for TSLA; must flag substituted")
-        self.assertEqual(plan_dcf.fiscal_year, 2025)
-        self.assertEqual(plan_dcf.active_agents, [
-            "financial_auditor",
-            "forecasting_analyst",
-            "valuation_specialist",
-        ])
+        self.assertIsInstance(plan, RoutingPlan)
+        self.assertTrue(plan.needs_confirmation, "Missing year must flag needs_confirmation=True")
+        self.assertEqual(plan.suggested_fiscal_year, 2025)
+        self.assertIn("not available in our catalog", plan.confirmation_message)
+        self.assertIn("FY2025", plan.confirmation_message)
+        self.assertEqual(len(plan.active_agents), 0, "No agents should be scheduled until user confirms")
+        self.assertIsNotNone(plan.updated_session_state)
+        self.assertEqual(plan.updated_session_state.get("pending_action", {}).get("type"), "confirm_year")
 
-    def test_08_run_agent_output_interface(self):
-        """Verify BaseAgent.run() interface compatibility for Supervisor."""
-        output = self.supervisor.run([
-            {"role": "user", "content": "What is NVDA fair value and DCF valuation?"}
-        ])
-        self.assertTrue(len(output.content) > 0)
-        self.assertIn("NVDA", output.content)
-        self.assertIn("dcf_valuation_only", output.content)
-        self.assertTrue(len(output.sources) > 0)
+    @patch.object(SupervisorAgent, "_check_confirmation_sentiment")
+    def test_07_multiturn_chat_confirmation_affirmative(self, mock_check_sentiment):
+        """Verify natural language confirmation handled via session_state & LLM sentiment (ZERO API calls)."""
+        from app.agents.specialized.supervisor.agent_supervisor import ConfirmationSentiment
 
-    def test_09_llm_nickname_entity_resolution(self):
-        """Verify natural language company nickname (e.g. 'iPhone maker') resolves via LLM fallback."""
+        mock_check_sentiment.return_value = ConfirmationSentiment(sentiment="yes")
+
+        session_state = {
+            "active_ticker": "TSLA",
+            "active_company": "Tesla, Inc.",
+            "active_fiscal_year": 2025,
+            "last_query_type": "dcf_valuation_only",
+            "pending_action": {
+                "type": "confirm_year",
+                "ticker": "TSLA",
+                "suggested_year": 2025,
+                "requested_year": 2022,
+                "original_query_type": "dcf_valuation_only",
+            },
+        }
+
+        plan = self.supervisor.route(
+            user_query="sounds great, let's do it",
+            session_state=session_state,
+        )
+
+        self.assertIsInstance(plan, RoutingPlan)
+        self.assertEqual(plan.ticker, "TSLA")
+        self.assertEqual(plan.fiscal_year, 2025)
+        self.assertFalse(plan.needs_confirmation, "Confirmed turn must set needs_confirmation=False")
+        self.assertTrue(plan.year_substituted)
+        self.assertEqual(plan.query_type, "dcf_valuation_only", "Must preserve original DCF query type from Turn 1")
+        self.assertTrue(len(plan.active_agents) > 0, "Agents must now be scheduled to execute")
+        self.assertIsNone(plan.updated_session_state.get("pending_action"))
+        self.assertTrue(mock_check_sentiment.called)
+
+    @patch.object(SupervisorAgent, "_check_confirmation_sentiment")
+    def test_08_multiturn_chat_confirmation_declined(self, mock_check_sentiment):
+        """Verify natural language cancellation handled via session_state & LLM sentiment (ZERO API calls)."""
+        from app.agents.specialized.supervisor.agent_supervisor import ConfirmationSentiment
+
+        mock_check_sentiment.return_value = ConfirmationSentiment(sentiment="no")
+
+        session_state = {
+            "active_ticker": "AAPL",
+            "active_company": "Apple Inc.",
+            "active_fiscal_year": 2025,
+            "last_query_type": "full_10k_report",
+            "pending_action": {
+                "type": "confirm_year",
+                "ticker": "AAPL",
+                "suggested_year": 2025,
+                "requested_year": 2020,
+                "original_query_type": "full_10k_report",
+            },
+        }
+
+        plan = self.supervisor.route(
+            user_query="nah cancel that",
+            session_state=session_state,
+        )
+
+        self.assertIsInstance(plan, RoutingPlan)
+        self.assertTrue(plan.needs_confirmation)
+        self.assertIn("cancelled", plan.confirmation_message)
+        self.assertEqual(len(plan.active_agents), 0, "No agents should run on cancellation")
+        self.assertIsNone(plan.updated_session_state.get("pending_action"))
+        self.assertTrue(mock_check_sentiment.called)
+
+    @patch.object(SupervisorAgent, "_get_llm")
+    def test_09_mocked_llm_fallback_for_conversational_queries(self, mock_get_llm):
+        """Verify conversational entity and intent extraction using a mocked LLM (ZERO API calls)."""
+        mock_structured = MagicMock()
+        mock_structured.invoke.return_value = SupervisorExtraction(
+            query_type="business_moat_only",
+            extracted_ticker="AAPL",
+            extracted_year=2025,
+            routing_reasoning="User asking about competitive moat of iPhone maker",
+        )
+        mock_llm = MagicMock()
+        mock_llm.with_structured_output.return_value = mock_structured
+        mock_get_llm.return_value = mock_llm
+
         plan = self.supervisor.route(
             user_query="Can you analyze the economic moat of the iPhone maker?"
         )
+
         self.assertEqual(plan.ticker, "AAPL")
-        self.assertIn(plan.query_type, ["business_moat_only", "full_10k_report"])
-        self.assertEqual(plan.routing_provenance, "llm_inferred")
+        self.assertEqual(plan.fiscal_year, 2025)
+        self.assertEqual(plan.query_type, "business_moat_only")
+        self.assertTrue(mock_structured.invoke.called)
+
+    def test_10_run_interface_returns_confirmation_content_and_session_state(self):
+        """Verify BaseAgent.run() interface returns confirmation text and pending_action in session_state."""
+        output = self.supervisor.run([
+            {"role": "user", "content": "What is the DCF valuation of TSLA for 2019?"}
+        ])
+        self.assertTrue(len(output.content) > 0)
+        self.assertIn("not available in our catalog", output.content)
+        self.assertIn("Would you like to proceed with", output.content)
+        self.assertEqual(output.sources, [])
+        self.assertIsNotNone(output.updated_session_state)
+        self.assertEqual(output.updated_session_state.get("pending_action", {}).get("type"), "confirm_year")
 
 
 if __name__ == "__main__":

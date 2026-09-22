@@ -56,6 +56,8 @@ class Conversation(Base):
         index=True,
     )
 
+    session_state = Column(JSON, default=dict, nullable=True)
+
     user = relationship("User", back_populates="conversations")
     messages = relationship(
         "ChatMessage",
@@ -73,6 +75,7 @@ class Conversation(Base):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "message_count": len(self.messages) if self.messages is not None else 0,
+            "session_state": self.session_state or {},
         }
 
 

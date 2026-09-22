@@ -48,7 +48,11 @@ class FinancialAnalystAgent(BaseAgent):
         self._last_tavily_key = tavily_key
         return agent
 
-    def run(self, messages: List[Dict[str, str]]) -> AgentOutput:
+    def run(
+        self,
+        messages: List[Dict[str, str]],
+        session_state: Optional[Dict[str, Any]] = None,
+    ) -> AgentOutput:
         active_agent = self._get_or_create_agent()
         result = active_agent.invoke(
             {"messages": messages},

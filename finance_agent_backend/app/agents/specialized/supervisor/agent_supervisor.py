@@ -1,16 +1,14 @@
 """Lead Supervisor & Intent Router Agent.
 
-Responsible for deterministic query triage, filing catalog validation against
-the PostgreSQL `documents` table, and establishing the execution DAG
-(Fast-Path DCF vs. Full 10-K Equity Research Report vs. Single-Agent ad-hoc query).
-Includes explicit provenance tracking (substitution flag, routing provenance)
-and an LLM-assisted fallback using supervisor.j2 for ambiguous natural language queries.
+Responsible for query triage, filing catalog validation against the PostgreSQL
+`documents` table, session context management, and establishing the execution
+DAG (Fast-Path DCF vs. Full 10-K Equity Research Report vs. Single-Agent ad-hoc query).
 """
 
 import json
 import logging
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
@@ -25,31 +23,8 @@ from app.models import Document
 
 logger = logging.getLogger("finance_agent.agents.supervisor")
 
-# Comprehensive financial, corporate, executive, and English stopwords to prevent ticker false-positives
-STOPWORD_TICKERS = {
-    # Pronouns, Conjunctions & Prepositions
-    "A", "AN", "THE", "AND", "OR", "BUT", "IF", "SO", "FOR", "AT", "BY", "FROM",
-    "IN", "INTO", "OF", "OFF", "ON", "ONTO", "OUT", "OVER", "TO", "UP", "WITH",
-    "AS", "BE", "IS", "ARE", "WAS", "WERE", "DO", "DOES", "DID", "HAVE", "HAS",
-    "HAD", "CAN", "COULD", "WILL", "WOULD", "SHALL", "SHOULD", "MAY", "MIGHT",
-    "MUST", "I", "YOU", "HE", "SHE", "IT", "WE", "THEY", "ME", "HIM", "HER",
-    "US", "THEM", "MY", "YOUR", "HIS", "ITS", "OUR", "THEIR", "WHAT", "WHICH",
-    "WHO", "WHOM", "WHOSE", "WHEN", "WHERE", "WHY", "HOW", "ALL", "ANY", "BOTH",
-    "EACH", "FEW", "MORE", "MOST", "OTHER", "SOME", "SUCH", "NO", "NOR", "NOT",
-    "ONLY", "OWN", "SAME", "THAN", "TOO", "VERY", "JUST",
-    # Financial, SEC, Executive & Filing Acronyms
-    "10K", "10-K", "10Q", "10-Q", "8K", "8-K", "FY", "Q1", "Q2", "Q3", "Q4",
-    "SEC", "EDGAR", "GAAP", "IFRS", "EPS", "PE", "PB", "PS", "EV",
-    "EBITDA", "EBIT", "NOPAT", "FCF", "UFCF", "CAGR", "YOY", "QOQ", "TTM",
-    "LTM", "NTM", "WACC", "ROIC", "ROE", "ROA", "ROC", "IRR", "NPV", "BPS",
-    "SGA", "SG&A", "RD", "R&D", "CAPEX", "OPEX", "COGS", "NWC", "MD&A",
-    "CEO", "CFO", "COO", "CTO", "CIO", "CMO", "VP", "SVP", "EVP", "USA", "USD",
-    # Generic Financial & Agent Terms
-    "SHOW", "FIND", "RUN", "GET", "GIVE", "TELL", "CHECK", "REPORT", "STOCK",
-    "PRICE", "VALUE", "MODEL", "ANALYSIS", "AGENT", "AGENTS", "VIEW", "CALC",
-    "CALCULATE", "SUMMARIZE", "EXPLAIN", "AUDIT", "FORECAST", "VALUATION",
-    "RESEARCH", "COMPANY", "CORP", "INC", "LTD", "FILING", "STATEMENT", "TABLE",
-}
+# Deprecated: Kept as empty set for backwards compatibility with external callers
+STOPWORD_TICKERS: set = set()
 
 # Fast-path agent mapping
 AGENT_EXECUTION_PLANS: Dict[QueryType, List[str]] = {
@@ -78,18 +53,39 @@ AGENT_EXECUTION_PLANS: Dict[QueryType, List[str]] = {
 }
 
 
-class LLMRoutingDecision(BaseModel):
-    """Pydantic schema for supervisor.j2 LLM fallback classification."""
+class SupervisorExtraction(BaseModel):
+    """Pydantic schema for supervisor intent and entity extraction."""
 
-    query_type: QueryType = Field(..., description="Selected routing path")
-    extracted_ticker: Optional[str] = Field(None, description="Extracted stock ticker if identifiable")
-    extracted_year: Optional[int] = Field(None, description="Extracted fiscal year if identifiable")
-    routing_reasoning: str = Field(..., description="Brief explanation of the routing classification")
+    query_type: QueryType = Field(
+        default="full_10k_report",
+        description="Selected routing path (full_10k_report, dcf_valuation_only, financial_audit_only, business_moat_only, risk_factors_only)",
+    )
+    extracted_ticker: Optional[str] = Field(
+        None, description="Extracted stock ticker if identifiable (e.g. AAPL, TSLA, NVDA)"
+    )
+    extracted_year: Optional[int] = Field(
+        None, description="Extracted 4-digit fiscal year if explicitly requested by user (e.g. 2023)"
+    )
+    routing_reasoning: str = Field(
+        default="", description="Brief explanation of the routing classification"
+    )
+
+
+class ConfirmationSentiment(BaseModel):
+    """Sentiment classification when a pending confirmation is active."""
+
+    sentiment: Literal["yes", "no", "new_query"] = Field(
+        description="'yes' if user agreed to continue/proceed with proposed year, 'no' if user declined/cancelled, 'new_query' if user asked a totally different inquiry"
+    )
+
+
+# Alias for backward compatibility
+LLMRoutingDecision = SupervisorExtraction
 
 
 @AgentRegistry.register("supervisor")
 class SupervisorAgent(BaseAgent):
-    """Lead Supervisor coordinating filing resolution, deterministic routing, and DAG planning."""
+    """Lead Supervisor coordinating filing resolution, intent routing, and DAG planning."""
 
     def __init__(self, model_name: str = "openai:gpt-4o-mini"):
         self.model_name = model_name
@@ -110,6 +106,46 @@ class SupervisorAgent(BaseAgent):
         self._cached_llm = llm
         return llm
 
+    def _check_confirmation_sentiment(self, user_query: str) -> ConfirmationSentiment:
+        """Determines if user agreed, declined, or changed topic regarding a pending confirmation."""
+        prompt = (
+            "The user was previously asked: 'The requested 10-K filing year is unavailable. Would you like to proceed with the latest available year?'\n"
+            f"User response: '{user_query}'\n"
+            "Classify if the user agreed ('yes'), declined/cancelled ('no'), or asked a new unrelated query ('new_query')."
+        )
+        llm = self._get_llm()
+        structured_llm = llm.with_structured_output(ConfirmationSentiment)
+        return structured_llm.invoke(prompt)
+
+    def _extract_with_llm(
+        self,
+        user_query: str,
+        active_session: Optional[Dict[str, Any]] = None,
+    ) -> SupervisorExtraction:
+        """Utilizes supervisor.j2 prompt template for LLM routing and entity extraction with active session context."""
+        db = SessionLocal()
+        try:
+            available_docs = (
+                db.query(Document.ticker, Document.fiscal_year, Document.company_name)
+                .order_by(Document.ticker, Document.fiscal_year.desc())
+                .all()
+            )
+            catalog_summary = "\n".join([f"- {d[0]} (FY{d[1]}): {d[2]}" for d in available_docs])
+        finally:
+            db.close()
+
+        system_prompt = render_prompt("supervisor", catalog_summary=catalog_summary, active_session=active_session)
+        llm = self._get_llm()
+        structured_llm = llm.with_structured_output(SupervisorExtraction)
+
+        prompt_input = f"Analyze and route this research inquiry: '{user_query}'"
+
+        decision: SupervisorExtraction = structured_llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=prompt_input),
+        ])
+        return decision
+
     def resolve_filing_catalog(
         self,
         ticker: Optional[str] = None,
@@ -117,8 +153,6 @@ class SupervisorAgent(BaseAgent):
         user_query: Optional[str] = None,
     ) -> Tuple[str, str, int, str, Optional[int], bool]:
         """Resolves target company, filing year, and document ID from database catalog.
-
-        Explicitly tracks whether requested year was substituted with an audited alternative.
 
         Returns:
             Tuple of (ticker, company_name, fiscal_year, document_id, year_requested, year_substituted)
@@ -128,7 +162,7 @@ class SupervisorAgent(BaseAgent):
             resolved_ticker = (ticker or "").strip().upper()
             year_requested = fiscal_year
 
-            # If ticker not explicitly provided, attempt extraction from user query
+            # If ticker not explicitly provided, attempt extraction from query
             if not resolved_ticker and user_query:
                 resolved_ticker = self._extract_ticker_from_query(user_query, db)
 
@@ -157,7 +191,7 @@ class SupervisorAgent(BaseAgent):
             if year_requested:
                 doc = query.filter(Document.fiscal_year == year_requested).first()
                 if not doc:
-                    # Requested year unavailable; fall back to latest available year with explicit flag
+                    # Requested year unavailable; select latest available year with substitution flag
                     doc = (
                         db.query(Document)
                         .filter(Document.ticker == resolved_ticker)
@@ -195,7 +229,7 @@ class SupervisorAgent(BaseAgent):
             if t_upper in available_tickers:
                 return t_upper
 
-        # 2. Company name substring match against documents
+        # 2. Company name match against documents
         all_docs = db.query(Document.ticker, Document.company_name).all()
         q_lower = query.lower()
         for t, cname in all_docs:
@@ -209,12 +243,6 @@ class SupervisorAgent(BaseAgent):
             if first_word and len(first_word) >= 3 and first_word in q_lower:
                 return t.upper()
 
-        # 3. Uppercase ticker pattern fallback filtering out extensive financial stopwords
-        candidates = re.findall(r"\b[A-Z]{1,5}\b", query)
-        for cand in candidates:
-            if cand not in STOPWORD_TICKERS:
-                return cand
-
         return ""
 
     def classify_intent(self, user_query: str) -> QueryType:
@@ -223,160 +251,227 @@ class SupervisorAgent(BaseAgent):
         return query_type
 
     def classify_intent_with_provenance(self, user_query: str) -> Tuple[QueryType, str]:
-        """Classifies user intent into execution routes with refined keyword prioritization.
-
-        Returns:
-            Tuple of (QueryType, routing_provenance: "deterministic_rule" | "llm_inferred")
-        """
+        """Classifies user intent using deterministic fast-path with LLM fallback."""
         q = user_query.lower()
 
-        # 1. Check for explicit full report request
-        full_report_signals = [
-            "full report", "complete report", "comprehensive", "deep dive",
-            "full 10-k", "full 10k", "equity research report", "full research",
-            "institutional report", "all agents", "overall analysis"
-        ]
-        if any(sig in q for sig in full_report_signals):
+        # Fast keyword matches
+        if any(sig in q for sig in ["full report", "complete report", "comprehensive", "deep dive", "all agents"]):
             return "full_10k_report", "deterministic_rule"
-
-        # 2. Check for Moat / Business Strategy questions FIRST (prevents broad "valuation" words from hijacking)
-        moat_signals = [
-            "moat", "economic moat", "business model", "competitive advantage",
-            "segments", "product segments", "pricing power", "customer concentration",
-            "revenue model", "how does it make money", "ecosystem advantage"
-        ]
-        if any(sig in q for sig in moat_signals):
+        if any(sig in q for sig in ["moat", "business model", "competitive advantage", "segments", "pricing power"]):
             return "business_moat_only", "deterministic_rule"
-
-        # 3. Check for Risk Factors questions
-        risk_signals = [
-            "risk", "risks", "risk factor", "risk factors", "threat", "threats",
-            "litigation", "lawsuit", "antitrust", "regulatory threat",
-            "existential threat", "headwinds", "vulnerabilities"
-        ]
-        if any(sig in q for sig in risk_signals):
+        if any(sig in q for sig in ["risk", "threat", "litigation", "lawsuit", "antitrust", "headwinds"]):
             return "risk_factors_only", "deterministic_rule"
-
-        # 4. Check for Financial Statement / Auditor questions
-        audit_signals = [
-            "balance sheet", "income statement", "cash flow statement",
-            "statement of operations", "statement of cash flows", "gross margin",
-            "operating margin", "net margin", "audit", "financial ratios",
-            "forensic", "red flags", "net debt", "shares outstanding"
-        ]
-        if any(sig in q for sig in audit_signals):
+        if any(sig in q for sig in ["balance sheet", "income statement", "cash flow", "statement of operations", "margin", "audit"]):
             return "financial_audit_only", "deterministic_rule"
-
-        # 5. Check for focused DCF Valuation
-        dcf_signals = [
-            "dcf", "discounted cash flow", "intrinsic value", "fair value",
-            "target price", "wacc", "cost of capital", "what is the fair value",
-            "what is the intrinsic value", "sensitivity matrix", "valuation multiple"
-        ]
-        if any(sig in q for sig in dcf_signals):
+        if any(sig in q for sig in ["dcf", "intrinsic value", "fair value", "target price", "wacc"]):
             return "dcf_valuation_only", "deterministic_rule"
 
-        # Standalone "valuation" only routes to DCF if explicitly numerical
-        if "valuation" in q and not any(sig in q for sig in moat_signals):
-            return "dcf_valuation_only", "deterministic_rule"
-
-        # 6. Fallback: For conversational/ambiguous queries, invoke supervisor.j2 LLM router
+        # LLM fallback for conversational/ambiguous queries
         try:
-            llm_decision = self._classify_with_llm(user_query)
-            if llm_decision and llm_decision.query_type in AGENT_EXECUTION_PLANS:
-                return llm_decision.query_type, "llm_inferred"
+            extraction = self._extract_with_llm(user_query)
+            if extraction and extraction.query_type in AGENT_EXECUTION_PLANS:
+                return extraction.query_type, "llm_inferred"
         except Exception as e:
             logger.warning(f"LLM supervisor intent routing failed ({e}); defaulting to full_10k_report.")
 
-        # Default for broad inquiries (e.g. "Analyze Apple", "TSLA research")
         return "full_10k_report", "deterministic_rule"
-
-    def _classify_with_llm(self, user_query: str) -> Optional[LLMRoutingDecision]:
-        """Utilizes supervisor.j2 prompt template for LLM routing and entity extraction on ambiguous queries."""
-        db = SessionLocal()
-        try:
-            available_docs = (
-                db.query(Document.ticker, Document.fiscal_year, Document.company_name)
-                .order_by(Document.ticker, Document.fiscal_year.desc())
-                .all()
-            )
-            catalog_summary = "\n".join([f"- {d[0]} (FY{d[1]}): {d[2]}" for d in available_docs])
-        finally:
-            db.close()
-
-        system_prompt = render_prompt("supervisor", catalog_summary=catalog_summary)
-        llm = self._get_llm()
-        structured_llm = llm.with_structured_output(LLMRoutingDecision)
-
-        try:
-            decision: LLMRoutingDecision = structured_llm.invoke([
-                SystemMessage(content=system_prompt),
-                HumanMessage(content=f"Analyze and route this research inquiry: '{user_query}'"),
-            ])
-            return decision
-        except Exception as e:
-            logger.warning(f"LLM supervisor routing failed: {e}")
-            return None
 
     def route(
         self,
         user_query: str,
         ticker: Optional[str] = None,
         fiscal_year: Optional[int] = None,
+        session_state: Optional[Dict[str, Any]] = None,
+        messages: Optional[List[Dict[str, str]]] = None,
     ) -> RoutingPlan:
-        """Generates a complete RoutingPlan with integrated deterministic and LLM entity/intent resolution."""
-        # 1. Attempt deterministic catalog resolution first
+        """Generates a complete RoutingPlan using database session_state for clean multi-turn context."""
+        active_state = dict(session_state or {})
+
+        # 1. Check if a pending action (e.g. year confirmation) exists in session_state
+        if active_state.get("pending_action"):
+            pending = active_state["pending_action"]
+            if pending.get("type") == "confirm_year":
+                sentiment_resp = self._check_confirmation_sentiment(user_query)
+                if sentiment_resp.sentiment == "yes":
+                    conf_ticker = pending["ticker"]
+                    sugg_year = pending["suggested_year"]
+                    orig_route = pending.get("original_query_type", "full_10k_report")
+
+                    db = SessionLocal()
+                    try:
+                        doc = (
+                            db.query(Document)
+                            .filter(Document.ticker == conf_ticker, Document.fiscal_year == sugg_year)
+                            .first()
+                        )
+                        if not doc:
+                            doc = (
+                                db.query(Document)
+                                .filter(Document.ticker == conf_ticker)
+                                .order_by(Document.fiscal_year.desc())
+                                .first()
+                            )
+                        company_name = doc.company_name if doc else conf_ticker
+                        doc_id = doc.id if doc else None
+                    finally:
+                        db.close()
+
+                    updated_session = {
+                        "active_ticker": conf_ticker,
+                        "active_company": company_name,
+                        "active_fiscal_year": sugg_year,
+                        "last_query_type": orig_route,
+                        "pending_action": None,
+                    }
+                    active_agents = AGENT_EXECUTION_PLANS.get(orig_route, AGENT_EXECUTION_PLANS["full_10k_report"])
+
+                    logger.info(f"Session context confirmed proceeding with {conf_ticker} FY{sugg_year}")
+                    return RoutingPlan(
+                        ticker=conf_ticker,
+                        company_name=company_name,
+                        fiscal_year=sugg_year,
+                        year_requested=pending.get("requested_year"),
+                        year_substituted=True,
+                        document_id=doc_id,
+                        query_type=orig_route,
+                        active_agents=active_agents,
+                        routing_provenance="llm_inferred",
+                        needs_confirmation=False,
+                        suggested_fiscal_year=sugg_year,
+                        updated_session_state=updated_session,
+                    )
+                elif sentiment_resp.sentiment == "no":
+                    conf_ticker = pending["ticker"]
+                    updated_session = dict(active_state)
+                    updated_session["pending_action"] = None
+
+                    logger.info(f"Session context cancelled research for {conf_ticker}")
+                    return RoutingPlan(
+                        ticker=conf_ticker,
+                        company_name=conf_ticker,
+                        fiscal_year=pending.get("suggested_year", 0),
+                        year_requested=None,
+                        year_substituted=False,
+                        document_id=None,
+                        query_type="full_10k_report",
+                        active_agents=[],
+                        routing_provenance="llm_inferred",
+                        needs_confirmation=True,
+                        confirmation_message=(
+                            f"Understood. Analysis for **{conf_ticker}** has been cancelled. "
+                            f"Let me know if you would like to analyze a different company or upload a 10-K filing."
+                        ),
+                        suggested_fiscal_year=pending.get("suggested_year"),
+                        updated_session_state=updated_session,
+                    )
+
+                # If user switched to an entirely new query, clear pending_action and proceed
+                active_state["pending_action"] = None
+
+        # 2. Standard resolution with active session state awareness
+        extraction: Optional[SupervisorExtraction] = None
+        if not ticker or not fiscal_year:
+            try:
+                extraction = self._extract_with_llm(user_query, active_session=active_state)
+            except Exception as e:
+                logger.warning(f"LLM supervisor extraction failed ({e})")
+
+        resolved_ticker = (
+            ticker
+            or (extraction.extracted_ticker if extraction else None)
+            or active_state.get("active_ticker")
+        )
+        resolved_year_req = (
+            fiscal_year if fiscal_year is not None else (extraction.extracted_year if extraction else None)
+        )
+
         try:
-            resolved_ticker, company_name, resolved_year, doc_id, year_req, year_sub = (
+            doc_ticker, company_name, catalog_year, doc_id, year_req, year_sub = (
                 self.resolve_filing_catalog(
-                    ticker=ticker,
-                    fiscal_year=fiscal_year,
+                    ticker=resolved_ticker,
+                    fiscal_year=resolved_year_req,
                     user_query=user_query,
                 )
             )
-            query_type, provenance = self.classify_intent_with_provenance(user_query)
-        except ValueError as deterministic_err:
-            # 2. Deterministic ticker extraction failed -> invoke supervisor.j2 LLM fallback!
-            logger.info(
-                f"Deterministic catalog resolution failed ({deterministic_err}). "
-                f"Attempting supervisor.j2 LLM entity and intent resolution."
-            )
-            llm_decision = self._classify_with_llm(user_query)
-            if llm_decision and llm_decision.extracted_ticker:
-                resolved_ticker, company_name, resolved_year, doc_id, year_req, year_sub = (
+        except ValueError as err:
+            if extraction and extraction.extracted_ticker and extraction.extracted_ticker != resolved_ticker:
+                doc_ticker, company_name, catalog_year, doc_id, year_req, year_sub = (
                     self.resolve_filing_catalog(
-                        ticker=llm_decision.extracted_ticker,
-                        fiscal_year=llm_decision.extracted_year or fiscal_year,
+                        ticker=extraction.extracted_ticker,
+                        fiscal_year=extraction.extracted_year or fiscal_year,
                         user_query=user_query,
                     )
                 )
-                query_type = llm_decision.query_type
-                provenance = "llm_inferred"
             else:
-                # Both deterministic and LLM extraction failed; re-raise original descriptive error
-                raise deterministic_err
+                raise err
 
+        query_type = extraction.query_type if extraction else self.classify_intent(user_query)
+        provenance = "llm_inferred" if extraction else "deterministic_rule"
+
+        # 3. Check if year was missing -> update session_state with pending_action and prompt user
+        needs_conf = False
+        conf_msg = None
+        sugg_year = None
         active_agents = AGENT_EXECUTION_PLANS.get(query_type, AGENT_EXECUTION_PLANS["full_10k_report"])
+
+        if year_sub and year_req is not None and year_req != catalog_year:
+            needs_conf = True
+            sugg_year = catalog_year
+            active_agents = []
+            conf_msg = (
+                f"The 10-K filing for **{doc_ticker}** for fiscal year **{year_req}** is not available in our catalog. "
+                f"The latest available audited filing is **FY{catalog_year}**.\n\n"
+                f"Would you like to proceed with **FY{catalog_year}**?"
+            )
+            updated_session = {
+                "active_ticker": doc_ticker,
+                "active_company": company_name,
+                "active_fiscal_year": catalog_year,
+                "last_query_type": query_type,
+                "pending_action": {
+                    "type": "confirm_year",
+                    "ticker": doc_ticker,
+                    "suggested_year": catalog_year,
+                    "requested_year": year_req,
+                    "original_query_type": query_type,
+                },
+            }
+        else:
+            updated_session = {
+                "active_ticker": doc_ticker,
+                "active_company": company_name,
+                "active_fiscal_year": catalog_year,
+                "last_query_type": query_type,
+                "pending_action": None,
+            }
 
         logger.info(
             f"Supervisor routed query '{user_query[:50]}' -> "
-            f"Ticker: {resolved_ticker}, FY{resolved_year} (Substituted: {year_sub}), "
-            f"Route: {query_type} ({provenance}), Agents: {active_agents}"
+            f"Ticker: {doc_ticker}, FY{catalog_year} (needs_confirmation={needs_conf}), "
+            f"Route: {query_type} ({provenance})"
         )
 
         return RoutingPlan(
-            ticker=resolved_ticker,
+            ticker=doc_ticker,
             company_name=company_name,
-            fiscal_year=resolved_year,
+            fiscal_year=catalog_year,
             year_requested=year_req,
             year_substituted=year_sub,
             document_id=doc_id,
             query_type=query_type,
             active_agents=active_agents,
             routing_provenance=provenance,
+            needs_confirmation=needs_conf,
+            confirmation_message=conf_msg,
+            suggested_fiscal_year=sugg_year,
+            updated_session_state=updated_session,
         )
 
-    def run(self, messages: List[Dict[str, str]]) -> AgentOutput:
+    def run(
+        self,
+        messages: List[Dict[str, str]],
+        session_state: Optional[Dict[str, Any]] = None,
+    ) -> AgentOutput:
         """Executes the supervisor on conversational messages conforming to BaseAgent."""
         last_user_msg = ""
         for m in reversed(messages):
@@ -388,7 +483,18 @@ class SupervisorAgent(BaseAgent):
             last_user_msg = messages[-1].get("content", "")
 
         try:
-            plan = self.route(user_query=last_user_msg)
+            plan = self.route(
+                user_query=last_user_msg,
+                messages=messages,
+                session_state=session_state,
+            )
+            if plan.needs_confirmation and plan.confirmation_message:
+                return AgentOutput(
+                    content=plan.confirmation_message,
+                    sources=[],
+                    updated_session_state=plan.updated_session_state,
+                )
+
             return AgentOutput(
                 content=json.dumps(plan.model_dump(), indent=2),
                 sources=[{
@@ -397,7 +503,9 @@ class SupervisorAgent(BaseAgent):
                     "fiscal_year": plan.fiscal_year,
                     "year_substituted": plan.year_substituted,
                     "routing_provenance": plan.routing_provenance,
+                    "needs_confirmation": plan.needs_confirmation,
                 }],
+                updated_session_state=plan.updated_session_state,
             )
         except ValueError as e:
             return AgentOutput(

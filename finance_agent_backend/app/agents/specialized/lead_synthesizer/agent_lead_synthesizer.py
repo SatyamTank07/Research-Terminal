@@ -468,7 +468,11 @@ class LeadSynthesizerAgent(BaseAgent):
         except Exception:
             return {}
 
-    def run(self, messages: List[Dict[str, str]]) -> AgentOutput:
+    def run(
+        self,
+        messages: List[Dict[str, str]],
+        session_state: Optional[Dict[str, Any]] = None,
+    ) -> AgentOutput:
         """Executes the lead synthesizer on conversational messages conforming to BaseAgent."""
         last_user_msg = messages[-1].get("content", "") if messages else ""
         return AgentOutput(
