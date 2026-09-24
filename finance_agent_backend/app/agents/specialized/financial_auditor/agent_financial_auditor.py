@@ -42,7 +42,7 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
     output_schema = FinancialAuditOutput
     default_recursion_limit = 25
 
-    def audit(self, ticker: str, fiscal_year: int) -> FinancialAuditOutput:
+    def audit(self, ticker: str, fiscal_year: int, callbacks: Optional[List[Any]] = None) -> FinancialAuditOutput:
         """
         Direct programmatic interface for LangGraph orchestrator and standalone tests.
         Audits 10-K financial statements and returns a validated FinancialAuditOutput instance.
@@ -71,6 +71,7 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
             ticker=ticker,
             fiscal_year=fiscal_year,
             fallback_defaults=fallback_defaults,
+            callbacks=callbacks,
         )
 
     def _pre_validate_data(

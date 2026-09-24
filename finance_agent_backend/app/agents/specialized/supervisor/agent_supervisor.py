@@ -107,7 +107,7 @@ class SupervisorAgent(BaseAgent):
         self._cached_llm = llm
         return llm
 
-    def _check_confirmation_sentiment(self, user_query: str) -> ConfirmationSentiment:
+    def _check_confirmation_sentiment(self, user_query: str, callbacks: Optional[List[Any]] = None) -> ConfirmationSentiment:
         """Determines if user agreed, declined, or changed topic regarding a pending confirmation."""
         prompt = (
             "The user was previously asked: 'The requested 10-K filing year is unavailable. Would you like to proceed with the latest available year?'\n"
@@ -116,12 +116,14 @@ class SupervisorAgent(BaseAgent):
         )
         llm = self._get_llm()
         structured_llm = llm.with_structured_output(ConfirmationSentiment)
-        return structured_llm.invoke(prompt)
+        llm_config = {"callbacks": callbacks} if callbacks else {}
+        return structured_llm.invoke(prompt, config=llm_config)
 
     def _extract_with_llm(
         self,
         user_query: str,
         active_session: Optional[Dict[str, Any]] = None,
+        callbacks: Optional[List[Any]] = None,
     ) -> SupervisorExtraction:
         """Utilizes supervisor.j2 prompt template for LLM routing and entity extraction with active session context."""
         db = SessionLocal()
@@ -140,11 +142,12 @@ class SupervisorAgent(BaseAgent):
         structured_llm = llm.with_structured_output(SupervisorExtraction)
 
         prompt_input = f"Analyze and route this research inquiry: '{user_query}'"
+        llm_config = {"callbacks": callbacks} if callbacks else {}
 
         decision: SupervisorExtraction = structured_llm.invoke([
             SystemMessage(content=system_prompt),
             HumanMessage(content=prompt_input),
-        ])
+        ], config=llm_config)
         return decision
 
     def resolve_filing_catalog(
@@ -251,7 +254,7 @@ class SupervisorAgent(BaseAgent):
         query_type, _ = self.classify_intent_with_provenance(user_query)
         return query_type
 
-    def classify_intent_with_provenance(self, user_query: str) -> Tuple[QueryType, str]:
+    def classify_intent_with_provenance(self, user_query: str, callbacks: Optional[List[Any]] = None) -> Tuple[QueryType, str]:
         """Classifies user intent using deterministic fast-path with LLM fallback."""
         q = user_query.lower()
 
@@ -269,7 +272,7 @@ class SupervisorAgent(BaseAgent):
 
         # LLM fallback for conversational/ambiguous queries
         try:
-            extraction = self._extract_with_llm(user_query)
+            extraction = self._extract_with_llm(user_query, callbacks=callbacks)
             if extraction and extraction.query_type in AGENT_EXECUTION_PLANS:
                 return extraction.query_type, "llm_inferred"
         except Exception as e:
@@ -284,6 +287,7 @@ class SupervisorAgent(BaseAgent):
         fiscal_year: Optional[int] = None,
         session_state: Optional[Dict[str, Any]] = None,
         messages: Optional[List[Dict[str, str]]] = None,
+        callbacks: Optional[List[Any]] = None,
     ) -> RoutingPlan:
         """Generates a complete RoutingPlan using database session_state for clean multi-turn context."""
         active_state = dict(session_state or {})
@@ -292,7 +296,7 @@ class SupervisorAgent(BaseAgent):
         if active_state.get("pending_action"):
             pending = active_state["pending_action"]
             if pending.get("type") == "confirm_year":
-                sentiment_resp = self._check_confirmation_sentiment(user_query)
+                sentiment_resp = self._check_confirmation_sentiment(user_query, callbacks=callbacks)
                 if sentiment_resp.sentiment == "yes":
                     conf_ticker = pending["ticker"]
                     sugg_year = pending["suggested_year"]
@@ -373,7 +377,7 @@ class SupervisorAgent(BaseAgent):
         extraction: Optional[SupervisorExtraction] = None
         if not ticker or not fiscal_year:
             try:
-                extraction = self._extract_with_llm(user_query, active_session=active_state)
+                extraction = self._extract_with_llm(user_query, active_session=active_state, callbacks=callbacks)
             except Exception as e:
                 logger.warning(f"LLM supervisor extraction failed ({e})")
 
@@ -406,7 +410,11 @@ class SupervisorAgent(BaseAgent):
             else:
                 raise err
 
-        query_type = extraction.query_type if extraction else self.classify_intent(user_query)
+        query_type = (
+            extraction.query_type
+            if extraction
+            else self.classify_intent_with_provenance(user_query, callbacks=callbacks)[0]
+        )
         provenance = "llm_inferred" if extraction else "deterministic_rule"
 
         # 3. Check if year was missing -> update session_state with pending_action and prompt user

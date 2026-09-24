@@ -61,6 +61,7 @@ async def supervisor_node(state: EquityResearchState) -> Dict[str, Any]:
     messages = state.get("messages")
     session_state = state.get("session_state")
 
+    callbacks = state.get("callbacks")
     supervisor = SupervisorAgent()
     routing_plan: RoutingPlan = await asyncio.to_thread(
         supervisor.route,
@@ -69,6 +70,7 @@ async def supervisor_node(state: EquityResearchState) -> Dict[str, Any]:
         fiscal_year=fiscal_year,
         session_state=session_state,
         messages=messages,
+        callbacks=callbacks,
     )
 
     logger.info(
@@ -92,6 +94,7 @@ async def business_strategist_node(state: EquityResearchState) -> Dict[str, Any]
     """Node 1: Evaluates business model, product segments, and economic moat (Item 1)."""
     ticker = state["ticker"]
     fiscal_year = state["fiscal_year"]
+    callbacks = state.get("callbacks")
 
     logger.info(f"[business_strategist_node] Analyzing {ticker} FY{fiscal_year}")
     strategist = BusinessStrategistAgent()
@@ -99,6 +102,7 @@ async def business_strategist_node(state: EquityResearchState) -> Dict[str, Any]
         strategist.analyze,
         ticker=ticker,
         fiscal_year=fiscal_year,
+        callbacks=callbacks,
     )
 
     return {"business_moat": moat_output}
@@ -108,6 +112,7 @@ async def financial_auditor_node(state: EquityResearchState) -> Dict[str, Any]:
     """Node 2: Audits multi-year financial statements, computes ratios, and checks red flags (Item 8)."""
     ticker = state["ticker"]
     fiscal_year = state["fiscal_year"]
+    callbacks = state.get("callbacks")
 
     logger.info(f"[financial_auditor_node] Auditing {ticker} FY{fiscal_year}")
     auditor = FinancialAuditorAgent()
@@ -115,6 +120,7 @@ async def financial_auditor_node(state: EquityResearchState) -> Dict[str, Any]:
         auditor.audit,
         ticker=ticker,
         fiscal_year=fiscal_year,
+        callbacks=callbacks,
     )
 
     return {"financial_audit": audit_output}
@@ -124,6 +130,7 @@ async def risk_analyst_node(state: EquityResearchState) -> Dict[str, Any]:
     """Node 3: Extracts material risk factors and structural threats (Item 1A)."""
     ticker = state["ticker"]
     fiscal_year = state["fiscal_year"]
+    callbacks = state.get("callbacks")
 
     logger.info(f"[risk_analyst_node] Analyzing risks for {ticker} FY{fiscal_year}")
     risk_analyst = RiskAnalystAgent()
@@ -131,6 +138,7 @@ async def risk_analyst_node(state: EquityResearchState) -> Dict[str, Any]:
         risk_analyst.analyze,
         ticker=ticker,
         fiscal_year=fiscal_year,
+        callbacks=callbacks,
     )
 
     return {"risk_audit": risk_output}
@@ -148,6 +156,7 @@ async def forecasting_analyst_node(state: EquityResearchState) -> Dict[str, Any]
             f"Cannot execute forecasting_analyst for {ticker}: missing required financial_audit."
         )
 
+    callbacks = state.get("callbacks")
     logger.info(f"[forecasting_analyst_node] Building 5-yr UFCF schedule for {ticker} FY{fiscal_year}")
     forecaster = ForecastingAnalystAgent()
     forecast_output: ForecastOutput = await asyncio.to_thread(
@@ -157,6 +166,7 @@ async def forecasting_analyst_node(state: EquityResearchState) -> Dict[str, Any]
         financial_audit=financial_audit,
         business_moat=business_moat,
         horizon_years=5,
+        callbacks=callbacks,
     )
 
     return {"forecast": forecast_output}
@@ -169,6 +179,7 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
     financial_audit = state.get("financial_audit")
     forecast = state.get("forecast")
     user_query = state.get("user_query", "")
+    callbacks = state.get("callbacks")
 
     if financial_audit is None:
         raise ValueError(
@@ -236,6 +247,7 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
         share_price=share_price,
         market_cap=market_cap,
         terminal_growth_rate=terminal_growth,
+        callbacks=callbacks,
     )
 
     return {"dcf_valuation": valuation_output}
@@ -256,6 +268,7 @@ async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
     fiscal_year = state["fiscal_year"]
     year_substituted = routing_plan.year_substituted if routing_plan else False
     user_query = state.get("user_query")
+    callbacks = state.get("callbacks")
 
     logger.info(f"[lead_synthesizer_node] Compiling final report for {company_name} ({ticker})")
     synthesizer = LeadSynthesizerAgent()
@@ -271,6 +284,7 @@ async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
         risk_audit=state.get("risk_audit"),
         year_substituted=year_substituted,
         user_query=user_query,
+        callbacks=callbacks,
     )
 
     return {
@@ -404,6 +418,7 @@ class MultiAgentOrchestrator(BaseAgent):
         fiscal_year: Optional[int] = None,
         messages: Optional[List[Dict[str, str]]] = None,
         session_state: Optional[Dict[str, Any]] = None,
+        callbacks: Optional[List[Any]] = None,
     ) -> EquityResearchState:
         """Executes the multi-agent graph asynchronously and returns the populated final state."""
         graph = self.get_graph()
@@ -413,11 +428,16 @@ class MultiAgentOrchestrator(BaseAgent):
             "fiscal_year": fiscal_year or 0,
             "messages": messages,
             "session_state": session_state,
+            "callbacks": callbacks,
         }
+
+        config: Dict[str, Any] = {"recursion_limit": self.recursion_limit}
+        if callbacks:
+            config["callbacks"] = callbacks
 
         final_state = await graph.ainvoke(
             initial_state,
-            config={"recursion_limit": self.recursion_limit},
+            config=config,
         )
         return final_state
 
@@ -428,6 +448,7 @@ class MultiAgentOrchestrator(BaseAgent):
         fiscal_year: Optional[int] = None,
         messages: Optional[List[Dict[str, str]]] = None,
         session_state: Optional[Dict[str, Any]] = None,
+        callbacks: Optional[List[Any]] = None,
     ) -> AsyncIterator[Dict[str, Any]]:
         """Executes the graph while streaming real-time intermediate node progress milestones."""
         # Scan previous messages backwards if current query does not explicitly specify a ticker
@@ -455,7 +476,12 @@ class MultiAgentOrchestrator(BaseAgent):
             "fiscal_year": fiscal_year or 0,
             "messages": messages,
             "session_state": session_state,
+            "callbacks": callbacks,
         }
+
+        config: Dict[str, Any] = {"recursion_limit": self.recursion_limit}
+        if callbacks:
+            config["callbacks"] = callbacks
 
         yield {
             "type": "status",
@@ -469,7 +495,7 @@ class MultiAgentOrchestrator(BaseAgent):
         try:
             async for chunk in graph.astream(
                 initial_state,
-                config={"recursion_limit": self.recursion_limit},
+                config=config,
             ):
                 for node_name, node_output in chunk.items():
                     final_state.update(node_output)
@@ -590,6 +616,7 @@ class MultiAgentOrchestrator(BaseAgent):
         self,
         messages: List[Dict[str, str]],
         session_state: Optional[Dict[str, Any]] = None,
+        callbacks: Optional[List[Any]] = None,
     ) -> AgentOutput:
         """Executes the agent synchronously conforming to BaseAgent interface."""
         query = messages[-1]["content"] if messages else ""
@@ -627,6 +654,7 @@ class MultiAgentOrchestrator(BaseAgent):
                             ticker=extracted_ticker,
                             messages=messages,
                             session_state=session_state,
+                            callbacks=callbacks,
                         ),
                     ).result()
             else:
@@ -636,6 +664,7 @@ class MultiAgentOrchestrator(BaseAgent):
                         ticker=extracted_ticker,
                         messages=messages,
                         session_state=session_state,
+                        callbacks=callbacks,
                     )
                 )
 

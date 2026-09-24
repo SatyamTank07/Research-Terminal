@@ -109,6 +109,7 @@ class LeadSynthesizerAgent(BaseAgent):
         risk_audit: Optional[RiskAuditOutput] = None,
         year_substituted: bool = False,
         user_query: Optional[str] = None,
+        callbacks: Optional[List[Any]] = None,
     ) -> Final10KResearchReport:
         """Synthesizes all structured agent payloads into a complete Final10KResearchReport."""
         llm = self._get_llm()
@@ -136,13 +137,14 @@ class LeadSynthesizerAgent(BaseAgent):
         # 2. Invoke LLM for qualitative synthesis with provenance tracking
         raw_synthesis: Dict[str, Any] = {}
         synthesis_provenance: Literal["llm_structured", "llm_json_fallback", "template_default"] = "llm_structured"
+        llm_config = {"callbacks": callbacks} if callbacks else {}
 
         try:
             structured_llm = llm.with_structured_output(ResearchSynthesisPayload)
             synthesis_obj = structured_llm.invoke([
                 SystemMessage(content=prompt_text),
                 HumanMessage(content=user_instruction),
-            ])
+            ], config=llm_config)
             if isinstance(synthesis_obj, BaseModel):
                 raw_synthesis = synthesis_obj.model_dump()
                 synthesis_provenance = "llm_structured"
@@ -155,7 +157,7 @@ class LeadSynthesizerAgent(BaseAgent):
                 resp = llm.invoke([
                     SystemMessage(content=prompt_text),
                     HumanMessage(content=user_instruction),
-                ])
+                ], config=llm_config)
                 raw_synthesis = self._parse_json_fallback(resp.content)
                 synthesis_provenance = "llm_json_fallback" if raw_synthesis else "template_default"
             except Exception as e2:

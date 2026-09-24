@@ -6,7 +6,7 @@ SEC 10-K Item 1A disclosures (with gated Item 3 fallback for explicit litigation
 emitting a typed RiskAuditOutput schema.
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
@@ -22,7 +22,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
     tools = [retrieve_10k_narrative_tool]
     output_schema = RiskAuditOutput
 
-    def analyze(self, ticker: str, fiscal_year: int) -> RiskAuditOutput:
+    def analyze(self, ticker: str, fiscal_year: int, callbacks: Optional[List[Any]] = None) -> RiskAuditOutput:
         """
         Direct programmatic interface for LangGraph orchestrator and standalone tests.
         Analyzes 10-K Item 1A narrative and returns a validated RiskAuditOutput instance.
@@ -47,6 +47,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
             ticker=ticker,
             fiscal_year=fiscal_year,
             fallback_defaults=fallback_defaults,
+            callbacks=callbacks,
         )
 
     def _post_process_output(

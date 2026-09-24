@@ -83,6 +83,7 @@ class EquityResearchState(TypedDict, total=False):
     messages: Optional[List[Dict[str, str]]]
     session_state: Optional[Dict[str, Any]]
     updated_session_state: Optional[Dict[str, Any]]
+    callbacks: Optional[List[Any]]
 
     # Sub-agent structured payloads
     business_moat: Optional[BusinessMoatOutput]

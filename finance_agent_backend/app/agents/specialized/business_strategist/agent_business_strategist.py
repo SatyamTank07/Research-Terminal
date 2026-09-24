@@ -6,6 +6,7 @@ from audited SEC 10-K narrative disclosures (Item 1 with gated Item 7 fallback),
 emitting a typed BusinessMoatOutput schema.
 """
 
+from typing import Any, List, Optional
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
@@ -21,7 +22,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
     tools = [retrieve_10k_narrative_tool]
     output_schema = BusinessMoatOutput
 
-    def analyze(self, ticker: str, fiscal_year: int) -> BusinessMoatOutput:
+    def analyze(self, ticker: str, fiscal_year: int, callbacks: Optional[list] = None) -> BusinessMoatOutput:
         """
         Direct programmatic interface for LangGraph orchestrator and standalone tests.
         Analyzes 10-K Item 1 narrative and returns a validated BusinessMoatOutput instance.
@@ -53,4 +54,5 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             ticker=ticker,
             fiscal_year=fiscal_year,
             fallback_defaults=fallback_defaults,
+            callbacks=callbacks,
         )

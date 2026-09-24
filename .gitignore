@@ -1,0 +1,28 @@
+# AI Agent & Assistant artifacts
+.agents/
+.gemini/
+
+# Environment and sensitive credentials
+.env
+*.env
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs & scratch
+*.log
+scratch/
+test_instrumentation_audit.py

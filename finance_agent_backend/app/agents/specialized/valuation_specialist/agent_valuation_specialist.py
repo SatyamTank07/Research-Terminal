@@ -47,6 +47,7 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
         equity_risk_premium: float = 0.050,
         cost_of_debt: Optional[float] = None,
         base_year_ebitda: Optional[float] = None,
+        callbacks: Optional[List[Any]] = None,
     ) -> DCFValuationOutput:
         """Direct programmatic interface for LangGraph orchestrator and verification tests.
 
@@ -153,6 +154,7 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
             ticker=ticker,
             fiscal_year=fiscal_year,
             fallback_defaults=fallback_defaults,
+            callbacks=callbacks,
             projected_fcfs=projected_fcfs,
             share_price=share_price,
             terminal_growth_rate=terminal_growth_rate,

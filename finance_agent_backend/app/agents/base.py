@@ -30,6 +30,7 @@ class BaseAgent(ABC):
         self,
         messages: List[Dict[str, str]],
         session_state: Optional[Dict[str, Any]] = None,
+        callbacks: Optional[List[Any]] = None,
     ) -> AgentOutput:
         """Executes the agent with conversational history and returns standardized AgentOutput."""
         pass
@@ -228,6 +229,7 @@ class StructuredAgent(BaseAgent, Generic[T]):
         ticker: Optional[str] = None,
         fiscal_year: Optional[int] = None,
         fallback_defaults: Optional[Dict[str, Any]] = None,
+        callbacks: Optional[List[Any]] = None,
         **kwargs,
     ) -> T:
         """Unified execution pipeline: invokes agent, extracts structured output, and runs post-processing."""
@@ -237,9 +239,13 @@ class StructuredAgent(BaseAgent, Generic[T]):
         else:
             messages = query_or_messages
 
+        config: Dict[str, Any] = {"recursion_limit": self.recursion_limit}
+        if callbacks:
+            config["callbacks"] = callbacks
+
         result = active_agent.invoke(
             {"messages": messages},
-            config={"recursion_limit": self.recursion_limit},
+            config=config,
         )
 
         output = self._extract_structured_output(
@@ -257,12 +263,17 @@ class StructuredAgent(BaseAgent, Generic[T]):
         self,
         messages: List[Dict[str, str]],
         session_state: Optional[Dict[str, Any]] = None,
+        callbacks: Optional[List[Any]] = None,
     ) -> AgentOutput:
         """Executes the agent with conversational history conforming to BaseAgent."""
         active_agent = self._get_or_create_agent()
+        config: Dict[str, Any] = {"recursion_limit": self.recursion_limit}
+        if callbacks:
+            config["callbacks"] = callbacks
+
         result = active_agent.invoke(
             {"messages": messages},
-            config={"recursion_limit": self.recursion_limit},
+            config=config,
         )
 
         structured = result.get("structured_response")

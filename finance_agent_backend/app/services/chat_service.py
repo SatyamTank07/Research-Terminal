@@ -11,6 +11,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from app.agents import AgentRegistry
 from app.models import ChatMessage, Conversation, User
 from app.schemas.chat import ChatRequest, ChatResponse
+from app.services.langfuse_service import flush_langfuse, langfuse_trace_scope
 
 logger = logging.getLogger("finance_agent.services.chat")
 
@@ -92,38 +93,62 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
     if agent_type == "financial_analyst":
         agent_type = "multi_agent"
 
+    trace_name = f"finance-agent:{agent_type}"
+    tags = ["finance-agent", agent_type]
+    metadata = {
+        "conversation_id": str(conversation.id),
+        "user_id": str(user.id),
+        "username": getattr(user, "username", "finance_user"),
+        "agent_type": agent_type,
+    }
+
     try:
-        agent = AgentRegistry.get(agent_type)
-        try:
-            output = agent.run(history_payload, session_state=conversation.session_state)
-        except TypeError:
-            output = agent.run(history_payload)
+        with langfuse_trace_scope(
+            trace_name=trace_name,
+            session_id=str(conversation.id),
+            user_id=str(user.id),
+            tags=tags,
+            metadata=metadata,
+        ) as callback:
+            callbacks = [callback] if callback else None
+            agent = AgentRegistry.get(agent_type)
+            try:
+                output = agent.run(
+                    history_payload,
+                    session_state=conversation.session_state,
+                    callbacks=callbacks,
+                )
+            except TypeError:
+                try:
+                    output = agent.run(history_payload, session_state=conversation.session_state)
+                except TypeError:
+                    output = agent.run(history_payload)
 
-        # Update session_state if provided by agent
-        if output.updated_session_state is not None:
-            conversation.session_state = dict(output.updated_session_state)
-            flag_modified(conversation, "session_state")
+            # Update session_state if provided by agent
+            if output.updated_session_state is not None:
+                conversation.session_state = dict(output.updated_session_state)
+                flag_modified(conversation, "session_state")
 
-        # 5. Persist assistant reply in PostgreSQL
-        assistant_msg = ChatMessage(
-            conversation_id=conversation.id,
-            user_id=user.id,
-            role="assistant",
-            content=output.content,
-            sources=output.sources,
-            is_error=False,
-        )
-        db.add(assistant_msg)
-        conversation.updated_at = func.now()
-        db.commit()
-        db.refresh(assistant_msg)
+            # 5. Persist assistant reply in PostgreSQL
+            assistant_msg = ChatMessage(
+                conversation_id=conversation.id,
+                user_id=user.id,
+                role="assistant",
+                content=output.content,
+                sources=output.sources,
+                is_error=False,
+            )
+            db.add(assistant_msg)
+            conversation.updated_at = func.now()
+            db.commit()
+            db.refresh(assistant_msg)
 
-        return ChatResponse(
-            response=output.content,
-            conversation_id=conversation.id,
-            message_id=assistant_msg.id,
-            sources=output.sources,
-        )
+            return ChatResponse(
+                response=output.content,
+                conversation_id=conversation.id,
+                message_id=assistant_msg.id,
+                sources=output.sources,
+            )
     except Exception as e:
         err_str = str(e)
         logger.error(f"Error during chat agent execution: {err_str}")
@@ -140,6 +165,8 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
         except Exception:
             pass
         raise HTTPException(status_code=500, detail=err_str)
+    finally:
+        flush_langfuse()
 
 
 async def stream_chat_service(
@@ -189,72 +216,93 @@ async def stream_chat_service(
     if agent_type == "financial_analyst":
         agent_type = "multi_agent"
 
+    trace_name = f"finance-agent:stream:{agent_type}"
+    tags = ["finance-agent", "streaming", agent_type]
+    metadata = {
+        "conversation_id": str(conversation.id),
+        "user_id": str(user.id),
+        "username": getattr(user, "username", "finance_user"),
+        "agent_type": agent_type,
+    }
+
     try:
-        agent = AgentRegistry.get(agent_type)
-        if hasattr(agent, "astream_run"):
-            async for event in agent.astream_run(
-                user_query=request.message,
-                messages=history_payload,
-                session_state=conversation.session_state,
-            ):
-                if event.get("type") == "result":
-                    # Persist assistant reply in PostgreSQL
-                    assistant_msg = ChatMessage(
-                        conversation_id=conversation.id,
-                        user_id=user.id,
-                        role="assistant",
-                        content=event.get("response", ""),
-                        sources=event.get("sources", []),
-                        is_error=False,
-                    )
-                    db.add(assistant_msg)
-                    if event.get("updated_session_state") is not None:
-                        conversation.session_state = dict(event["updated_session_state"])
-                        flag_modified(conversation, "session_state")
-                    conversation.updated_at = func.now()
-                    db.commit()
-                    db.refresh(assistant_msg)
+        with langfuse_trace_scope(
+            trace_name=trace_name,
+            session_id=str(conversation.id),
+            user_id=str(user.id),
+            tags=tags,
+            metadata=metadata,
+        ) as callback:
+            callbacks = [callback] if callback else None
+            agent = AgentRegistry.get(agent_type)
+            if hasattr(agent, "astream_run"):
+                async for event in agent.astream_run(
+                    user_query=request.message,
+                    messages=history_payload,
+                    session_state=conversation.session_state,
+                    callbacks=callbacks,
+                ):
+                    if event.get("type") == "result":
+                        # Persist assistant reply in PostgreSQL
+                        assistant_msg = ChatMessage(
+                            conversation_id=conversation.id,
+                            user_id=user.id,
+                            role="assistant",
+                            content=event.get("response", ""),
+                            sources=event.get("sources", []),
+                            is_error=False,
+                        )
+                        db.add(assistant_msg)
+                        if event.get("updated_session_state") is not None:
+                            conversation.session_state = dict(event["updated_session_state"])
+                            flag_modified(conversation, "session_state")
+                        conversation.updated_at = func.now()
+                        db.commit()
+                        db.refresh(assistant_msg)
 
-                    payload = {
-                        "type": "result",
-                        "response": event.get("response", ""),
-                        "conversation_id": conversation.id,
-                        "message_id": assistant_msg.id,
-                        "sources": event.get("sources", []),
-                    }
-                    yield f"data: {json.dumps(payload)}\n\n"
-                else:
-                    yield f"data: {json.dumps(event)}\n\n"
-        else:
-            # Fallback for non-streaming agents
-            try:
-                output = await asyncio.to_thread(agent.run, history_payload, conversation.session_state)
-            except TypeError:
-                output = await asyncio.to_thread(agent.run, history_payload)
-            assistant_msg = ChatMessage(
-                conversation_id=conversation.id,
-                user_id=user.id,
-                role="assistant",
-                content=output.content,
-                sources=output.sources,
-                is_error=False,
-            )
-            db.add(assistant_msg)
-            if output.updated_session_state is not None:
-                conversation.session_state = dict(output.updated_session_state)
-                flag_modified(conversation, "session_state")
-            conversation.updated_at = func.now()
-            db.commit()
-            db.refresh(assistant_msg)
+                        payload = {
+                            "type": "result",
+                            "response": event.get("response", ""),
+                            "conversation_id": conversation.id,
+                            "message_id": assistant_msg.id,
+                            "sources": event.get("sources", []),
+                        }
+                        yield f"data: {json.dumps(payload)}\n\n"
+                    else:
+                        yield f"data: {json.dumps(event)}\n\n"
+            else:
+                # Fallback for non-streaming agents
+                try:
+                    output = await asyncio.to_thread(agent.run, history_payload, conversation.session_state, callbacks)
+                except TypeError:
+                    try:
+                        output = await asyncio.to_thread(agent.run, history_payload, conversation.session_state)
+                    except TypeError:
+                        output = await asyncio.to_thread(agent.run, history_payload)
+                assistant_msg = ChatMessage(
+                    conversation_id=conversation.id,
+                    user_id=user.id,
+                    role="assistant",
+                    content=output.content,
+                    sources=output.sources,
+                    is_error=False,
+                )
+                db.add(assistant_msg)
+                if output.updated_session_state is not None:
+                    conversation.session_state = dict(output.updated_session_state)
+                    flag_modified(conversation, "session_state")
+                conversation.updated_at = func.now()
+                db.commit()
+                db.refresh(assistant_msg)
 
-            payload = {
-                "type": "result",
-                "response": output.content,
-                "conversation_id": conversation.id,
-                "message_id": assistant_msg.id,
-                "sources": output.sources,
-            }
-            yield f"data: {json.dumps(payload)}\n\n"
+                payload = {
+                    "type": "result",
+                    "response": output.content,
+                    "conversation_id": conversation.id,
+                    "message_id": assistant_msg.id,
+                    "sources": output.sources,
+                }
+                yield f"data: {json.dumps(payload)}\n\n"
 
     except Exception as e:
         err_str = str(e)
@@ -272,3 +320,5 @@ async def stream_chat_service(
         except Exception:
             pass
         yield f"data: {json.dumps({'type': 'error', 'message': err_str})}\n\n"
+    finally:
+        flush_langfuse()

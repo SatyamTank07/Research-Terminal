@@ -52,11 +52,15 @@ class FinancialAnalystAgent(BaseAgent):
         self,
         messages: List[Dict[str, str]],
         session_state: Optional[Dict[str, Any]] = None,
+        callbacks: Optional[List[Any]] = None,
     ) -> AgentOutput:
         active_agent = self._get_or_create_agent()
+        config: Dict[str, Any] = {"recursion_limit": self.recursion_limit}
+        if callbacks:
+            config["callbacks"] = callbacks
         result = active_agent.invoke(
             {"messages": messages},
-            config={"recursion_limit": self.recursion_limit},
+            config=config,
         )
 
         response_content = result["messages"][-1].content

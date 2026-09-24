@@ -66,6 +66,7 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
         business_moat: Optional[BusinessMoatOutput] = None,
         horizon_years: int = 5,
         force_mode: Optional[Literal["comprehensive_line_item", "simplified_nopat_less_capex"]] = None,
+        callbacks: Optional[List[Any]] = None,
     ) -> ForecastOutput:
         """
         Direct programmatic interface for LangGraph orchestrator and verification tests.
@@ -251,6 +252,7 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
             ticker=ticker,
             fiscal_year=fiscal_year,
             fallback_defaults=fallback_defaults,
+            callbacks=callbacks,
             base_revenue=base_revenue,
             base_year=base_year,
             tax_rate=tax_rate,

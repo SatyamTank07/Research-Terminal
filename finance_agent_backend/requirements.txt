@@ -15,3 +15,4 @@ beautifulsoup4>=4.12.0
 lxml>=5.2.0
 python-multipart>=0.0.9
 yfinance>=0.2.36
+langfuse>=2.50.0
