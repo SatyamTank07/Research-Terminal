@@ -9,6 +9,7 @@ QueryType = Literal[
     "financial_audit_only",
     "business_moat_only",
     "risk_factors_only",
+    "conversational",
 ]
 
 

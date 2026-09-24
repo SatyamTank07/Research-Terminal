@@ -51,6 +51,9 @@ AGENT_EXECUTION_PLANS: Dict[QueryType, List[str]] = {
     "risk_factors_only": [
         "risk_analyst",
     ],
+    "conversational": [
+        "conversational_analyst",
+    ],
 }
 
 
@@ -58,8 +61,8 @@ class SupervisorExtraction(BaseModel):
     """Pydantic schema for supervisor intent and entity extraction."""
 
     query_type: QueryType = Field(
-        default="full_10k_report",
-        description="Selected routing path (full_10k_report, dcf_valuation_only, financial_audit_only, business_moat_only, risk_factors_only)",
+        default="conversational",
+        description="Selected routing path (full_10k_report, dcf_valuation_only, financial_audit_only, business_moat_only, risk_factors_only, conversational)",
     )
     extracted_ticker: Optional[str] = Field(
         None, description="Extracted stock ticker if identifiable (e.g. AAPL, TSLA, NVDA)"
@@ -109,11 +112,7 @@ class SupervisorAgent(BaseAgent):
 
     def _check_confirmation_sentiment(self, user_query: str, callbacks: Optional[List[Any]] = None) -> ConfirmationSentiment:
         """Determines if user agreed, declined, or changed topic regarding a pending confirmation."""
-        prompt = (
-            "The user was previously asked: 'The requested 10-K filing year is unavailable. Would you like to proceed with the latest available year?'\n"
-            f"User response: '{user_query}'\n"
-            "Classify if the user agreed ('yes'), declined/cancelled ('no'), or asked a new unrelated query ('new_query')."
-        )
+        prompt = render_prompt("confirmation_sentiment", user_query=user_query)
         llm = self._get_llm()
         structured_llm = llm.with_structured_output(ConfirmationSentiment)
         llm_config = {"callbacks": callbacks} if callbacks else {}
@@ -256,9 +255,10 @@ class SupervisorAgent(BaseAgent):
 
     def classify_intent_with_provenance(self, user_query: str, callbacks: Optional[List[Any]] = None) -> Tuple[QueryType, str]:
         """Classifies user intent using deterministic fast-path with LLM fallback."""
-        q = user_query.lower()
+        q = user_query.strip().lower()
+        clean_q = re.sub(r"[^\w\s]", " ", q).strip()
 
-        # Fast keyword matches
+        # Fast keyword matches for specialized 10-K report agent pipelines
         if any(sig in q for sig in ["full report", "complete report", "comprehensive", "deep dive", "all agents"]):
             return "full_10k_report", "deterministic_rule"
         if any(sig in q for sig in ["moat", "business model", "competitive advantage", "segments", "pricing power"]):
@@ -270,15 +270,15 @@ class SupervisorAgent(BaseAgent):
         if any(sig in q for sig in ["dcf", "intrinsic value", "fair value", "target price", "wacc"]):
             return "dcf_valuation_only", "deterministic_rule"
 
-        # LLM fallback for conversational/ambiguous queries
+        # LLM fallback using prompt_supervisor.j2 for conversational and ambiguous inquiries
         try:
             extraction = self._extract_with_llm(user_query, callbacks=callbacks)
             if extraction and extraction.query_type in AGENT_EXECUTION_PLANS:
                 return extraction.query_type, "llm_inferred"
         except Exception as e:
-            logger.warning(f"LLM supervisor intent routing failed ({e}); defaulting to full_10k_report.")
+            logger.warning(f"LLM supervisor intent routing failed ({e}); defaulting to conversational.")
 
-        return "full_10k_report", "deterministic_rule"
+        return "conversational", "deterministic_rule"
 
     def route(
         self,
@@ -381,6 +381,44 @@ class SupervisorAgent(BaseAgent):
             except Exception as e:
                 logger.warning(f"LLM supervisor extraction failed ({e})")
 
+        # Determine query type:
+        classified_type, classified_prov = self.classify_intent_with_provenance(user_query, callbacks=callbacks)
+        if classified_type == "conversational":
+            query_type = "conversational"
+            provenance = classified_prov
+        elif extraction and extraction.query_type in AGENT_EXECUTION_PLANS:
+            query_type = extraction.query_type
+            provenance = "llm_inferred"
+        else:
+            query_type = classified_type
+            provenance = classified_prov
+
+        # Handle conversational queries directly without requiring filing lookup
+        if query_type == "conversational":
+            active_ticker = (
+                ticker
+                or (extraction.extracted_ticker if extraction else None)
+                or active_state.get("active_ticker")
+            )
+            active_company = active_state.get("active_company") or active_ticker
+            active_year = active_state.get("active_fiscal_year") or 0
+
+            return RoutingPlan(
+                ticker=active_ticker or "",
+                company_name=active_company or (active_ticker or "Research Assistant"),
+                fiscal_year=active_year or 0,
+                year_requested=None,
+                year_substituted=False,
+                document_id=None,
+                query_type="conversational",
+                active_agents=["conversational_analyst"],
+                routing_provenance=provenance,
+                needs_confirmation=False,
+                confirmation_message=None,
+                suggested_fiscal_year=None,
+                updated_session_state=active_state,
+            )
+
         resolved_ticker = (
             ticker
             or (extraction.extracted_ticker if extraction else None)
@@ -408,14 +446,24 @@ class SupervisorAgent(BaseAgent):
                     )
                 )
             else:
+                # If ticker could not be resolved from query at all, gracefully route to conversational
+                if not resolved_ticker:
+                    return RoutingPlan(
+                        ticker="",
+                        company_name="Research Assistant",
+                        fiscal_year=0,
+                        year_requested=None,
+                        year_substituted=False,
+                        document_id=None,
+                        query_type="conversational",
+                        active_agents=["conversational_analyst"],
+                        routing_provenance="deterministic_rule",
+                        needs_confirmation=False,
+                        confirmation_message=None,
+                        suggested_fiscal_year=None,
+                        updated_session_state=active_state,
+                    )
                 raise err
-
-        query_type = (
-            extraction.query_type
-            if extraction
-            else self.classify_intent_with_provenance(user_query, callbacks=callbacks)[0]
-        )
-        provenance = "llm_inferred" if extraction else "deterministic_rule"
 
         # 3. Check if year was missing -> update session_state with pending_action and prompt user
         needs_conf = False

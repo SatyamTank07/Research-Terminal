@@ -14,7 +14,7 @@ Available Ingested 10-K Filings:
 </operating_context>
 
 <routing_taxonomy>
-Classify user requests into one of the following 5 standard execution routes:
+Classify user requests into one of the following 6 standard execution routes:
 
 1. `full_10k_report`:
    - Comprehensive institutional equity research report combining business overview, economic moat, audited financial statements, multi-year ratio analysis, 5-year UFCF projections, DCF valuation with sensitivity matrix, and material risk inventory.
@@ -35,6 +35,10 @@ Classify user requests into one of the following 5 standard execution routes:
 5. `risk_factors_only`:
    - Item 1A material risk extraction and synthesis.
    - Triggers: Inquiries regarding risk factors, legal/antitrust liabilities, supply chain concentration, geopolitical exposures, or existential threats.
+
+6. `conversational`:
+   - Conversational dialogue, greetings (e.g., "Hi", "Hello"), questions about capabilities/tasks (e.g. "What kind of task you can do", "Who are you", "Help", "What companies do you have"), general financial knowledge and education without a target company 10-K filing (e.g. budgeting rules, DCA, 401k vs IRA, DCF/WACC conceptual definitions, rate cuts), or conversational follow-up questions to an ongoing discussion.
+   - Triggers: Greetings, capability queries, conceptual finance questions, questions about what filings are available, or follow-ups that do not require re-running an entire heavy 6-agent filing pipeline.
 </routing_taxonomy>
 
 {% if active_session %}
@@ -55,8 +59,9 @@ If the user's inquiry is a follow-up or uses pronouns like "it", "its", or "the 
 {% endif %}
 
 <rules>
-- Strictly extract the target stock ticker and fiscal year from the user request or catalog context.
+- For company-specific research routes (`full_10k_report`, `dcf_valuation_only`, etc.), extract the target stock ticker and fiscal year from the user request or catalog context.
+- For `conversational` inquiries, extracted_ticker and extracted_year can be null (or inherit active session ticker if referring to it).
 - Never invent ticker symbols or assume entities not referenced or present in the catalog.
-- If no specific fiscal year is mentioned, default to the latest available audited fiscal year or active session year.
+- If no specific fiscal year is mentioned for a company analysis, default to the latest available audited fiscal year or active session year.
 - Always output valid structured JSON conforming to `SupervisorExtraction`.
 </rules>

@@ -23,15 +23,19 @@ import logging
 import re
 from typing import Any, AsyncIterator, Dict, List, Optional
 
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 from app.agents.base import AgentOutput, BaseAgent
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.business_strategist import BusinessStrategistAgent
+from app.agents.specialized.conversational.agent_conversational import ConversationalAnalystAgent
 from app.agents.specialized.financial_auditor import FinancialAuditorAgent
 from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
 from app.agents.specialized.lead_synthesizer import LeadSynthesizerAgent
+from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst import RiskAnalystAgent
 from app.agents.specialized.supervisor import SupervisorAgent
 from app.agents.specialized.valuation_specialist import ValuationSpecialistAgent
@@ -46,6 +50,8 @@ from app.agents.state import (
     RoutingPlan,
 )
 from app.agents.tools.market_data_tools import fetch_market_context
+from app.database import SessionLocal
+from app.models import Document
 
 logger = logging.getLogger("finance_agent.agents.orchestrator")
 
@@ -293,6 +299,28 @@ async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
     }
 
 
+async def conversational_node(state: EquityResearchState) -> Dict[str, Any]:
+    """Node: Delegates conversational inquiries, capabilities, and follow-ups to ConversationalAnalystAgent."""
+    user_query = state.get("user_query", "")
+    messages = state.get("messages")
+    session_state = state.get("session_state")
+    callbacks = state.get("callbacks")
+
+    agent = ConversationalAnalystAgent()
+    answer = await agent.arespond(
+        user_query=user_query,
+        messages=messages,
+        session_state=session_state,
+        callbacks=callbacks,
+    )
+
+    return {
+        "conversational_response": answer,
+        "error_message": None,
+        "updated_session_state": session_state,
+    }
+
+
 # ==============================================================================
 # 2. Conditional Routing Predicates
 # ==============================================================================
@@ -303,7 +331,9 @@ def route_from_supervisor(state: EquityResearchState) -> List[str]:
         return ["lead_synthesizer"]
 
     qtype = state.get("query_type", "full_10k_report")
-    if qtype == "business_moat_only":
+    if qtype == "conversational":
+        return ["conversational_analyst"]
+    elif qtype == "business_moat_only":
         return ["business_strategist"]
     elif qtype == "financial_audit_only":
         return ["financial_auditor"]
@@ -351,6 +381,7 @@ def build_equity_research_graph() -> CompiledStateGraph:
 
     # 1. Register all nodes
     builder.add_node("supervisor", supervisor_node)
+    builder.add_node("conversational_analyst", conversational_node)
     builder.add_node("business_strategist", business_strategist_node)
     builder.add_node("financial_auditor", financial_auditor_node)
     builder.add_node("risk_analyst", risk_analyst_node)
@@ -365,8 +396,17 @@ def build_equity_research_graph() -> CompiledStateGraph:
     builder.add_conditional_edges(
         "supervisor",
         route_from_supervisor,
-        ["business_strategist", "financial_auditor", "risk_analyst", "lead_synthesizer"],
+        [
+            "business_strategist",
+            "financial_auditor",
+            "risk_analyst",
+            "lead_synthesizer",
+            "conversational_analyst",
+        ],
     )
+
+    # Conversational path completes directly
+    builder.add_edge("conversational_analyst", END)
 
     # 4. Phase 1 Qualitative & Statement Auditing -> Forecasting Join
     builder.add_conditional_edges(
@@ -486,7 +526,7 @@ class MultiAgentOrchestrator(BaseAgent):
         yield {
             "type": "status",
             "node": "supervisor",
-            "message": "Triaging research inquiry & resolving SEC filing catalog...",
+            "message": "Analyzing research inquiry & context...",
         }
 
 
@@ -516,6 +556,15 @@ class MultiAgentOrchestrator(BaseAgent):
                                     "suggested_fiscal_year": plan.suggested_fiscal_year,
                                 },
                             }
+                        elif q == "conversational":
+                            yield {
+                                "type": "status",
+                                "node": "supervisor",
+                                "message": "Directing inquiry to Research Assistant...",
+                                "details": {
+                                    "query_type": "conversational",
+                                },
+                            }
                         else:
                             sub_note = " (substituted year)" if (plan and plan.year_substituted) else ""
                             yield {
@@ -529,6 +578,12 @@ class MultiAgentOrchestrator(BaseAgent):
                                     "year_substituted": plan.year_substituted if plan else False,
                                 },
                             }
+                    elif node_name == "conversational_analyst":
+                        yield {
+                            "type": "status",
+                            "node": "conversational_analyst",
+                            "message": "Formulating research response...",
+                        }
                     elif node_name == "business_strategist":
                         moat: Optional[BusinessMoatOutput] = node_output.get("business_moat")
                         m_type = moat.economic_moat_type if moat else "Assessed"
@@ -595,8 +650,16 @@ class MultiAgentOrchestrator(BaseAgent):
             return
 
         report_obj = final_state.get("final_report")
+        conv_resp = final_state.get("conversational_response")
         updated_state = final_state.get("updated_session_state")
-        if isinstance(report_obj, Final10KResearchReport):
+        if conv_resp:
+            yield {
+                "type": "result",
+                "response": conv_resp,
+                "sources": final_state.get("sources", []),
+                "updated_session_state": updated_state,
+            }
+        elif isinstance(report_obj, Final10KResearchReport):
             yield {
                 "type": "result",
                 "response": report_obj.full_markdown_report,
@@ -668,8 +731,15 @@ class MultiAgentOrchestrator(BaseAgent):
                     )
                 )
 
+            conv_resp = state.get("conversational_response")
             final_report = state.get("final_report")
             updated_state = state.get("updated_session_state")
+            if conv_resp:
+                return AgentOutput(
+                    content=conv_resp,
+                    sources=state.get("sources", []),
+                    updated_session_state=updated_state,
+                )
             if isinstance(final_report, Final10KResearchReport):
                 return AgentOutput(
                     content=final_report.full_markdown_report,

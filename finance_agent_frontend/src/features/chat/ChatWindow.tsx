@@ -11,12 +11,17 @@ import {
   ExternalLink,
   FileText,
   Activity,
+  Sparkles,
 } from 'lucide-react'
 
 const AGENT_META: Record<string, { label: string; badgeColor: string }> = {
   supervisor: {
     label: 'Supervisor Router',
     badgeColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+  },
+  conversational_analyst: {
+    label: 'Research Assistant',
+    badgeColor: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
   },
   business_strategist: {
     label: 'Business & Moat Strategist',
@@ -96,6 +101,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         ) : (
         messages.map((message) => {
           const isUser = message.role === 'user'
+          const isReport =
+            message.content.includes('# ') &&
+            (message.content.includes('Research Report') ||
+              message.content.includes('Executive Summary') ||
+              message.content.includes('Investment Thesis') ||
+              message.content.includes('Valuation Dashboard'))
 
           return (
             <div key={message.id} className="w-full group">
@@ -120,42 +131,49 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   </div>
                 </div>
               ) : (
-                /* Research Memorandum Card */
+                /* Assistant Response Card */
                 <div className="flex flex-col items-start w-full mb-6">
                   <div className="w-full">
-                    {/* Memorandum Top Bar */}
-                    <div className="flex items-center justify-between mb-1.5 px-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-300 flex items-center gap-1.5">
-                          <FileText className="w-3.5 h-3.5 text-sky-400" />
-                          Research Memorandum
-                        </span>
-                        <span className="text-[10px] text-slate-500 font-tabular flex items-center gap-1">
-                          <Clock className="w-2.5 h-2.5" />
-                          {formatTime(message.timestamp)}
-                        </span>
-                      </div>
+                        {/* Top Bar */}
+                        <div className="flex items-center justify-between mb-1.5 px-1">
+                          <div className="flex items-center gap-2">
+                            {isReport ? (
+                              <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-300 flex items-center gap-1.5">
+                                <FileText className="w-3.5 h-3.5 text-sky-400" />
+                                Research Memorandum
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-semibold tracking-wider uppercase text-sky-400 flex items-center gap-1.5">
+                                <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                                Research Assistant
+                              </span>
+                            )}
+                            <span className="text-[10px] text-slate-500 font-tabular flex items-center gap-1">
+                              <Clock className="w-2.5 h-2.5" />
+                              {formatTime(message.timestamp)}
+                            </span>
+                          </div>
 
-                      {!message.isError && (
-                        <button
-                          onClick={() => copyToClipboard(message.id, message.content)}
-                          className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded text-slate-400 hover:text-white hover:bg-slate-800/80 transition-all cursor-pointer"
-                          title="Copy research memorandum"
-                        >
-                          {copiedId === message.id ? (
-                            <>
-                              <Check className="w-3 h-3 text-emerald-400" />
-                              <span className="text-emerald-400">Copied</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3 h-3" />
-                              <span>Copy Memo</span>
-                            </>
+                          {!message.isError && (
+                            <button
+                              onClick={() => copyToClipboard(message.id, message.content)}
+                              className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded text-slate-400 hover:text-white hover:bg-slate-800/80 transition-all cursor-pointer"
+                              title={isReport ? 'Copy research memorandum' : 'Copy response'}
+                            >
+                              {copiedId === message.id ? (
+                                <>
+                                  <Check className="w-3 h-3 text-emerald-400" />
+                                  <span className="text-emerald-400">Copied</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" />
+                                  <span>{isReport ? 'Copy Memo' : 'Copy Response'}</span>
+                                </>
+                              )}
+                            </button>
                           )}
-                        </button>
-                      )}
-                    </div>
+                        </div>
 
                     {/* Memorandum Body */}
                     <div

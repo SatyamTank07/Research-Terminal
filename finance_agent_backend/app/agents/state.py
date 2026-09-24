@@ -94,6 +94,7 @@ class EquityResearchState(TypedDict, total=False):
 
     # Final compiled output
     final_report: Optional[Final10KResearchReport]
+    conversational_response: Optional[str]
     sources: List[Dict[str, Any]]
     error_message: Optional[str]
 
