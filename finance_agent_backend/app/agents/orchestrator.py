@@ -224,6 +224,23 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
     else:
         terminal_growth = 0.025
 
+    wacc_match = re.search(
+        r"\b(?:wacc|discount rate|hurdle rate)\s*(?:of|is|at|=|:)?\s*([0-9]+(?:\.[0-9]+)?)\s*%?",
+        user_query,
+        re.IGNORECASE,
+    )
+    if not wacc_match:
+        wacc_match = re.search(
+            r"([0-9]+(?:\.[0-9]+)?)\s*%\s*(?:wacc|discount rate|hurdle rate)\b",
+            user_query,
+            re.IGNORECASE,
+        )
+    if wacc_match:
+        w_raw = float(wacc_match.group(1))
+        user_wacc = (w_raw / 100.0) if w_raw > 1.0 else w_raw
+    else:
+        user_wacc = None
+
     # 3. Resolve live market data (share_price, market_cap, beta) via yfinance with graceful fallbacks
     market_data = await asyncio.to_thread(fetch_market_context, ticker)
     share_price = user_share_price if user_share_price is not None else market_data.get("share_price")
@@ -240,7 +257,8 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
 
     logger.info(
         f"[valuation_specialist_node] Valuing {ticker} (price=${share_price}, "
-        f"market_cap=${market_cap}M, beta={beta:.2f}, g={terminal_growth*100:.1f}%)"
+        f"market_cap=${market_cap}M, beta={beta:.2f}, g={terminal_growth*100:.1f}%, "
+        f"user_wacc={f'{user_wacc*100:.2f}%' if user_wacc is not None else 'CAPM'})"
     )
     val_agent = ValuationSpecialistAgent()
     valuation_output: DCFValuationOutput = await asyncio.to_thread(
@@ -253,6 +271,7 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
         share_price=share_price,
         market_cap=market_cap,
         terminal_growth_rate=terminal_growth,
+        wacc_override=user_wacc,
         callbacks=callbacks,
     )
 
@@ -274,9 +293,12 @@ async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
     fiscal_year = state["fiscal_year"]
     year_substituted = routing_plan.year_substituted if routing_plan else False
     user_query = state.get("user_query")
+    query_type = state.get("query_type", "full_10k_report")
     callbacks = state.get("callbacks")
 
-    logger.info(f"[lead_synthesizer_node] Compiling final report for {company_name} ({ticker})")
+    logger.info(
+        f"[lead_synthesizer_node] Compiling report for {company_name} ({ticker}) [query_type={query_type}]"
+    )
     synthesizer = LeadSynthesizerAgent()
     report: Final10KResearchReport = await asyncio.to_thread(
         synthesizer.synthesize,
@@ -290,6 +312,7 @@ async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
         risk_audit=state.get("risk_audit"),
         year_substituted=year_substituted,
         user_query=user_query,
+        query_type=query_type,
         callbacks=callbacks,
     )
 

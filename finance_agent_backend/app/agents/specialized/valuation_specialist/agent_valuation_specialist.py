@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
+from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import (
     DCFValuationOutput,
@@ -47,6 +48,7 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
         equity_risk_premium: float = 0.050,
         cost_of_debt: Optional[float] = None,
         base_year_ebitda: Optional[float] = None,
+        wacc_override: Optional[float] = None,
         callbacks: Optional[List[Any]] = None,
     ) -> DCFValuationOutput:
         """Direct programmatic interface for LangGraph orchestrator and verification tests.
@@ -94,54 +96,25 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
                 f"Defaulted capital structure equity to: ${market_cap:,.2f}M"
             )
 
-        market_context_str = ""
-        if share_price is not None:
-            market_context_str += f"   - Current Share Price: ${share_price:.2f}\n"
-        if market_cap is not None:
-            market_context_str += f"   - Market Capitalization: ${market_cap:,.2f}M\n"
-
-        ebit_str = (
-            f"   - Base Year Operating Income (EBIT): ${latest_operating_income:,.2f}M\n"
-            if latest_operating_income is not None
-            else ""
-        )
-        ebitda_str = (
-            f"   - Base Year EBITDA (Operating Income + D&A): ${base_year_ebitda:,.2f}M\n"
-            if base_year_ebitda is not None
-            else "   - Base Year EBITDA: Not available (D&A omitted in 10-K extraction)\n"
-        )
-        kd_str = (
-            f"   - Explicit Pre-Tax Cost of Debt: {cost_of_debt*100:.2f}%\n"
-            if cost_of_debt is not None
-            else ""
-        )
-
-        query = (
-            f"Perform an institutional 2-stage DCF valuation for {ticker.upper()} for fiscal year {fiscal_year}.\n"
-            f"1. Audited Balance Sheet Inputs (from Financial Auditor):\n"
-            f"   - Total Debt: ${total_debt:,.2f}M\n"
-            f"   - Net Debt: ${net_debt:,.2f}M ({'Net Cash Surplus' if net_debt < 0 else 'Net Indebtedness'})\n"
-            f"   - Diluted Shares: {diluted_shares:,.2f} Million shares (pass diluted_shares={diluted_shares:.2f} EXACTLY, do NOT divide by 1000)\n"
-            f"   - Effective Tax Rate: {tax_rate*100:.2f}%\n"
-            f"{ebit_str}"
-            f"{ebitda_str}"
-            f"2. Market & Macro Inputs:\n"
-            f"   - Equity Beta: {beta:.2f}\n"
-            f"{market_context_str}"
-            f"   - Risk-Free Rate (Rf): {risk_free_rate*100:.2f}%\n"
-            f"   - Equity Risk Premium (ERP): {equity_risk_premium*100:.2f}%\n"
-            f"{kd_str}"
-            f"3. 5-Year Explicit Forecast UFCFs ($ Millions): {projected_fcfs}\n"
-            f"4. Perpetual Terminal Growth Rate: {terminal_growth_rate*100:.2f}%\n"
-            f"5. Execution Sequence:\n"
-            f"   Step 1: Call calculate_wacc_tool EXACTLY ONCE to derive WACC (pass beta={beta:.2f}, total_debt={total_debt:.2f}"
-            + (f", share_price={share_price:.2f}" if share_price is not None else "")
-            + (f", market_cap={market_cap:.2f}" if market_cap is not None else "")
-            + f", diluted_shares={diluted_shares:.2f}, tax_rate={tax_rate:.4f}"
-            + (f", cost_of_debt={cost_of_debt:.4f}" if cost_of_debt is not None else "")
-            + f", risk_free_rate={risk_free_rate:.4f}, equity_risk_premium={equity_risk_premium:.4f}).\n"
-            f"   Step 2: Call calculate_dcf_tool EXACTLY ONCE with projected_fcfs={projected_fcfs}, wacc from Step 1, terminal_growth_rate={terminal_growth_rate:.4f}, net_debt={net_debt:.2f}, diluted_shares={diluted_shares:.2f}.\n"
-            f"   Step 3: Stop calling tools and emit the complete DCFValuationOutput artifact as valid JSON."
+        query = render_prompt(
+            "prompt_valuation_query.j2",
+            ticker=ticker.upper(),
+            fiscal_year=fiscal_year,
+            total_debt=total_debt,
+            net_debt=net_debt,
+            diluted_shares=diluted_shares,
+            tax_rate=tax_rate,
+            latest_operating_income=latest_operating_income,
+            base_year_ebitda=base_year_ebitda,
+            beta=beta,
+            share_price=share_price,
+            market_cap=market_cap,
+            risk_free_rate=risk_free_rate,
+            equity_risk_premium=equity_risk_premium,
+            cost_of_debt=cost_of_debt,
+            wacc_override=wacc_override,
+            projected_fcfs=projected_fcfs,
+            terminal_growth_rate=terminal_growth_rate,
         )
 
         fallback_defaults = {
@@ -159,6 +132,7 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
             share_price=share_price,
             terminal_growth_rate=terminal_growth_rate,
             base_year_ebitda=base_year_ebitda,
+            wacc_override=wacc_override,
         )
 
     def _extract_tool_valuation_data(
@@ -204,6 +178,7 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
         """Overlays deterministic tool figures onto parsed dictionary prior to Pydantic validation."""
         messages = result.get("messages", [])
         tool_wacc_data, tool_dcf_data = self._extract_tool_valuation_data(messages)
+        wacc_override = kwargs.get("wacc_override")
         self._overlay_tool_data(
             data,
             tool_wacc_data=tool_wacc_data,
@@ -214,6 +189,7 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
             share_price=share_price,
             terminal_growth_rate=terminal_growth_rate,
             base_year_ebitda=base_year_ebitda,
+            wacc_override=wacc_override,
         )
         return data
 
@@ -230,9 +206,29 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
         """Enforces exact deterministic values from calculate_wacc_tool and calculate_dcf_tool."""
         messages = result.get("messages", [])
         tool_wacc_data, tool_dcf_data = self._extract_tool_valuation_data(messages)
+        wacc_override = kwargs.get("wacc_override")
 
-        # Enforce exact mathematical values from tools if available
-        if tool_wacc_data:
+        # Enforce exact mathematical values from tools or user override
+        if wacc_override is not None:
+            wacc_pct = round(wacc_override * 100.0, 2)
+            breakdown_md = (
+                "| WACC Parameter | Value | Institutional Source / Methodology |\n"
+                "| :--- | :---: | :--- |\n"
+                f"| **User Hurdle Rate (WACC)** | **{wacc_pct:.2f}%** | Explicit User Specified Override |\n"
+                f"| **Discount Convention** | Mid-Year | Standard Institutional DCF |"
+            )
+            output.wacc_audit = WACCAudit(
+                wacc=wacc_override,
+                wacc_pct=wacc_pct,
+                cost_of_equity_pct=wacc_pct,
+                cost_of_debt_pre_tax_pct=0.0,
+                cost_of_debt_after_tax_pct=0.0,
+                cost_of_debt_source="explicit_provided",
+                equity_weight_pct=100.0,
+                debt_weight_pct=0.0,
+                formula_breakdown_markdown=breakdown_md,
+            )
+        elif tool_wacc_data:
             output.wacc_audit = WACCAudit.model_validate(tool_wacc_data)
         if tool_dcf_data:
             output.enterprise_value = tool_dcf_data["enterprise_value"]
@@ -287,6 +283,7 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
         share_price: Optional[float],
         terminal_growth_rate: float,
         base_year_ebitda: Optional[float],
+        wacc_override: Optional[float] = None,
     ):
         """Overlays verified mathematical figures from tools onto parsed dict."""
         target["ticker"] = ticker.upper()
@@ -295,7 +292,26 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
         target["terminal_growth_rate"] = terminal_growth_rate
         target.setdefault("discounting_convention", "mid_year")
 
-        if tool_wacc_data:
+        if wacc_override is not None:
+            wacc_pct = round(wacc_override * 100.0, 2)
+            breakdown_md = (
+                "| WACC Parameter | Value | Institutional Source / Methodology |\n"
+                "| :--- | :---: | :--- |\n"
+                f"| **User Hurdle Rate (WACC)** | **{wacc_pct:.2f}%** | Explicit User Specified Override |\n"
+                f"| **Discount Convention** | Mid-Year | Standard Institutional DCF |"
+            )
+            target["wacc_audit"] = {
+                "wacc": wacc_override,
+                "wacc_pct": wacc_pct,
+                "cost_of_equity_pct": wacc_pct,
+                "cost_of_debt_pre_tax_pct": 0.0,
+                "cost_of_debt_after_tax_pct": 0.0,
+                "cost_of_debt_source": "explicit_provided",
+                "equity_weight_pct": 100.0,
+                "debt_weight_pct": 0.0,
+                "formula_breakdown_markdown": breakdown_md,
+            }
+        elif tool_wacc_data:
             target["wacc_audit"] = tool_wacc_data
 
         if tool_dcf_data:

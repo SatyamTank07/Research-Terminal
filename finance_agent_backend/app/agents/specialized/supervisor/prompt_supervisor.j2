@@ -51,16 +51,19 @@ The conversation currently has active research context:
 {% if active_session.active_fiscal_year %}
 - Active Fiscal Year: {{ active_session.active_fiscal_year }}
 {% endif %}
-{% if active_session.last_query_type %}
-- Last Query Type: {{ active_session.last_query_type }}
-{% endif %}
-If the user's inquiry is a follow-up or uses pronouns like "it", "its", or "the company", use this active session context unless a new entity is explicitly introduced.
+If the user's inquiry is a follow-up or uses pronouns like "it", "its", or "the company", use this active session context for the ticker/company unless a new entity is explicitly introduced.
 </active_session_state>
 {% endif %}
 
 <rules>
-- For company-specific research routes (`full_10k_report`, `dcf_valuation_only`, etc.), extract the target stock ticker and fiscal year from the user request or catalog context.
-- For `conversational` inquiries, extracted_ticker and extracted_year can be null (or inherit active session ticker if referring to it).
+- CRITICAL: Always determine `query_type` strictly from the user's current request:
+  * If the user specifically asks for DCF, valuation, fair value, target price, or WACC (e.g. "Calculate DCF with 9% WACC for apple", "Run DCF on TSLA", "What is the intrinsic value of Apple?"), you MUST route to `dcf_valuation_only`. Never route a specific DCF or valuation question to `full_10k_report`.
+  * If the user specifically asks about financial statements, balance sheet, cash flows, margins, or ratios (e.g. "Show balance sheet of AAPL", "Audit financial statements"), you MUST route to `financial_audit_only`.
+  * If the user specifically asks about the business model, products, segments, or moat, you MUST route to `business_moat_only`.
+  * If the user specifically asks about risks, threats, or legal challenges, you MUST route to `risk_factors_only`.
+  * Route to `full_10k_report` ONLY when the user explicitly asks for a full institutional report, broad comprehensive analysis, or general company research (e.g. "Analyze Apple", "Full report on Tesla", "Deep dive into NVDA").
+  * Route to `conversational` for greetings, general non-company finance questions, capability overviews, or conversational dialogue.
+- For company-specific research routes (`full_10k_report`, `dcf_valuation_only`, etc.), extract the target stock ticker and fiscal year from the user request or active session context.
 - Never invent ticker symbols or assume entities not referenced or present in the catalog.
 - If no specific fiscal year is mentioned for a company analysis, default to the latest available audited fiscal year or active session year.
 - Always output valid structured JSON conforming to `SupervisorExtraction`.

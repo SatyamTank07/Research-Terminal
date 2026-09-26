@@ -20,6 +20,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
+from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import (
@@ -219,25 +220,20 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
                 f"- Revenue Architecture: {business_moat.revenue_architecture}\n"
             )
 
-        query = (
-            f"Construct a disciplined {horizon_years}-year forward financial forecast for {ticker.upper()} "
-            f"based on fiscal year {fiscal_year} 10-K audited metrics and Item 7 (MD&A) disclosures.\n\n"
-            f"Audited Baseline Financials:\n"
-            f"- Base Year (T0): FY{base_year}\n"
-            f"- Base Year Revenue: ${base_revenue:,.2f} Million\n"
-            f"- Historical 3-Year Revenue CAGR: {historical_cagr*100:.2f}%\n"
-            f"- Base Year Operating Margin: {latest_margin*100:.2f}%\n"
-            f"- Base Year CapEx: ${latest_capex:,.2f} Million (CapEx Intensity: {capex_pct*100:.2f}% of Revenue)\n"
-            f"- Derived Effective Tax Rate: {tax_rate*100:.2f}%\n"
-            f"{moat_context}\n"
-            f"Accounting Precedence Directive:\n"
-            f"- {depr_directive}\n\n"
-            f"Execution Protocol:\n"
-            f"1. Review Item 7 MD&A narrative context and segment trends.\n"
-            f"2. Calibrate a {horizon_years}-year forward revenue growth schedule fading towards terminal rates, "
-            f"and an operating margin schedule reflecting operating leverage or cost pressures.\n"
-            f"3. Call calculate_forecast_schedule_tool EXACTLY ONCE with these parameters.\n"
-            f"4. Emit the complete ForecastOutput JSON with guidance_source='md&a_explicit'."
+        query = render_prompt(
+            "prompt_forecasting_analyst_query.j2",
+            horizon_years=horizon_years,
+            ticker=ticker.upper(),
+            fiscal_year=fiscal_year,
+            base_year=base_year,
+            base_revenue=base_revenue,
+            historical_cagr=historical_cagr,
+            latest_margin=latest_margin,
+            latest_capex=latest_capex,
+            capex_pct=capex_pct,
+            tax_rate=tax_rate,
+            moat_context=moat_context,
+            depr_directive=depr_directive,
         )
 
         fallback_defaults = {

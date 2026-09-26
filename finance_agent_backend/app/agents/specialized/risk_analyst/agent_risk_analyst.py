@@ -9,6 +9,7 @@ emitting a typed RiskAuditOutput schema.
 from typing import Any, Dict, List, Optional
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
+from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
 from app.agents.tools.rag_narrative_tools import retrieve_10k_narrative_tool
 
@@ -27,13 +28,10 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         Direct programmatic interface for LangGraph orchestrator and standalone tests.
         Analyzes 10-K Item 1A narrative and returns a validated RiskAuditOutput instance.
         """
-        query = (
-            f"Analyze the risk profile for {ticker.upper()} from its fiscal year {fiscal_year} SEC 10-K filing.\n"
-            f"1. Query Item 1A narrative across supply chain, regulatory, technological, and macroeconomic vectors.\n"
-            f"2. If an active major lawsuit or regulatory action explicitly cross-references Item 3, apply the gated check on Item 3.\n"
-            f"3. Curate 5 to 8 non-boilerplate risks sorted by severity (Severe -> Moderate -> Low) with mitigating factors.\n"
-            f"4. Identify the single primary existential threat and assign the overall risk profile.\n"
-            f"5. Emit the complete RiskAuditOutput artifact with all citations."
+        query = render_prompt(
+            "prompt_risk_analyst_query.j2",
+            ticker=ticker.upper(),
+            fiscal_year=fiscal_year,
         )
 
         fallback_defaults = {

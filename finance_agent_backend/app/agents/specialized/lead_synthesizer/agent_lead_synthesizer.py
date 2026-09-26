@@ -1,15 +1,13 @@
 """Lead Synthesizer & Institutional Report Publisher Agent.
 
 Ingests structured payloads across all specialized domain agents (Business Strategist,
-Financial Auditor, Forecaster, DCF Valuation Specialist, Risk Analyst), formulates the
-3-Pillar Investment Thesis and Executive Summary via LLM, and deterministically compiles
-the complete institutional-grade Markdown research publication with zero math hallucination.
-Exhaustively guards all numerical values against None/NaN/Inf and tags synthesis provenance.
+Financial Auditor, Forecaster, DCF Valuation Specialist, Risk Analyst), and orchestrates
+the AI to dynamically generate the complete, publication-grade markdown response
+tailored to the user's inquiry, with zero arithmetic hallucination and full provenance tracking.
 """
 
 import json
 import logging
-import math
 from typing import Any, Dict, List, Literal, Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -34,22 +32,26 @@ logger = logging.getLogger("finance_agent.agents.lead_synthesizer")
 
 
 class ResearchSynthesisPayload(BaseModel):
-    """Internal Pydantic schema for structured LLM thesis and summary generation."""
+    """Internal Pydantic schema for structured LLM report and thesis generation."""
 
-    pillar_1_business_moat: str = Field(
-        ..., description="Pillar 1: Business architecture, competitive moat durability, and pricing power"
-    )
-    pillar_2_financial_durability: str = Field(
-        ..., description="Pillar 2: Earnings quality, balance sheet strength, FCF conversion, and ROIC vs WACC"
-    )
-    pillar_3_valuation_asymmetry: str = Field(
-        ..., description="Pillar 3: Intrinsic value vs market price, margin of safety, and risk/reward asymmetry"
+    full_markdown_report: str = Field(
+        ...,
+        description="The complete, publication-grade markdown response dynamically generated to directly answer the user inquiry, embedding verified tables.",
     )
     executive_summary: str = Field(
-        ..., description="Executive briefing highlighting business model, growth, and risks"
+        ..., description="Executive briefing highlighting core findings and conclusion"
     )
     valuation_stance: Literal["Undervalued", "Fairly Valued", "Overvalued"] = Field(
         default="Fairly Valued", description="Valuation stance"
+    )
+    pillar_1_business_moat: Optional[str] = Field(
+        None, description="Pillar 1: Business architecture and competitive moat durability (if applicable)"
+    )
+    pillar_2_financial_durability: Optional[str] = Field(
+        None, description="Pillar 2: Earnings quality, balance sheet strength, and FCF conversion (if applicable)"
+    )
+    pillar_3_valuation_asymmetry: Optional[str] = Field(
+        None, description="Pillar 3: Intrinsic value vs market price, margin of safety, and risk/reward asymmetry (if applicable)"
     )
 
 
@@ -89,6 +91,7 @@ class LeadSynthesizerAgent(BaseAgent):
         if val is None:
             return default
         try:
+            import math
             f = float(val) * scale
             if math.isnan(f) or math.isinf(f):
                 return default
@@ -109,6 +112,7 @@ class LeadSynthesizerAgent(BaseAgent):
         risk_audit: Optional[RiskAuditOutput] = None,
         year_substituted: bool = False,
         user_query: Optional[str] = None,
+        query_type: str = "full_10k_report",
         callbacks: Optional[List[Any]] = None,
     ) -> Final10KResearchReport:
         """Synthesizes all structured agent payloads into a complete Final10KResearchReport."""
@@ -125,16 +129,20 @@ class LeadSynthesizerAgent(BaseAgent):
             forecast=forecast,
             dcf_valuation=dcf_valuation,
             risk_audit=risk_audit,
+            query_type=query_type,
+            user_query=user_query,
+            year_substituted=year_substituted,
         )
 
-        user_instruction = (
-            f"Synthesize the research findings for {ticker.upper()} (FY{fiscal_year}). "
-            f"Formulate the 3-Pillar Investment Thesis (Pillar 1: Business Moat, "
-            f"Pillar 2: Financial Durability, Pillar 3: Valuation Asymmetry), "
-            f"the executive summary, and the final valuation stance."
+        user_instruction = render_prompt(
+            "prompt_synthesizer_instruction.j2",
+            ticker=ticker.upper(),
+            fiscal_year=fiscal_year,
+            query_type=query_type,
+            user_query=user_query,
         )
 
-        # 2. Invoke LLM for qualitative synthesis with provenance tracking
+        # 2. Invoke LLM for qualitative synthesis and complete report generation
         raw_synthesis: Dict[str, Any] = {}
         synthesis_provenance: Literal["llm_structured", "llm_json_fallback", "template_default"] = "llm_structured"
         llm_config = {"callbacks": callbacks} if callbacks else {}
@@ -204,25 +212,27 @@ class LeadSynthesizerAgent(BaseAgent):
         if stance not in ("Undervalued", "Fairly Valued", "Overvalued"):
             stance = "Fairly Valued"
 
-        # 5. Compile full institutional Markdown publication with None-safe formatting
-        full_report_md = self._build_markdown_report(
-            ticker=ticker.upper(),
-            company_name=company_name,
-            fiscal_year=fiscal_year,
-            thesis=thesis,
-            exec_summary=exec_summary,
-            fair_value=fair_value,
-            current_price=current_price,
-            upside=upside,
-            stance=stance,
-            business_moat=business_moat,
-            financial_audit=financial_audit,
-            forecast=forecast,
-            dcf_valuation=dcf_valuation,
-            risk_audit=risk_audit,
-            year_substituted=year_substituted,
-            synthesis_provenance=synthesis_provenance,
-        )
+        # 5. Retrieve dynamic markdown report generated by the AI with fallback
+        full_report_md = raw_synthesis.get("full_markdown_report")
+        if not full_report_md:
+            full_report_md = (
+                f"# Research Analysis: {company_name} ({ticker.upper()})\n\n"
+                f"> **Fiscal Year**: {fiscal_year} | **Valuation Stance**: **{stance.upper()}**\n\n"
+                f"## Executive Summary\n{exec_summary}\n\n"
+            )
+            if dcf_valuation and dcf_valuation.sensitivity_matrix_markdown:
+                full_report_md += f"## DCF Valuation & Sensitivity\n{dcf_valuation.sensitivity_matrix_markdown}\n"
+
+        if year_substituted and "Filing Provenance Note" not in full_report_md:
+            parts = full_report_md.split("\n", 1)
+            prov_note = f"> ⚠️ **Filing Provenance Note**: Requested fiscal year unavailable in database catalog; substituted with latest audited filing (FY{fiscal_year}).\n"
+            if len(parts) == 2:
+                full_report_md = f"{parts[0]}\n{prov_note}\n{parts[1]}"
+            else:
+                full_report_md = f"{full_report_md}\n\n{prov_note}"
+
+        if "Synthesis Provenance" not in full_report_md:
+            full_report_md += f"\n\n> *Synthesis Provenance: `{synthesis_provenance}`*"
 
         # 6. Deduplicate citations
         all_citations = self._consolidate_citations(
@@ -247,183 +257,6 @@ class LeadSynthesizerAgent(BaseAgent):
             full_markdown_report=full_report_md,
             all_citations=all_citations,
         )
-
-    def _build_markdown_report(
-        self,
-        ticker: str,
-        company_name: str,
-        fiscal_year: int,
-        thesis: ThreePillarThesis,
-        exec_summary: str,
-        fair_value: float,
-        current_price: Optional[float],
-        upside: Optional[float],
-        stance: str,
-        business_moat: Optional[BusinessMoatOutput],
-        financial_audit: Optional[FinancialAuditOutput],
-        forecast: Optional[ForecastOutput],
-        dcf_valuation: Optional[DCFValuationOutput],
-        risk_audit: Optional[RiskAuditOutput],
-        year_substituted: bool = False,
-        synthesis_provenance: str = "llm_structured",
-    ) -> str:
-        """Deterministically stitches the complete publication report with exhaustive None-guarding."""
-        lines = []
-
-        # Title Block & Filing Source
-        lines.append(f"# Institutional Equity Research Report: {company_name} ({ticker})")
-        lines.append(f"> **Filing Source**: SEC Form 10-K (Fiscal Year {fiscal_year}) | **Valuation Stance**: **{stance.upper()}**")
-        if year_substituted:
-            lines.append(f"> ⚠️ **Filing Provenance Note**: Requested fiscal year unavailable in database catalog; substituted with latest audited filing (FY{fiscal_year}).")
-        lines.append("")
-
-        # Executive Valuation Dashboard Card
-        lines.append("## Executive Valuation Dashboard")
-        lines.append("| Metric | Value | Provenance / Convention |")
-        lines.append("| :--- | :--- | :--- |")
-        lines.append(f"| **Implied DCF Fair Value** | **{self._fmt(fair_value, '.2f', prefix='$')}** | 2-Stage Gordon Growth (Mid-Year Discounting) |")
-        if current_price:
-            lines.append(f"| **Current Market Price** | {self._fmt(current_price, '.2f', prefix='$')} | Latest Quoted Close |")
-            lines.append(f"| **Implied Margin of Safety / Upside** | **{self._fmt(upside, '+.1f', suffix='%')}** | Relative to Implied Fair Value |")
-        lines.append(f"| **Valuation Verdict** | **{stance}** | Threshold: ±10% Margin of Safety |")
-        if dcf_valuation:
-            lines.append(f"| **Blended WACC Hurdle** | {self._fmt(dcf_valuation.wacc_audit.wacc_pct, '.2f', suffix='%')} | CAPM Ke: {self._fmt(dcf_valuation.wacc_audit.cost_of_equity_pct, '.2f', suffix='%')} |")
-            lines.append(f"| **Terminal Growth Rate (g)** | {self._fmt(dcf_valuation.terminal_growth_rate, '.1f', scale=100.0, suffix='%')} | Long-Term GDP Baseline |")
-            lines.append(f"| **Terminal Value % of EV** | {self._fmt(dcf_valuation.terminal_value_pct_of_ev, '.1f', suffix='%')} | Standard Bound: 60%–80% |")
-            lines.append(f"| **Enterprise Value (EV)** | {self._fmt(dcf_valuation.enterprise_value, ',.1f', prefix='$', suffix='M')} | PV Explicit UFCFs + PV Terminal Value |")
-            
-            if dcf_valuation.net_debt is None:
-                net_debt_desc = "N/A"
-            elif dcf_valuation.net_debt <= 0:
-                net_debt_desc = "Net Cash Surplus"
-            else:
-                net_debt_desc = "Net Debt Drag"
-            lines.append(f"| **Net Debt** | {self._fmt(dcf_valuation.net_debt, ',.1f', prefix='$', suffix='M')} | {net_debt_desc} |")
-            lines.append(f"| **Diluted Shares Outstanding** | {self._fmt(dcf_valuation.diluted_shares, ',.1f', suffix='M')} | Audited 10-K Item 8 Balance Sheet |")
-        lines.append("")
-
-        # Section 1: Executive Summary
-        lines.append("## 1. Executive Summary")
-        lines.append(exec_summary)
-        lines.append("")
-
-        # Section 2: The 3-Pillar Investment Thesis
-        lines.append("## 2. Institutional 3-Pillar Investment Thesis")
-        lines.append(f"### Pillar 1: Business Architecture & Competitive Moat\n{thesis.pillar_1_business_moat}\n")
-        lines.append(f"### Pillar 2: Financial Durability & Earnings Quality\n{thesis.pillar_2_financial_durability}\n")
-        lines.append(f"### Pillar 3: Valuation Asymmetry & Margin of Safety\n{thesis.pillar_3_valuation_asymmetry}\n")
-
-        # Section 3: Business Operations & Moat Analysis
-        if business_moat:
-            lines.append("## 3. Business Operations & Economic Moat Analysis")
-            lines.append(f"**Business Overview**: {business_moat.business_summary}\n")
-            lines.append(f"**Revenue Architecture**: {business_moat.revenue_architecture}\n")
-            lines.append(f"- **Economic Moat**: **{business_moat.economic_moat_type}** ({business_moat.moat_durability} Durability, {business_moat.moat_trajectory} Trajectory)")
-            lines.append(f"- **Moat Defense**: {business_moat.moat_rationale}")
-            lines.append(f"- **Pricing Power**: {business_moat.pricing_power_assessment}")
-            lines.append(f"- **Customer Concentration**: {business_moat.customer_concentration}\n")
-
-            if business_moat.segment_details:
-                lines.append("### Primary Operating Segments")
-                for seg in business_moat.segment_details:
-                    drivers_str = f" (*Key Drivers*: {', '.join(seg.growth_drivers)})" if seg.growth_drivers else ""
-                    lines.append(f"- **{seg.name}**: {seg.description}{drivers_str}")
-                lines.append("")
-
-        # Section 4: Audited Financial Statements & Ratio Performance
-        if financial_audit:
-            lines.append("## 4. Audited Financial Statements & Ratio Performance")
-            lines.append(f"*{financial_audit.auditor_summary}*\n")
-
-            # Ratio performance table with exhaustive None-guarding
-            lines.append("### Key Financial Ratios & Return Metrics")
-            lines.append("| Metric | Audited Value | Benchmark / Interpretation |")
-            lines.append("| :--- | :--- | :--- |")
-            r = financial_audit.profitability_and_return_ratios
-            s = financial_audit.solvency_and_liquidity_ratios
-            lines.append(f"| **ROIC** | **{self._fmt(r.roic_pct, '.1f', suffix='%')}** | After-Tax Return on Invested Capital |")
-            lines.append(f"| **Effective Tax Rate** | {self._fmt(r.effective_tax_rate_pct, '.1f', suffix='%')} | Audited 10-K Effective Rate |")
-            net_debt_str = self._fmt(s.net_debt_to_ebitda, '.2f', suffix='x')
-            benchmark_str = 'Conservative / Cash Surplus' if (s.net_debt_to_ebitda is not None and s.net_debt_to_ebitda <= 0) else 'Leveraged'
-            lines.append(f"| **Net Debt / EBITDA** | {net_debt_str} | {benchmark_str} |")
-            lines.append(f"| **Current Ratio** | {self._fmt(s.current_ratio, '.2f', suffix='x')} | Liquidity Coverage |")
-            lines.append("")
-
-            # Forensic red flags
-            if financial_audit.forensic_red_flags:
-                lines.append("### Forensic Accounting Audit Checks")
-                for flag in financial_audit.forensic_red_flags:
-                    lines.append(f"- ⚠️ **Flag**: {flag}")
-                lines.append("")
-
-            # Raw markdown statement tables
-            if financial_audit.income_statement_markdown_table:
-                lines.append("### Audited Consolidated Statements of Operations")
-                lines.append(financial_audit.income_statement_markdown_table)
-                lines.append("")
-
-            if financial_audit.balance_sheet_markdown_table:
-                lines.append("### Audited Consolidated Balance Sheets")
-                lines.append(financial_audit.balance_sheet_markdown_table)
-                lines.append("")
-
-            if financial_audit.cash_flow_markdown_table:
-                lines.append("### Audited Consolidated Statements of Cash Flows")
-                lines.append(financial_audit.cash_flow_markdown_table)
-                lines.append("")
-
-        # Section 5: 5-Year Forecast Schedule
-        if forecast:
-            lines.append("## 5. 5-Year Financial Forecast & Cash Flow Schedule")
-            lines.append(f"- **5-Year Revenue CAGR**: **{self._fmt(forecast.revenue_cagr_pct, '.1f', suffix='%')}**")
-            lines.append(
-                f"- **5-Year Cumulative UFCF**: **{self._fmt(forecast.cumulative_5yr_fcf, ',.1f', prefix='$', suffix='M')}** "
-                f"(Annual Avg: {self._fmt(forecast.average_annual_fcf, ',.1f', prefix='$', suffix='M')})"
-            )
-            lines.append(f"- **Guidance Provenance**: `{forecast.guidance_source}` ({forecast.provenance_mode})")
-            lines.append(f"- **Growth Rationale**: {forecast.growth_rationale}")
-            lines.append(f"- **Margin Expansion Rationale**: {forecast.margin_expansion_rationale}\n")
-
-            if forecast.forecast_table_markdown:
-                lines.append(forecast.forecast_table_markdown)
-                lines.append("")
-
-        # Section 6: DCF Valuation & Sensitivity Analysis
-        if dcf_valuation:
-            lines.append("## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity")
-            lines.append(f"*{dcf_valuation.valuation_summary}*\n")
-
-            lines.append("### WACC Hurdle Rate Breakdown")
-            lines.append(dcf_valuation.wacc_audit.formula_breakdown_markdown)
-            lines.append("")
-
-            lines.append("### 2-Way Sensitivity Matrix: WACC vs. Perpetual Terminal Growth")
-            lines.append(dcf_valuation.sensitivity_matrix_markdown)
-            lines.append("")
-
-        # Section 7: Risk Factors & Existential Overhangs
-        if risk_audit:
-            lines.append("## 7. Material Risk Factors & Existential Overhangs")
-            lines.append(f"- **Overall Risk Rating**: **{risk_audit.overall_risk_profile}**")
-            lines.append(f"- **Primary Existential Threat**: {risk_audit.primary_existential_threat}\n")
-
-            lines.append("| Severity | Category | Risk Title & 10-K Item 1A Disclosure |")
-            lines.append("| :--- | :--- | :--- |")
-            for rk in risk_audit.identified_risks:
-                lines.append(f"| **{rk.severity}** | {rk.risk_category} | **{rk.risk_title}**: {rk.risk_summary} |")
-            lines.append("")
-
-        # Section 8: Compliance & Provenance Disclaimers
-        lines.append("## 8. Regulatory Disclaimers & Audit Breadcrumbs")
-        lines.append(
-            f"> *Disclaimer: This equity research report is generated automatically by the Antigravity Multi-Agent Research System "
-            f"based strictly on audited SEC Form 10-K filings. Synthesis Provenance: `{synthesis_provenance}`. "
-            f"All financial ratios, discount rates, and discounted cash flows are derived deterministically "
-            f"via verified Python calculation engines. Not financial advice.*"
-        )
-        lines.append("")
-
-        return "\n".join(lines)
 
     def _consolidate_citations(
         self,

@@ -253,26 +253,17 @@ class SupervisorAgent(BaseAgent):
         query_type, _ = self.classify_intent_with_provenance(user_query)
         return query_type
 
-    def classify_intent_with_provenance(self, user_query: str, callbacks: Optional[List[Any]] = None) -> Tuple[QueryType, str]:
-        """Classifies user intent using deterministic fast-path with LLM fallback."""
-        q = user_query.strip().lower()
-        clean_q = re.sub(r"[^\w\s]", " ", q).strip()
-
-        # Fast keyword matches for specialized 10-K report agent pipelines
-        if any(sig in q for sig in ["full report", "complete report", "comprehensive", "deep dive", "all agents"]):
-            return "full_10k_report", "deterministic_rule"
-        if any(sig in q for sig in ["moat", "business model", "competitive advantage", "segments", "pricing power"]):
-            return "business_moat_only", "deterministic_rule"
-        if any(sig in q for sig in ["risk", "threat", "litigation", "lawsuit", "antitrust", "headwinds"]):
-            return "risk_factors_only", "deterministic_rule"
-        if any(sig in q for sig in ["balance sheet", "income statement", "cash flow", "statement of operations", "margin", "audit"]):
-            return "financial_audit_only", "deterministic_rule"
-        if any(sig in q for sig in ["dcf", "intrinsic value", "fair value", "target price", "wacc"]):
-            return "dcf_valuation_only", "deterministic_rule"
-
-        # LLM fallback using prompt_supervisor.j2 for conversational and ambiguous inquiries
+    def classify_intent_with_provenance(
+        self,
+        user_query: str,
+        session_state: Optional[Dict[str, Any]] = None,
+        callbacks: Optional[List[Any]] = None,
+    ) -> Tuple[QueryType, str]:
+        """Classifies user intent using LLM inference driven by prompt_supervisor.j2."""
         try:
-            extraction = self._extract_with_llm(user_query, callbacks=callbacks)
+            extraction = self._extract_with_llm(
+                user_query, active_session=session_state, callbacks=callbacks
+            )
             if extraction and extraction.query_type in AGENT_EXECUTION_PLANS:
                 return extraction.query_type, "llm_inferred"
         except Exception as e:
@@ -375,23 +366,17 @@ class SupervisorAgent(BaseAgent):
 
         # 2. Standard resolution with active session state awareness
         extraction: Optional[SupervisorExtraction] = None
-        if not ticker or not fiscal_year:
-            try:
-                extraction = self._extract_with_llm(user_query, active_session=active_state, callbacks=callbacks)
-            except Exception as e:
-                logger.warning(f"LLM supervisor extraction failed ({e})")
+        try:
+            extraction = self._extract_with_llm(user_query, active_session=active_state, callbacks=callbacks)
+        except Exception as e:
+            logger.warning(f"LLM supervisor extraction failed ({e})")
 
-        # Determine query type:
-        classified_type, classified_prov = self.classify_intent_with_provenance(user_query, callbacks=callbacks)
-        if classified_type == "conversational":
-            query_type = "conversational"
-            provenance = classified_prov
-        elif extraction and extraction.query_type in AGENT_EXECUTION_PLANS:
+        if extraction and extraction.query_type in AGENT_EXECUTION_PLANS:
             query_type = extraction.query_type
             provenance = "llm_inferred"
         else:
-            query_type = classified_type
-            provenance = classified_prov
+            query_type = "conversational"
+            provenance = "deterministic_rule"
 
         # Handle conversational queries directly without requiring filing lookup
         if query_type == "conversational":

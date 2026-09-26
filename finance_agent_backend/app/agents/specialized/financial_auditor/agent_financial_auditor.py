@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
+from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 
 from app.agents.tools.financial_math_tools import (
@@ -47,14 +48,10 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
         Direct programmatic interface for LangGraph orchestrator and standalone tests.
         Audits 10-K financial statements and returns a validated FinancialAuditOutput instance.
         """
-        query = (
-            f"Audit the SEC 10-K financial statements for {ticker.upper()} for fiscal year {fiscal_year}.\n"
-            f"1. Retrieve Item 8 tables (Income Statement, Balance Sheet, Cash Flows) for FY{fiscal_year}.\n"
-            f"2. Inspect multi-year series across filings to audit consistency and note any restatements in restatement_notes.\n"
-            f"3. Extract the 3 contiguous years ({fiscal_year-2}, {fiscal_year-1}, {fiscal_year}) and latest balance sheet "
-            f"standardized to $ Millions and shares in Millions.\n"
-            f"4. Call audit_financial_metrics_tool EXACTLY ONCE with these extracted inputs.\n"
-            f"5. Emit the complete FinancialAuditOutput artifact."
+        query = render_prompt(
+            "prompt_financial_auditor_query.j2",
+            ticker=ticker.upper(),
+            fiscal_year=fiscal_year,
         )
 
         fallback_defaults = {

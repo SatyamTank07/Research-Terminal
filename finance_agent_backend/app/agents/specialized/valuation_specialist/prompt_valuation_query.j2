@@ -1,0 +1,42 @@
+Perform an institutional 2-stage DCF valuation for {{ ticker | upper }} for fiscal year {{ fiscal_year }}.
+1. Audited Balance Sheet Inputs (from Financial Auditor):
+   - Total Debt: ${{ "{:,.2f}".format(total_debt) }}M
+   - Net Debt: ${{ "{:,.2f}".format(net_debt) }}M ({% if net_debt < 0 %}Net Cash Surplus{% else %}Net Indebtedness{% endif %})
+   - Diluted Shares: {{ "{:,.2f}".format(diluted_shares) }} Million shares (pass diluted_shares={{ "{:.2f}".format(diluted_shares) }} EXACTLY, do NOT divide by 1000)
+   - Effective Tax Rate: {{ "{:.2f}%".format(tax_rate * 100) }}
+{% if latest_operating_income is not none %}
+   - Base Year Operating Income (EBIT): ${{ "{:,.2f}".format(latest_operating_income) }}M
+{% endif %}
+{% if base_year_ebitda is not none %}
+   - Base Year EBITDA (Operating Income + D&A): ${{ "{:,.2f}".format(base_year_ebitda) }}M
+{% else %}
+   - Base Year EBITDA: Not available (D&A omitted in 10-K extraction)
+{% endif %}
+2. Market & Macro Inputs:
+   - Equity Beta: {{ "{:.2f}".format(beta) }}
+{% if share_price is not none %}
+   - Current Share Price: ${{ "{:.2f}".format(share_price) }}
+{% endif %}
+{% if market_cap is not none %}
+   - Market Capitalization: ${{ "{:,.2f}".format(market_cap) }}M
+{% endif %}
+   - Risk-Free Rate (Rf): {{ "{:.2f}%".format(risk_free_rate * 100) }}
+   - Equity Risk Premium (ERP): {{ "{:.2f}%".format(equity_risk_premium * 100) }}
+{% if cost_of_debt is not none %}
+   - Explicit Pre-Tax Cost of Debt: {{ "{:.2f}%".format(cost_of_debt * 100) }}
+{% endif %}
+{% if wacc_override is not none %}
+   - Explicit User-Specified WACC Hurdle Rate: {{ "{:.2f}%".format(wacc_override * 100) }}
+{% endif %}
+3. 5-Year Explicit Forecast UFCFs ($ Millions): {{ projected_fcfs }}
+4. Perpetual Terminal Growth Rate: {{ "{:.2f}%".format(terminal_growth_rate * 100) }}
+5. Execution Sequence:
+{% if wacc_override is not none %}
+   Step 1: User explicitly specified WACC hurdle rate override: {{ "{:.4f}".format(wacc_override) }} ({{ "{:.2f}%".format(wacc_override * 100) }}). Use this WACC directly without calling calculate_wacc_tool.
+   Step 2: Call calculate_dcf_tool EXACTLY ONCE with projected_fcfs={{ projected_fcfs }}, wacc={{ "{:.4f}".format(wacc_override) }}, terminal_growth_rate={{ "{:.4f}".format(terminal_growth_rate) }}, net_debt={{ "{:.2f}".format(net_debt) }}, diluted_shares={{ "{:.2f}".format(diluted_shares) }}.
+   Step 3: Stop calling tools and emit the complete DCFValuationOutput artifact as valid JSON.
+{% else %}
+   Step 1: Call calculate_wacc_tool EXACTLY ONCE to derive WACC (pass beta={{ "{:.2f}".format(beta) }}, total_debt={{ "{:.2f}".format(total_debt) }}{% if share_price is not none %}, share_price={{ "{:.2f}".format(share_price) }}{% endif %}{% if market_cap is not none %}, market_cap={{ "{:.2f}".format(market_cap) }}{% endif %}, diluted_shares={{ "{:.2f}".format(diluted_shares) }}, tax_rate={{ "{:.4f}".format(tax_rate) }}{% if cost_of_debt is not none %}, cost_of_debt={{ "{:.4f}".format(cost_of_debt) }}{% endif %}, risk_free_rate={{ "{:.4f}".format(risk_free_rate) }}, equity_risk_premium={{ "{:.4f}".format(equity_risk_premium) }}).
+   Step 2: Call calculate_dcf_tool EXACTLY ONCE with projected_fcfs={{ projected_fcfs }}, wacc from Step 1, terminal_growth_rate={{ "{:.4f}".format(terminal_growth_rate) }}, net_debt={{ "{:.2f}".format(net_debt) }}, diluted_shares={{ "{:.2f}".format(diluted_shares) }}.
+   Step 3: Stop calling tools and emit the complete DCFValuationOutput artifact as valid JSON.
+{% endif %}

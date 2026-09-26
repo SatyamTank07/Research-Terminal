@@ -9,6 +9,7 @@ emitting a typed BusinessMoatOutput schema.
 from typing import Any, List, Optional
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
+from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.tools.rag_narrative_tools import retrieve_10k_narrative_tool
 
@@ -27,13 +28,10 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         Direct programmatic interface for LangGraph orchestrator and standalone tests.
         Analyzes 10-K Item 1 narrative and returns a validated BusinessMoatOutput instance.
         """
-        query = (
-            f"Analyze the business model, product segments, and economic moat for {ticker.upper()} "
-            f"from its fiscal year {fiscal_year} SEC 10-K filing.\n"
-            f"1. Query Item 1 narrative for operating segments, revenue architecture, and competitive advantages.\n"
-            f"2. Ensure all primary product lines and service categories are captured; if product-level breakdown is sparse in Item 1, query Item 7 for net sales by product category.\n"
-            f"3. Classify the economic moat type, durability, and trajectory, and assess pricing power and customer concentration.\n"
-            f"4. Emit the complete BusinessMoatOutput artifact with all citations."
+        query = render_prompt(
+            "prompt_business_strategist_query.j2",
+            ticker=ticker.upper(),
+            fiscal_year=fiscal_year,
         )
 
         fallback_defaults = {
