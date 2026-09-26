@@ -90,8 +90,6 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
 
     # 4. Resolve and execute Agent via Registry (defaults to multi-agent system)
     agent_type = request.agent_type or "multi_agent"
-    if agent_type == "financial_analyst":
-        agent_type = "multi_agent"
 
     trace_name = f"finance-agent:{agent_type}"
     tags = ["finance-agent", agent_type]
@@ -213,8 +211,6 @@ async def stream_chat_service(
 
     # 4. Resolve agent (defaulting to multi_agent)
     agent_type = request.agent_type or "multi_agent"
-    if agent_type == "financial_analyst":
-        agent_type = "multi_agent"
 
     trace_name = f"finance-agent:stream:{agent_type}"
     tags = ["finance-agent", "streaming", agent_type]

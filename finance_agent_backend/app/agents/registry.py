@@ -21,19 +21,19 @@ class AgentRegistry:
         return decorator
 
     @classmethod
-    def get(cls, name: str = "financial_analyst") -> BaseAgent:
+    def get(cls, name: str = "multi_agent") -> BaseAgent:
         """Retrieves and instantiates an agent by name. Falls back to default if not found."""
-        normalized_name = (name or "financial_analyst").lower()
+        normalized_name = (name or "multi_agent").lower()
         agent_cls = cls._registry.get(normalized_name)
         if not agent_cls:
             logger.warning(
-                f"Agent '{name}' not found in registry. Falling back to 'financial_analyst'."
+                f"Agent '{name}' not found in registry. Falling back to 'multi_agent'."
             )
-            agent_cls = cls._registry.get("financial_analyst")
+            agent_cls = cls._registry.get("multi_agent")
 
         if not agent_cls:
             raise ValueError(
-                f"Requested agent '{name}' is not registered and fallback 'financial_analyst' is missing."
+                f"Requested agent '{name}' is not registered and fallback 'multi_agent' is missing."
             )
 
         return agent_cls()
