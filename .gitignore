@@ -1,6 +1,9 @@
 # AI Agent & Assistant artifacts
 .agents/
 .gemini/
+GEMINI.md
+AGENTS.md
+MEMORY.md
 
 # Environment and sensitive credentials
 .env
