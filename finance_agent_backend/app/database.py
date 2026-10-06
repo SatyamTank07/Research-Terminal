@@ -60,6 +60,16 @@ def init_db():
     logger.info("Initializing database tables...")
     Base.metadata.create_all(bind=engine)
 
+    # Idempotent migration ensuring session_state column exists on existing PostgreSQL container instances
+    try:
+        with engine.connect() as conn:
+            conn.execute(
+                text("ALTER TABLE conversations ADD COLUMN IF NOT EXISTS session_state JSON DEFAULT '{}'::json;")
+            )
+            conn.commit()
+    except Exception as e:
+        logger.warning(f"Could not auto-add session_state column to conversations table (may already exist): {e}")
+
     db = SessionLocal()
     try:
         existing_user = db.query(models.User).first()

@@ -75,8 +75,11 @@ Step 4: Execute Deterministic Math via Tool
 - Do NOT call `audit_financial_metrics_tool` multiple times for older non-target 3-year windows. Cross-filing inspection in Step 2 is a comparison of overlapping figures, not an extra mathematical audit.
 - **ZERO ARITHMETIC HALLUCINATION DIRECTIVE**: You are strictly forbidden from calculating margins, FCF, ROIC, ROE, Net Debt, or ratios mentally. All math must be derived by `audit_financial_metrics_tool`.
 
-Step 5: Synthesize and Emit Structured Output
-- Format your final response as a single, valid JSON object matching the `FinancialAuditOutput` schema.
+- **TERMINATION & ANTI-LOOP DIRECTIVE**:
+  - Retrieve the primary statement tables (Income Statement, Balance Sheet, Cash Flow) and inspect cross-filings once.
+  - Do NOT repeatedly call retrieval tools in a loop.
+  - You MUST immediately proceed to Step 3 (Unit Normalization) and Step 4 (Execute `audit_financial_metrics_tool` EXACTLY ONCE).
+  - Once `audit_financial_metrics_tool` returns, emit the final `FinancialAuditOutput` JSON immediately without calling any further tools.
 
 </auditing_and_execution_protocol>
 

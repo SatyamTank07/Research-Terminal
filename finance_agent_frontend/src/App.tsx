@@ -27,7 +27,7 @@ export function App() {
   } = useConversations()
 
   // 3. Active chat session, message sending, and loading states
-  const { messages, isLoading, sendMessage } = useChat({
+  const { messages, activeMilestones, isLoading, sendMessage } = useChat({
     activeConversationId,
     onConversationUpdated: async (convId) => {
       await loadConversations(convId)
@@ -80,7 +80,12 @@ export function App() {
         {/* Main Research Workspace */}
         <main className="flex-1 flex flex-col justify-between overflow-hidden relative">
           {/* Memorandum Feed */}
-          <ChatWindow messages={messages} isLoading={isLoading} />
+          <ChatWindow
+            messages={messages}
+            isLoading={isLoading}
+            activeMilestones={activeMilestones}
+          />
+
 
           {/* Bottom Analyst Command Bar */}
           <ChatInput

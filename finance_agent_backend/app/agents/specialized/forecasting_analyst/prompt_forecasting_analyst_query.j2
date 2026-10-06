@@ -1,0 +1,20 @@
+Construct a disciplined {{ horizon_years }}-year forward financial forecast for {{ ticker | upper }} based on fiscal year {{ fiscal_year }} 10-K audited metrics and Item 7 (MD&A) disclosures.
+
+Audited Baseline Financials:
+- Base Year (T0): FY{{ base_year }}
+- Base Year Revenue: ${{ "{:,.2f}".format(base_revenue) }} Million
+- Historical 3-Year Revenue CAGR: {{ "{:.2f}%".format(historical_cagr * 100) }}
+- Base Year Operating Margin: {{ "{:.2f}%".format(latest_margin * 100) }}
+- Base Year CapEx: ${{ "{:,.2f}".format(latest_capex) }} Million (CapEx Intensity: {{ "{:.2f}%".format(capex_pct * 100) }} of Revenue)
+- Derived Effective Tax Rate: {{ "{:.2f}%".format(tax_rate * 100) }}%
+{% if moat_context %}
+{{ moat_context }}
+{% endif %}
+Accounting Precedence Directive:
+- {{ depr_directive }}
+
+Execution Protocol:
+1. Review Item 7 MD&A narrative context and segment trends.
+2. Calibrate a {{ horizon_years }}-year forward revenue growth schedule fading towards terminal rates, and an operating margin schedule reflecting operating leverage or cost pressures.
+3. Call calculate_forecast_schedule_tool EXACTLY ONCE with these parameters.
+4. Emit the complete ForecastOutput JSON with guidance_source='md&a_explicit'.

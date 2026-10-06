@@ -231,6 +231,7 @@ class YearFinancialsResult(BaseModel):
     operating_cash_flow: float
     capital_expenditures: float
     free_cash_flow: float
+    depreciation_amortization: Optional[float] = None
     fcf_conversion_pct: Optional[float] = None
     revenue_growth_pct: Optional[float] = None
     operating_income_growth_pct: Optional[float] = None
@@ -382,6 +383,7 @@ def calculate_financial_ratios(
                 operating_cash_flow=ocf,
                 capital_expenditures=capex,
                 free_cash_flow=fcf,
+                depreciation_amortization=f.depreciation_amortization,
                 fcf_conversion_pct=fcf_conv,
                 revenue_growth_pct=rev_growth,
                 operating_income_growth_pct=ebit_growth,

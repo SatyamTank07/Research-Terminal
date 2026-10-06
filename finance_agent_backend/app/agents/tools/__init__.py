@@ -26,6 +26,17 @@ from app.agents.tools.wacc_tools import (
     calculate_wacc,
     calculate_wacc_tool,
 )
+from app.agents.tools.forecast_tools import (
+    ForecastYearResult,
+    ForecastScheduleResult,
+    calculate_forecast_schedule,
+    calculate_forecast_schedule_tool,
+)
+from app.agents.tools.rag_narrative_tools import (
+    NarrativeChunkResult,
+    retrieve_10k_narrative,
+    retrieve_10k_narrative_tool,
+)
 from app.agents.tools.tavily_search import get_tavily_tool
 
 __all__ = [
@@ -33,6 +44,9 @@ __all__ = [
     "retrieve_10k_tables",
     "retrieve_multiyear_financial_series",
     "retrieve_10k_tables_tool",
+    "NarrativeChunkResult",
+    "retrieve_10k_narrative",
+    "retrieve_10k_narrative_tool",
     "DCFCalculationResult",
     "calculate_dcf_with_sensitivity",
     "calculate_dcf_tool",
@@ -47,5 +61,10 @@ __all__ = [
     "WACCCalculationResult",
     "calculate_wacc",
     "calculate_wacc_tool",
+    "ForecastYearResult",
+    "ForecastScheduleResult",
+    "calculate_forecast_schedule",
+    "calculate_forecast_schedule_tool",
     "get_tavily_tool",
 ]
+

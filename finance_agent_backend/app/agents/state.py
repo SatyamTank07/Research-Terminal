@@ -1,164 +1,76 @@
 """Shared State & Structured Output Schemas for Multi-Agent Equity Research.
 
-Defines Pydantic models for individual sub-agent contracts (Auditor, Forecaster,
-Valuation Specialist, Moat Strategist, Risk Analyst, Synthesizer) and the centralized
+Consolidates sub-agent contracts (Auditor, Forecaster, Valuation Specialist,
+Moat Strategist, Risk Analyst, Synthesizer) and defines the centralized
 LangGraph TypedDict state graph.
 """
 
-from typing import Any, Dict, List, Literal, Optional, TypedDict
-from pydantic import BaseModel, Field
+from typing import Any, Dict, List, Optional, TypedDict
 
-from app.agents.tools.financial_math_tools import (
-    BalanceSheetResult,
-    ProfitabilityRatiosResult,
-    SolvencyRatiosResult,
-    YearFinancialsResult,
+# ==============================================================================
+# 1. Financial Auditor & Statement Analyst Output Schema
+# ==============================================================================
+from app.agents.specialized.financial_auditor.state_financial_auditor import (
+    BalanceSheetSnapshot,
+    FinancialAuditOutput,
+    YearFinancials,
 )
 
-# Ergonomic aliases mapping architectural specification names to calculation engine results
-YearFinancials = YearFinancialsResult
-BalanceSheetSnapshot = BalanceSheetResult
+# ==============================================================================
+# 2. DCF Valuation Specialist Output Schema
+# ==============================================================================
+from app.agents.specialized.valuation_specialist.state_valuation_specialist import (
+    DCFValuationOutput,
+    WACCAudit,
+)
+
+# ==============================================================================
+# 3. Financial Forecasting Analyst Output Schema
+# ==============================================================================
+from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import (
+    ForecastOutput,
+    ForecastYear,
+    GuidanceSource,
+)
+
+# ==============================================================================
+# 4. Business & Moat Strategist Output Schema
+# ==============================================================================
+from app.agents.specialized.business_strategist.state_business_strategist import (
+    BusinessMoatOutput,
+    SegmentDetail,
+)
+
+# ==============================================================================
+# 5. Risk & Red Flag Analyst Output Schema
+# ==============================================================================
+from app.agents.specialized.risk_analyst.state_risk_analyst import (
+    RiskAuditOutput,
+    RiskItem,
+)
+
+# ==============================================================================
+# 6. Routing & Lead Supervisor Output Schema
+# ==============================================================================
+from app.agents.specialized.supervisor.state_supervisor import (
+    QueryType,
+    RoutingPlan,
+)
+
+# ==============================================================================
+# 7. Lead Synthesizer & Final Report Output Schema
+# ==============================================================================
+from app.agents.specialized.lead_synthesizer.state_lead_synthesizer import (
+    Final10KResearchReport,
+    ThreePillarThesis,
+)
 
 
 # ==============================================================================
-# 1. Financial Auditor & Statement Analyst Output Schema (Milestone 2)
-# ==============================================================================
-class FinancialAuditOutput(BaseModel):
-    """Structured artifact emitted by the Financial Auditor Agent."""
-
-    ticker: str = Field(..., description="Stock ticker symbol (e.g. AAPL)")
-    fiscal_year: int = Field(..., description="Target 10-K fiscal year audited")
-
-    # 1. Deterministic Math & Multi-Year Ratios (Calculated via tool)
-    multi_year_history: List[YearFinancialsResult] = Field(
-        ...,
-        description="3-year contiguous history (Rev, GP, EBIT, NI, OCF, CapEx, FCF, Margins, YoY Growth)",
-    )
-    balance_sheet: BalanceSheetResult = Field(
-        ...,
-        description="Audited liquidity bridge (Cash, Securities, Short/Long Debt, Net Debt, Shares, Equity)",
-    )
-    profitability_and_return_ratios: ProfitabilityRatiosResult = Field(
-        ...,
-        description="ROIC, ROE, NOPAT, Invested Capital, and derived effective tax rate",
-    )
-    solvency_and_liquidity_ratios: SolvencyRatiosResult = Field(
-        ...,
-        description="Net Debt/EBITDA, Current Ratio, Debt/Equity",
-    )
-    forensic_red_flags: List[str] = Field(
-        default_factory=list,
-        description="Algorithmic red flags (accrual divergence, weak FCF conversion, AR/Inventory lag)",
-    )
-    restatement_notes: List[str] = Field(
-        default_factory=list,
-        description="Audit notes on cross-filing comparisons, restatements, or reclassifications across filings",
-    )
-
-    # 2. Raw Markdown Tables (Preserved for UI presentation & Report Synthesizer)
-    income_statement_markdown_table: str = Field(
-        default="", description="Audited Statement of Operations Markdown table"
-    )
-    balance_sheet_markdown_table: str = Field(
-        default="", description="Audited Consolidated Balance Sheets Markdown table"
-    )
-    cash_flow_markdown_table: str = Field(
-        default="", description="Audited Statement of Cash Flows Markdown table"
-    )
-
-
-    # 3. Auditor Synthesis & Audit Trail
-    auditor_summary: str = Field(
-        ...,
-        description="Qualitative synthesis explaining earnings quality, working capital dynamics, and red flag context",
-    )
-    citations: List[Dict[str, Any]] = Field(
-        default_factory=list,
-        description="List of chunk_ids, breadcrumbs, and table titles used in the audit",
-    )
-
-
-# ==============================================================================
-# 2. DCF Valuation Specialist Output Schema (Milestone 3)
-# ==============================================================================
-class WACCAudit(BaseModel):
-    """Detailed parameters and provenance of the discount rate derivation."""
-
-    wacc: float = Field(..., description="Blended WACC as decimal (e.g. 0.0845)")
-    wacc_pct: float = Field(..., description="Blended WACC as percentage (e.g. 8.45)")
-    cost_of_equity_pct: float = Field(..., description="CAPM Cost of Equity Ke %")
-    cost_of_debt_pre_tax_pct: float = Field(..., description="Pre-tax Kd %")
-    cost_of_debt_after_tax_pct: float = Field(..., description="After-tax Kd %")
-    cost_of_debt_source: str = Field(
-        ...,
-        description="Explicit provenance: explicit_provided, derived_from_10k_interest_expense, institutional_credit_spread_fallback, zero_debt_exemption",
-    )
-    equity_weight_pct: float = Field(..., description="Equity proportion We %")
-    debt_weight_pct: float = Field(..., description="Debt proportion Wd %")
-    formula_breakdown_markdown: str = Field(..., description="Markdown table of WACC components")
-
-
-class DCFValuationOutput(BaseModel):
-    """Structured artifact emitted by the DCF Valuation Specialist."""
-
-    ticker: str = Field(..., description="Stock ticker symbol (e.g. AAPL)")
-    fiscal_year: int = Field(..., description="Base fiscal year audited")
-
-    # 1. Discount Rate & Core Assumptions
-    wacc_audit: WACCAudit
-    terminal_growth_rate: float = Field(
-        default=0.025,
-        description="Perpetual terminal growth rate as decimal (default 0.025 for 2.5%)",
-    )
-    discounting_convention: str = Field(
-        default="mid_year",
-        description="Institutional 'mid_year' (default) or 'year_end'",
-    )
-
-    # 2. Valuation Bridge ($ Millions)
-    projected_fcfs: List[float] = Field(..., description="Explicit forecast period UFCFs ($M)")
-    pv_explicit_fcfs: float = Field(..., description="Present value of explicit cash flows ($M)")
-    pv_terminal_value: float = Field(..., description="Present value of terminal value ($M)")
-    terminal_value_pct_of_ev: float = Field(..., description="Terminal value as % of Enterprise Value")
-    enterprise_value: float = Field(..., description="Implied Enterprise Value ($M)")
-    net_debt: float = Field(..., description="Net debt ($M); negative indicates cash surplus")
-    equity_value: float = Field(..., description="Implied Equity Value ($M)")
-    diluted_shares: float = Field(..., description="Diluted shares outstanding in Millions")
-
-    # 3. Share Price, Multiple Sanity Check & Valuation Stance
-    implied_fair_value_per_share: float = Field(..., description="Intrinsic fair value per share in $")
-    current_share_price: Optional[float] = Field(None, description="Current market share price in $")
-    upside_downside_pct: Optional[float] = Field(
-        None, description="Implied upside/downside % relative to current market price"
-    )
-    valuation_stance: Optional[Literal["Undervalued", "Fairly Valued", "Overvalued"]] = Field(
-        None,
-        description="Valuation stance: Undervalued (> +10%), Overvalued (< -10%), Fairly Valued",
-    )
-    implied_ev_ebitda: Optional[float] = Field(
-        None,
-        description="Cross-check multiple: Enterprise Value / Base Year EBITDA (None if D&A unavailable)",
-    )
-    ev_ebitda_source: Optional[str] = Field(
-        None,
-        description="Provenance tag for EV/EBITDA multiple: 'derived_from_10k_ebit_plus_depreciation' or None",
-    )
-
-    # 4. Sensitivity Table & Qualitative Commentary
-    sensitivity_matrix_markdown: str = Field(
-        ..., description="5x5 Markdown matrix flexing WACC vs Perpetual Growth"
-    )
-    valuation_summary: str = Field(
-        ...,
-        description="Institutional commentary: value drivers, hurdle rate profile, terminal concentration, sensitivity bounds",
-    )
-
-
-# ==============================================================================
-# 3. Central LangGraph State Graph Definition (Multi-Agent Coordinator)
+# 8. Central LangGraph State Graph Definition (Multi-Agent Coordinator)
 # ==============================================================================
 class EquityResearchState(TypedDict, total=False):
-    """Centralized TypedDict tracking the state across all 6 specialized agents."""
+    """Centralized TypedDict tracking the state across all specialized agents."""
 
     # Routing & Session Context
     user_query: str
@@ -167,15 +79,50 @@ class EquityResearchState(TypedDict, total=False):
     fiscal_year: int
     document_id: str
     query_type: str
+    routing_plan: Optional[RoutingPlan]
+    messages: Optional[List[Dict[str, str]]]
+    session_state: Optional[Dict[str, Any]]
+    updated_session_state: Optional[Dict[str, Any]]
+    callbacks: Optional[List[Any]]
 
     # Sub-agent structured payloads
-    business_moat: Optional[Dict[str, Any]]
+    business_moat: Optional[BusinessMoatOutput]
     financial_audit: Optional[FinancialAuditOutput]
-    forecast: Optional[Dict[str, Any]]
+    forecast: Optional[ForecastOutput]
     dcf_valuation: Optional[DCFValuationOutput]
-    risk_audit: Optional[Dict[str, Any]]
+    risk_audit: Optional[RiskAuditOutput]
 
     # Final compiled output
-    final_report: Optional[Dict[str, Any]]
+    final_report: Optional[Final10KResearchReport]
+    conversational_response: Optional[str]
     sources: List[Dict[str, Any]]
     error_message: Optional[str]
+
+
+__all__ = [
+    # Auditor
+    "FinancialAuditOutput",
+    "YearFinancials",
+    "BalanceSheetSnapshot",
+    # Valuation
+    "WACCAudit",
+    "DCFValuationOutput",
+    # Forecaster
+    "ForecastYear",
+    "GuidanceSource",
+    "ForecastOutput",
+    # Business Moat
+    "SegmentDetail",
+    "BusinessMoatOutput",
+    # Risk
+    "RiskItem",
+    "RiskAuditOutput",
+    # Supervisor
+    "QueryType",
+    "RoutingPlan",
+    # Synthesizer
+    "ThreePillarThesis",
+    "Final10KResearchReport",
+    # Central Graph State
+    "EquityResearchState",
+]
