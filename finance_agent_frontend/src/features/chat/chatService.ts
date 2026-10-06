@@ -17,6 +17,7 @@ export async function sendChatMessage(
     body: JSON.stringify({
       message,
       conversation_id: conversationId || undefined,
+      stream: false,
     }),
   })
 }
@@ -24,9 +25,10 @@ export async function sendChatMessage(
 export async function sendChatMessageStream(
   message: string,
   conversationId?: string,
-  onMilestone?: (milestone: AgentMilestone) => void
+  onMilestone?: (milestone: AgentMilestone) => void,
+  onToken?: (delta: string) => void
 ): Promise<ChatResponse> {
-  const url = `${API_BASE_URL}/chat/stream`
+  const url = `${API_BASE_URL}/chat`
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -36,6 +38,7 @@ export async function sendChatMessageStream(
     body: JSON.stringify({
       message,
       conversation_id: conversationId || undefined,
+      stream: true,
     }),
   })
 
@@ -89,6 +92,10 @@ export async function sendChatMessageStream(
                 details: parsed.details,
               })
             }
+          } else if (parsed.type === 'token') {
+            if (onToken) {
+              onToken(parsed.delta)
+            }
           } else if (parsed.type === 'result') {
             finalResult = {
               response: parsed.response,
@@ -115,7 +122,6 @@ export async function sendChatMessageStream(
 
   return finalResult
 }
-
 
 export async function getConversationMessages(
   conversationId: string

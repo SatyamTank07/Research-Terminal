@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 import os
-from typing import AsyncIterator
+from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
 from fastapi import HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -49,15 +49,12 @@ def _resolve_conversation(request: ChatRequest, user: User, db: Session) -> Conv
     return conversation
 
 
-def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
-    """Orchestrates conversation lookup/creation, message history, multi-agent execution, and persistence."""
-    if not os.getenv("OPENAI_API_KEY"):
-        raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set.")
-
-    # 1. Resolve conversation thread
+def _prepare_chat_turn(
+    request: ChatRequest, user: User, db: Session
+) -> Tuple[Conversation, ChatMessage, List[Dict[str, str]]]:
+    """Resolves conversation, persists incoming user message, and constructs history payload."""
     conversation = _resolve_conversation(request=request, user=user, db=db)
 
-    # 2. Persist user message in PostgreSQL
     user_msg = ChatMessage(
         conversation_id=conversation.id,
         user_id=user.id,
@@ -68,7 +65,6 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
     db.commit()
     db.refresh(user_msg)
 
-    # 3. Load past messages for multi-turn conversational context (last 10 turns)
     past_messages = (
         db.query(ChatMessage)
         .filter(
@@ -88,9 +84,45 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
     ]
     history_payload.append({"role": "user", "content": request.message})
 
-    # 4. Resolve and execute Agent via Registry (defaults to multi-agent system)
-    agent_type = request.agent_type or "multi_agent"
+    return conversation, user_msg, history_payload
 
+
+def _finalize_assistant_turn(
+    conversation: Conversation,
+    user: User,
+    content: str,
+    sources: Optional[List[Dict[str, Any]]],
+    updated_session_state: Optional[Dict[str, Any]],
+    db: Session,
+    is_error: bool = False,
+) -> ChatMessage:
+    """Persists assistant reply, updates conversation session state and timestamp."""
+    assistant_msg = ChatMessage(
+        conversation_id=conversation.id,
+        user_id=user.id,
+        role="assistant",
+        content=content,
+        sources=sources or [],
+        is_error=is_error,
+    )
+    db.add(assistant_msg)
+    if updated_session_state is not None:
+        conversation.session_state = dict(updated_session_state)
+        flag_modified(conversation, "session_state")
+    conversation.updated_at = func.now()
+    db.commit()
+    db.refresh(assistant_msg)
+    return assistant_msg
+
+
+def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
+    """Orchestrates conversation lookup/creation, message history, agent execution, and persistence."""
+    if not os.getenv("OPENAI_API_KEY"):
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set.")
+
+    conversation, user_msg, history_payload = _prepare_chat_turn(request=request, user=user, db=db)
+
+    agent_type = request.agent_type or "multi_agent"
     trace_name = f"finance-agent:{agent_type}"
     tags = ["finance-agent", agent_type]
     metadata = {
@@ -122,24 +154,14 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
                 except TypeError:
                     output = agent.run(history_payload)
 
-            # Update session_state if provided by agent
-            if output.updated_session_state is not None:
-                conversation.session_state = dict(output.updated_session_state)
-                flag_modified(conversation, "session_state")
-
-            # 5. Persist assistant reply in PostgreSQL
-            assistant_msg = ChatMessage(
-                conversation_id=conversation.id,
-                user_id=user.id,
-                role="assistant",
+            assistant_msg = _finalize_assistant_turn(
+                conversation=conversation,
+                user=user,
                 content=output.content,
                 sources=output.sources,
-                is_error=False,
+                updated_session_state=output.updated_session_state,
+                db=db,
             )
-            db.add(assistant_msg)
-            conversation.updated_at = func.now()
-            db.commit()
-            db.refresh(assistant_msg)
 
             return ChatResponse(
                 response=output.content,
@@ -151,15 +173,15 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
         err_str = str(e)
         logger.error(f"Error during chat agent execution: {err_str}")
         try:
-            err_msg = ChatMessage(
-                conversation_id=conversation.id,
-                user_id=user.id,
-                role="assistant",
+            _finalize_assistant_turn(
+                conversation=conversation,
+                user=user,
                 content=f"Error communicating with agent: {err_str}",
+                sources=[],
+                updated_session_state=None,
+                db=db,
                 is_error=True,
             )
-            db.add(err_msg)
-            db.commit()
         except Exception:
             pass
         raise HTTPException(status_code=500, detail=err_str)
@@ -170,48 +192,14 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
 async def stream_chat_service(
     request: ChatRequest, user: User, db: Session
 ) -> AsyncIterator[str]:
-    """Streams real-time intermediate node progress milestones and final response via SSE."""
+    """Streams real-time intermediate node progress milestones, token deltas, and final response via SSE."""
     if not os.getenv("OPENAI_API_KEY"):
         yield f"data: {json.dumps({'type': 'error', 'message': 'OPENAI_API_KEY is not set.'})}\n\n"
         return
 
-    # 1. Resolve conversation thread
-    conversation = _resolve_conversation(request=request, user=user, db=db)
+    conversation, user_msg, history_payload = _prepare_chat_turn(request=request, user=user, db=db)
 
-    # 2. Persist user message in PostgreSQL
-    user_msg = ChatMessage(
-        conversation_id=conversation.id,
-        user_id=user.id,
-        role="user",
-        content=request.message,
-    )
-    db.add(user_msg)
-    db.commit()
-    db.refresh(user_msg)
-
-    # 3. Load past messages for multi-turn conversational context (last 10 turns)
-    past_messages = (
-        db.query(ChatMessage)
-        .filter(
-            ChatMessage.conversation_id == conversation.id,
-            ChatMessage.id != user_msg.id,
-        )
-        .order_by(ChatMessage.created_at.desc())
-        .limit(10)
-        .all()
-    )
-    past_messages.reverse()
-
-    history_payload = [
-        {"role": msg.role, "content": msg.content}
-        for msg in past_messages
-        if msg.role in ("user", "assistant")
-    ]
-    history_payload.append({"role": "user", "content": request.message})
-
-    # 4. Resolve agent (defaulting to multi_agent)
     agent_type = request.agent_type or "multi_agent"
-
     trace_name = f"finance-agent:stream:{agent_type}"
     tags = ["finance-agent", "streaming", agent_type]
     metadata = {
@@ -238,32 +226,44 @@ async def stream_chat_service(
                     session_state=conversation.session_state,
                     callbacks=callbacks,
                 ):
-                    if event.get("type") == "result":
-                        # Persist assistant reply in PostgreSQL
-                        assistant_msg = ChatMessage(
-                            conversation_id=conversation.id,
-                            user_id=user.id,
-                            role="assistant",
-                            content=event.get("response", ""),
-                            sources=event.get("sources", []),
-                            is_error=False,
+                    event_type = event.get("type")
+                    if event_type == "result":
+                        response_content = event.get("response", "")
+                        sources = event.get("sources", [])
+                        updated_state = event.get("updated_session_state")
+
+                        # If tokens were not streamed natively during node execution,
+                        # stream response in word chunks to ensure token-by-token UI typing
+                        if not event.get("tokens_streamed", False) and response_content:
+                            words = response_content.split(" ")
+                            chunk_size = 6
+                            for i in range(0, len(words), chunk_size):
+                                chunk_words = words[i : i + chunk_size]
+                                chunk_text = " ".join(chunk_words)
+                                if i + chunk_size < len(words):
+                                    chunk_text += " "
+                                yield f"data: {json.dumps({'type': 'token', 'delta': chunk_text})}\n\n"
+                                await asyncio.sleep(0.005)
+
+                        assistant_msg = _finalize_assistant_turn(
+                            conversation=conversation,
+                            user=user,
+                            content=response_content,
+                            sources=sources,
+                            updated_session_state=updated_state,
+                            db=db,
                         )
-                        db.add(assistant_msg)
-                        if event.get("updated_session_state") is not None:
-                            conversation.session_state = dict(event["updated_session_state"])
-                            flag_modified(conversation, "session_state")
-                        conversation.updated_at = func.now()
-                        db.commit()
-                        db.refresh(assistant_msg)
 
                         payload = {
                             "type": "result",
-                            "response": event.get("response", ""),
+                            "response": response_content,
                             "conversation_id": conversation.id,
                             "message_id": assistant_msg.id,
-                            "sources": event.get("sources", []),
+                            "sources": sources,
                         }
                         yield f"data: {json.dumps(payload)}\n\n"
+                    elif event_type == "token":
+                        yield f"data: {json.dumps(event)}\n\n"
                     else:
                         yield f"data: {json.dumps(event)}\n\n"
             else:
@@ -275,21 +275,26 @@ async def stream_chat_service(
                         output = await asyncio.to_thread(agent.run, history_payload, conversation.session_state)
                     except TypeError:
                         output = await asyncio.to_thread(agent.run, history_payload)
-                assistant_msg = ChatMessage(
-                    conversation_id=conversation.id,
-                    user_id=user.id,
-                    role="assistant",
+
+                if output.content:
+                    words = output.content.split(" ")
+                    chunk_size = 6
+                    for i in range(0, len(words), chunk_size):
+                        chunk_words = words[i : i + chunk_size]
+                        chunk_text = " ".join(chunk_words)
+                        if i + chunk_size < len(words):
+                            chunk_text += " "
+                        yield f"data: {json.dumps({'type': 'token', 'delta': chunk_text})}\n\n"
+                        await asyncio.sleep(0.005)
+
+                assistant_msg = _finalize_assistant_turn(
+                    conversation=conversation,
+                    user=user,
                     content=output.content,
                     sources=output.sources,
-                    is_error=False,
+                    updated_session_state=output.updated_session_state,
+                    db=db,
                 )
-                db.add(assistant_msg)
-                if output.updated_session_state is not None:
-                    conversation.session_state = dict(output.updated_session_state)
-                    flag_modified(conversation, "session_state")
-                conversation.updated_at = func.now()
-                db.commit()
-                db.refresh(assistant_msg)
 
                 payload = {
                     "type": "result",
@@ -304,15 +309,15 @@ async def stream_chat_service(
         err_str = str(e)
         logger.error(f"Error during stream chat execution: {err_str}")
         try:
-            err_msg = ChatMessage(
-                conversation_id=conversation.id,
-                user_id=user.id,
-                role="assistant",
+            _finalize_assistant_turn(
+                conversation=conversation,
+                user=user,
                 content=f"Error communicating with agent: {err_str}",
+                sources=[],
+                updated_session_state=None,
+                db=db,
                 is_error=True,
             )
-            db.add(err_msg)
-            db.commit()
         except Exception:
             pass
         yield f"data: {json.dumps({'type': 'error', 'message': err_str})}\n\n"

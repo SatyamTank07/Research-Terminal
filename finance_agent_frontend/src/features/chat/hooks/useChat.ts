@@ -60,17 +60,41 @@ export function useChat({
       setActiveMilestones([])
       setIsLoading(true)
 
+      const streamingMsgId = crypto.randomUUID()
+
       try {
         const replyData = await sendChatMessageStream(
           userPrompt,
           activeConversationId || undefined,
           (milestone) => {
             setActiveMilestones((prev) => [...prev, milestone])
+          },
+          (delta) => {
+            setMessages((prev) => {
+              const idx = prev.findIndex((m) => m.id === streamingMsgId)
+              if (idx !== -1) {
+                const next = [...prev]
+                next[idx] = {
+                  ...next[idx],
+                  content: next[idx].content + delta,
+                }
+                return next
+              }
+              return [
+                ...prev,
+                {
+                  id: streamingMsgId,
+                  role: 'assistant',
+                  content: delta,
+                  timestamp: new Date(),
+                },
+              ]
+            })
           }
         )
 
         const agentMessage: Message = {
-          id: replyData.message_id || crypto.randomUUID(),
+          id: replyData.message_id || streamingMsgId,
           conversation_id: replyData.conversation_id,
           role: 'assistant',
           content: replyData.response,
@@ -78,7 +102,10 @@ export function useChat({
           sources: replyData.sources || [],
         }
 
-        setMessages((prev) => [...prev, agentMessage])
+        setMessages((prev) => {
+          const filtered = prev.filter((m) => m.id !== streamingMsgId)
+          return [...filtered, agentMessage]
+        })
 
         if (onConversationUpdated) {
           await onConversationUpdated(replyData.conversation_id)
@@ -96,7 +123,10 @@ export function useChat({
           timestamp: new Date(),
           isError: true,
         }
-        setMessages((prev) => [...prev, errorReply])
+        setMessages((prev) => {
+          const filtered = prev.filter((m) => m.id !== streamingMsgId)
+          return [...filtered, errorReply]
+        })
       } finally {
         setIsLoading(false)
         setActiveMilestones([])

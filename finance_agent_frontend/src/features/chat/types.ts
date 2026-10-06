@@ -19,6 +19,7 @@ export interface Message {
 export interface ChatRequest {
   message: string
   conversation_id?: string
+  stream?: boolean
 }
 
 export interface ChatResponse {
@@ -56,6 +57,10 @@ export type StreamingChatEvent =
       details?: Record<string, any>
     }
   | {
+      type: 'token'
+      delta: string
+    }
+  | {
       type: 'result'
       response: string
       conversation_id: string
@@ -68,4 +73,3 @@ export type StreamingChatEvent =
       type: 'error'
       message: string
     }
-
