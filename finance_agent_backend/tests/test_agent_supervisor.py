@@ -282,8 +282,8 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertLess(len(assistant_turn_content), len(long_report))
 
     @patch.object(SupervisorAgent, "_extract_with_llm")
-    def test_13_two_turn_clarification_wacc_persistence(self, mock_extract):
-        """Verify 2-turn clarification flow preserves wacc_override across conversation turns."""
+    def test_13_two_turn_clarification_entity_resolution(self, mock_extract):
+        """Verify 2-turn clarification flow resolves entity across conversation turns."""
         # Turn 1: User asks for DCF with 8% discount rate, missing company
         mock_extract.return_value = SupervisorExtraction(
             query_type="conversational",
@@ -295,7 +295,6 @@ class TestAgentSupervisor(unittest.TestCase):
             user_query="Run DCF with an 8% discount rate",
         )
         self.assertEqual(turn1_plan.query_type, "conversational")
-        self.assertEqual(turn1_plan.updated_session_state.get("wacc_override"), 0.08)
 
         # Turn 2: User responds "Apple", passing Turn 1 session state and history
         mock_extract.return_value = SupervisorExtraction(
@@ -319,7 +318,7 @@ class TestAgentSupervisor(unittest.TestCase):
 
         self.assertEqual(turn2_plan.query_type, "dcf_valuation_only")
         self.assertEqual(turn2_plan.ticker, "AAPL")
-        self.assertEqual(turn2_plan.updated_session_state.get("wacc_override"), 0.08)
+        self.assertEqual(turn2_plan.fiscal_year, 2025)
 
     def test_14_o1_prompt_constant_size(self):
         """Verify supervisor prompt has constant O(1) size and includes anti-interrogation guardrails."""

@@ -284,40 +284,7 @@ class SupervisorAgent(BaseAgent):
         if "pending_action" in active_state:
             active_state["pending_action"] = None
 
-        # 2. Extract or maintain user-specified parameters across multi-turn context (e.g. WACC override)
-        wacc_match = re.search(
-            r"\b(?:wacc|discount rate|hurdle rate)\s*(?:of|is|at|=|:)?\s*([0-9]+(?:\.[0-9]+)?)\s*%?",
-            user_query,
-            re.IGNORECASE,
-        )
-        if not wacc_match:
-            wacc_match = re.search(
-                r"([0-9]+(?:\.[0-9]+)?)\s*%\s*(?:wacc|discount rate|hurdle rate)\b",
-                user_query,
-                re.IGNORECASE,
-            )
-        if not wacc_match and messages:
-            for m in reversed(messages):
-                if m.get("role") == "user":
-                    wacc_match = re.search(
-                        r"\b(?:wacc|discount rate|hurdle rate)\s*(?:of|is|at|=|:)?\s*([0-9]+(?:\.[0-9]+)?)\s*%?",
-                        m.get("content", ""),
-                        re.IGNORECASE,
-                    )
-                    if not wacc_match:
-                        wacc_match = re.search(
-                            r"([0-9]+(?:\.[0-9]+)?)\s*%\s*(?:wacc|discount rate|hurdle rate)\b",
-                            m.get("content", ""),
-                            re.IGNORECASE,
-                        )
-                    if wacc_match:
-                        break
-
-        if wacc_match:
-            w_raw = float(wacc_match.group(1))
-            active_state["wacc_override"] = (w_raw / 100.0) if w_raw > 1.0 else w_raw
-
-        # 3. Intent and entity resolution via LLM with full message history and active session context
+        # 2. Intent and entity resolution via LLM with full message history and active session context
         extraction: Optional[SupervisorExtraction] = None
         try:
             extraction = self._extract_with_llm(
@@ -341,7 +308,6 @@ class SupervisorAgent(BaseAgent):
             active_ticker = (
                 ticker
                 or (extraction.extracted_ticker if extraction else None)
-                or active_state.get("active_ticker")
             )
             active_company = active_state.get("active_company") or active_ticker
             active_year = active_state.get("active_fiscal_year") or 0
@@ -376,7 +342,6 @@ class SupervisorAgent(BaseAgent):
         resolved_ticker = (
             ticker
             or (extraction.extracted_ticker if extraction else None)
-            or active_state.get("active_ticker")
         )
         resolved_year_req = (
             fiscal_year if fiscal_year is not None else (extraction.extracted_year if extraction else None)
@@ -432,8 +397,6 @@ class SupervisorAgent(BaseAgent):
             "last_query_type": query_type,
             "pending_action": None,
         }
-        if "wacc_override" in active_state:
-            updated_session["wacc_override"] = active_state["wacc_override"]
 
         logger.info(
             f"Supervisor routed query '{user_query[:50]}' -> "
