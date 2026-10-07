@@ -240,6 +240,31 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
         user_wacc = (w_raw / 100.0) if w_raw > 1.0 else w_raw
     else:
         user_wacc = None
+        session_state = state.get("session_state") or {}
+        if session_state.get("wacc_override") is not None:
+            try:
+                user_wacc = float(session_state["wacc_override"])
+            except (ValueError, TypeError):
+                user_wacc = None
+
+        if user_wacc is None and state.get("messages"):
+            for m in reversed(state.get("messages")):
+                if m.get("role") == "user":
+                    prior_wacc_match = re.search(
+                        r"\b(?:wacc|discount rate|hurdle rate)\s*(?:of|is|at|=|:)?\s*([0-9]+(?:\.[0-9]+)?)\s*%?",
+                        m.get("content", ""),
+                        re.IGNORECASE,
+                    )
+                    if not prior_wacc_match:
+                        prior_wacc_match = re.search(
+                            r"([0-9]+(?:\.[0-9]+)?)\s*%\s*(?:wacc|discount rate|hurdle rate)\b",
+                            m.get("content", ""),
+                            re.IGNORECASE,
+                        )
+                    if prior_wacc_match:
+                        w_raw = float(prior_wacc_match.group(1))
+                        user_wacc = (w_raw / 100.0) if w_raw > 1.0 else w_raw
+                        break
 
     # 3. Resolve live market data (share_price, market_cap, beta) via yfinance with graceful fallbacks
     market_data = await asyncio.to_thread(fetch_market_context, ticker)
@@ -538,16 +563,7 @@ class MultiAgentOrchestrator(BaseAgent):
                         t = node_output.get("ticker", "Target")
                         y = node_output.get("fiscal_year", "")
                         q = node_output.get("query_type", "full_10k_report")
-                        if q == "conversational":
-                            yield {
-                                "type": "status",
-                                "node": "supervisor",
-                                "message": "Senior Research Director formulating response...",
-                                "details": {
-                                    "query_type": "conversational",
-                                },
-                            }
-                        else:
+                        if q != "conversational":
                             sub_note = " (substituted year)" if (plan and plan.year_substituted) else ""
                             yield {
                                 "type": "status",

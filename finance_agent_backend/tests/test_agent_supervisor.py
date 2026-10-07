@@ -216,6 +216,120 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertEqual(parsed.get("query_type"), "dcf_valuation_only")
         self.assertEqual(len(output.sources), 1)
 
+    @patch.object(SupervisorAgent, "_get_llm")
+    def test_11_multi_turn_history_payload_construction(self, mock_get_llm):
+        """Verify _extract_with_llm constructs messages_payload with HumanMessage and AIMessage history."""
+        mock_structured = MagicMock()
+        mock_structured.invoke.return_value = SupervisorExtraction(
+            query_type="dcf_valuation_only",
+            extracted_ticker="AAPL",
+            extracted_year=2025,
+            routing_reasoning="Multi-turn entity resolution",
+        )
+        mock_llm = MagicMock()
+        mock_llm.with_structured_output.return_value = mock_structured
+        mock_get_llm.return_value = mock_llm
+
+        messages = [
+            {"role": "user", "content": "Run a DCF with an 8% discount rate."},
+            {"role": "assistant", "content": "Which company would you like me to value with an 8% discount rate?"},
+            {"role": "user", "content": "Apple"},
+        ]
+
+        self.supervisor._extract_with_llm(
+            user_query="Apple",
+            messages=messages,
+        )
+
+        self.assertTrue(mock_structured.invoke.called)
+        invoked_payload = mock_structured.invoke.call_args[0][0]
+
+        # Payload must contain: SystemMessage, HumanMessage(Turn 1), AIMessage(Turn 1 response), HumanMessage(Turn 2)
+        self.assertEqual(len(invoked_payload), 4)
+        self.assertEqual(invoked_payload[1].content, "Run a DCF with an 8% discount rate.")
+        self.assertEqual(invoked_payload[2].content, "Which company would you like me to value with an 8% discount rate?")
+        self.assertIn("Analyze and route this research inquiry: 'Apple'", invoked_payload[3].content)
+
+    @patch.object(SupervisorAgent, "_get_llm")
+    def test_12_long_assistant_report_truncation(self, mock_get_llm):
+        """Verify prior long assistant reports (>1500 chars) are truncated with notice."""
+        mock_structured = MagicMock()
+        mock_structured.invoke.return_value = SupervisorExtraction(
+            query_type="conversational",
+            conversational_response="The operating margin was 30%.",
+        )
+        mock_llm = MagicMock()
+        mock_llm.with_structured_output.return_value = mock_structured
+        mock_get_llm.return_value = mock_llm
+
+        long_report = "# Comprehensive 10-K Report\n" + ("Paragraph analysis text. " * 200)
+        self.assertGreater(len(long_report), 1500)
+
+        messages = [
+            {"role": "user", "content": "Analyze Apple 10-K"},
+            {"role": "assistant", "content": long_report},
+            {"role": "user", "content": "What was its operating margin?"},
+        ]
+
+        self.supervisor._extract_with_llm(
+            user_query="What was its operating margin?",
+            messages=messages,
+        )
+
+        invoked_payload = mock_structured.invoke.call_args[0][0]
+        assistant_turn_content = invoked_payload[2].content
+        self.assertIn("...[Prior research report excerpted]...", assistant_turn_content)
+        self.assertLess(len(assistant_turn_content), len(long_report))
+
+    @patch.object(SupervisorAgent, "_extract_with_llm")
+    def test_13_two_turn_clarification_wacc_persistence(self, mock_extract):
+        """Verify 2-turn clarification flow preserves wacc_override across conversation turns."""
+        # Turn 1: User asks for DCF with 8% discount rate, missing company
+        mock_extract.return_value = SupervisorExtraction(
+            query_type="conversational",
+            conversational_response="Which company would you like me to value with an 8% discount rate?",
+            routing_reasoning="Missing entity for valuation query",
+        )
+
+        turn1_plan = self.supervisor.route(
+            user_query="Run DCF with an 8% discount rate",
+        )
+        self.assertEqual(turn1_plan.query_type, "conversational")
+        self.assertEqual(turn1_plan.updated_session_state.get("wacc_override"), 0.08)
+
+        # Turn 2: User responds "Apple", passing Turn 1 session state and history
+        mock_extract.return_value = SupervisorExtraction(
+            query_type="dcf_valuation_only",
+            extracted_ticker="AAPL",
+            extracted_year=2025,
+            routing_reasoning="User provided target entity for pending DCF valuation",
+        )
+
+        turn2_messages = [
+            {"role": "user", "content": "Run DCF with an 8% discount rate"},
+            {"role": "assistant", "content": turn1_plan.conversational_response},
+            {"role": "user", "content": "Apple"},
+        ]
+
+        turn2_plan = self.supervisor.route(
+            user_query="Apple",
+            messages=turn2_messages,
+            session_state=turn1_plan.updated_session_state,
+        )
+
+        self.assertEqual(turn2_plan.query_type, "dcf_valuation_only")
+        self.assertEqual(turn2_plan.ticker, "AAPL")
+        self.assertEqual(turn2_plan.updated_session_state.get("wacc_override"), 0.08)
+
+    def test_14_o1_prompt_constant_size(self):
+        """Verify supervisor prompt has constant O(1) size and includes anti-interrogation guardrails."""
+        prompt = render_prompt("supervisor")
+        self.assertIn("MANDATORY CLARIFICATION RULES", prompt)
+        self.assertIn("MANDATORY ANTI-INTERROGATION RULES", prompt)
+        self.assertIn("Missing Target Entity", prompt)
+        self.assertIn("Missing Fiscal Year", prompt)
+        self.assertNotIn("Available Ingested 10-K Filings:", prompt)
+
 
 if __name__ == "__main__":
     unittest.main()

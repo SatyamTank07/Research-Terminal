@@ -10,7 +10,7 @@ import logging
 import re
 from typing import Any, Dict, List, Literal, Optional, Tuple
 from dotenv import load_dotenv
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
@@ -111,32 +111,35 @@ class SupervisorAgent(BaseAgent):
     def _extract_with_llm(
         self,
         user_query: str,
+        messages: Optional[List[Dict[str, str]]] = None,
         active_session: Optional[Dict[str, Any]] = None,
         callbacks: Optional[List[Any]] = None,
     ) -> SupervisorExtraction:
-        """Utilizes supervisor.j2 prompt template for LLM routing and entity extraction with active session context."""
-        db = SessionLocal()
-        try:
-            available_docs = (
-                db.query(Document.ticker, Document.fiscal_year, Document.company_name)
-                .order_by(Document.ticker, Document.fiscal_year.desc())
-                .all()
-            )
-            catalog_summary = "\n".join([f"- {d[0]} (FY{d[1]}): {d[2]}" for d in available_docs])
-        finally:
-            db.close()
-
-        system_prompt = render_prompt("supervisor", catalog_summary=catalog_summary, active_session=active_session)
+        """Utilizes supervisor.j2 prompt template for LLM routing and entity extraction with conversational history."""
+        system_prompt = render_prompt("supervisor", active_session=active_session)
         llm = self._get_llm()
         structured_llm = llm.with_structured_output(SupervisorExtraction)
 
-        prompt_input = f"Analyze and route this research inquiry: '{user_query}'"
+        messages_payload = [SystemMessage(content=system_prompt)]
+
+        # Inject past conversation history for full multi-turn context
+        if messages and len(messages) > 1:
+            for m in messages[:-1]:
+                role = m.get("role", "")
+                content = m.get("content", "")
+                if role == "user":
+                    messages_payload.append(HumanMessage(content=content))
+                elif role == "assistant":
+                    # Truncate prior long reports to save tokens while preserving conversational context
+                    if len(content) > 1500:
+                        content = content[:1500] + "\n...[Prior research report excerpted]..."
+                    messages_payload.append(AIMessage(content=content))
+
+        # Append the latest user inquiry
+        messages_payload.append(HumanMessage(content=f"Analyze and route this research inquiry: '{user_query}'"))
         llm_config = {"callbacks": callbacks} if callbacks else {}
 
-        decision: SupervisorExtraction = structured_llm.invoke([
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=prompt_input),
-        ], config=llm_config)
+        decision: SupervisorExtraction = structured_llm.invoke(messages_payload, config=llm_config)
         return decision
 
     def resolve_filing_catalog(
@@ -247,12 +250,16 @@ class SupervisorAgent(BaseAgent):
         self,
         user_query: str,
         session_state: Optional[Dict[str, Any]] = None,
+        messages: Optional[List[Dict[str, str]]] = None,
         callbacks: Optional[List[Any]] = None,
     ) -> Tuple[QueryType, str]:
         """Classifies user intent using LLM inference driven by prompt_supervisor.j2."""
         try:
             extraction = self._extract_with_llm(
-                user_query, active_session=session_state, callbacks=callbacks
+                user_query,
+                messages=messages,
+                active_session=session_state,
+                callbacks=callbacks,
             )
             if extraction and extraction.query_type in AGENT_EXECUTION_PLANS:
                 return extraction.query_type, "llm_inferred"
@@ -277,10 +284,48 @@ class SupervisorAgent(BaseAgent):
         if "pending_action" in active_state:
             active_state["pending_action"] = None
 
-        # 2. Intent and entity resolution via LLM with active session context
+        # 2. Extract or maintain user-specified parameters across multi-turn context (e.g. WACC override)
+        wacc_match = re.search(
+            r"\b(?:wacc|discount rate|hurdle rate)\s*(?:of|is|at|=|:)?\s*([0-9]+(?:\.[0-9]+)?)\s*%?",
+            user_query,
+            re.IGNORECASE,
+        )
+        if not wacc_match:
+            wacc_match = re.search(
+                r"([0-9]+(?:\.[0-9]+)?)\s*%\s*(?:wacc|discount rate|hurdle rate)\b",
+                user_query,
+                re.IGNORECASE,
+            )
+        if not wacc_match and messages:
+            for m in reversed(messages):
+                if m.get("role") == "user":
+                    wacc_match = re.search(
+                        r"\b(?:wacc|discount rate|hurdle rate)\s*(?:of|is|at|=|:)?\s*([0-9]+(?:\.[0-9]+)?)\s*%?",
+                        m.get("content", ""),
+                        re.IGNORECASE,
+                    )
+                    if not wacc_match:
+                        wacc_match = re.search(
+                            r"([0-9]+(?:\.[0-9]+)?)\s*%\s*(?:wacc|discount rate|hurdle rate)\b",
+                            m.get("content", ""),
+                            re.IGNORECASE,
+                        )
+                    if wacc_match:
+                        break
+
+        if wacc_match:
+            w_raw = float(wacc_match.group(1))
+            active_state["wacc_override"] = (w_raw / 100.0) if w_raw > 1.0 else w_raw
+
+        # 3. Intent and entity resolution via LLM with full message history and active session context
         extraction: Optional[SupervisorExtraction] = None
         try:
-            extraction = self._extract_with_llm(user_query, active_session=active_state, callbacks=callbacks)
+            extraction = self._extract_with_llm(
+                user_query,
+                messages=messages,
+                active_session=active_state,
+                callbacks=callbacks,
+            )
         except Exception as e:
             logger.warning(f"LLM supervisor extraction failed ({e})")
 
@@ -387,6 +432,8 @@ class SupervisorAgent(BaseAgent):
             "last_query_type": query_type,
             "pending_action": None,
         }
+        if "wacc_override" in active_state:
+            updated_session["wacc_override"] = active_state["wacc_override"]
 
         logger.info(
             f"Supervisor routed query '{user_query[:50]}' -> "

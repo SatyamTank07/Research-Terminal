@@ -38,6 +38,7 @@ from app.agents.tools.rag_narrative_tools import (
     retrieve_10k_narrative_tool,
 )
 from app.agents.tools.tavily_search import get_tavily_tool
+from app.agents.tools.catalog_tools import search_sec_catalog
 
 __all__ = [
     "TableChunkResult",
@@ -66,5 +67,6 @@ __all__ = [
     "calculate_forecast_schedule",
     "calculate_forecast_schedule_tool",
     "get_tavily_tool",
+    "search_sec_catalog",
 ]
 
