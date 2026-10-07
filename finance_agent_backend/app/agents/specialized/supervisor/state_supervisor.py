@@ -35,15 +35,19 @@ class RoutingPlan(BaseModel):
         default="deterministic_rule",
         description="Provenance tag: whether intent was resolved by deterministic rules or LLM inference",
     )
+    conversational_response: Optional[str] = Field(
+        default=None,
+        description="Direct professional conversational reply generated immediately when query_type == 'conversational'",
+    )
     needs_confirmation: bool = Field(
         default=False,
-        description="True if requested year is missing and requires user confirmation before proceeding",
+        description="Deprecated: Retained for backward compatibility. Automatic year substitution is used instead.",
     )
     confirmation_message: Optional[str] = Field(
-        None, description="Message prompting user to confirm proceeding with the latest available fiscal year"
+        None, description="Deprecated: Retained for backward compatibility."
     )
     suggested_fiscal_year: Optional[int] = Field(
-        None, description="The latest available fiscal year suggested to the user"
+        None, description="Deprecated: Retained for backward compatibility."
     )
     updated_session_state: Optional[Dict[str, Any]] = Field(
         default=None, description="Updated active session state to persist to PostgreSQL conversation record"

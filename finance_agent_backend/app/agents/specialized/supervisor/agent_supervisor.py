@@ -51,9 +51,7 @@ AGENT_EXECUTION_PLANS: Dict[QueryType, List[str]] = {
     "risk_factors_only": [
         "risk_analyst",
     ],
-    "conversational": [
-        "conversational_analyst",
-    ],
+    "conversational": [],
 }
 
 
@@ -70,16 +68,15 @@ class SupervisorExtraction(BaseModel):
     extracted_year: Optional[int] = Field(
         None, description="Extracted 4-digit fiscal year if explicitly requested by user (e.g. 2023)"
     )
+    conversational_response: Optional[str] = Field(
+        None,
+        description=(
+            "If query_type == 'conversational', provide the full, professional response "
+            "directly to the user as a Senior Equity Research Director. If query requires 10-K execution, leave null."
+        ),
+    )
     routing_reasoning: str = Field(
         default="", description="Brief explanation of the routing classification"
-    )
-
-
-class ConfirmationSentiment(BaseModel):
-    """Sentiment classification when a pending confirmation is active."""
-
-    sentiment: Literal["yes", "no", "new_query"] = Field(
-        description="'yes' if user agreed to continue/proceed with proposed year, 'no' if user declined/cancelled, 'new_query' if user asked a totally different inquiry"
     )
 
 
@@ -110,13 +107,6 @@ class SupervisorAgent(BaseAgent):
         self._cached_llm = llm
         return llm
 
-    def _check_confirmation_sentiment(self, user_query: str, callbacks: Optional[List[Any]] = None) -> ConfirmationSentiment:
-        """Determines if user agreed, declined, or changed topic regarding a pending confirmation."""
-        prompt = render_prompt("confirmation_sentiment", user_query=user_query)
-        llm = self._get_llm()
-        structured_llm = llm.with_structured_output(ConfirmationSentiment)
-        llm_config = {"callbacks": callbacks} if callbacks else {}
-        return structured_llm.invoke(prompt, config=llm_config)
 
     def _extract_with_llm(
         self,
@@ -283,88 +273,11 @@ class SupervisorAgent(BaseAgent):
         """Generates a complete RoutingPlan using database session_state for clean multi-turn context."""
         active_state = dict(session_state or {})
 
-        # 1. Check if a pending action (e.g. year confirmation) exists in session_state
-        if active_state.get("pending_action"):
-            pending = active_state["pending_action"]
-            if pending.get("type") == "confirm_year":
-                sentiment_resp = self._check_confirmation_sentiment(user_query, callbacks=callbacks)
-                if sentiment_resp.sentiment == "yes":
-                    conf_ticker = pending["ticker"]
-                    sugg_year = pending["suggested_year"]
-                    orig_route = pending.get("original_query_type", "full_10k_report")
+        # 1. Clean up any obsolete pending_action from legacy session state
+        if "pending_action" in active_state:
+            active_state["pending_action"] = None
 
-                    db = SessionLocal()
-                    try:
-                        doc = (
-                            db.query(Document)
-                            .filter(Document.ticker == conf_ticker, Document.fiscal_year == sugg_year)
-                            .first()
-                        )
-                        if not doc:
-                            doc = (
-                                db.query(Document)
-                                .filter(Document.ticker == conf_ticker)
-                                .order_by(Document.fiscal_year.desc())
-                                .first()
-                            )
-                        company_name = doc.company_name if doc else conf_ticker
-                        doc_id = doc.id if doc else None
-                    finally:
-                        db.close()
-
-                    updated_session = {
-                        "active_ticker": conf_ticker,
-                        "active_company": company_name,
-                        "active_fiscal_year": sugg_year,
-                        "last_query_type": orig_route,
-                        "pending_action": None,
-                    }
-                    active_agents = AGENT_EXECUTION_PLANS.get(orig_route, AGENT_EXECUTION_PLANS["full_10k_report"])
-
-                    logger.info(f"Session context confirmed proceeding with {conf_ticker} FY{sugg_year}")
-                    return RoutingPlan(
-                        ticker=conf_ticker,
-                        company_name=company_name,
-                        fiscal_year=sugg_year,
-                        year_requested=pending.get("requested_year"),
-                        year_substituted=True,
-                        document_id=doc_id,
-                        query_type=orig_route,
-                        active_agents=active_agents,
-                        routing_provenance="llm_inferred",
-                        needs_confirmation=False,
-                        suggested_fiscal_year=sugg_year,
-                        updated_session_state=updated_session,
-                    )
-                elif sentiment_resp.sentiment == "no":
-                    conf_ticker = pending["ticker"]
-                    updated_session = dict(active_state)
-                    updated_session["pending_action"] = None
-
-                    logger.info(f"Session context cancelled research for {conf_ticker}")
-                    return RoutingPlan(
-                        ticker=conf_ticker,
-                        company_name=conf_ticker,
-                        fiscal_year=pending.get("suggested_year", 0),
-                        year_requested=None,
-                        year_substituted=False,
-                        document_id=None,
-                        query_type="full_10k_report",
-                        active_agents=[],
-                        routing_provenance="llm_inferred",
-                        needs_confirmation=True,
-                        confirmation_message=(
-                            f"Understood. Analysis for **{conf_ticker}** has been cancelled. "
-                            f"Let me know if you would like to analyze a different company or upload a 10-K filing."
-                        ),
-                        suggested_fiscal_year=pending.get("suggested_year"),
-                        updated_session_state=updated_session,
-                    )
-
-                # If user switched to an entirely new query, clear pending_action and proceed
-                active_state["pending_action"] = None
-
-        # 2. Standard resolution with active session state awareness
+        # 2. Intent and entity resolution via LLM with active session context
         extraction: Optional[SupervisorExtraction] = None
         try:
             extraction = self._extract_with_llm(user_query, active_session=active_state, callbacks=callbacks)
@@ -378,7 +291,7 @@ class SupervisorAgent(BaseAgent):
             query_type = "conversational"
             provenance = "deterministic_rule"
 
-        # Handle conversational queries directly without requiring filing lookup
+        # Handle conversational queries directly (Single LLM Hop)
         if query_type == "conversational":
             active_ticker = (
                 ticker
@@ -388,16 +301,27 @@ class SupervisorAgent(BaseAgent):
             active_company = active_state.get("active_company") or active_ticker
             active_year = active_state.get("active_fiscal_year") or 0
 
+            conv_response = (
+                extraction.conversational_response
+                if (extraction and extraction.conversational_response)
+                else (
+                    "I am your Senior Equity Research Director. I can assist you with comprehensive SEC 10-K research reports, "
+                    "three-statement financial audits, 5-year UFCF projections, and Gordon Growth DCF valuations. "
+                    "Which company or ticker would you like to evaluate?"
+                )
+            )
+
             return RoutingPlan(
                 ticker=active_ticker or "",
-                company_name=active_company or (active_ticker or "Research Assistant"),
+                company_name=active_company or (active_ticker or "Senior Equity Research Director"),
                 fiscal_year=active_year or 0,
                 year_requested=None,
                 year_substituted=False,
                 document_id=None,
                 query_type="conversational",
-                active_agents=["conversational_analyst"],
+                active_agents=[],
                 routing_provenance=provenance,
+                conversational_response=conv_response,
                 needs_confirmation=False,
                 confirmation_message=None,
                 suggested_fiscal_year=None,
@@ -435,14 +359,18 @@ class SupervisorAgent(BaseAgent):
                 if not resolved_ticker:
                     return RoutingPlan(
                         ticker="",
-                        company_name="Research Assistant",
+                        company_name="Senior Equity Research Director",
                         fiscal_year=0,
                         year_requested=None,
                         year_substituted=False,
                         document_id=None,
                         query_type="conversational",
-                        active_agents=["conversational_analyst"],
+                        active_agents=[],
                         routing_provenance="deterministic_rule",
+                        conversational_response=(
+                            "I am your Senior Equity Research Director. I could not identify an ingested company filing "
+                            "matching your request. Please specify a ticker symbol (e.g. AAPL, TSLA, NVDA) or upload a 10-K filing."
+                        ),
                         needs_confirmation=False,
                         confirmation_message=None,
                         suggested_fiscal_year=None,
@@ -450,46 +378,19 @@ class SupervisorAgent(BaseAgent):
                     )
                 raise err
 
-        # 3. Check if year was missing -> update session_state with pending_action and prompt user
-        needs_conf = False
-        conf_msg = None
-        sugg_year = None
+        # 3. Schedule active agents with automatic year substitution (Zero-Halting)
         active_agents = AGENT_EXECUTION_PLANS.get(query_type, AGENT_EXECUTION_PLANS["full_10k_report"])
-
-        if year_sub and year_req is not None and year_req != catalog_year:
-            needs_conf = True
-            sugg_year = catalog_year
-            active_agents = []
-            conf_msg = (
-                f"The 10-K filing for **{doc_ticker}** for fiscal year **{year_req}** is not available in our catalog. "
-                f"The latest available audited filing is **FY{catalog_year}**.\n\n"
-                f"Would you like to proceed with **FY{catalog_year}**?"
-            )
-            updated_session = {
-                "active_ticker": doc_ticker,
-                "active_company": company_name,
-                "active_fiscal_year": catalog_year,
-                "last_query_type": query_type,
-                "pending_action": {
-                    "type": "confirm_year",
-                    "ticker": doc_ticker,
-                    "suggested_year": catalog_year,
-                    "requested_year": year_req,
-                    "original_query_type": query_type,
-                },
-            }
-        else:
-            updated_session = {
-                "active_ticker": doc_ticker,
-                "active_company": company_name,
-                "active_fiscal_year": catalog_year,
-                "last_query_type": query_type,
-                "pending_action": None,
-            }
+        updated_session = {
+            "active_ticker": doc_ticker,
+            "active_company": company_name,
+            "active_fiscal_year": catalog_year,
+            "last_query_type": query_type,
+            "pending_action": None,
+        }
 
         logger.info(
             f"Supervisor routed query '{user_query[:50]}' -> "
-            f"Ticker: {doc_ticker}, FY{catalog_year} (needs_confirmation={needs_conf}), "
+            f"Ticker: {doc_ticker}, FY{catalog_year} (year_substituted={year_sub}), "
             f"Route: {query_type} ({provenance})"
         )
 
@@ -503,9 +404,10 @@ class SupervisorAgent(BaseAgent):
             query_type=query_type,
             active_agents=active_agents,
             routing_provenance=provenance,
-            needs_confirmation=needs_conf,
-            confirmation_message=conf_msg,
-            suggested_fiscal_year=sugg_year,
+            conversational_response=None,
+            needs_confirmation=False,
+            confirmation_message=None,
+            suggested_fiscal_year=None,
             updated_session_state=updated_session,
         )
 
@@ -530,9 +432,9 @@ class SupervisorAgent(BaseAgent):
                 messages=messages,
                 session_state=session_state,
             )
-            if plan.needs_confirmation and plan.confirmation_message:
+            if plan.query_type == "conversational" and plan.conversational_response:
                 return AgentOutput(
-                    content=plan.confirmation_message,
+                    content=plan.conversational_response,
                     sources=[],
                     updated_session_state=plan.updated_session_state,
                 )
@@ -545,7 +447,6 @@ class SupervisorAgent(BaseAgent):
                     "fiscal_year": plan.fiscal_year,
                     "year_substituted": plan.year_substituted,
                     "routing_provenance": plan.routing_provenance,
-                    "needs_confirmation": plan.needs_confirmation,
                 }],
                 updated_session_state=plan.updated_session_state,
             )

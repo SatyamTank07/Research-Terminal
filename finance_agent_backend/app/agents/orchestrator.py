@@ -31,7 +31,6 @@ from langgraph.graph.state import CompiledStateGraph
 from app.agents.base import AgentOutput, BaseAgent
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.business_strategist import BusinessStrategistAgent
-from app.agents.specialized.conversational.agent_conversational import ConversationalAnalystAgent
 from app.agents.specialized.financial_auditor import FinancialAuditorAgent
 from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
 from app.agents.specialized.lead_synthesizer import LeadSynthesizerAgent
@@ -81,7 +80,7 @@ async def supervisor_node(state: EquityResearchState) -> Dict[str, Any]:
 
     logger.info(
         f"[supervisor_node] Resolved {routing_plan.ticker} FY{routing_plan.fiscal_year} "
-        f"route={routing_plan.query_type} (needs_confirmation={routing_plan.needs_confirmation})"
+        f"route={routing_plan.query_type} (year_substituted={routing_plan.year_substituted})"
     )
 
     return {
@@ -91,7 +90,8 @@ async def supervisor_node(state: EquityResearchState) -> Dict[str, Any]:
         "document_id": routing_plan.document_id,
         "query_type": routing_plan.query_type,
         "routing_plan": routing_plan,
-        "error_message": routing_plan.confirmation_message if routing_plan.needs_confirmation else None,
+        "conversational_response": routing_plan.conversational_response,
+        "error_message": None,
         "updated_session_state": routing_plan.updated_session_state,
     }
 
@@ -322,40 +322,14 @@ async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
     }
 
 
-async def conversational_node(state: EquityResearchState) -> Dict[str, Any]:
-    """Node: Delegates conversational inquiries, capabilities, and follow-ups to ConversationalAnalystAgent."""
-    user_query = state.get("user_query", "")
-    messages = state.get("messages")
-    session_state = state.get("session_state")
-    callbacks = state.get("callbacks")
-
-    agent = ConversationalAnalystAgent()
-    answer = await agent.arespond(
-        user_query=user_query,
-        messages=messages,
-        session_state=session_state,
-        callbacks=callbacks,
-    )
-
-    return {
-        "conversational_response": answer,
-        "error_message": None,
-        "updated_session_state": session_state,
-    }
-
-
 # ==============================================================================
 # 2. Conditional Routing Predicates
 # ==============================================================================
 def route_from_supervisor(state: EquityResearchState) -> List[str]:
     """Branches execution path based on resolved QueryType."""
-    plan = state.get("routing_plan")
-    if plan and plan.needs_confirmation:
-        return ["lead_synthesizer"]
-
     qtype = state.get("query_type", "full_10k_report")
     if qtype == "conversational":
-        return ["conversational_analyst"]
+        return [END]
     elif qtype == "business_moat_only":
         return ["business_strategist"]
     elif qtype == "financial_audit_only":
@@ -404,7 +378,6 @@ def build_equity_research_graph() -> CompiledStateGraph:
 
     # 1. Register all nodes
     builder.add_node("supervisor", supervisor_node)
-    builder.add_node("conversational_analyst", conversational_node)
     builder.add_node("business_strategist", business_strategist_node)
     builder.add_node("financial_auditor", financial_auditor_node)
     builder.add_node("risk_analyst", risk_analyst_node)
@@ -424,12 +397,9 @@ def build_equity_research_graph() -> CompiledStateGraph:
             "financial_auditor",
             "risk_analyst",
             "lead_synthesizer",
-            "conversational_analyst",
+            END,
         ],
     )
-
-    # Conversational path completes directly
-    builder.add_edge("conversational_analyst", END)
 
     # 4. Phase 1 Qualitative & Statement Auditing -> Forecasting Join
     builder.add_conditional_edges(
@@ -568,22 +538,11 @@ class MultiAgentOrchestrator(BaseAgent):
                         t = node_output.get("ticker", "Target")
                         y = node_output.get("fiscal_year", "")
                         q = node_output.get("query_type", "full_10k_report")
-                        if plan and plan.needs_confirmation:
+                        if q == "conversational":
                             yield {
                                 "type": "status",
                                 "node": "supervisor",
-                                "message": f"Requested year not found. Prompting user to confirm latest FY{plan.suggested_fiscal_year}.",
-                                "details": {
-                                    "ticker": t,
-                                    "needs_confirmation": True,
-                                    "suggested_fiscal_year": plan.suggested_fiscal_year,
-                                },
-                            }
-                        elif q == "conversational":
-                            yield {
-                                "type": "status",
-                                "node": "supervisor",
-                                "message": "Directing inquiry to Research Assistant...",
+                                "message": "Senior Research Director formulating response...",
                                 "details": {
                                     "query_type": "conversational",
                                 },
@@ -601,12 +560,6 @@ class MultiAgentOrchestrator(BaseAgent):
                                     "year_substituted": plan.year_substituted if plan else False,
                                 },
                             }
-                    elif node_name == "conversational_analyst":
-                        yield {
-                            "type": "status",
-                            "node": "conversational_analyst",
-                            "message": "Formulating research response...",
-                        }
                     elif node_name == "business_strategist":
                         moat: Optional[BusinessMoatOutput] = node_output.get("business_moat")
                         m_type = moat.economic_moat_type if moat else "Assessed"
