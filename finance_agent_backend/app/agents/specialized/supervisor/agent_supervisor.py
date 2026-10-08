@@ -158,10 +158,6 @@ class SupervisorAgent(BaseAgent):
             resolved_ticker = (ticker or "").strip().upper()
             year_requested = fiscal_year
 
-            # If ticker not explicitly provided, attempt extraction from query
-            if not resolved_ticker and user_query:
-                resolved_ticker = self._extract_ticker_from_query(user_query, db)
-
             # If fiscal year not explicitly provided, attempt extraction from query
             if not year_requested and user_query:
                 year_match = re.search(r"\b(20[12]\d)\b", user_query)
@@ -214,32 +210,6 @@ class SupervisorAgent(BaseAgent):
 
         finally:
             db.close()
-
-    def _extract_ticker_from_query(self, query: str, db: Any) -> str:
-        """Extracts ticker symbol or matches company name against documents in database."""
-        # 1. Exact match against known database tickers
-        available_tickers = {t[0].upper() for t in db.query(Document.ticker).all()}
-        tokens = re.findall(r"\b[A-Za-z0-9]+\b", query)
-        for token in tokens:
-            t_upper = token.upper()
-            if t_upper in available_tickers:
-                return t_upper
-
-        # 2. Company name match against documents
-        all_docs = db.query(Document.ticker, Document.company_name).all()
-        q_lower = query.lower()
-        for t, cname in all_docs:
-            clean_cname = re.sub(
-                r"\b(inc|corp|corporation|ltd|limited|co|company|holdings|plc|nv)\b|[,\.]",
-                "",
-                cname.lower(),
-                flags=re.IGNORECASE,
-            ).strip()
-            first_word = clean_cname.split()[0] if clean_cname else ""
-            if first_word and len(first_word) >= 3 and first_word in q_lower:
-                return t.upper()
-
-        return ""
 
     def classify_intent(self, user_query: str) -> QueryType:
         """Public API returning purely the QueryType."""
@@ -347,46 +317,55 @@ class SupervisorAgent(BaseAgent):
             fiscal_year if fiscal_year is not None else (extraction.extracted_year if extraction else None)
         )
 
+        # If entity could not be identified by LLM or explicit input, do NOT guess with regex.
+        # Directly ask the user for clarification (Zero Fake Hallucination).
+        if not resolved_ticker:
+            return RoutingPlan(
+                ticker="",
+                company_name="Senior Equity Research Director",
+                fiscal_year=0,
+                year_requested=None,
+                year_substituted=False,
+                document_id=None,
+                query_type="conversational",
+                active_agents=[],
+                routing_provenance="deterministic_rule",
+                conversational_response=(
+                    "I am your Senior Equity Research Director. Which company or stock ticker would you like me to evaluate (e.g. Apple (AAPL), Tesla (TSLA), NVIDIA (NVDA))?"
+                ),
+                needs_confirmation=False,
+                confirmation_message=None,
+                suggested_fiscal_year=None,
+                updated_session_state=active_state,
+            )
+
         try:
             doc_ticker, company_name, catalog_year, doc_id, year_req, year_sub = (
                 self.resolve_filing_catalog(
                     ticker=resolved_ticker,
                     fiscal_year=resolved_year_req,
-                    user_query=user_query,
                 )
             )
         except ValueError as err:
-            if extraction and extraction.extracted_ticker and extraction.extracted_ticker != resolved_ticker:
-                doc_ticker, company_name, catalog_year, doc_id, year_req, year_sub = (
-                    self.resolve_filing_catalog(
-                        ticker=extraction.extracted_ticker,
-                        fiscal_year=extraction.extracted_year or fiscal_year,
-                        user_query=user_query,
-                    )
-                )
-            else:
-                # If ticker could not be resolved from query at all, gracefully route to conversational
-                if not resolved_ticker:
-                    return RoutingPlan(
-                        ticker="",
-                        company_name="Senior Equity Research Director",
-                        fiscal_year=0,
-                        year_requested=None,
-                        year_substituted=False,
-                        document_id=None,
-                        query_type="conversational",
-                        active_agents=[],
-                        routing_provenance="deterministic_rule",
-                        conversational_response=(
-                            "I am your Senior Equity Research Director. I could not identify an ingested company filing "
-                            "matching your request. Please specify a ticker symbol (e.g. AAPL, TSLA, NVDA) or upload a 10-K filing."
-                        ),
-                        needs_confirmation=False,
-                        confirmation_message=None,
-                        suggested_fiscal_year=None,
-                        updated_session_state=active_state,
-                    )
-                raise err
+            return RoutingPlan(
+                ticker="",
+                company_name="Senior Equity Research Director",
+                fiscal_year=0,
+                year_requested=None,
+                year_substituted=False,
+                document_id=None,
+                query_type="conversational",
+                active_agents=[],
+                routing_provenance="deterministic_rule",
+                conversational_response=(
+                    f"I am your Senior Equity Research Director. {str(err)} "
+                    "Please specify an available company (e.g. AAPL, TSLA, NVDA) or upload the requested 10-K filing."
+                ),
+                needs_confirmation=False,
+                confirmation_message=None,
+                suggested_fiscal_year=None,
+                updated_session_state=active_state,
+            )
 
         # 3. Schedule active agents with automatic year substitution (Zero-Halting)
         active_agents = AGENT_EXECUTION_PLANS.get(query_type, AGENT_EXECUTION_PLANS["full_10k_report"])

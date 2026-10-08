@@ -247,25 +247,6 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
             except (ValueError, TypeError):
                 user_wacc = None
 
-        if user_wacc is None and state.get("messages"):
-            for m in reversed(state.get("messages")):
-                if m.get("role") == "user":
-                    prior_wacc_match = re.search(
-                        r"\b(?:wacc|discount rate|hurdle rate)\s*(?:of|is|at|=|:)?\s*([0-9]+(?:\.[0-9]+)?)\s*%?",
-                        m.get("content", ""),
-                        re.IGNORECASE,
-                    )
-                    if not prior_wacc_match:
-                        prior_wacc_match = re.search(
-                            r"([0-9]+(?:\.[0-9]+)?)\s*%\s*(?:wacc|discount rate|hurdle rate)\b",
-                            m.get("content", ""),
-                            re.IGNORECASE,
-                        )
-                    if prior_wacc_match:
-                        w_raw = float(prior_wacc_match.group(1))
-                        user_wacc = (w_raw / 100.0) if w_raw > 1.0 else w_raw
-                        break
-
     # 3. Resolve live market data (share_price, market_cap, beta) via yfinance with graceful fallbacks
     market_data = await asyncio.to_thread(fetch_market_context, ticker)
     share_price = user_share_price if user_share_price is not None else market_data.get("share_price")
@@ -509,28 +490,12 @@ class MultiAgentOrchestrator(BaseAgent):
         callbacks: Optional[List[Any]] = None,
     ) -> AsyncIterator[Dict[str, Any]]:
         """Executes the graph while streaming real-time intermediate node progress milestones."""
-        # Scan previous messages backwards if current query does not explicitly specify a ticker
-        extracted_ticker = ticker.upper() if ticker else ""
-
-        if not extracted_ticker and messages and len(messages) > 1:
-            from app.database import SessionLocal
-            db = SessionLocal()
-            try:
-                sup = SupervisorAgent()
-                for m in reversed(messages[:-1]):
-                    candidate = sup._extract_ticker_from_query(m.get("content", ""), db)
-                    if candidate:
-                        extracted_ticker = candidate
-                        break
-            except Exception as e:
-                logger.debug(f"Stream history ticker scan exception: {e}")
-            finally:
-                db.close()
+        resolved_ticker = ticker.upper() if ticker else ""
 
         graph = self.get_graph()
         initial_state: EquityResearchState = {
             "user_query": user_query,
-            "ticker": extracted_ticker,
+            "ticker": resolved_ticker,
             "fiscal_year": fiscal_year or 0,
             "messages": messages,
             "session_state": session_state,
@@ -676,24 +641,8 @@ class MultiAgentOrchestrator(BaseAgent):
         """Executes the agent synchronously conforming to BaseAgent interface."""
         query = messages[-1]["content"] if messages else ""
 
-        # Scan previous messages backwards if current query does not explicitly specify a ticker
-        extracted_ticker = None
-        if len(messages) > 1:
-            from app.database import SessionLocal
-            db = SessionLocal()
-            try:
-                sup = SupervisorAgent()
-                for m in reversed(messages[:-1]):
-                    candidate = sup._extract_ticker_from_query(m.get("content", ""), db)
-                    if candidate:
-                        extracted_ticker = candidate
-                        break
-            except Exception as e:
-                logger.debug(f"History ticker scan exception: {e}")
-            finally:
-                db.close()
-
         # Safely execute async coroutine inside sync context without blocking or loop collisions
+        extracted_ticker = None
         try:
             try:
                 loop = asyncio.get_running_loop()

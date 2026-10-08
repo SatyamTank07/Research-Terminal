@@ -54,9 +54,6 @@ The conversation currently has active research context:
 {% if active_session.active_fiscal_year %}
 - Active Fiscal Year: {{ active_session.active_fiscal_year }}
 {% endif %}
-{% if active_session.wacc_override %}
-- Active WACC Override: {{ active_session.wacc_override }}
-{% endif %}
 If the user's inquiry is a follow-up or uses pronouns like "it", "its", or "the company", use this active session context for the ticker/company unless a new entity is explicitly introduced.
 </active_session_state>
 {% endif %}

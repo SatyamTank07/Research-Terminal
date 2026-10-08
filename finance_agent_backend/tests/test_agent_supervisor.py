@@ -60,21 +60,11 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertEqual(year_req2, 2020)
         self.assertTrue(year_sub2, "Unavailable year must set year_substituted=True")
 
-    def test_03_query_entity_extraction_deterministic(self):
-        """Verify entity extraction from query text using database catalog without API calls."""
-        # By company name
-        t1, c1, y1, _, _, _ = self.supervisor.resolve_filing_catalog(
-            user_query="What is the DCF valuation of Apple for fiscal year 2025?"
-        )
-        self.assertEqual(t1, "AAPL")
-        self.assertEqual(y1, 2025)
-
-        # By ticker symbol
-        t2, c2, y2, _, _, _ = self.supervisor.resolve_filing_catalog(
-            user_query="Analyze TSLA 10-K report"
-        )
-        self.assertEqual(t2, "TSLA")
-        self.assertEqual(y2, 2025)
+    def test_03_missing_ticker_raises_error(self):
+        """Verify resolve_filing_catalog raises ValueError when no ticker is provided."""
+        with self.assertRaises(ValueError) as ctx:
+            self.supervisor.resolve_filing_catalog(ticker=None)
+        self.assertIn("Could not identify a target stock ticker from the request", str(ctx.exception))
 
     def test_04_error_on_unknown_ticker(self):
         """Verify descriptive ValueError when requested entity is not in database catalog."""
