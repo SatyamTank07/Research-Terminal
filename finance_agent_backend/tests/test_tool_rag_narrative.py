@@ -7,6 +7,7 @@ Validates Hybrid RRF (pgvector HNSW + TSVector GIN) retrieval across real ingest
 """
 
 import unittest
+from unittest.mock import MagicMock, patch
 from app.agents.tools.rag_narrative_tools import (
     NarrativeChunkResult,
     retrieve_10k_narrative,
@@ -16,6 +17,15 @@ from app.agents.tools.rag_narrative_tools import (
 
 class TestRAGNarrativeTools(unittest.TestCase):
     """Test suite verifying universal 10-K narrative retrieval via Hybrid RRF."""
+
+    def setUp(self):
+        self.mock_embedder = MagicMock()
+        self.mock_embedder.embed_query.return_value = [0.01] * 1536
+        self.patcher = patch("app.agents.tools.rag_narrative_tools._get_embedder", return_value=self.mock_embedder)
+        self.patcher.start()
+
+    def tearDown(self):
+        self.patcher.stop()
 
     def test_01_aapl_item1_business_retrieval(self):
         """Verify Business Strategist query retrieves clean Item 1 product and service disclosures."""
@@ -224,10 +234,14 @@ class TestRAGNarrativeTools(unittest.TestCase):
 
     def test_10_embedder_singleton(self):
         """Verify _get_embedder returns a cached singleton across repeated calls."""
-        from app.agents.tools.rag_narrative_tools import _get_embedder
-        emb1 = _get_embedder()
-        emb2 = _get_embedder()
-        self.assertIs(emb1, emb2, "_get_embedder should return the exact same cached instance")
+        self.patcher.stop()
+        try:
+            from app.agents.tools.rag_narrative_tools import _get_embedder
+            emb1 = _get_embedder()
+            emb2 = _get_embedder()
+            self.assertIs(emb1, emb2, "_get_embedder should return the exact same cached instance")
+        finally:
+            self.patcher.start()
 
     def test_11_eager_document_loading_no_lazy_n_plus_one(self):
         """Verify candidate queries load Document relationships eagerly."""

@@ -14,18 +14,26 @@ Validates:
 """
 
 import unittest
+from typing import List, Optional
+from unittest.mock import MagicMock, patch
+
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
 from app.agents.state import (
     FinancialAuditOutput,
     ForecastOutput,
     DCFValuationOutput,
+    WACCAudit,
 )
+from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastYearResult
 from app.agents.tools.financial_math_tools import (
     AnnualFinancialInput,
     BalanceSheetInput,
     audit_financial_metrics,
 )
+from app.agents.tools.forecast_tools import calculate_forecast_schedule
+from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
+from app.agents.tools.wacc_tools import calculate_wacc
 from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
 from app.agents.specialized.valuation_specialist import ValuationSpecialistAgent
 
@@ -86,8 +94,98 @@ def _create_synthetic_aapl_audit(include_depreciation: bool = True) -> Financial
     return FinancialAuditOutput.model_validate(math_res)
 
 
+def _create_mock_forecaster_agent(
+    growth_rates: Optional[List[float]] = None,
+    margins: Optional[List[float]] = None,
+) -> MagicMock:
+    """Helper creating a mocked LangChain agent for ForecastingAnalystAgent."""
+    g_rates = growth_rates or [0.06, 0.055, 0.05, 0.045, 0.04]
+    op_margins = margins or [0.32, 0.32, 0.32, 0.32, 0.32]
+    sched = calculate_forecast_schedule(
+        base_revenue=416161.0,
+        base_year=2025,
+        revenue_growth_rates=g_rates,
+        operating_margins=op_margins,
+        tax_rate=0.1561,
+        capex_pct_of_revenue=0.0306,
+        depreciation_pct_of_revenue=0.0275,
+    )
+    mock_output = ForecastOutput(
+        ticker="AAPL",
+        fiscal_year=2025,
+        base_revenue=sched["base_revenue"],
+        forecast_horizon_years=sched["forecast_horizon_years"],
+        revenue_cagr_pct=sched["revenue_cagr_pct"],
+        cumulative_5yr_fcf=sched["cumulative_5yr_fcf"],
+        average_annual_fcf=sched["average_annual_fcf"],
+        provenance_mode=sched["provenance_mode"],
+        guidance_source="md&a_explicit",
+        tax_rate_pct=sched["tax_rate_pct"],
+        projected_fcfs=sched["projected_fcfs"],
+        forecast_schedule=[ForecastYearResult(**y) for y in sched["forecast_schedule"]],
+        forecast_table_markdown=sched["forecast_table_markdown"],
+        growth_rationale="Projected 5-year revenue growth trajectory calibrated against Item 7 MD&A disclosures.",
+        margin_expansion_rationale="Operating margin progression reflects operating leverage and expected product mix shift.",
+        reinvestment_rationale="CapEx modeled at 3.06% of revenue based on audited capital allocation history.",
+        citations=[{"chunk_id": "chunk-item7-01", "item": "Item 7", "breadcrumb": "Item 7 > MD&A"}],
+    )
+    mock_agent = MagicMock()
+    mock_agent.invoke.return_value = {
+        "messages": [MagicMock(content="Forecast generated", tool_calls=[])],
+        "structured_response": mock_output,
+    }
+    return mock_agent
+
+
+def _create_mock_valuation_agent(projected_fcfs: List[float]) -> MagicMock:
+    """Helper creating a mocked LangChain agent for ValuationSpecialistAgent."""
+    wacc_res = calculate_wacc(
+        beta=1.24,
+        total_debt=98657.0,
+        market_cap=230.0 * 15004.7,
+        risk_free_rate=0.042,
+        equity_risk_premium=0.05,
+        tax_rate=0.1561,
+    )
+    dcf_res = calculate_dcf_with_sensitivity(
+        projected_fcfs=projected_fcfs,
+        wacc=wacc_res["wacc"],
+        terminal_growth_rate=0.025,
+        net_debt=-33763.0,
+        diluted_shares=15004.7,
+        mid_year_convention=True,
+    )
+    mock_output = DCFValuationOutput(
+        ticker="AAPL",
+        fiscal_year=2025,
+        wacc_audit=WACCAudit.model_validate(wacc_res),
+        terminal_growth_rate=0.025,
+        discounting_convention="mid_year",
+        projected_fcfs=projected_fcfs,
+        pv_explicit_fcfs=dcf_res["pv_explicit_fcfs"],
+        pv_terminal_value=dcf_res["pv_terminal_value"],
+        terminal_value_pct_of_ev=dcf_res["terminal_value_pct_of_ev"],
+        enterprise_value=dcf_res["enterprise_value"],
+        net_debt=dcf_res["net_debt"],
+        equity_value=dcf_res["equity_value"],
+        diluted_shares=dcf_res["diluted_shares"],
+        implied_fair_value_per_share=dcf_res["fair_value_per_share"],
+        current_share_price=230.0,
+        upside_downside_pct=round(((dcf_res["fair_value_per_share"] - 230.0) / 230.0) * 100.0, 2),
+        valuation_stance="Fairly Valued",
+        sensitivity_matrix_markdown=dcf_res["sensitivity_matrix_markdown"],
+        valuation_summary="DCF valuation completed for Apple Inc. FY2025 based on 5-year explicit projections.",
+    )
+    mock_agent = MagicMock()
+    mock_agent.invoke.return_value = {
+        "messages": [MagicMock(content="Valuation completed", tool_calls=[])],
+        "structured_response": mock_output,
+    }
+    return mock_agent
+
+
 class TestForecastingAnalystAgent(unittest.TestCase):
-    """Test suite for Forecasting Analyst Agent."""
+    """Test suite for Forecasting Analyst Agent (Mocked - No External API Calls)."""
 
     def test_01_initialization_and_registry(self):
         """Verify agent registration, prompt rendering, and tool bindings."""
@@ -101,13 +199,20 @@ class TestForecastingAnalystAgent(unittest.TestCase):
         self.assertIn("retrieve_10k_narrative_tool", prompt)
         self.assertIn("Zero Arithmetic Hallucination", prompt)
 
-    def test_02_apple_fy2025_standalone_forecast_comprehensive(self):
+    @patch("app.agents.tools.rag_narrative_tools._get_embedder")
+    @patch.object(ForecastingAnalystAgent, "_get_or_create_agent")
+    def test_02_apple_fy2025_standalone_forecast_comprehensive(self, mock_get_agent, mock_get_embedder):
         """
-        Verify standalone forecast execution for Apple FY2025:
+        Verify standalone forecast execution for Apple FY2025 without real API calls:
         - D&A is present -> automatically resolves to 'comprehensive_line_item'
         - Generates 5-year explicit schedule
         - Produces 5 valid UFCF floats
         """
+        mock_embedder = MagicMock()
+        mock_embedder.embed_query.return_value = [0.01] * 1536
+        mock_get_embedder.return_value = mock_embedder
+        mock_get_agent.return_value = _create_mock_forecaster_agent()
+
         agent = ForecastingAnalystAgent()
         audit = _create_synthetic_aapl_audit(include_depreciation=True)
 
@@ -146,11 +251,18 @@ class TestForecastingAnalystAgent(unittest.TestCase):
         self.assertTrue(len(forecast_out.growth_rationale) > 20)
         self.assertTrue(len(forecast_out.margin_expansion_rationale) > 10)
 
-    def test_03_force_simplified_mode_override(self):
+    @patch("app.agents.tools.rag_narrative_tools._get_embedder")
+    @patch.object(ForecastingAnalystAgent, "_get_or_create_agent")
+    def test_03_force_simplified_mode_override(self, mock_get_agent, mock_get_embedder):
         """
         Verify force_mode='simplified_nopat_less_capex' override:
         Forces simplified mode even when D&A was provided in audit.
         """
+        mock_embedder = MagicMock()
+        mock_embedder.embed_query.return_value = [0.01] * 1536
+        mock_get_embedder.return_value = mock_embedder
+        mock_get_agent.return_value = _create_mock_forecaster_agent()
+
         agent = ForecastingAnalystAgent()
         audit = _create_synthetic_aapl_audit(include_depreciation=True)
 
@@ -196,12 +308,23 @@ class TestForecastingAnalystAgent(unittest.TestCase):
             if growths[i + 1] > 2.75:
                 self.assertAlmostEqual(diff, 0.75, places=1, msg="Expected ~75 bps annual growth decay")
 
-    def test_05_three_agent_pipeline_audit_to_forecast_to_valuation(self):
+    @patch("app.agents.tools.rag_narrative_tools._get_embedder")
+    @patch.object(ForecastingAnalystAgent, "_get_or_create_agent")
+    @patch.object(ValuationSpecialistAgent, "_get_or_create_agent")
+    def test_05_three_agent_pipeline_audit_to_forecast_to_valuation(
+        self, mock_get_val_agent, mock_get_forecaster_agent, mock_get_embedder
+    ):
         """
-        End-to-End 3-Agent Pipeline Test:
+        End-to-End 3-Agent Pipeline Test without real API calls:
         FinancialAuditor -> ForecastingAnalyst -> DCF ValuationSpecialist
         Passes forecast.projected_fcfs directly into valuation engine.
         """
+        mock_embedder = MagicMock()
+        mock_embedder.embed_query.return_value = [0.01] * 1536
+        mock_get_embedder.return_value = mock_embedder
+
+        mock_get_forecaster_agent.return_value = _create_mock_forecaster_agent()
+
         audit = _create_synthetic_aapl_audit(include_depreciation=True)
 
         forecaster = ForecastingAnalystAgent()
@@ -211,6 +334,8 @@ class TestForecastingAnalystAgent(unittest.TestCase):
             financial_audit=audit,
             horizon_years=5,
         )
+
+        mock_get_val_agent.return_value = _create_mock_valuation_agent(forecast_out.projected_fcfs)
 
         valuation_specialist = ValuationSpecialistAgent()
         val_output = valuation_specialist.value(
@@ -233,3 +358,4 @@ class TestForecastingAnalystAgent(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -1,9 +1,9 @@
-"""Integration tests for Milestone 2: Financial Auditor Agent.
+"""Integration and Unit Tests for Milestone 2: Financial Auditor Agent.
 
 Validates:
 1. Agent registration in AgentRegistry and prompt template rendering.
 2. Cross-filing tool retrieval across multiple 10-K filings in PostgreSQL.
-3. End-to-end execution of FinancialAuditorAgent on Apple Inc. (AAPL FY2025 10-K).
+3. Execution of FinancialAuditorAgent on Apple Inc. (AAPL FY2025 10-K) (mocked LLM - ZERO external API calls).
 4. Schema conformance of returned FinancialAuditOutput:
    - 3-year contiguous history (2023, 2024, 2025) with zero arithmetic hallucination.
    - Correct unit scaling ($ Millions, Shares in Millions, positive CapEx).
@@ -12,16 +12,26 @@ Validates:
    - Non-empty chunk citations.
 """
 
+import json
 import unittest
+from unittest.mock import MagicMock, patch
+
+from langchain_core.messages import ToolMessage
+
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
 from app.agents.state import FinancialAuditOutput
 from app.agents.specialized.financial_auditor import FinancialAuditorAgent
 from app.agents.tools.rag_table_tools import retrieve_multiyear_financial_series_tool
+from app.agents.tools.financial_math_tools import (
+    AnnualFinancialInput,
+    BalanceSheetInput,
+    audit_financial_metrics,
+)
 
 
 class TestMilestone2FinancialAuditor(unittest.TestCase):
-    """Test suite for Milestone 2: Financial Auditor Agent."""
+    """Test suite for Milestone 2: Financial Auditor Agent (Mocked - No External API Calls)."""
 
     def test_01_initialization_and_registry(self):
         """Verify agent registration, prompt rendering, and tool binding."""
@@ -54,13 +64,107 @@ class TestMilestone2FinancialAuditor(unittest.TestCase):
             self.assertTrue(len(r["table_markdown"]) > 0)
             self.assertTrue(len(r["chunk_id"]) > 0)
 
-    def test_03_end_to_end_apple_fy2025_audit(self):
+    @patch.object(FinancialAuditorAgent, "_get_or_create_agent")
+    def test_03_end_to_end_apple_fy2025_audit(self, mock_get_agent):
         """
-        Verify autonomous execution of FinancialAuditorAgent on Apple Inc. FY2025.
-        Validates complete FinancialAuditOutput artifact.
+        Verify execution of FinancialAuditorAgent on Apple Inc. FY2025 using mocked agent.
+        Validates complete FinancialAuditOutput artifact with ZERO external API calls.
         """
+        annual_financials = [
+            AnnualFinancialInput(
+                fiscal_year=2023,
+                revenue=383285.0,
+                gross_profit=169148.0,
+                operating_income=114301.0,
+                pretax_income=113736.0,
+                income_tax_expense=16741.0,
+                net_income=96995.0,
+                operating_cash_flow=110543.0,
+                capital_expenditures=10959.0,
+            ),
+            AnnualFinancialInput(
+                fiscal_year=2024,
+                revenue=391035.0,
+                gross_profit=180683.0,
+                operating_income=123216.0,
+                pretax_income=123485.0,
+                income_tax_expense=29749.0,
+                net_income=93736.0,
+                operating_cash_flow=118254.0,
+                capital_expenditures=9447.0,
+            ),
+            AnnualFinancialInput(
+                fiscal_year=2025,
+                revenue=416161.0,
+                gross_profit=195201.0,
+                operating_income=133050.0,
+                pretax_income=132717.0,
+                income_tax_expense=20707.0,
+                net_income=112010.0,
+                operating_cash_flow=111482.0,
+                capital_expenditures=12715.0,
+                depreciation_amortization=11445.0,
+            ),
+        ]
+        balance_sheet_in = BalanceSheetInput(
+            fiscal_year=2025,
+            cash_and_equivalents=35934.0,
+            marketable_securities=96486.0,
+            short_term_debt=10912.0,
+            long_term_debt=87745.0,
+            stockholders_equity=53736.0,
+            diluted_shares_outstanding=15004.7,
+            current_assets=154388.0,
+            current_liabilities=145308.0,
+        )
+        math_res = audit_financial_metrics(annual_financials, balance_sheet_in)
+        math_res["ticker"] = "AAPL"
+        math_res["fiscal_year"] = 2025
+        math_res["auditor_summary"] = (
+            "Audited financial statements for Apple Inc. FY2025 with zero arithmetic hallucination "
+            "and complete 3-year contiguous coverage."
+        )
+        math_res["income_statement_markdown_table"] = (
+            "| Line Item | FY2023 | FY2024 | FY2025 |\n| :--- | :---: | :---: | :---: |\n"
+            "| Total net sales | $383,285 | $391,035 | $416,161 |"
+        )
+        math_res["balance_sheet_markdown_table"] = (
+            "| Line Item | Sept 2024 | Sept 2025 |\n| :--- | :---: | :---: |\n"
+            "| Cash & Marketable Securities | $153,004 | $132,420 |"
+        )
+        math_res["cash_flow_markdown_table"] = (
+            "| Line Item | FY2023 | FY2024 | FY2025 |\n| :--- | :---: | :---: |\n"
+            "| Cash generated by operating activities | $110,543 | $118,254 | $111,482 |"
+        )
+        math_res["citations"] = [
+            {"chunk_id": "table-chunk-item8-01", "breadcrumb": "Item 8 > Consolidated Financial Statements"}
+        ]
+        mock_output = FinancialAuditOutput.model_validate(math_res)
+
+        mock_active_agent = MagicMock()
+        mock_active_agent.invoke.return_value = {
+            "messages": [
+                ToolMessage(
+                    name="retrieve_10k_tables_tool",
+                    content=json.dumps([{
+                        "chunk_id": "table-chunk-item8-01",
+                        "ticker": "AAPL",
+                        "fiscal_year": 2025,
+                        "item": "Item 8",
+                        "breadcrumb": "Item 8 > Consolidated Financial Statements",
+                    }]),
+                    tool_call_id="call_auditor_1",
+                )
+            ],
+            "structured_response": mock_output,
+        }
+        mock_get_agent.return_value = mock_active_agent
+
         agent = FinancialAuditorAgent(model_name="openai:gpt-4o-mini")
         audit_result = agent.audit(ticker="AAPL", fiscal_year=2025)
+
+        # Verify mocked agent invocation was called
+        mock_active_agent.invoke.assert_called_once()
 
         # 1. Output Type & Basic Metadata
         self.assertIsInstance(audit_result, FinancialAuditOutput)
@@ -132,3 +236,4 @@ class TestMilestone2FinancialAuditor(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

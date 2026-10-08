@@ -16,8 +16,18 @@ Validates:
 """
 
 import asyncio
+from typing import Any, Dict, List
 import unittest
+from unittest.mock import MagicMock, patch
 from app.agents import AgentRegistry, MultiAgentOrchestrator, build_equity_research_graph
+from app.agents.specialized.business_strategist import BusinessStrategistAgent
+from app.agents.specialized.financial_auditor import FinancialAuditorAgent
+from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
+from app.agents.specialized.lead_synthesizer import LeadSynthesizerAgent
+from app.agents.specialized.risk_analyst import RiskAnalystAgent
+from app.agents.specialized.supervisor import SupervisorAgent
+from app.agents.specialized.supervisor.agent_supervisor import SupervisorExtraction
+from app.agents.specialized.valuation_specialist import ValuationSpecialistAgent
 from app.agents.state import (
     BusinessMoatOutput,
     DCFValuationOutput,
@@ -25,8 +35,19 @@ from app.agents.state import (
     Final10KResearchReport,
     FinancialAuditOutput,
     ForecastOutput,
+    ForecastYear,
     RiskAuditOutput,
+    RiskItem,
+    ThreePillarThesis,
+    WACCAudit,
 )
+from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
+from app.agents.tools.financial_math_tools import (
+    AnnualFinancialInput,
+    BalanceSheetInput,
+    audit_financial_metrics,
+)
+from app.agents.tools.wacc_tools import calculate_wacc
 from app.database import SessionLocal
 from app.models import ChatMessage, Conversation, User
 from app.schemas.chat import ChatRequest, ChatResponse
@@ -36,9 +57,306 @@ from app.services.chat_service import process_chat, stream_chat_service
 class TestMilestone6FullPipeline(unittest.TestCase):
     """Integration test suite for Milestone 6 Multi-Agent Orchestration & Chat Integration."""
 
+    @staticmethod
+    def _mock_supervisor_extract(user_query: str, **kwargs) -> SupervisorExtraction:
+        uq = user_query.lower()
+        if "dcf" in uq:
+            return SupervisorExtraction(
+                query_type="dcf_valuation_only",
+                extracted_ticker="TSLA" if "tsla" in uq else "AAPL",
+                extracted_year=2025,
+                routing_reasoning="DCF valuation route requested",
+            )
+        elif "business model" in uq or "moat" in uq:
+            return SupervisorExtraction(
+                query_type="business_moat_only",
+                extracted_ticker="NVDA" if "nvda" in uq else "AAPL",
+                extracted_year=2026 if "nvda" in uq else 2025,
+                routing_reasoning="Business moat route requested",
+            )
+        else:
+            return SupervisorExtraction(
+                query_type="full_10k_report",
+                extracted_ticker="AAPL" if "aapl" in uq or "apple" in uq else "TSLA",
+                extracted_year=2025,
+                routing_reasoning="Full 10-K report route requested",
+            )
+
+    @staticmethod
+    def _mock_moat_analyze(ticker: str, fiscal_year: int, **kwargs) -> BusinessMoatOutput:
+        return BusinessMoatOutput(
+            ticker=ticker.upper(),
+            fiscal_year=fiscal_year,
+            business_summary=f"Business summary for {ticker.upper()} FY{fiscal_year}.",
+            revenue_architecture=f"Core products and recurring services architecture for {ticker.upper()}.",
+            primary_product_segments=["Hardware", "Software & Services"],
+            economic_moat_type="High Switching Costs",
+            moat_durability="Wide",
+            moat_trajectory="Expanding",
+            moat_rationale=f"Integrated proprietary platform creates high switching costs for {ticker.upper()}.",
+            pricing_power_assessment="High premium pricing power.",
+            customer_concentration="No single customer > 10% of revenue.",
+            citations=[{"chunk_id": f"chunk-{ticker.lower()}-item1-01", "item": "Item 1"}],
+        )
+
+    @staticmethod
+    def _mock_audit(ticker: str, fiscal_year: int, **kwargs) -> FinancialAuditOutput:
+        annual_financials = [
+            AnnualFinancialInput(
+                fiscal_year=fiscal_year - 2,
+                revenue=383285.0,
+                gross_profit=169148.0,
+                operating_income=114301.0,
+                pretax_income=113736.0,
+                income_tax_expense=16741.0,
+                net_income=96995.0,
+                operating_cash_flow=110543.0,
+                capital_expenditures=10959.0,
+            ),
+            AnnualFinancialInput(
+                fiscal_year=fiscal_year - 1,
+                revenue=391035.0,
+                gross_profit=180683.0,
+                operating_income=123216.0,
+                pretax_income=123485.0,
+                income_tax_expense=29749.0,
+                net_income=93736.0,
+                operating_cash_flow=118254.0,
+                capital_expenditures=9447.0,
+            ),
+            AnnualFinancialInput(
+                fiscal_year=fiscal_year,
+                revenue=416161.0,
+                gross_profit=195201.0,
+                operating_income=133050.0,
+                pretax_income=132717.0,
+                income_tax_expense=20707.0,
+                net_income=112010.0,
+                operating_cash_flow=111482.0,
+                capital_expenditures=12715.0,
+                depreciation_amortization=11445.0,
+            ),
+        ]
+        balance_sheet_in = BalanceSheetInput(
+            fiscal_year=fiscal_year,
+            cash_and_equivalents=35934.0,
+            marketable_securities=96486.0,
+            short_term_debt=10912.0,
+            long_term_debt=87745.0,
+            stockholders_equity=53736.0,
+            diluted_shares_outstanding=15004.7,
+            current_assets=154388.0,
+            current_liabilities=145308.0,
+        )
+        math_res = audit_financial_metrics(annual_financials, balance_sheet_in)
+        math_res["ticker"] = ticker.upper()
+        math_res["fiscal_year"] = fiscal_year
+        math_res["auditor_summary"] = f"Audited financial statements for {ticker.upper()} FY{fiscal_year}."
+        math_res["citations"] = [{"chunk_id": f"chunk-{ticker.lower()}-item8-01", "item": "Item 8"}]
+        return FinancialAuditOutput.model_validate(math_res)
+
+    @staticmethod
+    def _mock_risk_analyze(ticker: str, fiscal_year: int, **kwargs) -> RiskAuditOutput:
+        return RiskAuditOutput(
+            ticker=ticker.upper(),
+            fiscal_year=fiscal_year,
+            identified_risks=[
+                RiskItem(
+                    risk_category="Regulatory & Legal",
+                    risk_title="Antitrust & Platform Regulatory Inquiries",
+                    risk_summary="Global antitrust scrutiny and regulatory inquiries impacting ecosystem margins.",
+                    severity="Severe",
+                ),
+                RiskItem(
+                    risk_category="Supply Chain & Concentration",
+                    risk_title="Component Single Source Dependence",
+                    risk_summary="Critical reliance on concentrated third-party supply chain partners.",
+                    severity="Severe",
+                ),
+                RiskItem(
+                    risk_category="Macroeconomic & Geopolitical",
+                    risk_title="Foreign Exchange Fluctuations",
+                    risk_summary="Substantial international sales exposed to currency headwinds.",
+                    severity="Moderate",
+                ),
+            ],
+            primary_existential_threat="Platform regulatory intervention and supply chain concentration.",
+            overall_risk_profile="Moderate",
+            citations=[{"chunk_id": f"chunk-{ticker.lower()}-item1a-01", "item": "Item 1A"}],
+        )
+
+    @staticmethod
+    def _mock_forecast(ticker: str, fiscal_year: int, financial_audit: FinancialAuditOutput, **kwargs) -> ForecastOutput:
+        sched = [
+            ForecastYear(
+                projected_year=fiscal_year + i,
+                projected_revenue=400000.0 * (1.05 ** i),
+                projected_revenue_growth_pct=5.0,
+                projected_ebit=130000.0 * (1.05 ** i),
+                projected_ebit_margin_pct=32.5,
+                projected_nopat=110000.0 * (1.05 ** i),
+                projected_capex=12000.0 * (1.05 ** i),
+                projected_unlevered_fcf=98000.0 * (1.05 ** i),
+            )
+            for i in range(1, 6)
+        ]
+        fcfs = [y.projected_unlevered_fcf for y in sched]
+        return ForecastOutput(
+            ticker=ticker.upper(),
+            fiscal_year=fiscal_year,
+            base_revenue=416161.0,
+            forecast_horizon_years=5,
+            revenue_cagr_pct=5.0,
+            cumulative_5yr_fcf=sum(fcfs),
+            average_annual_fcf=sum(fcfs) / 5.0,
+            provenance_mode="simplified_nopat_less_capex",
+            guidance_source="md&a_explicit",
+            tax_rate_pct=15.6,
+            projected_fcfs=fcfs,
+            forecast_schedule=sched,
+            forecast_table_markdown="| Metric | FY26 | FY27 | FY28 | FY29 | FY30 |\n| :--- | :---: | :---: | :---: |\n| UFCF | $98,000 | $102,900 | $108,045 | $113,447 | $119,120 |",
+            growth_rationale="5-year forecast calibrated to audited guidance.",
+            margin_expansion_rationale="Operating margin expansion from efficiency.",
+            citations=[{"chunk_id": f"chunk-{ticker.lower()}-item7-01", "item": "Item 7"}],
+        )
+
+    @staticmethod
+    def _mock_dcf_value(ticker: str, fiscal_year: int, financial_audit: FinancialAuditOutput, projected_fcfs: List[float], **kwargs) -> DCFValuationOutput:
+        beta = kwargs.get("beta") or 1.10
+        share_price = kwargs.get("share_price") or 230.0
+        terminal_growth = kwargs.get("terminal_growth_rate", 0.025)
+        wacc_res = calculate_wacc(
+            beta=beta,
+            total_debt=financial_audit.balance_sheet.total_debt,
+            market_cap=share_price * financial_audit.balance_sheet.diluted_shares_outstanding,
+            risk_free_rate=0.042,
+            equity_risk_premium=0.050,
+            tax_rate=0.156,
+        )
+        dcf_res = calculate_dcf_with_sensitivity(
+            projected_fcfs=projected_fcfs,
+            wacc=wacc_res["wacc"],
+            terminal_growth_rate=terminal_growth,
+            net_debt=financial_audit.balance_sheet.net_debt,
+            diluted_shares=financial_audit.balance_sheet.diluted_shares_outstanding,
+            mid_year_convention=True,
+        )
+        upside = round(((dcf_res["fair_value_per_share"] - share_price) / share_price) * 100.0, 2)
+        return DCFValuationOutput(
+            ticker=ticker.upper(),
+            fiscal_year=fiscal_year,
+            wacc_audit=WACCAudit.model_validate(wacc_res),
+            terminal_growth_rate=terminal_growth,
+            discounting_convention="mid_year",
+            projected_fcfs=projected_fcfs,
+            pv_explicit_fcfs=dcf_res["pv_explicit_fcfs"],
+            pv_terminal_value=dcf_res["pv_terminal_value"],
+            terminal_value_pct_of_ev=dcf_res["terminal_value_pct_of_ev"],
+            enterprise_value=dcf_res["enterprise_value"],
+            net_debt=dcf_res["net_debt"],
+            equity_value=dcf_res["equity_value"],
+            diluted_shares=dcf_res["diluted_shares"],
+            implied_fair_value_per_share=dcf_res["fair_value_per_share"],
+            current_share_price=share_price,
+            upside_downside_pct=upside,
+            valuation_stance="Fairly Valued",
+            sensitivity_matrix_markdown=dcf_res["sensitivity_matrix_markdown"],
+            valuation_summary=f"DCF valuation yields ${dcf_res['fair_value_per_share']:.2f} per share.",
+        )
+
+    @staticmethod
+    def _mock_synthesize(ticker: str, company_name: str, fiscal_year: int, **kwargs) -> Final10KResearchReport:
+        dcf_val = kwargs.get("dcf_valuation")
+        fair_val = dcf_val.implied_fair_value_per_share if dcf_val else 245.50
+        price = dcf_val.current_share_price if dcf_val else 230.00
+        upside = dcf_val.upside_downside_pct if dcf_val else 6.7
+        stance = dcf_val.valuation_stance if dcf_val else "Fairly Valued"
+        sens_md = dcf_val.sensitivity_matrix_markdown if dcf_val else ""
+
+        thesis = ThreePillarThesis(
+            pillar_1_business_moat="Proprietary integrated platform and durable economic moat defend market leadership.",
+            pillar_2_financial_durability="Robust free cash flow generation and conservative balance sheet structure.",
+            pillar_3_valuation_asymmetry="DCF valuation establishes attractive asymmetric upside and margin of safety.",
+        )
+        md_report = (
+            f"# Institutional Equity Research Report: {company_name} ({ticker})\n\n"
+            f"## Executive Valuation Dashboard\n"
+            f"- Implied Fair Value: **${fair_val:.2f}**\n"
+            f"- Market Price: ${price:.2f}\n"
+            f"- Projected Upside: {upside}%\n\n"
+            f"## 1. Executive Summary\n"
+            f"Comprehensive equity research evaluation of {company_name} for FY{fiscal_year}.\n\n"
+            f"## 2. Institutional 3-Pillar Investment Thesis\n"
+            f"Three pillar thesis evaluating moat, balance sheet durability, and valuation asymmetry.\n\n"
+            f"## 3. Business Operations & Economic Moat Analysis\n"
+            f"Economic Moat Analysis evaluates competitive advantages and pricing power.\n\n"
+            f"## 4. Audited Financial Statements & Ratio Performance\n"
+            f"Audited financial statement metrics and ratio analysis.\n\n"
+            f"## 5. 5-Year Financial Forecast & Cash Flow Schedule\n"
+            f"5-Year forecast schedule of revenue, margins, and unlevered free cash flows.\n\n"
+            f"## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n"
+            f"{sens_md}\n\n"
+            f"## 7. Material Risk Factors & Existential Overhangs\n"
+            f"Material risk factors and operational overhangs disclosed in Item 1A.\n\n"
+            f"## 8. Regulatory Disclaimers & Audit Breadcrumbs\n"
+            f"Institutional research disclaimer."
+        )
+        all_citations = []
+        for k in ["business_moat", "financial_audit", "forecast", "risk_audit"]:
+            o = kwargs.get(k)
+            if o and hasattr(o, "citations") and o.citations:
+                all_citations.extend(o.citations)
+        if not all_citations:
+            all_citations = [{"chunk_id": f"chunk-{ticker.lower()}-01", "item": "Item 1"}]
+
+        return Final10KResearchReport(
+            ticker=ticker.upper(),
+            company_name=company_name,
+            fiscal_year=fiscal_year,
+            implied_fair_value_per_share=fair_val,
+            current_share_price=price,
+            upside_downside_pct=upside,
+            valuation_stance=stance,
+            three_pillar_thesis=thesis,
+            executive_summary=f"Executive briefing on {company_name} ({ticker}) for FY{fiscal_year}.",
+            synthesis_provenance="llm_structured",
+            year_substituted=kwargs.get("year_substituted", False),
+            full_markdown_report=md_report,
+            all_citations=all_citations,
+        )
+
     @classmethod
     def setUpClass(cls):
         cls.orchestrator = MultiAgentOrchestrator()
+
+        cls.mock_embedder = MagicMock()
+        cls.mock_embedder.embed_query.return_value = [0.01] * 1536
+
+        cls.mock_market = {
+            "share_price": 230.0,
+            "market_cap": 3450000.0,
+            "beta": 1.10,
+            "currency": "USD",
+        }
+
+        cls.patches = [
+            patch("app.agents.orchestrator.fetch_market_context", return_value=cls.mock_market),
+            patch("app.agents.tools.rag_narrative_tools._get_embedder", return_value=cls.mock_embedder),
+            patch.object(SupervisorAgent, "_extract_with_llm", side_effect=cls._mock_supervisor_extract),
+            patch.object(BusinessStrategistAgent, "analyze", side_effect=cls._mock_moat_analyze),
+            patch.object(FinancialAuditorAgent, "audit", side_effect=cls._mock_audit),
+            patch.object(RiskAnalystAgent, "analyze", side_effect=cls._mock_risk_analyze),
+            patch.object(ForecastingAnalystAgent, "forecast", side_effect=cls._mock_forecast),
+            patch.object(ValuationSpecialistAgent, "value", side_effect=cls._mock_dcf_value),
+            patch.object(LeadSynthesizerAgent, "synthesize", side_effect=cls._mock_synthesize),
+        ]
+        for p in cls.patches:
+            p.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        for p in reversed(cls.patches):
+            p.stop()
 
     def test_01_graph_compilation_and_registry(self):
         """Verify graph builds cleanly and agent is registered in AgentRegistry."""

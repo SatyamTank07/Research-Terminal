@@ -15,6 +15,7 @@ Validates:
 """
 
 import unittest
+from unittest.mock import MagicMock, patch
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
 from app.agents.state import (
@@ -35,7 +36,10 @@ from app.agents.tools.financial_math_tools import (
     BalanceSheetInput,
     audit_financial_metrics,
 )
-from app.agents.specialized.lead_synthesizer import LeadSynthesizerAgent
+from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import (
+    LeadSynthesizerAgent,
+    ResearchSynthesisPayload,
+)
 
 
 def _create_mock_audit() -> FinancialAuditOutput:
@@ -226,17 +230,69 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
         dcf = _create_mock_dcf()
         risk = _create_mock_risk()
 
-        report = self.synthesizer.synthesize(
-            ticker="AAPL",
-            company_name="Apple Inc.",
-            fiscal_year=2025,
-            business_moat=moat,
-            financial_audit=audit,
-            forecast=forecast,
-            dcf_valuation=dcf,
-            risk_audit=risk,
-            year_substituted=False,
+        mock_payload = ResearchSynthesisPayload(
+            full_markdown_report=(
+                "# Institutional Equity Research Report: Apple Inc. (AAPL)\n\n"
+                "## Executive Valuation Dashboard\n"
+                "- Implied Fair Value: **$245.50**\n"
+                "- Current Market Price: $230.00\n"
+                "- Projected Upside: +6.7%\n\n"
+                "## 1. Executive Summary\n"
+                "Apple Inc. demonstrates outstanding capital return resilience, vast installed base scale, "
+                "and an expanding high-margin Services mix sustaining long-term intrinsic value creation.\n\n"
+                "## 2. Institutional 3-Pillar Investment Thesis\n"
+                "Institutional synthesis establishes defensibility across business moat, financial durability, and asymmetric valuation upside.\n\n"
+                "## 3. Business Operations & Economic Moat Analysis\n"
+                "Proprietary integrated ecosystem creates immense consumer lock-in across active devices.\n\n"
+                "## 4. Audited Financial Statements & Ratio Performance\n"
+                "| Line Item | FY2023 | FY2024 | FY2025 |\n"
+                "| :--- | :---: | :---: | :---: |\n"
+                "| Total net sales | $383,285 | $391,035 | $416,161 |\n\n"
+                "## 5. 5-Year Financial Forecast & Cash Flow Schedule\n"
+                "Forecast models steady 5% CAGR underpinned by Services expansion and Apple Intelligence upgrade cycle.\n\n"
+                "## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n"
+                "| Component | Weight | Rate | Weighted |\n"
+                "| :--- | :---: | :---: | :---: |\n"
+                "| **Blended WACC** | **100.0%** | - | **9.53%** |\n\n"
+                "DCF sensitivity benchmark yields implied fair value of **$245.50**.\n\n"
+                "## 7. Material Risk Factors & Existential Overhangs\n"
+                "Primary risks center around antitrust regulatory probes into App Store commissions and Asian supply chain concentration.\n\n"
+                "## 8. Regulatory Disclaimers & Audit Breadcrumbs\n"
+                "This report is for institutional research purposes only and incorporates audited SEC filings."
+            ),
+            executive_summary=(
+                "Apple Inc. demonstrates outstanding capital return resilience, vast installed base scale, "
+                "and an expanding high-margin Services mix sustaining long-term intrinsic value creation."
+            ),
+            valuation_stance="Fairly Valued",
+            pillar_1_business_moat=(
+                "Proprietary integrated hardware-software ecosystem creates insurmountable consumer lock-in and high switching costs across 2.2B+ devices."
+            ),
+            pillar_2_financial_durability=(
+                "Pristine balance sheet structure, world-class ROIC, and disciplined capital allocation driving over $100B in annual operating cash flow."
+            ),
+            pillar_3_valuation_asymmetry=(
+                "DCF valuation yields $245.50 fair value, establishing favorable risk-reward asymmetry and downside margin of safety."
+            ),
         )
+
+        mock_llm = MagicMock()
+        mock_structured_llm = MagicMock()
+        mock_structured_llm.invoke.return_value = mock_payload
+        mock_llm.with_structured_output.return_value = mock_structured_llm
+
+        with patch.object(self.synthesizer, "_get_llm", return_value=mock_llm):
+            report = self.synthesizer.synthesize(
+                ticker="AAPL",
+                company_name="Apple Inc.",
+                fiscal_year=2025,
+                business_moat=moat,
+                financial_audit=audit,
+                forecast=forecast,
+                dcf_valuation=dcf,
+                risk_audit=risk,
+                year_substituted=False,
+            )
 
         self.assertIsInstance(report, Final10KResearchReport)
         self.assertEqual(report.ticker, "AAPL")
@@ -297,15 +353,40 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
         forecast = _create_mock_forecast()
         dcf = _create_mock_dcf()
 
-        report = self.synthesizer.synthesize(
-            ticker="AAPL",
-            company_name="Apple Inc.",
-            fiscal_year=2025,
-            financial_audit=audit,
-            forecast=forecast,
-            dcf_valuation=dcf,
-            year_substituted=True,
+        mock_partial_payload = ResearchSynthesisPayload(
+            full_markdown_report=(
+                "# Institutional Equity Research Report: Apple Inc. (AAPL)\n\n"
+                "## Executive Valuation Dashboard\n"
+                "- Implied Fair Value: **$245.50**\n\n"
+                "## 4. Audited Financial Statements & Ratio Performance\n"
+                "| Line Item | FY2023 | FY2024 | FY2025 |\n"
+                "| :--- | :---: | :---: | :---: |\n"
+                "| Total net sales | $383,285 | $391,035 | $416,161 |\n\n"
+                "## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n"
+                "DCF valuation yields $245.50 fair value."
+            ),
+            executive_summary="Fast-path DCF valuation report for Apple Inc. evaluating audited financial trends.",
+            valuation_stance="Fairly Valued",
+            pillar_1_business_moat=None,
+            pillar_2_financial_durability="Strong balance sheet with robust cash reserves and positive free cash flows.",
+            pillar_3_valuation_asymmetry="Intrinsic DCF fair value provides valuation perspective against market price.",
         )
+
+        mock_llm = MagicMock()
+        mock_structured_llm = MagicMock()
+        mock_structured_llm.invoke.return_value = mock_partial_payload
+        mock_llm.with_structured_output.return_value = mock_structured_llm
+
+        with patch.object(self.synthesizer, "_get_llm", return_value=mock_llm):
+            report = self.synthesizer.synthesize(
+                ticker="AAPL",
+                company_name="Apple Inc.",
+                fiscal_year=2025,
+                financial_audit=audit,
+                forecast=forecast,
+                dcf_valuation=dcf,
+                year_substituted=True,
+            )
 
         self.assertIsInstance(report, Final10KResearchReport)
         self.assertEqual(report.implied_fair_value_per_share, 245.50)

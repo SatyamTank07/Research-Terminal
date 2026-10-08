@@ -13,20 +13,113 @@ Validates:
    FinancialAuditorAgent (extracts audited balance sheet) -> ValuationSpecialistAgent (computes DCF).
 """
 
+import json
 import unittest
+from typing import List, Optional
+from unittest.mock import MagicMock, patch
+from langchain_core.messages import ToolMessage
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
 from app.agents.state import (
     DCFValuationOutput,
     FinancialAuditOutput,
+    WACCAudit,
 )
+from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
 from app.agents.tools.financial_math_tools import (
     AnnualFinancialInput,
     BalanceSheetInput,
     audit_financial_metrics,
 )
+from app.agents.tools.wacc_tools import calculate_wacc
 from app.agents.specialized.financial_auditor import FinancialAuditorAgent
 from app.agents.specialized.valuation_specialist import ValuationSpecialistAgent
+
+
+def _create_mock_valuation_agent(
+    ticker: str,
+    fiscal_year: int,
+    total_debt: float,
+    net_debt: float,
+    diluted_shares: float,
+    tax_rate: float,
+    beta: float,
+    share_price: Optional[float],
+    projected_fcfs: List[float],
+    terminal_growth_rate: float = 0.025,
+    base_year_ebitda: Optional[float] = None,
+) -> MagicMock:
+    """Helper creating a mocked LangChain agent for ValuationSpecialistAgent with deterministic math."""
+    mkt_cap = round(share_price * diluted_shares, 2) if share_price else total_debt * 4.0
+    wacc_res = calculate_wacc(
+        beta=beta,
+        total_debt=total_debt,
+        market_cap=mkt_cap,
+        risk_free_rate=0.042,
+        equity_risk_premium=0.050,
+        tax_rate=tax_rate,
+    )
+    dcf_res = calculate_dcf_with_sensitivity(
+        projected_fcfs=projected_fcfs,
+        wacc=wacc_res["wacc"],
+        terminal_growth_rate=terminal_growth_rate,
+        net_debt=net_debt,
+        diluted_shares=diluted_shares,
+        mid_year_convention=True,
+    )
+    upside = round(((dcf_res["fair_value_per_share"] - share_price) / share_price) * 100.0, 2) if share_price else None
+    if upside is not None:
+        if upside > 10.0:
+            stance = "Undervalued"
+        elif upside < -10.0:
+            stance = "Overvalued"
+        else:
+            stance = "Fairly Valued"
+    else:
+        stance = "Fairly Valued"
+
+    ev_ebitda = round(dcf_res["enterprise_value"] / base_year_ebitda, 2) if base_year_ebitda and base_year_ebitda > 0 else None
+
+    mock_output = DCFValuationOutput(
+        ticker=ticker,
+        fiscal_year=fiscal_year,
+        wacc_audit=WACCAudit.model_validate(wacc_res),
+        terminal_growth_rate=terminal_growth_rate,
+        discounting_convention="mid_year",
+        projected_fcfs=projected_fcfs,
+        pv_explicit_fcfs=dcf_res["pv_explicit_fcfs"],
+        pv_terminal_value=dcf_res["pv_terminal_value"],
+        terminal_value_pct_of_ev=dcf_res["terminal_value_pct_of_ev"],
+        enterprise_value=dcf_res["enterprise_value"],
+        net_debt=dcf_res["net_debt"],
+        equity_value=dcf_res["equity_value"],
+        diluted_shares=dcf_res["diluted_shares"],
+        implied_fair_value_per_share=dcf_res["fair_value_per_share"],
+        current_share_price=share_price,
+        upside_downside_pct=upside,
+        valuation_stance=stance,
+        implied_ev_ebitda=ev_ebitda,
+        ev_ebitda_source="derived_from_10k_ebit_plus_depreciation" if base_year_ebitda else None,
+        sensitivity_matrix_markdown=dcf_res["sensitivity_matrix_markdown"],
+        valuation_summary=f"DCF valuation yields ${dcf_res['fair_value_per_share']:.2f} implied fair value per share based on {wacc_res['wacc_pct']:.2f}% WACC and 2.5% perpetual growth.",
+    )
+    mock_agent = MagicMock()
+    mock_agent.invoke.return_value = {
+        "messages": [
+            ToolMessage(
+                name="calculate_wacc_tool",
+                content=json.dumps(wacc_res),
+                tool_call_id="call_wacc_1",
+            ),
+            ToolMessage(
+                name="calculate_dcf_tool",
+                content=json.dumps(dcf_res),
+                tool_call_id="call_dcf_1",
+            ),
+        ],
+        "structured_response": mock_output,
+    }
+    return mock_agent
 
 
 def _create_synthetic_aapl_audit() -> FinancialAuditOutput:
@@ -102,8 +195,22 @@ class TestValuationSpecialistAgent(unittest.TestCase):
         self.assertIn("CRITICAL NET DEBT SIGN CONVENTION", prompt)
         self.assertIn("DCFValuationOutput", prompt)
 
-    def test_02_synthetic_standalone_valuation_apple(self):
+    @patch.object(ValuationSpecialistAgent, "_get_or_create_agent")
+    def test_02_synthetic_standalone_valuation_apple(self, mock_get_agent):
         """Verify ValuationSpecialistAgent on synthetic Apple FY25 data with Net Cash Surplus."""
+        mock_get_agent.return_value = _create_mock_valuation_agent(
+            ticker="AAPL",
+            fiscal_year=2025,
+            total_debt=98657.0,
+            net_debt=-33763.0,
+            diluted_shares=15004.7,
+            tax_rate=0.15602379,
+            beta=1.10,
+            share_price=235.0,
+            projected_fcfs=[105000.0, 112000.0, 120000.0, 128000.0, 136000.0],
+            terminal_growth_rate=0.025,
+            base_year_ebitda=144495.0,
+        )
         agent = ValuationSpecialistAgent()
         audit_output = _create_synthetic_aapl_audit()
 
@@ -179,8 +286,22 @@ class TestValuationSpecialistAgent(unittest.TestCase):
         # 7. Valuation summary
         self.assertTrue(len(result.valuation_summary) > 50)
 
-    def test_03_indebted_firm_standalone_valuation(self):
+    @patch.object(ValuationSpecialistAgent, "_get_or_create_agent")
+    def test_03_indebted_firm_standalone_valuation(self, mock_get_agent):
         """Verify ValuationSpecialistAgent with an indebted firm (positive Net Debt reduces Equity Value)."""
+        mock_get_agent.return_value = _create_mock_valuation_agent(
+            ticker="IND",
+            fiscal_year=2025,
+            total_debt=20000.0,
+            net_debt=17000.0,
+            diluted_shares=500.0,
+            tax_rate=0.21,
+            beta=1.20,
+            share_price=45.0,
+            projected_fcfs=[3200.0, 3400.0, 3600.0, 3800.0, 4000.0],
+            terminal_growth_rate=0.025,
+            base_year_ebitda=None,
+        )
         agent = ValuationSpecialistAgent()
 
         annual_financials = [
@@ -232,8 +353,39 @@ class TestValuationSpecialistAgent(unittest.TestCase):
         self.assertIsNone(result.implied_ev_ebitda)
         self.assertIsNone(result.ev_ebitda_source)
 
-    def test_04_end_to_end_2agent_chain_aapl(self):
+    @patch.object(FinancialAuditorAgent, "_get_or_create_agent")
+    @patch.object(ValuationSpecialistAgent, "_get_or_create_agent")
+    def test_04_end_to_end_2agent_chain_aapl(self, mock_val_agent, mock_audit_agent):
         """Verify end-to-end 2-agent chain: FinancialAuditor -> ValuationSpecialist on AAPL FY25."""
+        synthetic_audit = _create_synthetic_aapl_audit()
+        active_audit_agent = MagicMock()
+        active_audit_agent.invoke.return_value = {
+            "messages": [
+                ToolMessage(
+                    name="audit_financial_statements_tool",
+                    content=json.dumps({"ticker": "AAPL", "fiscal_year": 2025}),
+                    tool_call_id="call_audit_1",
+                )
+            ],
+            "structured_response": synthetic_audit,
+        }
+        mock_audit_agent.return_value = active_audit_agent
+
+        active_val_agent = _create_mock_valuation_agent(
+            ticker="AAPL",
+            fiscal_year=2025,
+            total_debt=98657.0,
+            net_debt=-33763.0,
+            diluted_shares=15004.7,
+            tax_rate=0.15602379,
+            beta=1.10,
+            share_price=235.0,
+            projected_fcfs=[105000.0, 112000.0, 120000.0, 128000.0, 136000.0],
+            terminal_growth_rate=0.025,
+            base_year_ebitda=144495.0,
+        )
+        mock_val_agent.return_value = active_val_agent
+
         auditor = FinancialAuditorAgent()
         audit_res = auditor.audit(ticker="AAPL", fiscal_year=2025)
 
