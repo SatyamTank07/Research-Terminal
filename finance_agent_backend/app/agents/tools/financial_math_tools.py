@@ -33,9 +33,13 @@ class AnnualFinancialInput(BaseModel):
         description="Total net sales or revenues in $ millions",
         validation_alias=AliasChoices("revenue", "total_revenue", "net_sales", "total_net_sales", "sales")
     )
-    gross_profit: float = Field(
-        ...,
-        description="Gross profit / gross margin in $ millions",
+    gross_profit: Optional[float] = Field(
+        None,
+        description=(
+            "Gross profit / gross margin in $ millions. "
+            "Pass None if the company does not report a distinct gross profit or COGS "
+            "(e.g., banks, insurance, software/services, or single-step income statements)."
+        ),
         validation_alias=AliasChoices("gross_profit", "gross_margin", "gross_income")
     )
     operating_income: float = Field(
@@ -150,13 +154,13 @@ class BalanceSheetInput(BaseModel):
         description="Cash and cash equivalents in $ millions",
         validation_alias=AliasChoices("cash_and_equivalents", "cash", "cash_and_cash_equivalents")
     )
-    marketable_securities: float = Field(
+    marketable_securities: Optional[float] = Field(
         0.0,
         ge=0.0,
         description="Total liquid marketable securities (current + non-current liquid holdings) in $ millions",
         validation_alias=AliasChoices("marketable_securities", "short_term_investments", "liquid_investments")
     )
-    short_term_debt: float = Field(
+    short_term_debt: Optional[float] = Field(
         0.0,
         ge=0.0,
         description="Commercial paper, current portion of long-term debt, and short-term borrowings in $ millions",
@@ -168,7 +172,7 @@ class BalanceSheetInput(BaseModel):
             "current_portion_of_term_debt"
         )
     )
-    long_term_debt: float = Field(
+    long_term_debt: Optional[float] = Field(
         0.0,
         ge=0.0,
         description="Non-current term debt and long-term borrowings in $ millions",
@@ -197,6 +201,14 @@ class BalanceSheetInput(BaseModel):
         validation_alias=AliasChoices("current_liabilities", "total_current_liabilities")
     )
 
+    @field_validator("marketable_securities", "short_term_debt", "long_term_debt", mode="before")
+    @classmethod
+    def coerce_none_to_zero(cls, v: Any) -> float:
+        """Coerces None / null inputs to 0.0 for liquid securities and debt items."""
+        if v is None:
+            return 0.0
+        return v
+
     @field_validator("diluted_shares_outstanding")
     @classmethod
     def validate_shares_scale(cls, v: float) -> float:
@@ -222,8 +234,8 @@ class YearFinancialsResult(BaseModel):
     """Calculated metrics for a single fiscal year."""
     fiscal_year: int
     revenue: float
-    gross_profit: float
-    gross_margin_pct: float
+    gross_profit: Optional[float] = None
+    gross_margin_pct: Optional[float] = None
     operating_income: float
     operating_margin_pct: float
     net_income: float
@@ -267,7 +279,7 @@ class ProfitabilityRatiosResult(BaseModel):
     invested_capital: float
     roic_pct: Optional[float] = None
     roe_pct: Optional[float] = None
-    latest_gross_margin_pct: float
+    latest_gross_margin_pct: Optional[float] = None
     latest_operating_margin_pct: float
     latest_net_margin_pct: float
 
@@ -343,7 +355,13 @@ def calculate_financial_ratios(
 
     for f in sorted_years:
         rev = _validate_finite_number(f.revenue, f"revenue ({f.fiscal_year})")
-        gp = _validate_finite_number(f.gross_profit, f"gross_profit ({f.fiscal_year})")
+        if f.gross_profit is not None:
+            gp = _validate_finite_number(f.gross_profit, f"gross_profit ({f.fiscal_year})")
+            gm_pct = round((gp / rev) * 100.0, 2) if rev != 0 else 0.0
+        else:
+            gp = None
+            gm_pct = None
+
         ebit = _validate_finite_number(f.operating_income, f"operating_income ({f.fiscal_year})")
         ni = _validate_finite_number(f.net_income, f"net_income ({f.fiscal_year})")
         ocf = _validate_finite_number(f.operating_cash_flow, f"operating_cash_flow ({f.fiscal_year})")
@@ -352,7 +370,6 @@ def calculate_financial_ratios(
         fcf = round(ocf - capex, 2)
 
         # Profitability Margins
-        gm_pct = round((gp / rev) * 100.0, 2) if rev != 0 else 0.0
         om_pct = round((ebit / rev) * 100.0, 2) if rev != 0 else 0.0
         nm_pct = round((ni / rev) * 100.0, 2) if rev != 0 else 0.0
         fcf_conv = round((fcf / ni) * 100.0, 2) if ni != 0 else None
@@ -417,8 +434,11 @@ def calculate_financial_ratios(
             tax_source = "derived_from_10k"
 
     # Liquidity & Solvency Bridge (Consistent definition of Liquid Cash)
-    total_liquid = round(balance_sheet.cash_and_equivalents + balance_sheet.marketable_securities, 2)
-    total_debt = round(balance_sheet.short_term_debt + balance_sheet.long_term_debt, 2)
+    sec = balance_sheet.marketable_securities if balance_sheet.marketable_securities is not None else 0.0
+    st_debt = balance_sheet.short_term_debt if balance_sheet.short_term_debt is not None else 0.0
+    lt_debt = balance_sheet.long_term_debt if balance_sheet.long_term_debt is not None else 0.0
+    total_liquid = round(balance_sheet.cash_and_equivalents + sec, 2)
+    total_debt = round(st_debt + lt_debt, 2)
     net_debt = round(total_debt - total_liquid, 2)
     net_cash_pos = bool(net_debt < 0)
 
@@ -470,10 +490,10 @@ def calculate_financial_ratios(
     bs_res = BalanceSheetResult(
         fiscal_year=balance_sheet.fiscal_year,
         cash_and_equivalents=balance_sheet.cash_and_equivalents,
-        marketable_securities=balance_sheet.marketable_securities,
+        marketable_securities=sec,
         total_liquid_cash=total_liquid,
-        short_term_debt=balance_sheet.short_term_debt,
-        long_term_debt=balance_sheet.long_term_debt,
+        short_term_debt=st_debt,
+        long_term_debt=lt_debt,
         total_debt=total_debt,
         net_debt=net_debt,
         net_cash_position=net_cash_pos,
@@ -726,14 +746,14 @@ def audit_financial_metrics_tool(
 
     Args:
         annual_financials: Chronological list of contiguous annual statement records (typically 3 fiscal years).
-                           Each record requires: fiscal_year, revenue, gross_profit, operating_income,
-                           net_income, operating_cash_flow, capital_expenditures (positive magnitude).
-                           Optional: pretax_income, income_tax_expense, depreciation_amortization,
-                           accounts_receivable, inventories.
+                           Each record requires: fiscal_year, revenue, operating_income, net_income,
+                           operating_cash_flow, capital_expenditures (positive magnitude).
+                           Optional: gross_profit (omit or None if not reported), pretax_income,
+                           income_tax_expense, depreciation_amortization, accounts_receivable, inventories.
         balance_sheet: Balance sheet snapshot for the latest fiscal year (must match latest annual_financials year).
-                       Requires: fiscal_year, cash_and_equivalents, marketable_securities,
-                       short_term_debt, long_term_debt, stockholders_equity, diluted_shares_outstanding.
-                       Optional: current_assets, current_liabilities.
+                       Requires: fiscal_year, cash_and_equivalents, stockholders_equity, diluted_shares_outstanding.
+                       Optional: marketable_securities (defaults to 0.0), short_term_debt (defaults to 0.0),
+                       long_term_debt (defaults to 0.0), current_assets, current_liabilities.
 
     Returns:
         Structured audit report containing multi_year_history, balance_sheet,

@@ -630,6 +630,77 @@ class TestFinancialMathTools(unittest.TestCase):
         )
         self.assertEqual(valid_neg_equity_bs.stockholders_equity, -50.0)
 
+    def test_13_null_gross_profit_and_null_debt_handling(self):
+        """
+        Verify that companies omitting Gross Profit (e.g. single-step, software, banks)
+        and balance sheets with null short_term_debt / marketable_securities do not trigger
+        Pydantic validation errors and calculate cleanly.
+        """
+        tool_input = {
+            "annual_financials": [
+                {
+                    "fiscal_year": 2023,
+                    "revenue": 1000.0,
+                    "gross_profit": None,
+                    "operating_income": 300.0,
+                    "net_income": 250.0,
+                    "operating_cash_flow": 280.0,
+                    "capital_expenditures": 50.0,
+                },
+                {
+                    "fiscal_year": 2024,
+                    "revenue": 1200.0,
+                    "gross_profit": None,
+                    "operating_income": 360.0,
+                    "net_income": 300.0,
+                    "operating_cash_flow": 330.0,
+                    "capital_expenditures": 60.0,
+                },
+                {
+                    "fiscal_year": 2025,
+                    "revenue": 1500.0,
+                    "gross_profit": None,
+                    "operating_income": 450.0,
+                    "net_income": 380.0,
+                    "operating_cash_flow": 420.0,
+                    "capital_expenditures": 70.0,
+                },
+            ],
+            "balance_sheet": {
+                "fiscal_year": 2025,
+                "cash_and_equivalents": 500.0,
+                "marketable_securities": None,
+                "short_term_debt": None,
+                "long_term_debt": None,
+                "stockholders_equity": 1200.0,
+                "diluted_shares_outstanding": 100.0,
+            },
+        }
+
+        # Must execute cleanly via LangChain tool .invoke
+        result = audit_financial_metrics_tool.invoke(tool_input)
+
+        self.assertIn("multi_year_history", result)
+        self.assertIn("balance_sheet", result)
+        self.assertIn("profitability_and_return_ratios", result)
+
+        # Check that gross_profit and gross_margin_pct are None
+        for yr in result["multi_year_history"]:
+            self.assertIsNone(yr["gross_profit"])
+            self.assertIsNone(yr["gross_margin_pct"])
+            self.assertGreater(yr["operating_margin_pct"], 0.0)
+
+        self.assertIsNone(result["profitability_and_return_ratios"]["latest_gross_margin_pct"])
+        self.assertEqual(result["profitability_and_return_ratios"]["latest_operating_margin_pct"], 30.0)
+
+        # Check balance sheet coercion of None to 0.0
+        self.assertEqual(result["balance_sheet"]["short_term_debt"], 0.0)
+        self.assertEqual(result["balance_sheet"]["long_term_debt"], 0.0)
+        self.assertEqual(result["balance_sheet"]["marketable_securities"], 0.0)
+        self.assertEqual(result["balance_sheet"]["total_liquid_cash"], 500.0)
+        self.assertEqual(result["balance_sheet"]["net_debt"], -500.0)
+        self.assertTrue(result["balance_sheet"]["net_cash_position"])
+
 
 if __name__ == "__main__":
     unittest.main()

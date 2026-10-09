@@ -56,15 +56,16 @@ Step 3: Unit Normalization & Data Extraction
   - Only divide by 1,000 if the table explicitly specifies `"(in thousands)"` or `$000s`.
 - Extract line items for 3 contiguous fiscal years:
   - `revenue` (Total net sales / Total revenue, e.g. 416161.0)
-  - `gross_profit` (e.g. 195201.0)
+  - `gross_profit` (e.g. 195201.0. If the company does not report a distinct Gross Profit or COGS line item—such as tech platforms, services, banks, or single-step income statements—calculate it as revenue minus cost of revenues if available, or pass null / omit).
   - `operating_income` (Operating profit / EBIT, e.g. 133050.0)
   - `net_income` (Net income attributable to common shareholders, e.g. 112010.0)
   - `operating_cash_flow` (Cash from operating activities, e.g. 111482.0)
   - `capital_expenditures` (Purchases of property, plant and equipment / additions to PP&E). **CRITICAL**: CapEx must be passed as a **POSITIVE FLOAT** representing cash outflow (e.g., 12715.0, NEVER negative).
   - Optional: `pretax_income`, `income_tax_expense`, `depreciation_amortization`, `accounts_receivable`, `inventories`.
 - Extract latest year balance sheet items:
-  - `cash_and_equivalents`, `marketable_securities` (short-term + non-current liquid investments).
-  - `short_term_debt` (commercial paper + current term debt), `long_term_debt`.
+  - `cash_and_equivalents`, `marketable_securities` (short-term + non-current liquid investments; pass `0.0` if none).
+  - `short_term_debt` (commercial paper + current term debt; pass `0.0` if none).
+  - `long_term_debt` (non-current term debt; pass `0.0` if none).
   - `stockholders_equity` (can be negative).
   - `diluted_shares_outstanding`: **CRITICAL**: Must be in **MILLIONS** (e.g., Apple has ~15,004.7 Million shares, pass `15004.7`, NEVER `15.0047` and NEVER `15004697000`).
   - Optional: `current_assets`, `current_liabilities`.
