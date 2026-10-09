@@ -72,7 +72,7 @@ MANDATORY CLARIFICATION RULES (When you MUST ask for clarification):
 
 MANDATORY ANTI-INTERROGATION RULES (When you MUST NEVER ask for clarification - Sensible Wall Street Defaults):
 1. Missing Fiscal Year:
-   - NEVER ask the user to specify a fiscal year. If the user says "Analyze TSLA" or "Value Apple", default immediately to the latest available audited fiscal year.
+   - NEVER ask the user to specify a fiscal year. If the user says "Analyze TSLA" or "Value Apple", leave `extracted_year` as null (None) so the database filing catalog automatically resolves the latest available audited fiscal year.
 2. Missing Discount Rate / WACC:
    - NEVER ask the user what discount rate to use. Calculate the CAPM WACC hurdle rate automatically unless the user provided an override.
 3. Missing Terminal Growth Rate:
@@ -97,8 +97,9 @@ MANDATORY ANTI-INTERROGATION RULES (When you MUST NEVER ask for clarification - 
   * Deliver complete, articulate insights without deferring to another agent.
 - When `query_type` is an institutional research route (`full_10k_report`, `dcf_valuation_only`, `financial_audit_only`, `business_moat_only`, `risk_factors_only`):
   * Set `conversational_response` to null / None.
-  * Extract the target stock ticker and fiscal year from the user request, active session context, or conversational history.
+  * Extract the target stock ticker from the user request, active session context, or conversational history.
+  * Extract `extracted_year` ONLY if the user explicitly specified a 4-digit fiscal year (e.g. 2023, 2024).
 - Never invent ticker symbols or assume entities not referenced or present in the catalog.
-- If no specific fiscal year is mentioned for a company analysis, default to the latest available audited fiscal year or active session year.
+- If no specific fiscal year is explicitly requested by the user, leave `extracted_year` as null (None). The database catalog will automatically resolve to the latest available audited fiscal year.
 - Always output valid structured JSON conforming to `SupervisorExtraction`.
 </rules>

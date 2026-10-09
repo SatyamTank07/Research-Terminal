@@ -77,6 +77,7 @@ class EquityResearchState(TypedDict, total=False):
     ticker: str
     company_name: str
     fiscal_year: int
+    available_fiscal_years: Optional[List[int]]
     document_id: str
     query_type: str
     routing_plan: Optional[RoutingPlan]

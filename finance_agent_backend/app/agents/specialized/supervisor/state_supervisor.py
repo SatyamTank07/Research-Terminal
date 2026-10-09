@@ -26,6 +26,10 @@ class RoutingPlan(BaseModel):
         default=False,
         description="Explicit provenance flag: True if requested year was unavailable and catalog substituted latest year",
     )
+    available_fiscal_years: List[int] = Field(
+        default_factory=list,
+        description="All distinct fiscal years available in the catalog for this ticker, sorted DESC",
+    )
     document_id: Optional[str] = Field(None, description="UUID of document in documents table")
     query_type: QueryType = Field(..., description="Execution path for the pipeline")
     active_agents: List[str] = Field(

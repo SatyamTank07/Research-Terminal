@@ -3,7 +3,7 @@ Construct a disciplined {{ horizon_years }}-year forward financial forecast for 
 Audited Baseline Financials:
 - Base Year (T0): FY{{ base_year }}
 - Base Year Revenue: ${{ "{:,.2f}".format(base_revenue) }} Million
-- Historical 3-Year Revenue CAGR: {{ "{:.2f}%".format(historical_cagr * 100) }}
+- Historical {% if history_years_count %}{{ history_years_count }}-Year{% else %}3-Year{% endif %} Revenue CAGR: {{ "{:.2f}%".format(historical_cagr * 100) }}
 - Base Year Operating Margin: {{ "{:.2f}%".format(latest_margin * 100) }}
 - Base Year CapEx: ${{ "{:,.2f}".format(latest_capex) }} Million (CapEx Intensity: {{ "{:.2f}%".format(capex_pct * 100) }} of Revenue)
 - Derived Effective Tax Rate: {{ "{:.2f}%".format(tax_rate * 100) }}%

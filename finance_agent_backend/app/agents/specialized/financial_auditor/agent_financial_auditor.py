@@ -43,15 +43,35 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
     output_schema = FinancialAuditOutput
     default_recursion_limit = 25
 
-    def audit(self, ticker: str, fiscal_year: int, callbacks: Optional[List[Any]] = None) -> FinancialAuditOutput:
+    def audit(
+        self,
+        ticker: str,
+        fiscal_year: int,
+        available_fiscal_years: Optional[List[int]] = None,
+        callbacks: Optional[List[Any]] = None,
+    ) -> FinancialAuditOutput:
         """
         Direct programmatic interface for LangGraph orchestrator and standalone tests.
         Audits 10-K financial statements and returns a validated FinancialAuditOutput instance.
         """
+        # Determine contiguous years for auditing
+        # A single 10-K already reports 3 contiguous years: [fiscal_year - 2, fiscal_year - 1, fiscal_year]
+        # If older contiguous filings exist in available_fiscal_years, expand the audit horizon (up to 5 years)
+        contiguous_years = [fiscal_year - 2, fiscal_year - 1, fiscal_year]
+        if available_fiscal_years:
+            avail_sorted = sorted([y for y in available_fiscal_years if y <= fiscal_year])
+            for candidate_min in range(fiscal_year - 4, fiscal_year - 2):
+                span = list(range(candidate_min, fiscal_year + 1))
+                if all(yr in avail_sorted for yr in span):
+                    contiguous_years = span
+                    break
+
         query = render_prompt(
             "prompt_financial_auditor_query.j2",
             ticker=ticker.upper(),
             fiscal_year=fiscal_year,
+            contiguous_years=contiguous_years,
+            available_years_str=", ".join(map(str, sorted(available_fiscal_years))) if available_fiscal_years else None,
         )
 
         fallback_defaults = {

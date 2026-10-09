@@ -233,6 +233,25 @@ class TestMilestone2FinancialAuditor(unittest.TestCase):
             self.assertIn("chunk_id", cit)
             self.assertIn("breadcrumb", cit)
 
+    @patch.object(FinancialAuditorAgent, "execute_structured")
+    def test_04_multiyear_available_years_expansion(self, mock_exec):
+        """Verify audit expands contiguous_years to 5 years when available_fiscal_years has 5 contiguous filings."""
+        agent = FinancialAuditorAgent()
+        mock_output = MagicMock(spec=FinancialAuditOutput)
+        mock_exec.return_value = mock_output
+
+        result = agent.audit(
+            ticker="AMZN",
+            fiscal_year=2025,
+            available_fiscal_years=[2025, 2024, 2023, 2022, 2021],
+        )
+        self.assertEqual(result, mock_output)
+        self.assertTrue(mock_exec.called)
+        called_query = mock_exec.call_args[0][0]
+        # Query rendered to LLM must specify the 5 contiguous years
+        self.assertIn("2021, 2022, 2023, 2024, 2025", called_query)
+        self.assertIn("Extract the 5 contiguous years", called_query)
+
 
 if __name__ == "__main__":
     unittest.main()

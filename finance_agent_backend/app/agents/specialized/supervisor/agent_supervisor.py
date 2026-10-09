@@ -147,11 +147,11 @@ class SupervisorAgent(BaseAgent):
         ticker: Optional[str] = None,
         fiscal_year: Optional[int] = None,
         user_query: Optional[str] = None,
-    ) -> Tuple[str, str, int, str, Optional[int], bool]:
-        """Resolves target company, filing year, and document ID from database catalog.
+    ) -> Tuple[str, str, int, str, Optional[int], bool, List[int]]:
+        """Resolves target company, filing year, document ID, and available years from database catalog.
 
         Returns:
-            Tuple of (ticker, company_name, fiscal_year, document_id, year_requested, year_substituted)
+            Tuple of (ticker, company_name, fiscal_year, document_id, year_requested, year_substituted, available_fiscal_years)
         """
         db = SessionLocal()
         try:
@@ -176,37 +176,43 @@ class SupervisorAgent(BaseAgent):
                     f"Available ingested filings in database: [{available_str}]"
                 )
 
-            # Look up document by ticker
-            query = db.query(Document).filter(Document.ticker == resolved_ticker)
-            year_substituted = False
-
-            if year_requested:
-                doc = query.filter(Document.fiscal_year == year_requested).first()
-                if not doc:
-                    # Requested year unavailable; select latest available year with substitution flag
-                    doc = (
-                        db.query(Document)
-                        .filter(Document.ticker == resolved_ticker)
-                        .order_by(Document.fiscal_year.desc())
-                        .first()
-                    )
-                    if doc:
-                        year_substituted = True
-                        logger.warning(
-                            f"Requested filing FY{year_requested} for '{resolved_ticker}' not found in database. "
-                            f"Substituted with latest audited filing FY{doc.fiscal_year} (year_substituted=True)."
-                        )
-            else:
-                doc = query.order_by(Document.fiscal_year.desc()).first()
-
-            if not doc:
+            # Look up all distinct fiscal years for this ticker in descending order
+            year_records = (
+                db.query(Document.fiscal_year)
+                .filter(Document.ticker == resolved_ticker)
+                .distinct()
+                .order_by(Document.fiscal_year.desc())
+                .all()
+            )
+            available_years = [r[0] for r in year_records]
+            if not available_years:
                 available_tickers = [t[0] for t in db.query(Document.ticker).distinct().all()]
                 raise ValueError(
                     f"No ingested 10-K filings found for ticker '{resolved_ticker}'. "
                     f"Available tickers in database: {available_tickers}"
                 )
 
-            return doc.ticker, doc.company_name, doc.fiscal_year, doc.id, year_requested, year_substituted
+            query = db.query(Document).filter(Document.ticker == resolved_ticker)
+            year_substituted = False
+
+            if year_requested:
+                if year_requested in available_years:
+                    target_year = year_requested
+                else:
+                    target_year = available_years[0]
+                    year_substituted = True
+                    logger.warning(
+                        f"Requested filing FY{year_requested} for '{resolved_ticker}' not found in database. "
+                        f"Substituted with latest audited filing FY{target_year} (year_substituted=True)."
+                    )
+            else:
+                target_year = available_years[0]
+
+            doc = query.filter(Document.fiscal_year == target_year).first()
+            if not doc:
+                doc = query.order_by(Document.fiscal_year.desc()).first()
+
+            return doc.ticker, doc.company_name, doc.fiscal_year, doc.id, year_requested, year_substituted, available_years
 
         finally:
             db.close()
@@ -340,10 +346,11 @@ class SupervisorAgent(BaseAgent):
             )
 
         try:
-            doc_ticker, company_name, catalog_year, doc_id, year_req, year_sub = (
+            doc_ticker, company_name, catalog_year, doc_id, year_req, year_sub, avail_years = (
                 self.resolve_filing_catalog(
                     ticker=resolved_ticker,
                     fiscal_year=resolved_year_req,
+                    user_query=user_query,
                 )
             )
         except ValueError as err:
@@ -351,6 +358,7 @@ class SupervisorAgent(BaseAgent):
                 ticker="",
                 company_name="Senior Equity Research Director",
                 fiscal_year=0,
+                available_fiscal_years=active_state.get("available_fiscal_years", []),
                 year_requested=None,
                 year_substituted=False,
                 document_id=None,
@@ -373,13 +381,14 @@ class SupervisorAgent(BaseAgent):
             "active_ticker": doc_ticker,
             "active_company": company_name,
             "active_fiscal_year": catalog_year,
+            "available_fiscal_years": avail_years,
             "last_query_type": query_type,
             "pending_action": None,
         }
 
         logger.info(
             f"Supervisor routed query '{user_query[:50]}' -> "
-            f"Ticker: {doc_ticker}, FY{catalog_year} (year_substituted={year_sub}), "
+            f"Ticker: {doc_ticker}, FY{catalog_year} (year_substituted={year_sub}, available_years={avail_years}), "
             f"Route: {query_type} ({provenance})"
         )
 
@@ -387,6 +396,7 @@ class SupervisorAgent(BaseAgent):
             ticker=doc_ticker,
             company_name=company_name,
             fiscal_year=catalog_year,
+            available_fiscal_years=avail_years,
             year_requested=year_req,
             year_substituted=year_sub,
             document_id=doc_id,
@@ -434,6 +444,7 @@ class SupervisorAgent(BaseAgent):
                     "document_id": plan.document_id,
                     "ticker": plan.ticker,
                     "fiscal_year": plan.fiscal_year,
+                    "available_fiscal_years": plan.available_fiscal_years,
                     "year_substituted": plan.year_substituted,
                     "routing_provenance": plan.routing_provenance,
                 }],

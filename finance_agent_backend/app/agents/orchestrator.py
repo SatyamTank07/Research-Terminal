@@ -87,6 +87,7 @@ async def supervisor_node(state: EquityResearchState) -> Dict[str, Any]:
         "ticker": routing_plan.ticker,
         "company_name": routing_plan.company_name or routing_plan.ticker,
         "fiscal_year": routing_plan.fiscal_year,
+        "available_fiscal_years": routing_plan.available_fiscal_years,
         "document_id": routing_plan.document_id,
         "query_type": routing_plan.query_type,
         "routing_plan": routing_plan,
@@ -118,14 +119,16 @@ async def financial_auditor_node(state: EquityResearchState) -> Dict[str, Any]:
     """Node 2: Audits multi-year financial statements, computes ratios, and checks red flags (Item 8)."""
     ticker = state["ticker"]
     fiscal_year = state["fiscal_year"]
+    available_fiscal_years = state.get("available_fiscal_years")
     callbacks = state.get("callbacks")
 
-    logger.info(f"[financial_auditor_node] Auditing {ticker} FY{fiscal_year}")
+    logger.info(f"[financial_auditor_node] Auditing {ticker} FY{fiscal_year} (available: {available_fiscal_years})")
     auditor = FinancialAuditorAgent()
     audit_output: FinancialAuditOutput = await asyncio.to_thread(
         auditor.audit,
         ticker=ticker,
         fiscal_year=fiscal_year,
+        available_fiscal_years=available_fiscal_years,
         callbacks=callbacks,
     )
 
@@ -317,6 +320,7 @@ async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
         dcf_valuation=state.get("dcf_valuation"),
         risk_audit=state.get("risk_audit"),
         year_substituted=year_substituted,
+        available_fiscal_years=state.get("available_fiscal_years"),
         user_query=user_query,
         query_type=query_type,
         callbacks=callbacks,

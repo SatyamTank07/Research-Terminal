@@ -7,7 +7,7 @@ You adhere strictly to audited facts, deterministic valuation numbers, and verif
 <user_inquiry>
 User Query: "{{ user_query }}"
 Resolved Route: {{ query_type }}
-Target: {{ company_name }} ({{ ticker }}), Fiscal Year: {{ fiscal_year }}{% if year_substituted %} (Note: requested year unavailable; substituted with latest audited filing FY{{ fiscal_year }}){% endif %}
+Target: {{ company_name }} ({{ ticker }}), Fiscal Year: {{ fiscal_year }}{% if available_fiscal_years %} (Filing Catalog Scope: FY{{ available_fiscal_years | min }}–FY{{ available_fiscal_years | max }}){% endif %}{% if year_substituted %} (Note: requested year unavailable; substituted with latest audited filing FY{{ fiscal_year }}){% endif %}
 </user_inquiry>
 
 <operating_context>
@@ -56,7 +56,7 @@ WACC Audit Table:
 
 {% if financial_audit %}
 [FINANCIAL AUDITOR & STATEMENT FINDINGS]
-- 3-Year Audited Trend:
+- {{ financial_audit.multi_year_history | length }}-Year Audited Trend:
   * Revenue Series: {% for y in financial_audit.multi_year_history %}FY{{ y.fiscal_year }}: ${{ "{:,.1f}".format(y.revenue) if y.revenue is not none else "N/A" }}M (YoY: {{ "{:.1f}%".format(y.revenue_growth_pct) if y.revenue_growth_pct is not none else "N/A" }}){% if not loop.last %}, {% endif %}{% endfor %}
   * Operating Income (EBIT): {% for y in financial_audit.multi_year_history %}FY{{ y.fiscal_year }}: ${{ "{:,.1f}".format(y.operating_income) if y.operating_income is not none else "N/A" }}M (Margin: {{ "{:.1f}%".format(y.operating_margin_pct) if y.operating_margin_pct is not none else "N/A" }}){% if not loop.last %}, {% endif %}{% endfor %}
   * Free Cash Flow: {% for y in financial_audit.multi_year_history %}FY{{ y.fiscal_year }}: ${{ "{:,.1f}".format(y.free_cash_flow) if y.free_cash_flow is not none else "N/A" }}M{% if not loop.last %}, {% endif %}{% endfor %}

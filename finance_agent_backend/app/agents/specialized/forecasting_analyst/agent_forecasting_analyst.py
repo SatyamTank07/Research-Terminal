@@ -167,7 +167,7 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
             growth_rationale = (
                 f"Item 7 MD&A narrative disclosures were sparse or below length threshold "
                 f"({len(narrative_chunks)} chunks retrieved, {total_narrative_chars} characters). "
-                f"Applied deterministic historical CAGR decay rule: starting from the 3-year historical "
+                f"Applied deterministic historical CAGR decay rule: starting from the {len(history)}-year historical "
                 f"revenue CAGR of {historical_cagr*100:.2f}%, decaying by {FALLBACK_DECAY_RATE_PER_YEAR*10000:.0f} bps "
                 f"annually towards a long-term GDP terminal floor of {FALLBACK_TERMINAL_GROWTH_FLOOR*100:.2f}%."
             )
@@ -228,6 +228,7 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
             base_year=base_year,
             base_revenue=base_revenue,
             historical_cagr=historical_cagr,
+            history_years_count=len(history),
             latest_margin=latest_margin,
             latest_capex=latest_capex,
             capex_pct=capex_pct,

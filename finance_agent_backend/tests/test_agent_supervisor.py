@@ -42,7 +42,7 @@ class TestAgentSupervisor(unittest.TestCase):
     def test_02_catalog_resolution_and_substitution_flag(self):
         """Verify direct ticker resolution and explicit provenance flagging when year is substituted."""
         # Exact year match (AAPL FY2025) -> year_substituted must be False
-        ticker, cname, year, doc_id, year_req, year_sub = self.supervisor.resolve_filing_catalog(
+        ticker, cname, year, doc_id, year_req, year_sub, avail_years = self.supervisor.resolve_filing_catalog(
             ticker="AAPL", fiscal_year=2025
         )
         self.assertEqual(ticker, "AAPL")
@@ -50,15 +50,18 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertEqual(year, 2025)
         self.assertEqual(year_req, 2025)
         self.assertFalse(year_sub, "Exact year match should not be flagged as substituted")
+        self.assertIn(2025, avail_years)
+        self.assertIsInstance(avail_years, list)
 
         # Unavailable year requested (AAPL FY2020) -> must substitute latest year (2025) and flag True
-        ticker2, _, year2, _, year_req2, year_sub2 = self.supervisor.resolve_filing_catalog(
+        ticker2, _, year2, _, year_req2, year_sub2, avail_years2 = self.supervisor.resolve_filing_catalog(
             ticker="AAPL", fiscal_year=2020
         )
         self.assertEqual(ticker2, "AAPL")
         self.assertEqual(year2, 2025)
         self.assertEqual(year_req2, 2020)
         self.assertTrue(year_sub2, "Unavailable year must set year_substituted=True")
+        self.assertEqual(avail_years, avail_years2)
 
     def test_03_missing_ticker_raises_error(self):
         """Verify resolve_filing_catalog raises ValueError when no ticker is provided."""
@@ -124,6 +127,7 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertFalse(plan.needs_confirmation, "Must not halt for confirmation")
         self.assertTrue(plan.year_substituted, "Must flag year_substituted=True")
         self.assertEqual(plan.fiscal_year, 2025)
+        self.assertIn(2025, plan.available_fiscal_years)
         self.assertEqual(plan.year_requested, 2022)
         self.assertGreater(len(plan.active_agents), 0, "Agents must be immediately scheduled")
         self.assertIn("financial_auditor", plan.active_agents)
@@ -318,6 +322,29 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertIn("Missing Target Entity", prompt)
         self.assertIn("Missing Fiscal Year", prompt)
         self.assertNotIn("Available Ingested 10-K Filings:", prompt)
+
+    @patch.object(SupervisorAgent, "_extract_with_llm")
+    def test_15_explicit_year_in_catalog_respected_without_substitution(self, mock_extract):
+        """Verify that when user explicitly requests a year present in the catalog, it is respected without substitution."""
+        mock_extract.return_value = SupervisorExtraction(
+            query_type="full_10k_report",
+            extracted_ticker="AAPL",
+            extracted_year=2024,
+            routing_reasoning="User requested Apple 2024 report",
+        )
+        plan = self.supervisor.route(
+            user_query="Analyze Apple for 2024",
+            ticker="AAPL",
+            fiscal_year=2024,
+        )
+        self.assertEqual(plan.ticker, "AAPL")
+        self.assertEqual(plan.fiscal_year, 2024)
+        self.assertEqual(plan.year_requested, 2024)
+        self.assertFalse(plan.year_substituted, "Year 2024 is in catalog, should not be substituted")
+        self.assertIn(2024, plan.available_fiscal_years)
+        self.assertIn(2025, plan.available_fiscal_years)
+        self.assertEqual(plan.updated_session_state.get("active_fiscal_year"), 2024)
+        self.assertEqual(plan.updated_session_state.get("available_fiscal_years"), plan.available_fiscal_years)
 
 
 if __name__ == "__main__":
