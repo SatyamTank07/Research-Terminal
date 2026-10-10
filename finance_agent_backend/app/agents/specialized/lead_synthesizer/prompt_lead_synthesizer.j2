@@ -93,15 +93,36 @@ Cash Flow Table:
 [BUSINESS & MOAT STRATEGIST FINDINGS]
 - Summary: {{ business_moat.business_summary }}
 - Revenue Architecture: {{ business_moat.revenue_architecture }}
-- Product/Service Segments: {{ business_moat.primary_product_segments | join(', ') }}
-- Economic Moat: {{ business_moat.economic_moat_type }} (Durability: {{ business_moat.moat_durability }}, Trajectory: {{ business_moat.moat_trajectory }})
+{% if business_moat.reportable_segments %}
+- Statutory Reportable Segments (ASC 280): {{ business_moat.reportable_segments | join(', ') }}
+{% endif %}
+- Commercial Revenue Lines (ASC 606): {{ business_moat.primary_product_segments | join(', ') }}
+- Primary Economic Moat: {{ business_moat.economic_moat_type }} (Durability: {{ business_moat.moat_durability }}, Trajectory: {{ business_moat.moat_trajectory }})
+{% if business_moat.secondary_moat_types %}
+- Secondary Moats: {{ business_moat.secondary_moat_types | join(', ') }}
+{% endif %}
 - Moat Rationale: {{ business_moat.moat_rationale }}
+{% if business_moat.segment_specific_moats %}
+- Segment-Specific Moats:
+  {% for sm in business_moat.segment_specific_moats %}
+  * {{ sm.segment_name }}: [{{ sm.moat_type }}] {{ sm.moat_rationale }}
+  {% endfor %}
+{% endif %}
+{% if business_moat.competitive_threats %}
+- Disclosed Competitive Threats: {{ business_moat.competitive_threats | join('; ') }}
+{% endif %}
 - Pricing Power: {{ business_moat.pricing_power_assessment }}
 - Customer Concentration: {{ business_moat.customer_concentration }}
 {% if business_moat.segment_details %}
 - Segment Details:
   {% for seg in business_moat.segment_details %}
   * {{ seg.name }}: {{ seg.description }} (Drivers: {{ seg.growth_drivers | join(', ') }})
+  {% endfor %}
+{% endif %}
+{% if business_moat.citations %}
+- Citations:
+  {% for c in business_moat.citations %}
+  * [{{ c.chunk_id }}] {{ c.item }} | {{ c.breadcrumb }} | {{ c.sub_section }}
   {% endfor %}
 {% endif %}
 {% endif %}
@@ -158,7 +179,20 @@ CRITICAL GENERALIZATION DIRECTIVES:
      Provide a focused financial statement audit and forensic report with the audited tables, ROIC, debt coverage, and earnings quality checks.
 
    - **If the user asked specifically about business moat** (or `query_type == "business_moat_only"`):
-     Provide a focused business operations and economic moat analysis with operating segments, pricing power, and competitive advantages.
+     Provide a comprehensive, institutional Business Operations & Moat publication with these exact sections:
+     * Title: `# Business Operations & Economic Moat Analysis: {{ company_name }} ({{ ticker }})`
+     * Metadata Banner: `> **Filing Source**: SEC Form 10-K (FY{{ fiscal_year }}) | **Primary Moat**: **{{ business_moat.economic_moat_type if business_moat else '[Moat]' }}** | **Durability**: **{{ business_moat.moat_durability if business_moat else '[Durability]' }}** | **Trajectory**: **{{ business_moat.moat_trajectory if business_moat else '[Trajectory]' }}**`
+     * `## 1. Executive Summary & Revenue Architecture`: Synthesize the operating model and revenue mechanics.
+     * `## 2. Segments & Disaggregated Revenue Architecture`:
+       - ASC 280 Statutory Reportable Segments: Detail the legal reporting segments as monitored by executive leadership / CODM.
+       - ASC 606 Commercial Revenue Lines & Growth Drivers: Provide a breakdown of discrete commercial product/service categories with descriptions and secular drivers.
+     * `## 3. Economic Moat & Competitive Moat Deconstruction`:
+       - Primary Moat Classification, Secondary Moat Sources, and evidence-backed rationale.
+       - Segment-Specific Moats (if multi-divisional operations exist).
+     * `## 4. Competitive Threats & Counter-Evidence Stress Test`: Detail direct industry rivals, pricing pressures, and technological substitute risks disclosed in Item 1.
+     * `## 5. Market Power & Customer Concentration`: Literal disclosures for pricing power flexibility and customer concentration percentages.
+     * `## 6. Filing Evidence & Audit Trail`: Render a markdown citations table with Chunk ID, Filing Section, Breadcrumb, and Sub-section.
+     * Footnote: `> *Synthesis Provenance: {{ synthesis_provenance or 'llm_structured' }}*`
 
    - **If the user asked specifically about risk factors** (or `query_type == "risk_factors_only"`):
      Provide a focused material risk factors report detailing Item 1A risks and existential threats.

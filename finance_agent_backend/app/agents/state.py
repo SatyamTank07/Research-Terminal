@@ -39,6 +39,7 @@ from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import
 from app.agents.specialized.business_strategist.state_business_strategist import (
     BusinessMoatOutput,
     SegmentDetail,
+    SegmentMoat,
 )
 
 # ==============================================================================
@@ -114,6 +115,7 @@ __all__ = [
     "ForecastOutput",
     # Business Moat
     "SegmentDetail",
+    "SegmentMoat",
     "BusinessMoatOutput",
     # Risk
     "RiskItem",

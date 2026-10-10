@@ -139,9 +139,11 @@ class LeadSynthesizerAgent(BaseAgent):
         user_instruction = render_prompt(
             "prompt_synthesizer_instruction.j2",
             ticker=ticker.upper(),
+            company_name=company_name,
             fiscal_year=fiscal_year,
             query_type=query_type,
             user_query=user_query,
+            business_moat=business_moat,
         )
 
         # 2. Invoke LLM for qualitative synthesis and complete report generation

@@ -38,6 +38,7 @@ class TestAgentBusinessStrategist(unittest.TestCase):
         prompt = render_prompt("business_strategist")
         self.assertIn("Senior Equity Research Analyst", prompt)
         self.assertIn("retrieve_10k_narrative_tool", prompt)
+        self.assertIn("retrieve_10k_tables_tool", prompt)
         self.assertIn("Economic Moat Deconstruction", prompt)
         self.assertIn("BusinessMoatOutput", prompt)
 
@@ -74,6 +75,7 @@ class TestAgentBusinessStrategist(unittest.TestCase):
             fiscal_year=2025,
             business_summary="Apple Inc. designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories, and sells a variety of related services.",
             revenue_architecture="Hardware product sales (iPhone, Mac, iPad, Wearables) complemented by high-margin recurring Services ecosystem revenue.",
+            reportable_segments=["Americas", "Europe", "Greater China", "Japan", "Rest of Asia Pacific"],
             primary_product_segments=["iPhone", "Services", "Mac", "iPad", "Wearables, Home and Accessories"],
             segment_details=[
                 SegmentDetail(
@@ -88,9 +90,11 @@ class TestAgentBusinessStrategist(unittest.TestCase):
                 ),
             ],
             economic_moat_type="High Switching Costs",
+            secondary_moat_types=["Network Effects", "Intangible Assets / Brand"],
             moat_durability="Wide",
             moat_trajectory="Expanding",
             moat_rationale="Proprietary iOS ecosystem creates deep consumer lock-in across 2+ billion active devices, supported by high switching costs, brand intangibles, and network effects.",
+            competitive_threats=["Aggressive pricing competition in smartphone and personal computing markets", "Rapid technological obsolescence"],
             pricing_power_assessment="High premium pricing power evidenced by stable premium hardware ASPs and sustained >45% gross margins.",
             customer_concentration="No single customer accounted for more than 10% of total revenue in FY2025.",
             citations=[{"chunk_id": "chunk-aapl-item1-001", "item": "Item 1", "breadcrumb": "Item 1 > Business"}],
@@ -154,9 +158,11 @@ class TestAgentBusinessStrategist(unittest.TestCase):
             "None",
         }
         self.assertIn(result.economic_moat_type, valid_moat_types)
-        self.assertIn(result.moat_durability, {"Wide", "Narrow", "None"})
-        self.assertIn(result.moat_trajectory, {"Expanding", "Stable", "Deteriorating"})
+        self.assertIn(result.moat_durability, {"Wide", "Narrow", "None", "Indeterminate"})
+        self.assertIn(result.moat_trajectory, {"Expanding", "Stable", "Deteriorating", "Indeterminate"})
         self.assertTrue(len(result.moat_rationale) > 50)
+        self.assertEqual(len(result.reportable_segments), 5)
+        self.assertGreaterEqual(len(result.competitive_threats), 1)
 
         # 4. Market Power Disclosures
         self.assertTrue(len(result.pricing_power_assessment) > 20)

@@ -1,3 +1,45 @@
-User Inquiry: "{{ user_query or 'Analyze ' ~ ticker }}"
-Synthesize the research findings for {{ ticker | upper }} (FY{{ fiscal_year }}).
-Formulate a dynamic, publication-grade markdown response ('full_markdown_report') and structured synthesis fields tailored specifically to answer this inquiry with institutional precision.
+User Inquiry: "{{ user_query or 'Analyze ' ~ (company_name or ticker) }}"
+
+{% if query_type == "business_moat_only" %}
+Synthesize the Business Operations & Economic Moat findings for {{ company_name or ticker }} ({{ ticker | upper }}) from its FY{{ fiscal_year }} Form 10-K filing.
+
+MANDATE & INSTRUCTIONS FOR BUSINESS MOAT PUBLICATION:
+1. Construct a publication-grade markdown document in 'full_markdown_report' with the exact title:
+   `# Business Operations & Economic Moat Analysis: {{ company_name or ticker }} ({{ ticker | upper }})`
+2. Include the metadata banner right below the title:
+   `> **Filing Source**: SEC Form 10-K (FY{{ fiscal_year }}) | **Primary Moat**: **{{ business_moat.economic_moat_type if business_moat else '[Moat]' }}** | **Durability**: **{{ business_moat.moat_durability if business_moat else '[Durability]' }}** | **Trajectory**: **{{ business_moat.moat_trajectory if business_moat else '[Trajectory]' }}**`
+3. Structure the report into the 6 institutional sections:
+   - `## 1. Executive Summary & Revenue Architecture`: Synthesize the operating model and revenue mechanics.
+   - `## 2. Segments & Disaggregated Revenue Architecture`:
+     * ASC 280 Statutory Reportable Segments: Detail the legal reporting segments as monitored by executive leadership / CODM.
+     * ASC 606 Commercial Revenue Lines & Growth Drivers: Detail discrete commercial product/service categories with descriptions and secular drivers.
+   - `## 3. Economic Moat & Competitive Moat Deconstruction`:
+     * Detail the Primary Moat classification, Secondary Moat sources, and segment-specific moats (if multi-divisional) with evidence-backed rationale.
+   - `## 4. Competitive Threats & Counter-Evidence Stress Test`:
+     * Detail direct industry rivals, pricing pressures, and technological substitute risks disclosed in Item 1 Competition.
+   - `## 5. Market Power & Customer Concentration`:
+     * STRICT STATUTORY ABSTENTION DIRECTIVE: Report the literal disclosures from BusinessMoatOutput for pricing power and customer concentration. If either item is 'Not explicitly disclosed in 10-K', report that exact fact clearly. DO NOT append speculative commentary, infer market power from brand reputation, or assume pricing flexibility.
+   - `## 6. Filing Evidence & Audit Trail`:
+     * Render the citations table with Chunk ID, Filing Section, Breadcrumb, and Sub-section.
+   - Footnote: `> *Synthesis Provenance: {{ synthesis_provenance or 'llm_structured' }}*`
+4. In structured JSON fields:
+   - Populate 'full_markdown_report' with this complete publication.
+   - Populate 'executive_summary' with a concise executive summary paragraph.
+   - Populate 'pillar_1_business_moat' with the core moat thesis.
+
+{% elif query_type == "dcf_valuation_only" %}
+Synthesize the DCF Valuation & Intrinsic Sensitivity findings for {{ company_name or ticker }} ({{ ticker | upper }}) from its FY{{ fiscal_year }} filing.
+Construct the DCF Valuation & Sensitivity publication in 'full_markdown_report' with Executive Valuation Dashboard, WACC hurdle rate breakdown, 5-year explicit UFCF projections schedule, and the 5x5 sensitivity matrix table verbatim.
+
+{% elif query_type == "financial_audit_only" %}
+Synthesize the Financial Statement Audit & Forensic Analysis for {{ company_name or ticker }} ({{ ticker | upper }}) from its FY{{ fiscal_year }} filing.
+Construct the financial audit publication in 'full_markdown_report' embedding audited multi-year income statement, balance sheet, cash flow tables, key ratios, and forensic checks verbatim.
+
+{% elif query_type == "risk_factors_only" %}
+Synthesize the Material Risk Factors & Existential Overhangs for {{ company_name or ticker }} ({{ ticker | upper }}) from its FY{{ fiscal_year }} filing.
+Construct the risk analysis publication in 'full_markdown_report' detailing cataloged Item 1A operational, financial, and regulatory vulnerabilities.
+
+{% else %}
+Synthesize the complete institutional research report for {{ company_name or ticker }} ({{ ticker | upper }}) (FY{{ fiscal_year }}).
+Formulate a dynamic, publication-grade markdown response ('full_markdown_report') containing the full 8-section institutional equity research report and populate all structured synthesis fields.
+{% endif %}
