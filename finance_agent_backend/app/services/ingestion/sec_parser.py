@@ -5,6 +5,8 @@ import warnings
 from typing import Dict, Any, List, Optional, Tuple
 from bs4 import BeautifulSoup, Tag, XMLParsedAsHTMLWarning
 
+from app.services.financial_tables import is_well_formed, parse_statement_rows, render_clean_statement
+
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 logger = logging.getLogger("finance_agent.ingestion.sec_parser")
@@ -217,6 +219,12 @@ class SECParser:
             # First row has single merged title
             table_title = next(c for c in padded_grid[0] if c.strip())
             start_row = 1
+
+        # Financial statements: collapse split "$" / ")" cells and colspan misalignment into
+        # a compact `| Line item | 2025 | 2024 |` table when every row maps cleanly onto the periods.
+        statement = parse_statement_rows(padded_grid[start_row:], title=table_title)
+        if is_well_formed(statement, min_ratio=0.9):
+            return render_clean_statement(statement, period_label=""), padded_grid, table_title
 
         # Use the next row as column headers
         headers = padded_grid[start_row]

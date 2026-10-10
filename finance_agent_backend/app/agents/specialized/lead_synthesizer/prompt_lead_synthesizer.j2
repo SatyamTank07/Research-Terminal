@@ -55,38 +55,7 @@ WACC Audit Table:
 {% endif %}
 
 {% if financial_audit %}
-[FINANCIAL AUDITOR & STATEMENT FINDINGS]
-- {{ financial_audit.multi_year_history | length }}-Year Audited Trend:
-  * Revenue Series: {% for y in financial_audit.multi_year_history %}FY{{ y.fiscal_year }}: ${{ "{:,.1f}".format(y.revenue) if y.revenue is not none else "N/A" }}M (YoY: {{ "{:.1f}%".format(y.revenue_growth_pct) if y.revenue_growth_pct is not none else "N/A" }}){% if not loop.last %}, {% endif %}{% endfor %}
-  * Operating Income (EBIT): {% for y in financial_audit.multi_year_history %}FY{{ y.fiscal_year }}: ${{ "{:,.1f}".format(y.operating_income) if y.operating_income is not none else "N/A" }}M (Margin: {{ "{:.1f}%".format(y.operating_margin_pct) if y.operating_margin_pct is not none else "N/A" }}){% if not loop.last %}, {% endif %}{% endfor %}
-  * Free Cash Flow: {% for y in financial_audit.multi_year_history %}FY{{ y.fiscal_year }}: ${{ "{:,.1f}".format(y.free_cash_flow) if y.free_cash_flow is not none else "N/A" }}M{% if not loop.last %}, {% endif %}{% endfor %}
-- Balance Sheet Bridge:
-  * Cash & Securities: ${{ "{:,.1f}".format((financial_audit.balance_sheet.cash_and_equivalents or 0.0) + (financial_audit.balance_sheet.marketable_securities or 0.0)) }}M
-  * Total Debt: ${{ "{:,.1f}".format(financial_audit.balance_sheet.total_debt) if financial_audit.balance_sheet.total_debt is not none else "N/A" }}M
-  * Net Debt: ${{ "{:,.1f}".format(financial_audit.balance_sheet.net_debt) if financial_audit.balance_sheet.net_debt is not none else "N/A" }}M
-  * Diluted Shares: {{ "{:,.1f}".format(financial_audit.balance_sheet.diluted_shares_outstanding) if financial_audit.balance_sheet.diluted_shares_outstanding is not none else "N/A" }}M
-- Key Return & Solvency Ratios:
-  * ROIC: {{ "{:.1f}%".format(financial_audit.profitability_and_return_ratios.roic_pct) if financial_audit.profitability_and_return_ratios.roic_pct is not none else "N/A" }}
-  * Effective Tax Rate: {{ "{:.1f}%".format(financial_audit.profitability_and_return_ratios.effective_tax_rate_pct) if financial_audit.profitability_and_return_ratios.effective_tax_rate_pct is not none else "N/A" }}
-  * Net Debt / EBITDA: {{ "{:.2f}x".format(financial_audit.solvency_and_liquidity_ratios.net_debt_to_ebitda) if financial_audit.solvency_and_liquidity_ratios.net_debt_to_ebitda is not none else "N/A" }}
-  * Current Ratio: {{ "{:.2f}x".format(financial_audit.solvency_and_liquidity_ratios.current_ratio) if financial_audit.solvency_and_liquidity_ratios.current_ratio is not none else "N/A" }}
-- Forensic Red Flags: {{ financial_audit.forensic_red_flags | join('; ') if financial_audit.forensic_red_flags else "None identified by automated audit algorithms." }}
-- Auditor Summary: {{ financial_audit.auditor_summary }}
-{% if financial_audit.income_statement_markdown_table %}
-
-Income Statement Table:
-{{ financial_audit.income_statement_markdown_table }}
-{% endif %}
-{% if financial_audit.balance_sheet_markdown_table %}
-
-Balance Sheet Table:
-{{ financial_audit.balance_sheet_markdown_table }}
-{% endif %}
-{% if financial_audit.cash_flow_markdown_table %}
-
-Cash Flow Table:
-{{ financial_audit.cash_flow_markdown_table }}
-{% endif %}
+{% include "financial_audit_context.j2" %}
 {% endif %}
 
 {% if business_moat %}
@@ -169,14 +138,27 @@ CRITICAL GENERALIZATION DIRECTIVES:
        - `### Pillar 2: Financial Durability & Earnings Quality`
        - `### Pillar 3: Valuation Asymmetry & Margin of Safety`
      * `## 3. Business Operations & Economic Moat Analysis` (with segment breakdown)
-     * `## 4. Audited Financial Statements & Ratio Performance` (embed statement tables, ROIC, debt coverage, and forensic checks)
+     * `## 4. Audited Financial Statements & Quality of Earnings` (embed VERIFIED TABLES A, B, E and F verbatim; contrast reported vs normalized earnings and discuss every high/medium forensic finding)
      * `## 5. 5-Year Financial Forecast & Cash Flow Schedule` (embed verified forecast table verbatim)
      * `## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity` (embed verified WACC breakdown and 2-way sensitivity matrix verbatim)
      * `## 7. Material Risk Factors & Existential Overhangs`
      * `## 8. Regulatory Disclaimers & Audit Breadcrumbs` (include `Synthesis Provenance: {{ synthesis_provenance or 'llm_structured' }}`)
 
    - **If the user asked specifically about financial statements / ratios** (or `query_type == "financial_audit_only"`):
-     Provide a focused financial statement audit and forensic report with the audited tables, ROIC, debt coverage, and earnings quality checks.
+     Provide a quality-of-earnings publication with these exact sections:
+     * Title: `# Financial Statement Audit & Quality of Earnings: {{ company_name }} ({{ ticker }})`
+     * Metadata Banner: `> **Filing Source**: SEC Form 10-K (FY{{ fiscal_year }}) | **Extraction**: {{ financial_audit.data_quality.extraction_mode if financial_audit else 'n/a' }} | **Forensic Findings**: {{ (financial_audit.forensic_findings | selectattr("severity", "in", ["high", "medium"]) | list | length) if financial_audit else 0 }} high/medium`
+     * `## 1. Executive Summary`: 3–5 bullets, each quantified from the VERIFIED TABLES (no unquantified adjectives).
+     * `## 2. Multi-Year Performance`: embed VERIFIED TABLE A verbatim, then interpret growth and margins.
+     * `## 3. Earnings Quality & Normalization`: embed VERIFIED TABLE B verbatim; contrast reported vs normalized earnings, non-operating income, tax distortions and accruals.
+     * `## 4. Margins, Cost Structure & Working Capital`: embed VERIFIED TABLE C verbatim.
+     * `## 5. Cash Flow, Capital Intensity & Dilution`: embed VERIFIED TABLE D verbatim; explain what drove the FCF change (use the bridge) and SBC-adjusted FCF.
+     * `## 6. Balance Sheet, Liquidity & Returns`: embed VERIFIED TABLE E verbatim.
+     * `## 7. Forensic Findings`: embed VERIFIED TABLE F verbatim, then the investment implication of each high/medium finding.
+     * `## 8. Restatement Review & Data Quality`: restatement notes, identity checks, reconciliation log.
+     * `## 9. Audited Statements`: embed the Income Statement, Balance Sheet and Cash Flow tables verbatim.
+     * Footnote: `> *Synthesis Provenance: {{ synthesis_provenance or 'llm_structured' }}*`
+     * Never output raw JSON. Never restate a number that differs from the VERIFIED TABLES.
 
    - **If the user asked specifically about business moat** (or `query_type == "business_moat_only"`):
      Provide a comprehensive, institutional Business Operations & Moat publication with these exact sections:

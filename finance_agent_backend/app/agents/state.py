@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, TypedDict
 # 1. Financial Auditor & Statement Analyst Output Schema
 # ==============================================================================
 from app.agents.specialized.financial_auditor.state_financial_auditor import (
+    AuditDataQuality,
     BalanceSheetSnapshot,
     FinancialAuditOutput,
     YearFinancials,
@@ -104,6 +105,7 @@ class EquityResearchState(TypedDict, total=False):
 __all__ = [
     # Auditor
     "FinancialAuditOutput",
+    "AuditDataQuality",
     "YearFinancials",
     "BalanceSheetSnapshot",
     # Valuation

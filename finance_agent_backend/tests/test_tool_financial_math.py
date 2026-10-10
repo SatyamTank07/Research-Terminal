@@ -15,11 +15,14 @@ import unittest
 from app.agents.tools.financial_math_tools import (
     AnnualFinancialInput,
     BalanceSheetInput,
-    FinancialAuditResult,
+    InputCorrection,
+    NormalizationAdjustment,
+    PriorBalanceSheetInput,
+    apply_input_corrections,
     calculate_financial_ratios,
-    detect_forensic_red_flags,
     audit_financial_metrics,
     audit_financial_metrics_tool,
+    run_audit_from_inputs,
 )
 
 
@@ -76,7 +79,7 @@ class TestFinancialMathTools(unittest.TestCase):
             short_term_debt=20329.0,        # 7,979 commercial paper + 12,350 term debt
             long_term_debt=78328.0,
             stockholders_equity=73733.0,
-            diluted_shares_outstanding=15004.7,
+            weighted_diluted_shares=15004.7,
             current_assets=147957.0,
             current_liabilities=165631.0,
         )
@@ -114,7 +117,7 @@ class TestFinancialMathTools(unittest.TestCase):
         self.assertAlmostEqual(solv["current_ratio"], 0.89, places=2)
 
         # 4. Forensic Red-Flag Screening (Tier 1 real-world trigger)
-        flags = result["forensic_red_flags"]
+        flags = [f["message"] for f in result["forensic_findings"]]
         self.assertTrue(any("EARNINGS QUALITY DIVERGENCE (FY2025)" in f for f in flags))
         self.assertTrue(any("Net income increased by +19.50%" in f for f in flags))
 
@@ -160,7 +163,7 @@ class TestFinancialMathTools(unittest.TestCase):
             short_term_debt=1640.0,
             long_term_debt=6060.0,
             stockholders_equity=78540.0,
-            diluted_shares_outstanding=3529.0,
+            weighted_diluted_shares=3529.0,
             current_assets=68642.0,
             current_liabilities=31714.0,
         )
@@ -233,7 +236,7 @@ class TestFinancialMathTools(unittest.TestCase):
             short_term_debt=999.0,
             long_term_debt=7469.0,
             stockholders_equity=157293.0,
-            diluted_shares_outstanding=24514.0,
+            weighted_diluted_shares=24514.0,
         )
 
         result = audit_financial_metrics(annual_financials, balance_sheet)
@@ -256,7 +259,7 @@ class TestFinancialMathTools(unittest.TestCase):
         self.assertTrue(bs["net_cash_position"])
 
         # Tier 3 Inventory Red Flag triggered (Inventory grew +112.3% vs Revenue +65.5%)
-        flags = result["forensic_red_flags"]
+        flags = [f["message"] for f in result["forensic_findings"]]
         self.assertTrue(any("INVENTORY ACCUMULATION WARNING (FY2026)" in f for f in flags))
         self.assertTrue(any("substantially exceeding revenue growth" in f for f in flags))
 
@@ -277,7 +280,7 @@ class TestFinancialMathTools(unittest.TestCase):
             fiscal_year=2025,
             cash_and_equivalents=20.0,
             stockholders_equity=50.0,
-            diluted_shares_outstanding=10.0,
+            weighted_diluted_shares=10.0,
         )
 
         # Case A: Pre-tax loss (pretax_income <= 0)
@@ -339,7 +342,7 @@ class TestFinancialMathTools(unittest.TestCase):
                 fiscal_year=2025,
                 cash_and_equivalents=30.0,
                 stockholders_equity=50.0,
-                diluted_shares_outstanding=15004697.0,  # In thousands instead of millions
+                weighted_diluted_shares=15004697.0,  # In thousands instead of millions
             )
         self.assertIn("appears to be passed in thousands or raw units", str(ctx.exception))
         self.assertIn("standardized to MILLIONS", str(ctx.exception))
@@ -350,7 +353,7 @@ class TestFinancialMathTools(unittest.TestCase):
                 fiscal_year=2025,
                 cash_and_equivalents=30.0,
                 stockholders_equity=50.0,
-                diluted_shares_outstanding=-5.0,
+                weighted_diluted_shares=-5.0,
             )
         self.assertIn("must be strictly positive", str(ctx_neg.exception))
 
@@ -429,11 +432,11 @@ class TestFinancialMathTools(unittest.TestCase):
             fiscal_year=2025,
             cash_and_equivalents=50.0,
             stockholders_equity=200.0,
-            diluted_shares_outstanding=50.0,
+            weighted_diluted_shares=50.0,
         )
 
         result = audit_financial_metrics(annual_financials, balance_sheet)
-        flags = result["forensic_red_flags"]
+        flags = [f["message"] for f in result["forensic_findings"]]
 
         self.assertTrue(
             any("WEAK CASH CONVERSION WARNING" in f for f in flags),
@@ -463,13 +466,13 @@ class TestFinancialMathTools(unittest.TestCase):
             short_term_debt=50.0,
             long_term_debt=200.0,         # Total debt = 250.0
             stockholders_equity=-100.0,    # Negative equity (-$100M)
-            diluted_shares_outstanding=50.0,
+            weighted_diluted_shares=50.0,
         )
 
         result = audit_financial_metrics(annual_financials, balance_sheet)
         prof = result["profitability_and_return_ratios"]
         solv = result["solvency_and_liquidity_ratios"]
-        flags = result["forensic_red_flags"]
+        flags = [f["message"] for f in result["forensic_findings"]]
 
         # Ratios must be suppressed to None
         self.assertIsNone(prof["roic_pct"])
@@ -512,7 +515,7 @@ class TestFinancialMathTools(unittest.TestCase):
             fiscal_year=2025,
             cash_and_equivalents=20.0,
             stockholders_equity=50.0,
-            diluted_shares_outstanding=10.0,
+            weighted_diluted_shares=10.0,
         )
 
         with self.assertRaises(ValueError) as ctx_gap:
@@ -535,7 +538,7 @@ class TestFinancialMathTools(unittest.TestCase):
             fiscal_year=2025,  # Mismatched year
             cash_and_equivalents=20.0,
             stockholders_equity=50.0,
-            diluted_shares_outstanding=10.0,
+            weighted_diluted_shares=10.0,
         )
 
         with self.assertRaises(ValueError) as ctx_mismatch:
@@ -577,7 +580,7 @@ class TestFinancialMathTools(unittest.TestCase):
             fiscal_year=2025,
             cash_and_equivalents=20.0,
             stockholders_equity=50.0,
-            diluted_shares_outstanding=10.0,
+            weighted_diluted_shares=10.0,
             current_assets=50.0,
             current_liabilities=0.0,  # Zero liabilities
         )
@@ -598,7 +601,7 @@ class TestFinancialMathTools(unittest.TestCase):
                 fiscal_year=2025,
                 cash_and_equivalents=20.0,
                 stockholders_equity=50.0,
-                diluted_shares_outstanding=10.0,
+                weighted_diluted_shares=10.0,
                 current_liabilities=-50.0,
             )
 
@@ -608,7 +611,7 @@ class TestFinancialMathTools(unittest.TestCase):
                 fiscal_year=2025,
                 cash_and_equivalents=-10.0,
                 stockholders_equity=50.0,
-                diluted_shares_outstanding=10.0,
+                weighted_diluted_shares=10.0,
             )
 
         # Negative short_term_debt rejected
@@ -618,7 +621,7 @@ class TestFinancialMathTools(unittest.TestCase):
                 cash_and_equivalents=20.0,
                 short_term_debt=-5.0,
                 stockholders_equity=50.0,
-                diluted_shares_outstanding=10.0,
+                weighted_diluted_shares=10.0,
             )
 
         # But stockholders_equity CAN be legitimately negative
@@ -626,7 +629,7 @@ class TestFinancialMathTools(unittest.TestCase):
             fiscal_year=2025,
             cash_and_equivalents=20.0,
             stockholders_equity=-50.0,
-            diluted_shares_outstanding=10.0,
+            weighted_diluted_shares=10.0,
         )
         self.assertEqual(valid_neg_equity_bs.stockholders_equity, -50.0)
 
@@ -673,7 +676,7 @@ class TestFinancialMathTools(unittest.TestCase):
                 "short_term_debt": None,
                 "long_term_debt": None,
                 "stockholders_equity": 1200.0,
-                "diluted_shares_outstanding": 100.0,
+                "weighted_diluted_shares": 100.0,
             },
         }
 
@@ -700,6 +703,198 @@ class TestFinancialMathTools(unittest.TestCase):
         self.assertEqual(result["balance_sheet"]["total_liquid_cash"], 500.0)
         self.assertEqual(result["balance_sheet"]["net_debt"], -500.0)
         self.assertTrue(result["balance_sheet"]["net_cash_position"])
+
+
+def _tsla_fy2025_inputs():
+    """Complete TSLA FY2023-FY2025 inputs as reported in the FY2025 10-K ($M, shares in M)."""
+    return {
+        "annual_financials": [
+            {"fiscal_year": 2023, "revenue": 96773.0, "gross_profit": 17660.0, "cost_of_revenue": 79113.0,
+             "operating_expenses": 8769.0, "operating_income": 8891.0, "pretax_income": 9973.0,
+             "income_tax_expense": -5001.0, "net_income": 14997.0, "net_income_total": 14974.0,
+             "operating_cash_flow": 13256.0, "capital_expenditures": 8899.0, "depreciation_amortization": 4667.0,
+             "stock_based_compensation": 1812.0, "deferred_income_taxes": -6349.0, "diluted_weighted_shares": 3485.0},
+            {"fiscal_year": 2024, "revenue": 97690.0, "gross_profit": 17450.0, "cost_of_revenue": 80240.0,
+             "operating_expenses": 10374.0, "operating_income": 7076.0, "pretax_income": 8990.0,
+             "income_tax_expense": 1837.0, "net_income": 7091.0, "net_income_total": 7153.0,
+             "operating_cash_flow": 14923.0, "capital_expenditures": 11342.0, "depreciation_amortization": 5368.0,
+             "stock_based_compensation": 1999.0, "deferred_income_taxes": 477.0, "diluted_weighted_shares": 3498.0,
+             "accounts_receivable": 4418.0, "inventories": 12017.0, "accounts_payable": 12474.0,
+             "total_assets": 122070.0, "period_end_shares_outstanding": 3216.0},
+            {"fiscal_year": 2025, "revenue": 94827.0, "gross_profit": 17094.0, "cost_of_revenue": 77733.0,
+             "operating_expenses": 12739.0, "operating_income": 4355.0, "pretax_income": 5278.0,
+             "income_tax_expense": 1423.0, "net_income": 3794.0, "net_income_total": 3855.0,
+             "operating_cash_flow": 14747.0, "capital_expenditures": 8527.0, "depreciation_amortization": 6148.0,
+             "stock_based_compensation": 2825.0, "deferred_income_taxes": 123.0, "diluted_weighted_shares": 3528.0,
+             "accounts_receivable": 4576.0, "inventories": 12392.0, "accounts_payable": 13371.0,
+             "total_assets": 137806.0, "period_end_shares_outstanding": 3751.0},
+        ],
+        "balance_sheet": {
+            "fiscal_year": 2025, "cash_and_equivalents": 16513.0, "marketable_securities": 27546.0,
+            "short_term_debt": 1640.0, "long_term_debt": 6736.0, "stockholders_equity": 82137.0,
+            "noncontrolling_interests": 728.0, "weighted_diluted_shares": 3528.0,
+            "period_end_shares_outstanding": 3751.0, "current_assets": 68642.0, "current_liabilities": 31714.0,
+            "total_assets": 137806.0,
+        },
+        "prior_balance_sheet": {
+            "fiscal_year": 2024, "cash_and_equivalents": 16139.0, "marketable_securities": 20424.0,
+            "short_term_debt": 2456.0, "long_term_debt": 5757.0, "stockholders_equity": 72913.0,
+            "total_assets": 122070.0,
+        },
+    }
+
+
+class TestInstitutionalQualityOfEarnings(unittest.TestCase):
+    """Quality-of-earnings analytics and forensic findings on complete TSLA FY2025 inputs."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.audit = run_audit_from_inputs(_tsla_fy2025_inputs())
+        cls.codes = {(f["code"], f["fiscal_year"]) for f in cls.audit["forensic_findings"]}
+
+    def test_01_expected_findings_fire(self):
+        for expected in [
+            ("NON_CORE_INCOME_DEPENDENCE", 2025),
+            ("NON_CORE_INCOME_DEPENDENCE", 2024),
+            ("TAX_ANOMALY", 2023),
+            ("CAPEX_DRIVEN_FCF", 2025),
+            ("SBC_INTENSITY", 2025),
+            ("SHARE_DILUTION", 2025),
+            ("NEGATIVE_OPERATING_LEVERAGE", 2025),
+            ("NEGATIVE_OPERATING_LEVERAGE", 2024),
+            ("MARGIN_COMPRESSION", 2025),
+        ]:
+            self.assertIn(expected, self.codes)
+
+    def test_02_no_false_positives(self):
+        codes = {c for c, _ in self.codes}
+        for absent in ["EARNINGS_QUALITY_DIVERGENCE", "WEAK_CASH_CONVERSION", "CHRONIC_ACCRUAL_DEFICIT",
+                       "HIGH_ACCRUALS", "WORKING_CAPITAL_DETERIORATION", "UNDERINVESTMENT"]:
+            self.assertNotIn(absent, codes)
+        self.assertNotIn(("TAX_ANOMALY", 2025), self.codes)
+
+    def test_03_severity_ordering_and_tax_benefit_is_high(self):
+        ranks = {"high": 0, "medium": 1, "low": 2, "info": 3}
+        severities = [ranks[f["severity"]] for f in self.audit["forensic_findings"]]
+        self.assertEqual(severities, sorted(severities))
+        tax = next(f for f in self.audit["forensic_findings"] if f["code"] == "TAX_ANOMALY")
+        self.assertEqual(tax["severity"], "high")
+        dilution = next(f for f in self.audit["forensic_findings"]
+                        if f["code"] == "SHARE_DILUTION" and f["metric"] == "period_end_share_growth_pct")
+        self.assertAlmostEqual(dilution["value"], 16.64, places=2)
+
+    def test_04_capital_intensity_bridge(self):
+        fy25 = self.audit["capital_intensity"][-1]
+        self.assertEqual(fy25["fcf_change"], 2639.0)
+        self.assertEqual(fy25["ocf_change"], -176.0)
+        self.assertEqual(fy25["capex_change"], -2815.0)
+        self.assertAlmostEqual(fy25["fcf_change_from_capex_pct"], 106.67, places=2)
+        self.assertAlmostEqual(fy25["capex_to_depreciation"], 1.39, places=2)
+
+    def test_05_earnings_quality_metrics(self):
+        fy25 = self.audit["earnings_quality"][-1]
+        self.assertEqual(fy25["non_operating_income"], 923.0)
+        self.assertAlmostEqual(fy25["non_operating_to_operating_income_pct"], 21.19, places=2)
+        self.assertAlmostEqual(fy25["sbc_to_ocf_pct"], 19.16, places=2)
+        self.assertEqual(fy25["sbc_adjusted_fcf"], 3395.0)
+        self.assertEqual(fy25["accruals"], -10892.0)  # consolidated NI 3,855 - OCF 14,747
+        self.assertAlmostEqual(fy25["sloan_accruals_ratio_pct"], -8.38, places=2)
+        fy23 = self.audit["earnings_quality"][0]
+        self.assertAlmostEqual(fy23["deferred_tax_to_net_income_pct"], -42.34, places=2)
+
+    def test_06_working_capital_and_cost_structure(self):
+        wc = self.audit["working_capital"][-1]
+        self.assertAlmostEqual(wc["dso_days"], 17.6, places=1)
+        self.assertAlmostEqual(wc["dio_days"], 58.2, places=1)
+        self.assertAlmostEqual(wc["dpo_days"], 62.8, places=1)
+        cs = self.audit["cost_structure"][-1]
+        self.assertAlmostEqual(cs["operating_expense_growth_pct"], 22.80, places=2)
+        self.assertEqual(cs["operating_margin_change_bps"], -265.0)
+        shares = self.audit["share_count_history"][-1]
+        self.assertAlmostEqual(shares["period_end_share_growth_pct"], 16.64, places=2)
+
+    def test_07_normalization_adjustments(self):
+        audit = run_audit_from_inputs(_tsla_fy2025_inputs(), [
+            NormalizationAdjustment(fiscal_year=2025, label="Automotive regulatory credits", amount=1993.0,
+                                    direction="inflated_reported_earnings", affects="operating_income",
+                                    rationale="Non-core credit sales"),
+            NormalizationAdjustment(fiscal_year=2025, label="Restructuring and other", amount=494.0,
+                                    direction="depressed_reported_earnings", affects="operating_income"),
+        ])
+        fy25 = audit["earnings_quality"][-1]
+        self.assertEqual(fy25["operating_income_adjustments_total"], 1499.0)
+        self.assertEqual(fy25["normalized_operating_income"], 2856.0)  # 4,355 - 1,993 + 494
+        self.assertAlmostEqual(fy25["normalized_net_income"], 3794.0 - 1499.0 * (1 - 1423.0 / 5278.0), places=1)
+        self.assertAlmostEqual(fy25["adjustments_pct_of_operating_income"], 57.11, places=2)
+        materiality = [f for f in audit["forensic_findings"]
+                       if f["metric"] == "normalization_adjustments_pct_of_operating_income"]
+        self.assertEqual(len(materiality), 1)
+        self.assertEqual(materiality[0]["severity"], "high")
+        # Reported history is untouched by normalization.
+        self.assertEqual(audit["multi_year_history"][-1]["operating_income"], 4355.0)
+
+        with self.assertRaises(ValueError):  # magnitudes must be positive; direction carries the sign
+            NormalizationAdjustment(fiscal_year=2025, label="Restructuring", amount=-494.0,
+                                    direction="depressed_reported_earnings")
+
+    def test_07b_restructuring_charge_raises_normalized_earnings(self):
+        audit = run_audit_from_inputs(_tsla_fy2025_inputs(), [
+            {"fiscal_year": 2025, "label": "Restructuring and other", "amount": 494.0,
+             "direction": "depressed_reported_earnings"},
+            {"fiscal_year": 2023, "label": "Valuation allowance release", "amount": 5927.0,
+             "direction": "inflated_reported_earnings", "affects": "net_income"},
+        ])
+        self.assertEqual(audit["earnings_quality"][-1]["normalized_operating_income"], 4849.0)
+        fy23 = audit["earnings_quality"][0]
+        self.assertEqual(fy23["normalized_operating_income"], 8891.0)
+        self.assertEqual(fy23["normalized_net_income"], 14997.0 - 5927.0)
+
+    def test_07c_disallowed_adjustments_are_rejected_not_applied(self):
+        audit = run_audit_from_inputs(_tsla_fy2025_inputs(), [
+            {"fiscal_year": 2025, "label": "Non-operating income", "amount": 923.0,
+             "direction": "inflated_reported_earnings", "affects": "net_income"},
+            {"fiscal_year": 2025, "label": "Gain on investments", "amount": 923.0,
+             "direction": "inflated_reported_earnings"},  # equals the aggregate subtotal
+            {"fiscal_year": 2025, "label": "Research and development", "amount": 6411.0,
+             "direction": "depressed_reported_earnings"},
+            {"fiscal_year": 2019, "label": "Out of window", "amount": 1.0,
+             "direction": "inflated_reported_earnings"},
+            {"fiscal_year": 2025, "label": "Restructuring and other", "amount": 494.0,
+             "direction": "depressed_reported_earnings"},
+        ])
+        rejected = audit["rejected_normalization_adjustments"]
+        self.assertEqual(len(rejected), 4)
+        self.assertTrue(all(r["rejection"] for r in rejected))
+        fy25 = audit["earnings_quality"][-1]
+        self.assertEqual([a["label"] for a in fy25["adjustments"]], ["Restructuring and other"])
+        self.assertEqual(fy25["normalized_operating_income"], 4849.0)
+
+    def test_08_share_count_and_prior_balance_sheet_guards(self):
+        with self.assertRaises(ValueError):
+            BalanceSheetInput(fiscal_year=2025, cash_and_equivalents=1.0, stockholders_equity=1.0)
+        inputs = _tsla_fy2025_inputs()
+        inputs["prior_balance_sheet"]["fiscal_year"] = 2023
+        with self.assertRaises(ValueError):
+            run_audit_from_inputs(inputs)
+        inputs = _tsla_fy2025_inputs()
+        inputs["prior_balance_sheet"] = None
+        ending = run_audit_from_inputs(inputs)
+        self.assertEqual(ending["profitability_and_return_ratios"]["capital_basis"], "ending")
+
+    def test_09_apply_input_corrections(self):
+        inputs = _tsla_fy2025_inputs()
+        inputs["balance_sheet"]["marketable_securities"] = 0.0
+        out = apply_input_corrections(inputs, [
+            InputCorrection(target="balance_sheet", fiscal_year=2025, field="marketable_securities",
+                            value=27546.0, reason="Short-term investments row", source_chunk_id="bs"),
+            InputCorrection(target="balance_sheet", fiscal_year=2025, field="not_a_field", value=1.0, reason="x"),
+            InputCorrection(target="annual", fiscal_year=2019, field="revenue", value=1.0, reason="x"),
+        ])
+        self.assertEqual(out["inputs"]["balance_sheet"]["marketable_securities"], 27546.0)
+        self.assertEqual(inputs["balance_sheet"]["marketable_securities"], 0.0)  # original untouched
+        self.assertEqual(len(out["applied"]), 1)
+        self.assertEqual(out["applied"][0]["previous_value"], 0.0)
+        self.assertEqual(len(out["rejected"]), 2)
 
 
 if __name__ == "__main__":

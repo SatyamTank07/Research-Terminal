@@ -167,7 +167,7 @@ def _create_synthetic_aapl_audit() -> FinancialAuditOutput:
         short_term_debt=10912.0,
         long_term_debt=87745.0,
         stockholders_equity=53736.0,
-        diluted_shares_outstanding=15004.7,
+        weighted_diluted_shares=15004.7,
         current_assets=154388.0,
         current_liabilities=145308.0,
     )
@@ -175,6 +175,7 @@ def _create_synthetic_aapl_audit() -> FinancialAuditOutput:
     math_res["ticker"] = "AAPL"
     math_res["fiscal_year"] = 2025
     math_res["auditor_summary"] = "Audited financial statements for Apple Inc. FY2025."
+    math_res["data_quality"] = {"extraction_mode": "deterministic"}
     return FinancialAuditOutput.model_validate(math_res)
 
 
@@ -322,12 +323,13 @@ class TestValuationSpecialistAgent(unittest.TestCase):
             short_term_debt=2000.0,
             long_term_debt=18000.0,
             stockholders_equity=10000.0,
-            diluted_shares_outstanding=500.0,
+            weighted_diluted_shares=500.0,
         )
         math_res = audit_financial_metrics(annual_financials, balance_sheet_in)
         math_res["ticker"] = "IND"
         math_res["fiscal_year"] = 2025
         math_res["auditor_summary"] = "Audited financials for IND."
+        math_res["data_quality"] = {"extraction_mode": "deterministic"}
         indebted_audit = FinancialAuditOutput.model_validate(math_res)
 
         projected_fcfs = [3200.0, 3400.0, 3600.0, 3800.0, 4000.0]
@@ -353,9 +355,10 @@ class TestValuationSpecialistAgent(unittest.TestCase):
         self.assertIsNone(result.implied_ev_ebitda)
         self.assertIsNone(result.ev_ebitda_source)
 
+    @patch.object(FinancialAuditorAgent, "_prefetch_statement_tables", return_value={})
     @patch.object(FinancialAuditorAgent, "_get_or_create_agent")
     @patch.object(ValuationSpecialistAgent, "_get_or_create_agent")
-    def test_04_end_to_end_2agent_chain_aapl(self, mock_val_agent, mock_audit_agent):
+    def test_04_end_to_end_2agent_chain_aapl(self, mock_val_agent, mock_audit_agent, _prefetch):
         """Verify end-to-end 2-agent chain: FinancialAuditor -> ValuationSpecialist on AAPL FY25."""
         synthetic_audit = _create_synthetic_aapl_audit()
         active_audit_agent = MagicMock()
@@ -409,7 +412,7 @@ class TestValuationSpecialistAgent(unittest.TestCase):
         self.assertEqual(val_res.ticker, "AAPL")
         self.assertEqual(val_res.fiscal_year, 2025)
         self.assertEqual(val_res.net_debt, audit_res.balance_sheet.net_debt)
-        self.assertEqual(val_res.diluted_shares, audit_res.balance_sheet.diluted_shares_outstanding)
+        self.assertEqual(val_res.diluted_shares, audit_res.balance_sheet.valuation_shares_outstanding)
 
         # Verify mathematical fidelity
         self.assertAlmostEqual(val_res.equity_value, val_res.enterprise_value - val_res.net_debt, places=1)

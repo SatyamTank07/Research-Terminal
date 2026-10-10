@@ -1,0 +1,79 @@
+{% macro n(v, f="{:,.1f}") %}{{ f.format(v) if v is not none else "N/A" }}{% endmacro %}
+{% macro row(label, items, attr, f="{:,.1f}") %}| {{ label }} |{% for it in items %} {{ n(it[attr], f) }} |{% endfor %}{{ "\n" }}{% endmacro %}
+{% macro header(items) %}| Metric |{% for it in items %} FY{{ it.fiscal_year }} |{% endfor %}{{ "\n" }}| :--- |{% for it in items %} ---: |{% endfor %}{{ "\n" }}{% endmacro %}
+{% set fa = financial_audit %}
+{% set bs = fa.balance_sheet %}
+{% set pr = fa.profitability_and_return_ratios %}
+{% set sv = fa.solvency_and_liquidity_ratios %}
+{% set dq = fa.data_quality %}
+[FINANCIAL AUDITOR & STATEMENT FINDINGS]
+- Extraction Mode: {{ dq.extraction_mode }} | Completeness: {{ n(dq.completeness_score * 100 if dq.completeness_score is not none else none, "{:.0f}%") }}{% if dq.summary_may_be_stale %} | NOTE: inputs were corrected after the auditor narrative was written; prefer the tables below over the narrative{% endif %}
+
+
+VERIFIED TABLE A — Multi-Year Performance ($M):
+{{ header(fa.multi_year_history) }}{{ row("Revenue", fa.multi_year_history, "revenue") }}{{ row("Revenue growth %", fa.multi_year_history, "revenue_growth_pct", "{:+.1f}%") }}{{ row("Gross margin %", fa.multi_year_history, "gross_margin_pct", "{:.2f}%") }}{{ row("Operating income", fa.multi_year_history, "operating_income") }}{{ row("Operating margin %", fa.multi_year_history, "operating_margin_pct", "{:.2f}%") }}{{ row("Net income (attrib.)", fa.multi_year_history, "net_income") }}{{ row("Net margin %", fa.multi_year_history, "net_margin_pct", "{:.2f}%") }}{{ row("Operating cash flow", fa.multi_year_history, "operating_cash_flow") }}{{ row("Capex", fa.multi_year_history, "capital_expenditures") }}{{ row("Free cash flow", fa.multi_year_history, "free_cash_flow") }}{{ row("FCF conversion %", fa.multi_year_history, "fcf_conversion_pct", "{:.1f}%") }}{{ row("Stock-based comp.", fa.earnings_quality, "stock_based_compensation") }}{{ row("SBC-adjusted FCF", fa.earnings_quality, "sbc_adjusted_fcf") }}
+
+VERIFIED TABLE B — Earnings Quality & Normalization ($M):
+{{ header(fa.earnings_quality) }}{{ row("Normalized operating income", fa.earnings_quality, "normalized_operating_income") }}{{ row("Normalized operating margin %", fa.earnings_quality, "normalized_operating_margin_pct", "{:.2f}%") }}{{ row("Normalized net income", fa.earnings_quality, "normalized_net_income") }}{{ row("Adjustments % of EBIT", fa.earnings_quality, "adjustments_pct_of_operating_income", "{:.1f}%") }}{{ row("Non-operating income", fa.earnings_quality, "non_operating_income") }}{{ row("Non-operating % of EBIT", fa.earnings_quality, "non_operating_to_operating_income_pct", "{:.1f}%") }}{{ row("Effective tax rate %", fa.earnings_quality, "effective_tax_rate_pct", "{:.1f}%") }}{{ row("Deferred tax % of NI", fa.earnings_quality, "deferred_tax_to_net_income_pct", "{:.1f}%") }}{{ row("Accruals (NI - OCF)", fa.earnings_quality, "accruals") }}{{ row("Sloan accruals ratio %", fa.earnings_quality, "sloan_accruals_ratio_pct", "{:.1f}%") }}
+{% for y in fa.earnings_quality %}
+{% for adj in y.adjustments %}
+- Normalization FY{{ adj.fiscal_year }}: {{ adj.label }} ({{ n(adj.amount) }}M, {{ adj.direction }}, affects {{ adj.affects }}) — {{ adj.rationale or "" }}
+{% endfor %}
+{% endfor %}
+
+VERIFIED TABLE C — Margins, Cost Structure & Working Capital:
+{{ header(fa.cost_structure) }}{{ row("Gross margin change (bps)", fa.cost_structure, "gross_margin_change_bps", "{:+,.0f}") }}{{ row("Operating margin change (bps)", fa.cost_structure, "operating_margin_change_bps", "{:+,.0f}") }}{{ row("Operating expenses ($M)", fa.cost_structure, "operating_expenses") }}{{ row("Opex growth %", fa.cost_structure, "operating_expense_growth_pct", "{:+.1f}%") }}{{ row("Opex growth - revenue growth (pp)", fa.cost_structure, "opex_growth_minus_revenue_growth_pp", "{:+.1f}") }}{{ row("DSO (days)", fa.working_capital, "dso_days") }}{{ row("DIO (days)", fa.working_capital, "dio_days") }}{{ row("DPO (days)", fa.working_capital, "dpo_days") }}{{ row("Cash conversion cycle (days)", fa.working_capital, "cash_conversion_cycle_days") }}
+
+VERIFIED TABLE D — Capital Intensity & FCF Bridge ($M):
+{{ header(fa.capital_intensity) }}{{ row("Capex % of revenue", fa.capital_intensity, "capex_to_revenue_pct", "{:.1f}%") }}{{ row("Capex / D&A (x)", fa.capital_intensity, "capex_to_depreciation", "{:.2f}x") }}{{ row("Change in OCF", fa.capital_intensity, "ocf_change", "{:+,.1f}") }}{{ row("Change in capex", fa.capital_intensity, "capex_change", "{:+,.1f}") }}{{ row("Change in FCF", fa.capital_intensity, "fcf_change", "{:+,.1f}") }}{{ row("FCF change explained by capex %", fa.capital_intensity, "fcf_change_from_capex_pct", "{:.1f}%") }}{{ row("Diluted weighted shares (M)", fa.share_count_history, "diluted_weighted_shares") }}{{ row("Period-end shares (M)", fa.share_count_history, "period_end_shares_outstanding") }}{{ row("Period-end share growth %", fa.share_count_history, "period_end_share_growth_pct", "{:+.2f}%") }}
+
+VERIFIED TABLE E — Balance Sheet, Liquidity & Returns (FY{{ bs.fiscal_year }}):
+| Metric | Value |
+| :--- | ---: |
+| Cash & equivalents | ${{ n(bs.cash_and_equivalents) }}M |
+| Marketable securities | ${{ n(bs.marketable_securities) }}M |
+| Total liquid cash | ${{ n(bs.total_liquid_cash) }}M |
+| Total debt | ${{ n(bs.total_debt) }}M |
+| Net debt (negative = net cash) | ${{ n(bs.net_debt) }}M |
+| Stockholders' equity | ${{ n(bs.stockholders_equity) }}M |
+| Valuation share count | {{ n(bs.valuation_shares_outstanding) }}M ({{ bs.share_count_source }}) |
+| Current ratio | {{ n(sv.current_ratio, "{:.2f}x") }} |
+| EBITDA | ${{ n(sv.ebitda) }}M |
+| Net debt / EBITDA | {{ n(sv.net_debt_to_ebitda, "{:.2f}x") }} |
+| Debt / equity | {{ n(sv.total_debt_to_equity, "{:.2f}x") }} |
+| Effective tax rate | {{ n(pr.effective_tax_rate_pct, "{:.1f}%") }} ({{ pr.tax_rate_source }}) |
+| ROIC ({{ pr.capital_basis }} capital, net of liquid cash) | {{ n(pr.roic_pct, "{:.1f}%") }} |
+| ROIC ({{ pr.capital_basis }} gross debt + equity) | {{ n(pr.roic_on_gross_capital_pct, "{:.1f}%") }} |
+| ROE ({{ pr.capital_basis }} equity) | {{ n(pr.roe_pct, "{:.1f}%") }} |
+
+VERIFIED TABLE F — Forensic Findings (severity-ranked):
+{% if fa.forensic_findings %}
+| Severity | Code | FY | Finding |
+| :--- | :--- | :---: | :--- |
+{% for f in fa.forensic_findings %}
+| {{ f.severity | upper }} | {{ f.code }} | {{ f.fiscal_year or "—" }} | {{ f.message }} |
+{% endfor %}
+{% else %}
+No forensic findings triggered by the deterministic screens.
+{% endif %}
+
+- Restatement Review: {{ fa.restatement_notes | join(' ') if fa.restatement_notes else "Not performed." }}
+- Data Quality: {{ dq.identity_checks | selectattr("status", "equalto", "passed") | list | length }}/{{ dq.identity_checks | length }} accounting identity checks passed{% if dq.missing_fields %}; missing: {{ dq.missing_fields | join(', ') }}{% endif %}{% if dq.reconciliation_log %}; reconciliation: {{ dq.reconciliation_log | join(' ') }}{% endif %}
+
+- Auditor Summary:
+{{ fa.auditor_summary }}
+{% if fa.income_statement_markdown_table %}
+
+Income Statement Table:
+{{ fa.income_statement_markdown_table }}
+{% endif %}
+{% if fa.balance_sheet_markdown_table %}
+
+Balance Sheet Table:
+{{ fa.balance_sheet_markdown_table }}
+{% endif %}
+{% if fa.cash_flow_markdown_table %}
+
+Cash Flow Table:
+{{ fa.cash_flow_markdown_table }}
+{% endif %}

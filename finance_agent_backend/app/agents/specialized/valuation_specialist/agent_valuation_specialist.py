@@ -59,7 +59,7 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
         # Extract audited figures from FinancialAuditOutput
         total_debt = financial_audit.balance_sheet.total_debt
         net_debt = financial_audit.balance_sheet.net_debt
-        diluted_shares = financial_audit.balance_sheet.diluted_shares_outstanding
+        diluted_shares = financial_audit.balance_sheet.valuation_shares_outstanding
 
         # Resolve effective tax rate as decimal (e.g. 0.1561)
         ratios = financial_audit.profitability_and_return_ratios

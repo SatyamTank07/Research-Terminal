@@ -144,7 +144,7 @@ class TestMilestone6FullPipeline(unittest.TestCase):
             short_term_debt=10912.0,
             long_term_debt=87745.0,
             stockholders_equity=53736.0,
-            diluted_shares_outstanding=15004.7,
+            weighted_diluted_shares=15004.7,
             current_assets=154388.0,
             current_liabilities=145308.0,
         )
@@ -152,6 +152,7 @@ class TestMilestone6FullPipeline(unittest.TestCase):
         math_res["ticker"] = ticker.upper()
         math_res["fiscal_year"] = fiscal_year
         math_res["auditor_summary"] = f"Audited financial statements for {ticker.upper()} FY{fiscal_year}."
+        math_res["data_quality"] = {"extraction_mode": "deterministic"}
         math_res["citations"] = [{"chunk_id": f"chunk-{ticker.lower()}-item8-01", "item": "Item 8"}]
         return FinancialAuditOutput.model_validate(math_res)
 
@@ -228,7 +229,7 @@ class TestMilestone6FullPipeline(unittest.TestCase):
         wacc_res = calculate_wacc(
             beta=beta,
             total_debt=financial_audit.balance_sheet.total_debt,
-            market_cap=share_price * financial_audit.balance_sheet.diluted_shares_outstanding,
+            market_cap=share_price * financial_audit.balance_sheet.valuation_shares_outstanding,
             risk_free_rate=0.042,
             equity_risk_premium=0.050,
             tax_rate=0.156,
@@ -238,7 +239,7 @@ class TestMilestone6FullPipeline(unittest.TestCase):
             wacc=wacc_res["wacc"],
             terminal_growth_rate=terminal_growth,
             net_debt=financial_audit.balance_sheet.net_debt,
-            diluted_shares=financial_audit.balance_sheet.diluted_shares_outstanding,
+            diluted_shares=financial_audit.balance_sheet.valuation_shares_outstanding,
             mid_year_convention=True,
         )
         upside = round(((dcf_res["fair_value_per_share"] - share_price) / share_price) * 100.0, 2)

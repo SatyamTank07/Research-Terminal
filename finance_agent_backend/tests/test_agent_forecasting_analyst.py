@@ -83,7 +83,7 @@ def _create_synthetic_aapl_audit(include_depreciation: bool = True) -> Financial
         short_term_debt=10912.0,
         long_term_debt=87745.0,
         stockholders_equity=53736.0,
-        diluted_shares_outstanding=15004.7,
+        weighted_diluted_shares=15004.7,
         current_assets=154388.0,
         current_liabilities=145308.0,
     )
@@ -91,6 +91,7 @@ def _create_synthetic_aapl_audit(include_depreciation: bool = True) -> Financial
     math_res["ticker"] = "AAPL"
     math_res["fiscal_year"] = 2025
     math_res["auditor_summary"] = "Audited financial statements for Apple Inc. FY2025."
+    math_res["data_quality"] = {"extraction_mode": "deterministic"}
     return FinancialAuditOutput.model_validate(math_res)
 
 

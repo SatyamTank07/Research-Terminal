@@ -32,8 +32,11 @@ Synthesize the DCF Valuation & Intrinsic Sensitivity findings for {{ company_nam
 Construct the DCF Valuation & Sensitivity publication in 'full_markdown_report' with Executive Valuation Dashboard, WACC hurdle rate breakdown, 5-year explicit UFCF projections schedule, and the 5x5 sensitivity matrix table verbatim.
 
 {% elif query_type == "financial_audit_only" %}
-Synthesize the Financial Statement Audit & Forensic Analysis for {{ company_name or ticker }} ({{ ticker | upper }}) from its FY{{ fiscal_year }} filing.
-Construct the financial audit publication in 'full_markdown_report' embedding audited multi-year income statement, balance sheet, cash flow tables, key ratios, and forensic checks verbatim.
+Synthesize the Financial Statement Audit & Quality of Earnings publication for {{ company_name or ticker }} ({{ ticker | upper }}) from its FY{{ fiscal_year }} filing.
+1. Use the exact title `# Financial Statement Audit & Quality of Earnings: {{ company_name or ticker }} ({{ ticker | upper }})` and the 9 sections defined in the synthesis mandate.
+2. Embed VERIFIED TABLES A–F and the three audited statement tables verbatim; every narrative claim must cite a figure from them.
+3. Lead the Executive Summary with the most severe forensic findings and the reported-vs-normalized earnings gap.
+4. Populate 'pillar_2_financial_durability' with the earnings-quality and balance-sheet conclusion; never emit raw JSON in 'full_markdown_report'.
 
 {% elif query_type == "risk_factors_only" %}
 Synthesize the Material Risk Factors & Existential Overhangs for {{ company_name or ticker }} ({{ ticker | upper }}) from its FY{{ fiscal_year }} filing.

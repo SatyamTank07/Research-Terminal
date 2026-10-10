@@ -200,9 +200,7 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
         projected_fcfs = forecast.projected_fcfs
     else:
         # Fallback to historical latest FCF if forecasting was skipped
-        base_fcf = financial_audit.balance_sheet.diluted_shares_outstanding * 5.0
-        if financial_audit.multi_year_history:
-            base_fcf = financial_audit.multi_year_history[-1].free_cash_flow
+        base_fcf = financial_audit.multi_year_history[-1].free_cash_flow
         projected_fcfs = [base_fcf * (1.05 ** i) for i in range(1, 6)]
 
     # 2. Extract or default market parameters from user query
@@ -555,11 +553,16 @@ class MultiAgentOrchestrator(BaseAgent):
                         }
                     elif node_name == "financial_auditor":
                         audit: Optional[FinancialAuditOutput] = node_output.get("financial_audit")
-                        flags_cnt = len(audit.forensic_red_flags) if audit else 0
+                        findings = audit.forensic_findings if audit else []
+                        severe_cnt = sum(1 for f in findings if f.severity in ("high", "medium"))
+                        mode = audit.data_quality.extraction_mode if audit else "n/a"
                         yield {
                             "type": "status",
                             "node": "financial_auditor",
-                            "message": f"Audited financial statements & ratios ({flags_cnt} red flags evaluated)",
+                            "message": (
+                                f"Audited financial statements & ratios ({severe_cnt} high/medium forensic "
+                                f"findings, {mode} extraction)"
+                            ),
                         }
                     elif node_name == "risk_analyst":
                         risk: Optional[RiskAuditOutput] = node_output.get("risk_audit")

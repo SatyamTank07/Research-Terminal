@@ -1,13 +1,29 @@
-Audit the SEC 10-K financial statements for {{ ticker | upper }} for fiscal year {{ fiscal_year }}.
-1. Retrieve Item 8 tables (Income Statement, Balance Sheet, Cash Flows) for FY{{ fiscal_year }}.
-{% if available_years_str %}
-- Note: Filings available in database catalog: {{ available_years_str }}.
+Audit the SEC 10-K financial statements for {{ ticker | upper }}, fiscal year {{ fiscal_year }}.
+EXTRACTION MODE: {{ extraction_mode }}
+Audit window: {{ audit_years | join(', ') }}
+{% if available_years_str %}Filings in the database catalog: {{ available_years_str }}
 {% endif %}
-2. Inspect multi-year series across filings using retrieve_multiyear_financial_series_tool to audit consistency and note any restatements in restatement_notes.
-{% if contiguous_years %}
-3. Extract the {{ contiguous_years | length }} contiguous years ({{ contiguous_years | join(', ') }}) and latest balance sheet standardized to $ Millions and shares in Millions.
+{% if extraction_mode == "deterministic" %}
+The statements below were machine-parsed and the baseline audit was computed in code. Follow the deterministic-mode protocol:
+verify, normalize non-recurring / non-core items (refine_financial_audit_tool, at most once), review restatements, then write the auditor_summary.
+
+[EXTRACTION DIAGNOSTICS]
+{{ extraction_json }}
+
+[BASELINE AUDIT (authoritative numbers)]
+{{ baseline_json }}
+{% for statement, table in clean_tables.items() %}
+
+[{{ statement | upper }} — parsed table]
+{{ table }}
+{% endfor %}
 {% else %}
-3. Extract the 3 contiguous years ({{ fiscal_year - 2 }}, {{ fiscal_year - 1 }}, {{ fiscal_year }}) and latest balance sheet standardized to $ Millions and shares in Millions.
+The statements could not be machine-parsed{% if extraction_json %} completely (partial diagnostics below){% endif %}. Follow the llm_fallback protocol:
+retrieve the three primary statements, transcribe EVERY available line item for {{ audit_years | join(', ') }} plus the latest and prior balance sheets,
+call audit_financial_metrics_tool exactly once, then write the auditor_summary.
+{% if extraction_json %}
+
+[PARTIAL EXTRACTION DIAGNOSTICS]
+{{ extraction_json }}
 {% endif %}
-4. Call audit_financial_metrics_tool EXACTLY ONCE with these extracted inputs.
-5. Emit the complete FinancialAuditOutput artifact.
+{% endif %}
