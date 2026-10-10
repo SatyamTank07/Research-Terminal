@@ -39,8 +39,11 @@ Synthesize the Financial Statement Audit & Quality of Earnings publication for {
 4. Populate 'pillar_2_financial_durability' with the earnings-quality and balance-sheet conclusion; never emit raw JSON in 'full_markdown_report'.
 
 {% elif query_type == "risk_factors_only" %}
-Synthesize the Material Risk Factors & Existential Overhangs for {{ company_name or ticker }} ({{ ticker | upper }}) from its FY{{ fiscal_year }} filing.
-Construct the risk analysis publication in 'full_markdown_report' detailing cataloged Item 1A operational, financial, and regulatory vulnerabilities.
+Synthesize the Material Risk Factors & Existential Overhangs publication for {{ company_name or ticker }} ({{ ticker | upper }}) from its FY{{ fiscal_year }} filing.
+1. Use the exact title `# Material Risk Factors & Existential Overhangs: {{ company_name or ticker }} ({{ ticker | upper }})`, the metadata banner, and the 6 sections defined in the synthesis mandate.
+2. Embed the VERIFIED RISK MATRIX and the VERIFIED EVIDENCE TABLE verbatim.
+3. Lead the Risk Summary with the primary existential threat; quote filing-stated figures exactly as given and never invent mitigations, risks, or dates.
+4. Populate 'executive_summary' with the primary threat, the overall risk profile, and (only when a disclosure baseline exists) the most important year-over-year change; never emit raw JSON in 'full_markdown_report'.
 
 {% else %}
 Synthesize the complete institutional research report for {{ company_name or ticker }} ({{ ticker | upper }}) (FY{{ fiscal_year }}).

@@ -46,6 +46,12 @@ from app.agents.tools.rag_narrative_tools import (
     retrieve_10k_narrative,
     retrieve_10k_narrative_tool,
 )
+from app.agents.tools.risk_disclosure_tools import (
+    RiskDisclosureDiff,
+    build_section_context,
+    diff_risk_disclosures,
+    fetch_section_chunks,
+)
 from app.agents.tools.tavily_search import get_tavily_tool
 from app.agents.tools.catalog_tools import search_sec_catalog
 
@@ -82,6 +88,10 @@ __all__ = [
     "ForecastScheduleResult",
     "calculate_forecast_schedule",
     "calculate_forecast_schedule_tool",
+    "RiskDisclosureDiff",
+    "build_section_context",
+    "diff_risk_disclosures",
+    "fetch_section_chunks",
     "get_tavily_tool",
     "search_sec_catalog",
 ]

@@ -20,7 +20,7 @@ from app.agents.registry import AgentRegistry
 from app.agents.specialized.supervisor.state_supervisor import QueryType, RoutingPlan
 from app.database import SessionLocal
 
-from app.models import Document
+from app.models import ANNUAL_REPORT_FILING_TYPE, Document
 
 logger = logging.getLogger("finance_agent.agents.supervisor")
 
@@ -167,6 +167,7 @@ class SupervisorAgent(BaseAgent):
             if not resolved_ticker:
                 available_docs = (
                     db.query(Document.ticker, Document.fiscal_year, Document.company_name)
+                    .filter(Document.filing_type == ANNUAL_REPORT_FILING_TYPE)
                     .order_by(Document.ticker, Document.fiscal_year.desc())
                     .all()
                 )
@@ -179,7 +180,7 @@ class SupervisorAgent(BaseAgent):
             # Look up all distinct fiscal years for this ticker in descending order
             year_records = (
                 db.query(Document.fiscal_year)
-                .filter(Document.ticker == resolved_ticker)
+                .filter(Document.ticker == resolved_ticker, Document.filing_type == ANNUAL_REPORT_FILING_TYPE)
                 .distinct()
                 .order_by(Document.fiscal_year.desc())
                 .all()
@@ -192,7 +193,9 @@ class SupervisorAgent(BaseAgent):
                     f"Available tickers in database: {available_tickers}"
                 )
 
-            query = db.query(Document).filter(Document.ticker == resolved_ticker)
+            query = db.query(Document).filter(
+                Document.ticker == resolved_ticker, Document.filing_type == ANNUAL_REPORT_FILING_TYPE
+            )
             year_substituted = False
 
             if year_requested:

@@ -26,7 +26,7 @@ def search_sec_catalog(query: Optional[str] = "") -> List[Dict[str, Any]]:
         query: Company name (e.g. 'Apple', 'Tesla') or stock ticker symbol (e.g. 'AAPL', 'TSLA').
 
     Returns:
-        List of matching document metadata records with ticker, company_name, fiscal_year, and document_id.
+        List of matching document metadata records with ticker, company_name, fiscal_year, document_id, and filing_type.
     """
     clean_q = (query or "").strip()
     if not clean_q:
@@ -35,7 +35,7 @@ def search_sec_catalog(query: Optional[str] = "") -> List[Dict[str, Any]]:
     db = SessionLocal()
     try:
         results = (
-            db.query(Document.ticker, Document.company_name, Document.fiscal_year, Document.id)
+            db.query(Document.ticker, Document.company_name, Document.fiscal_year, Document.id, Document.filing_type)
             .filter(
                 (Document.ticker.ilike(f"{clean_q}%"))
                 | (Document.company_name.ilike(f"%{clean_q}%"))
@@ -50,6 +50,7 @@ def search_sec_catalog(query: Optional[str] = "") -> List[Dict[str, Any]]:
                 "company_name": r[1],
                 "fiscal_year": r[2],
                 "document_id": str(r[3]),
+                "filing_type": r[4],
             }
             for r in results
         ]

@@ -1,0 +1,28 @@
+You are a Chief Risk Officer completing a risk inventory for {{ ticker | upper }} from its fiscal year {{ fiscal_year }} SEC 10-K Item 1A.
+
+The first pass left the following filing-stated figures uncited. Each is a measure of exposure the filing itself discloses:
+{% for t in targets %}
+- [chunk:{{ t.chunk_id }}] {{ t.text }}
+{% endfor %}
+
+Risks already in the inventory (do not repeat them; if a figure belongs to one of these, propose that risk again with the same title so it can be merged):
+{% for title in existing_titles %}
+- {{ title }}
+{% endfor %}
+
+Source chunks:
+{% for c in chunks %}
+[chunk:{{ c.chunk_id }}] {{ c.content }}
+
+{% endfor %}
+Rules:
+- Propose one risk per distinct exposure above (combine figures that describe the same exposure). Skip a figure only if it is immaterial to the business.
+- `evidence`: quote the figure's sentence character-for-character from its chunk (<= 300 characters) with that chunk_id.
+- `quantified_exposure`: the figure exactly as stated (a percentage or currency amount from the quote).
+- `risk_category`: one of "Operational", "Regulatory & Legal", "Supply Chain & Concentration" (suppliers, manufacturing sites and customer concentration), "Competitive & Demand", "Macroeconomic & Geopolitical", "Technological & Cybersecurity", "Financial & Capital Structure".
+- `likelihood` / `impact`: "High" | "Medium" | "Low". "High" impact means it could remove more than ~5% of revenue, compress operating margin by more than ~300 bps, or impair terminal value.
+- `mitigating_factors` + `mitigation_evidence` only if the chunk states a mitigation verbatim; otherwise null.
+- `financial_transmission` from "Revenue", "Gross Margin", "Operating Expenses", "Capex & Working Capital", "Cost of Capital", "Terminal Value", "Balance Sheet & Liquidity"; 1-3 `monitoring_signposts`.
+
+Return only this JSON object:
+{"identified_risks": [{"risk_category": "...", "risk_title": "...", "risk_summary": "...", "likelihood": "...", "impact": "...", "financial_transmission": ["..."], "quantified_exposure": "...", "mitigating_factors": null, "mitigation_evidence": null, "evidence": [{"chunk_id": "...", "quote": "..."}], "monitoring_signposts": ["..."]}]}

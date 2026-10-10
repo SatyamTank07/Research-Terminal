@@ -48,6 +48,9 @@ from app.agents.specialized.business_strategist.state_business_strategist import
 # ==============================================================================
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
     RiskAuditOutput,
+    RiskDataQuality,
+    RiskDisclosureDiff,
+    RiskEvidence,
     RiskItem,
 )
 
@@ -120,7 +123,10 @@ __all__ = [
     "SegmentMoat",
     "BusinessMoatOutput",
     # Risk
+    "RiskEvidence",
     "RiskItem",
+    "RiskDataQuality",
+    "RiskDisclosureDiff",
     "RiskAuditOutput",
     # Supervisor
     "QueryType",

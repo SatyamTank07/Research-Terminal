@@ -118,6 +118,11 @@ class ChatMessage(Base):
         }
 
 
+# Filing type the research agents analyze. Ingestion can also store other forms (e.g. 10-Q) for the
+# same ticker/year, so every agent-facing retrieval scopes to this type explicitly.
+ANNUAL_REPORT_FILING_TYPE = "10-K"
+
+
 class Document(Base):
     __tablename__ = "documents"
 

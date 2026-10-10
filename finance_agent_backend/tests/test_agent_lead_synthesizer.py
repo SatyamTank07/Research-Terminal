@@ -26,10 +26,18 @@ from app.agents.state import (
     ForecastOutput,
     ForecastYear,
     RiskAuditOutput,
+    RiskDataQuality,
+    RiskDisclosureDiff,
+    RiskEvidence,
     RiskItem,
     SegmentDetail,
     ThreePillarThesis,
     WACCAudit,
+)
+from app.agents.tools.risk_disclosure_tools import (
+    DisclosurePassage,
+    render_risk_evidence_table,
+    render_risk_matrix_markdown,
 )
 from app.agents.tools.financial_math_tools import (
     AnnualFinancialInput,
@@ -191,19 +199,51 @@ def _create_mock_dcf() -> DCFValuationOutput:
 
 
 def _create_mock_risk() -> RiskAuditOutput:
-    """Helper creating verified RiskAuditOutput."""
+    """Helper creating a verified RiskAuditOutput (as emitted after deterministic enforcement)."""
+    evidence = RiskEvidence(
+        chunk_id="narrative-chunk-item1a-01", quote="The Company is subject to complex and changing laws and regulations worldwide",
+        item="Item 1A", breadcrumb="Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1A: Risk Factors", verified=True,
+    )
+    risks = [
+        RiskItem(risk_id="R1", risk_category="Regulatory & Legal", risk_title="Antitrust Scrutiny on App Store",
+                 risk_summary="Global regulatory enforcement targeting App Store commissions and terms.",
+                 likelihood="High", impact="High", severity="Severe", financial_transmission=["Revenue", "Gross Margin"],
+                 evidence=[evidence], disclosure_change="Expanded", monitoring_signposts=["App Store fee rulings"]),
+        RiskItem(risk_id="R2", risk_category="Supply Chain & Concentration", risk_title="Geographic Supply Chain Concentration",
+                 risk_summary="Substantially all manufacturing outsourced to partners in Asia.",
+                 likelihood="Medium", impact="High", severity="Severe", financial_transmission=["Gross Margin"],
+                 evidence=[evidence], disclosure_change="Unchanged"),
+        RiskItem(risk_id="R3", risk_category="Macroeconomic & Geopolitical", risk_title="Foreign Exchange Rate Volatility",
+                 risk_summary="Substantial international sales exposed to currency fluctuations.",
+                 likelihood="High", impact="Medium", severity="Moderate", financial_transmission=["Revenue"],
+                 evidence=[evidence], disclosure_change="Unchanged"),
+    ]
+    citations = [{"chunk_id": "narrative-chunk-item1a-01", "item": "Item 1A", "breadcrumb": evidence.breadcrumb}]
     return RiskAuditOutput(
         ticker="AAPL",
         fiscal_year=2025,
-        identified_risks=[
-            RiskItem(risk_category="Regulatory & Legal", risk_title="Antitrust Scrutiny on App Store", risk_summary="Global regulatory enforcement (e.g. EU Digital Markets Act, US DOJ antitrust lawsuit) targeting App Store commissions and terms.", severity="Severe"),
-            RiskItem(risk_category="Supply Chain & Concentration", risk_title="Geographic Supply Chain Concentration", risk_summary="Substantially all manufacturing and assembly operations outsourced to partners in Asia, primarily China and Taiwan.", severity="Severe"),
-            RiskItem(risk_category="Macroeconomic & Geopolitical", risk_title="Foreign Exchange Rate Volatility", risk_summary="Substantial international sales exposed to currency fluctuations relative to the US dollar.", severity="Moderate"),
-        ],
+        identified_risks=risks,
+        primary_threat_risk_id="R1",
         primary_existential_threat="Regulatory and antitrust intervention mandating unbundling or alternative payment systems on iOS ecosystem.",
-        overall_risk_profile="Moderate",
-        citations=[{"chunk_id": "narrative-chunk-item1a-01", "item": "Item 1A"}],
+        overall_risk_profile="High",
+        disclosure_changes=RiskDisclosureDiff(
+            prior_fiscal_year=2024, current_sentences=308, prior_sentences=313, unchanged_sentences=207,
+            modified_sentences=42, new_sentences=59, removed_sentences=59, change_ratio_pct=32.8,
+            new_passages=[DisclosurePassage(chunk_id="narrative-chunk-item1a-01", text="Beginning in the second quarter of 2025, new tariffs were announced.", similarity=0.04)],
+        ),
+        data_quality=RiskDataQuality(coverage_mode="full_section", item1a_chunks=47, chars_read=70162, prior_fiscal_year=2024),
+        risk_matrix_markdown=render_risk_matrix_markdown(risks),
+        evidence_table_markdown=render_risk_evidence_table(citations),
+        citations=citations,
     )
+
+
+def _mock_llm(payload: ResearchSynthesisPayload) -> MagicMock:
+    mock_llm = MagicMock()
+    mock_structured_llm = MagicMock()
+    mock_structured_llm.invoke.return_value = payload
+    mock_llm.with_structured_output.return_value = mock_structured_llm
+    return mock_llm
 
 
 class TestAgentLeadSynthesizer(unittest.TestCase):
@@ -405,6 +445,157 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
         self.assertEqual(fmt(float("inf"), ".1f"), "N/A")
         self.assertEqual(fmt(12.345, ".1f", suffix="%"), "12.3%")
         self.assertEqual(fmt(1234.56, ",.1f", prefix="$", suffix="M"), "$1,234.6M")
+
+    def test_06_risk_factors_prompt_embeds_verified_context(self):
+        """Verify the risk-only route renders the section template and the verified risk artifacts."""
+        risk = _create_mock_risk()
+        prompt = render_prompt(
+            "lead_synthesizer", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025,
+            risk_audit=risk, query_type="risk_factors_only", user_query="What are Apple's key risks?",
+        )
+        self.assertIn("VERIFIED RISK MATRIX (embed verbatim):", prompt)
+        self.assertIn(risk.risk_matrix_markdown, prompt)
+        self.assertIn(risk.evidence_table_markdown, prompt)
+        self.assertIn("# Material Risk Factors & Existential Overhangs: Apple Inc. (AAPL)", prompt)
+        self.assertIn("**Overall Risk Profile**: **High** | **Severe Risks**: 2 of 3 | **Disclosure Baseline**: vs FY2024", prompt)
+        self.assertIn("## 4. Primary Existential Threat & Bear-Case Linkage", prompt)
+        self.assertIn("Primary Existential Threat: R1", prompt)
+        self.assertIn('Evidence [narrative-chunk-item1a-01 | Item 1A]: "The Company is subject to complex', prompt)
+        self.assertIn("YEAR-OVER-YEAR DISCLOSURE CHANGES (FY2025 vs FY2024)", prompt)
+        self.assertIn("Do NOT state an analysis date", prompt)
+
+        instruction = render_prompt(
+            "prompt_synthesizer_instruction.j2", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025,
+            query_type="risk_factors_only",
+        )
+        self.assertIn("6 sections", instruction)
+        self.assertIn("VERIFIED RISK MATRIX", instruction)
+
+    def test_07_risk_report_guards_insert_matrix_and_strip_dates(self):
+        """Verify the deterministic guards: matrix inserted when missing, invented dates removed."""
+        risk = _create_mock_risk()
+        payload = ResearchSynthesisPayload(
+            full_markdown_report=(
+                "# Material Risk Factors & Existential Overhangs: Apple Inc. (AAPL)\n\n"
+                "> **Filing Source**: SEC Form 10-K (FY2025) | **Analysis Date**: October 2023 | **Overall Risk Profile**: **High**\n"
+                "> **Report Date**: October 2023\n\n"
+                "## 1. Risk Summary\n- Antitrust intervention is the primary threat.\n\n"
+                "## 2. Verified Risk Matrix\nThe matrix ranks severity as likelihood x impact.\n\n"
+                "## 3. Risk-by-Risk Assessment\n### R1 — Antitrust Scrutiny on App Store\nDetail."
+            ),
+            executive_summary="Antitrust intervention is Apple's primary existential threat; overall risk profile is High.",
+        )
+        with patch.object(self.synthesizer, "_get_llm", return_value=_mock_llm(payload)):
+            report = self.synthesizer.synthesize(
+                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, risk_audit=risk,
+                query_type="risk_factors_only",
+            )
+        md = report.full_markdown_report
+        self.assertNotIn("Analysis Date", md)
+        self.assertNotIn("Report Date", md)
+        self.assertNotIn("October 2023", md)
+        self.assertIn("> **Filing Source**: SEC Form 10-K (FY2025) | **Overall Risk Profile**: **High**", md)
+        self.assertIn(risk.risk_matrix_markdown, md)
+        self.assertLess(md.index("## 2. Verified Risk Matrix"), md.index("| R1 | Antitrust Scrutiny on App Store"))
+        self.assertLess(md.index("| R1 | Antitrust Scrutiny on App Store"), md.index("## 3. Risk-by-Risk Assessment"))
+        self.assertEqual(md.count("| R1 | Antitrust Scrutiny on App Store"), 1)
+
+    def test_08_risk_matrix_not_duplicated_or_forced_on_other_routes(self):
+        """Verify an embedded matrix is left alone and non-risk routes are untouched."""
+        risk = _create_mock_risk()
+        embedded = (
+            "# Material Risk Factors & Existential Overhangs: Apple Inc. (AAPL)\n\n## 2. Verified Risk Matrix\n"
+            + risk.risk_matrix_markdown.replace(" | ", "  |  ")
+        )
+        payload = ResearchSynthesisPayload(full_markdown_report=embedded, executive_summary="Risk summary for Apple Inc. FY2025.")
+        with patch.object(self.synthesizer, "_get_llm", return_value=_mock_llm(payload)):
+            report = self.synthesizer.synthesize(
+                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, risk_audit=risk, query_type="risk_factors_only",
+            )
+        self.assertEqual(report.full_markdown_report.count("Antitrust Scrutiny on App Store"), 1)
+
+        moat_payload = ResearchSynthesisPayload(full_markdown_report="# Moat\nBody", executive_summary="Moat summary for Apple Inc.")
+        with patch.object(self.synthesizer, "_get_llm", return_value=_mock_llm(moat_payload)):
+            report = self.synthesizer.synthesize(
+                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, risk_audit=risk, query_type="business_moat_only",
+            )
+        self.assertNotIn("Verified Risk Matrix", report.full_markdown_report)
+
+    def test_09_yoy_claims_stripped_without_baseline(self):
+        """Verify year-over-year claims are removed from risk sections when no prior-year baseline exists."""
+        risk = _create_mock_risk().model_copy(update={"disclosure_changes": None})
+        prompt = render_prompt(
+            "lead_synthesizer", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025,
+            risk_audit=risk, query_type="risk_factors_only",
+        )
+        self.assertIn("NO PRIOR-YEAR BASELINE", prompt)
+        self.assertIn("NO BASELINE EXISTS", prompt)
+
+        payload = ResearchSynthesisPayload(
+            full_markdown_report=(
+                "# Material Risk Factors & Existential Overhangs: Apple Inc. (AAPL)\n"
+                "> **Filing Source**: SEC Form 10-K (FY2025) | **Disclosure Baseline**: not assessed\n\n"
+                "## 1. Risk Summary\n"
+                "- Antitrust intervention is the primary existential threat.\n"
+                "- Overall, the risk profile is High with two Severe risks.\n"
+                "- A significant year-over-year change includes the heightened focus on cybersecurity threats.\n\n"
+                "## 2. Verified Risk Matrix\n" + risk.risk_matrix_markdown + "\n\n"
+                "## 3. Risk-by-Risk Assessment\n"
+                "Supply concentration is unchanged in structure. Compared to the prior year, the language is broader.\n\n"
+                "## 5. Year-over-Year Disclosure Changes\n"
+                "The year-over-year change was not assessed as there is no prior-year baseline.\n"
+            ),
+            executive_summary="Antitrust is the primary threat. The year-over-year disclosures expanded on tariffs.",
+        )
+        with patch.object(self.synthesizer, "_get_llm", return_value=_mock_llm(payload)):
+            report = self.synthesizer.synthesize(
+                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, risk_audit=risk, query_type="risk_factors_only",
+            )
+        md = report.full_markdown_report
+        self.assertNotIn("heightened focus on cybersecurity", md)
+        self.assertNotIn("Compared to the prior year", md)
+        self.assertIn("Supply concentration is unchanged in structure.", md)
+        self.assertIn("- Overall, the risk profile is High with two Severe risks.", md)
+        self.assertIn("The year-over-year change was not assessed as there is no prior-year baseline.", md)
+        self.assertIn("vs prior year |", md)  # matrix header untouched
+        self.assertEqual(report.executive_summary, "Antitrust is the primary threat.")
+
+        with_baseline = _create_mock_risk()
+        with patch.object(self.synthesizer, "_get_llm", return_value=_mock_llm(payload)):
+            report = self.synthesizer.synthesize(
+                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, risk_audit=with_baseline, query_type="risk_factors_only",
+            )
+        self.assertIn("heightened focus on cybersecurity", report.full_markdown_report)
+
+    def test_10_risk_audit_trail_rendered_in_code(self):
+        """Verify data-quality notes and uncited quantified disclosures reach section 6 even if the model omits them."""
+        base = _create_mock_risk()
+        risk = base.model_copy(update={"data_quality": base.data_quality.model_copy(update={
+            "notes": ["1 of 3 quantified Item 1A disclosures are not cited by any verified risk."],
+            "quantified_uncovered": ["Sales to one direct customer represented 22% of total revenue."],
+        })})
+        payload = ResearchSynthesisPayload(
+            full_markdown_report=(
+                "# Material Risk Factors & Existential Overhangs: Apple Inc. (AAPL)\n\n"
+                "## 2. Verified Risk Matrix\n" + risk.risk_matrix_markdown + "\n\n"
+                "## 6. Filing Evidence & Audit Trail\n" + risk.evidence_table_markdown + "\n\n"
+                "> *Synthesis Provenance: `llm_structured`*"
+            ),
+            executive_summary="Antitrust intervention is the primary threat for Apple Inc.",
+        )
+        with patch.object(self.synthesizer, "_get_llm", return_value=_mock_llm(payload)):
+            report = self.synthesizer.synthesize(
+                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, risk_audit=risk, query_type="risk_factors_only",
+            )
+        md = report.full_markdown_report
+        self.assertIn("**Risk analysis data-quality notes**\n- 1 of 3 quantified Item 1A disclosures", md)
+        self.assertIn('- "Sales to one direct customer represented 22% of total revenue."', md)
+        self.assertLess(md.index("## 6. Filing Evidence & Audit Trail"), md.index("**Risk analysis data-quality notes**"))
+        self.assertLess(md.index("**Quantified Item 1A disclosures"), md.index("> *Synthesis Provenance"))
+        self.assertEqual(md.count("Synthesis Provenance"), 1)
+
+        # Already rendered by the model -> not duplicated.
+        self.assertEqual(LeadSynthesizerAgent._ensure_risk_audit_trail(md, risk), md)
 
     def test_05_run_agent_output_interface(self):
         """Verify BaseAgent.run() interface compatibility for LeadSynthesizer."""

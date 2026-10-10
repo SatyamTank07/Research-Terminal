@@ -147,6 +147,7 @@ async def risk_analyst_node(state: EquityResearchState) -> Dict[str, Any]:
         risk_analyst.analyze,
         ticker=ticker,
         fiscal_year=fiscal_year,
+        available_fiscal_years=state.get("available_fiscal_years"),
         callbacks=callbacks,
     )
 
@@ -452,6 +453,27 @@ class MultiAgentOrchestrator(BaseAgent):
             self._cached_graph = build_equity_research_graph()
         return self._cached_graph
 
+    @staticmethod
+    def _risk_status_message(risk: Optional[RiskAuditOutput]) -> str:
+        """SSE status line summarizing the verified risk inventory."""
+        if risk is None:
+            return "Analyzed Item 1A risks & threats (no risk output)"
+        if risk.data_quality.coverage_mode == "not_provided":
+            return "Analyzed Item 1A risks & threats (filing provides no risk factors; nothing rated)"
+        severe = sum(1 for r in risk.identified_risks if r.severity == "Severe")
+        coverage = risk.data_quality.coverage_mode.replace("_", "-")
+        if risk.data_quality.section_located_by == "heading_boundary":
+            coverage += " (located by headings)"
+        if risk.disclosure_changes:
+            new_cnt = sum(1 for r in risk.identified_risks if r.disclosure_change in ("New", "Expanded"))
+            change = f"{new_cnt} new/expanded vs FY{risk.disclosure_changes.prior_fiscal_year}"
+        else:
+            change = "no prior-year baseline"
+        return (
+            f"Analyzed Item 1A risks & threats ({len(risk.identified_risks)} verified risks, {severe} severe; "
+            f"{coverage} read; {change})"
+        )
+
     async def arun(
         self,
         user_query: str,
@@ -566,11 +588,10 @@ class MultiAgentOrchestrator(BaseAgent):
                         }
                     elif node_name == "risk_analyst":
                         risk: Optional[RiskAuditOutput] = node_output.get("risk_audit")
-                        top_cnt = len(risk.identified_risks) if risk else 0
                         yield {
                             "type": "status",
                             "node": "risk_analyst",
-                            "message": f"Analyzed Item 1A risks & threats ({top_cnt} key risks identified)",
+                            "message": self._risk_status_message(risk),
                         }
                     elif node_name == "forecasting_analyst":
                         fc: Optional[ForecastOutput] = node_output.get("forecast")

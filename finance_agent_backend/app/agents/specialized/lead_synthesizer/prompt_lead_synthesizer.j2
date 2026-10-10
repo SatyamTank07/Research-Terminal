@@ -97,13 +97,7 @@ WACC Audit Table:
 {% endif %}
 
 {% if risk_audit %}
-[RISK & RED FLAG ANALYST FINDINGS]
-- Overall Risk Profile: {{ risk_audit.overall_risk_profile }}
-- Primary Existential Threat: {{ risk_audit.primary_existential_threat }}
-- Key Disclosed Risks:
-  {% for r in risk_audit.identified_risks %}
-  * [{{ r.severity }} | {{ r.risk_category }}] {{ r.risk_title }}: {{ r.risk_summary }}
-  {% endfor %}
+{% include "risk_audit_context.j2" %}
 {% endif %}
 </operating_context>
 
@@ -141,7 +135,7 @@ CRITICAL GENERALIZATION DIRECTIVES:
      * `## 4. Audited Financial Statements & Quality of Earnings` (embed VERIFIED TABLES A, B, E and F verbatim; contrast reported vs normalized earnings and discuss every high/medium forensic finding)
      * `## 5. 5-Year Financial Forecast & Cash Flow Schedule` (embed verified forecast table verbatim)
      * `## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity` (embed verified WACC breakdown and 2-way sensitivity matrix verbatim)
-     * `## 7. Material Risk Factors & Existential Overhangs`
+     * `## 7. Material Risk Factors & Existential Overhangs` (embed the VERIFIED RISK MATRIX verbatim, then discuss the primary existential threat and every Severe risk with its quantified exposure and the model lines it hits)
      * `## 8. Regulatory Disclaimers & Audit Breadcrumbs` (include `Synthesis Provenance: {{ synthesis_provenance or 'llm_structured' }}`)
 
    - **If the user asked specifically about financial statements / ratios** (or `query_type == "financial_audit_only"`):
@@ -177,11 +171,22 @@ CRITICAL GENERALIZATION DIRECTIVES:
      * Footnote: `> *Synthesis Provenance: {{ synthesis_provenance or 'llm_structured' }}*`
 
    - **If the user asked specifically about risk factors** (or `query_type == "risk_factors_only"`):
-     Provide a focused material risk factors report detailing Item 1A risks and existential threats.
+     Provide a focused material risk factors publication with these exact sections:
+     * Title: `# Material Risk Factors & Existential Overhangs: {{ company_name }} ({{ ticker }})`
+     * Metadata Banner: `> **Filing Source**: SEC Form 10-K (FY{{ fiscal_year }}) | **Overall Risk Profile**: **{{ risk_audit.overall_risk_profile if risk_audit else 'n/a' }}** | **Severe Risks**: {{ (risk_audit.identified_risks | selectattr("severity", "equalto", "Severe") | list | length) if risk_audit else 0 }} of {{ risk_audit.identified_risks | length if risk_audit else 0 }} | **Disclosure Baseline**: {{ ("vs FY" ~ risk_audit.disclosure_changes.prior_fiscal_year) if risk_audit and risk_audit.disclosure_changes else "not assessed" }}`
+     * `## 1. Risk Summary`: exactly 3 bullets. The first states the primary existential threat; the second states the overall risk profile and the Severe risks; the third states the most important year-over-year disclosure change{% if risk_audit and not risk_audit.disclosure_changes %} — NO BASELINE EXISTS, so instead state the largest filing-stated exposure (figure quoted exactly){% endif %}. Each bullet cites the filing-stated figure when one exists.
+     * `## 2. Verified Risk Matrix`: embed the VERIFIED RISK MATRIX verbatim, then one sentence explaining that severity = likelihood x impact.
+     * `## 3. Risk-by-Risk Assessment`: one `###` subsection per risk in matrix order (`### R1 — <title>`), covering the disclosure, the quantified exposure, the filing-stated mitigation (write "None stated in the filing" when absent), the model lines hit, and the signposts to monitor.
+     * `## 4. Primary Existential Threat & Bear-Case Linkage`: why the primary threat could impair terminal value and which forecast / valuation inputs a bear case should stress.
+     * `## 5. Year-over-Year Disclosure Changes`: summarize the new and removed passages and which risks they affect; if no baseline exists, state that the change was not assessed.
+     * `## 6. Filing Evidence & Audit Trail`: embed the VERIFIED EVIDENCE TABLE verbatim and list any data-quality notes or code adjustments.
+     * Footnote: `> *Synthesis Provenance: {{ synthesis_provenance or 'llm_structured' }}*`
+     * Use only the risks, figures, mitigations and passages present in the operating context. Never add a risk, number, or mitigation that is not there.
 
 2. **Zero Math Hallucination**:
-   - You MUST embed the exact markdown tables (WACC breakdown, sensitivity matrix, forecast schedule, statements) provided in the operating context verbatim.
+   - You MUST embed the exact markdown tables (WACC breakdown, sensitivity matrix, forecast schedule, statements, verified risk matrix) provided in the operating context verbatim.
    - Do NOT alter or recalculate computed mathematical numbers.
+   - Do NOT state an analysis date, report date, or "as of" date. The only dates you may cite are fiscal years and dates that appear in the operating context.
 
 3. **Field Population**:
    - `full_markdown_report`: The complete, beautiful, publication-ready markdown response.

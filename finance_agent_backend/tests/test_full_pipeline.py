@@ -163,26 +163,37 @@ class TestMilestone6FullPipeline(unittest.TestCase):
             fiscal_year=fiscal_year,
             identified_risks=[
                 RiskItem(
+                    risk_id="R1",
                     risk_category="Regulatory & Legal",
                     risk_title="Antitrust & Platform Regulatory Inquiries",
                     risk_summary="Global antitrust scrutiny and regulatory inquiries impacting ecosystem margins.",
+                    likelihood="High",
+                    impact="High",
                     severity="Severe",
                 ),
                 RiskItem(
+                    risk_id="R2",
                     risk_category="Supply Chain & Concentration",
                     risk_title="Component Single Source Dependence",
                     risk_summary="Critical reliance on concentrated third-party supply chain partners.",
+                    likelihood="Medium",
+                    impact="High",
                     severity="Severe",
                 ),
                 RiskItem(
+                    risk_id="R3",
                     risk_category="Macroeconomic & Geopolitical",
                     risk_title="Foreign Exchange Fluctuations",
                     risk_summary="Substantial international sales exposed to currency headwinds.",
+                    likelihood="High",
+                    impact="Medium",
                     severity="Moderate",
                 ),
             ],
+            primary_threat_risk_id="R1",
             primary_existential_threat="Platform regulatory intervention and supply chain concentration.",
-            overall_risk_profile="Moderate",
+            overall_risk_profile="High",
+            risk_matrix_markdown="| # | Risk |\n| :--- | :--- |\n| R1 | Antitrust & Platform Regulatory Inquiries |",
             citations=[{"chunk_id": f"chunk-{ticker.lower()}-item1a-01", "item": "Item 1A"}],
         )
 

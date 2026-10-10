@@ -17,7 +17,7 @@ from sqlalchemy import or_, and_, not_
 from langchain_core.tools import tool
 
 from app.database import SessionLocal
-from app.models import Document, DocumentChunk
+from app.models import ANNUAL_REPORT_FILING_TYPE, Document, DocumentChunk
 
 logger = logging.getLogger("finance_agent.tools.rag_tables")
 
@@ -221,6 +221,7 @@ def retrieve_10k_tables(
                 .filter(
                     Document.ticker == ticker.strip().upper(),
                     Document.fiscal_year == fiscal_year,
+                    Document.filing_type == ANNUAL_REPORT_FILING_TYPE,
                     DocumentChunk.chunk_type == "table",
                 )
             )
@@ -334,7 +335,10 @@ def retrieve_multiyear_financial_series(
         # Find all distinct fiscal years for this ticker in descending order
         year_records = (
             db.query(Document.fiscal_year)
-            .filter(Document.ticker == ticker.strip().upper())
+            .filter(
+                Document.ticker == ticker.strip().upper(),
+                Document.filing_type == ANNUAL_REPORT_FILING_TYPE,
+            )
             .distinct()
             .order_by(Document.fiscal_year.desc())
             .all()

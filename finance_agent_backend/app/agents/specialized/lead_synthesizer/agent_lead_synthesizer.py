@@ -8,6 +8,7 @@ tailored to the user's inquiry, with zero arithmetic hallucination and full prov
 
 import json
 import logging
+import re
 from typing import Any, Dict, List, Literal, Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -29,6 +30,29 @@ from app.agents.specialized.lead_synthesizer.state_lead_synthesizer import (
 
 
 logger = logging.getLogger("finance_agent.agents.lead_synthesizer")
+
+RISK_MATRIX_ROUTES = ("risk_factors_only", "full_10k_report")
+_DATE_FIELD = re.compile(
+    r"(?:\*\*)?(?:Analysis|Report|Publication)\s+Date\s*(?:\*\*\s*:|:\s*\*\*|:)[^|\n]*\|?[ \t]*",
+    re.IGNORECASE,
+)
+
+
+_YOY_CLAIM = re.compile(
+    r"year[- ]over[- ]year|\b(?:prior|previous|last)[- ](?:fiscal[- ])?year\b|\bcompared\s+(?:with|to)\s+(?:the\s+)?(?:prior|previous|last)\b",
+    re.IGNORECASE,
+)
+_RISK_SECTION_HEADING = re.compile(r"risk|threat", re.IGNORECASE)
+_SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?])\s+(?=[A-Z*])")
+
+
+def _squash(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _drop_yoy_sentences(text: str) -> str:
+    """Removes sentences making a year-over-year claim from a prose line."""
+    return " ".join(s for s in _SENTENCE_BOUNDARY.split(text) if not _YOY_CLAIM.search(s)).strip()
 
 
 class ResearchSynthesisPayload(BaseModel):
@@ -227,6 +251,15 @@ class LeadSynthesizerAgent(BaseAgent):
             if dcf_valuation and dcf_valuation.sensitivity_matrix_markdown:
                 full_report_md += f"## DCF Valuation & Sensitivity\n{dcf_valuation.sensitivity_matrix_markdown}\n"
 
+        full_report_md = self._strip_unsupported_dates(full_report_md)
+        if risk_audit and query_type in RISK_MATRIX_ROUTES:
+            if risk_audit.disclosure_changes is None:
+                full_report_md = self._strip_unsupported_yoy_claims(full_report_md)
+                if query_type == "risk_factors_only":
+                    exec_summary = _drop_yoy_sentences(exec_summary) or exec_summary
+            full_report_md = self._ensure_risk_matrix(full_report_md, risk_audit.risk_matrix_markdown)
+            full_report_md = self._ensure_risk_audit_trail(full_report_md, risk_audit)
+
         if year_substituted and "Filing Provenance Note" not in full_report_md:
             parts = full_report_md.split("\n", 1)
             prov_note = f"> ⚠️ **Filing Provenance Note**: Requested fiscal year unavailable in database catalog; substituted with latest audited filing (FY{fiscal_year}).\n"
@@ -261,6 +294,90 @@ class LeadSynthesizerAgent(BaseAgent):
             full_markdown_report=full_report_md,
             all_citations=all_citations,
         )
+
+    @staticmethod
+    def _strip_unsupported_dates(markdown: str) -> str:
+        """Removes model-invented "Analysis Date" / "Report Date" banner fields (no date is supplied in context)."""
+        out: List[str] = []
+        for line in markdown.split("\n"):
+            if _DATE_FIELD.search(line):
+                line = re.sub(r"\s*\|\s*$", "", _DATE_FIELD.sub("", line).rstrip())
+                if line.strip() in ("", ">"):
+                    continue
+            out.append(line)
+        return "\n".join(out)
+
+    @staticmethod
+    def _strip_unsupported_yoy_claims(markdown: str) -> str:
+        """Without a prior-year baseline, removes year-over-year claims from risk sections.
+
+        Only prose inside headings mentioning risk/threat is touched (never tables, headings or quotes),
+        and the Year-over-Year section itself is left as written.
+        """
+        out: List[str] = []
+        in_risk_section = False
+        for line in markdown.split("\n"):
+            stripped = line.lstrip()
+            if stripped.startswith("#"):
+                in_risk_section = bool(_RISK_SECTION_HEADING.search(stripped)) and not _YOY_CLAIM.search(stripped)
+                out.append(line)
+                continue
+            if not in_risk_section or stripped.startswith(("|", ">")) or not _YOY_CLAIM.search(line):
+                out.append(line)
+                continue
+            bullet = re.match(r"^(\s*(?:[-*+]|\d+\.)\s+)", line)
+            prefix = bullet.group(1) if bullet else line[: len(line) - len(stripped)]
+            kept = _drop_yoy_sentences(line[len(prefix):])
+            if kept:
+                out.append(prefix + kept)
+        return "\n".join(out)
+
+    @staticmethod
+    def _ensure_risk_matrix(markdown: str, matrix: str) -> str:
+        """Inserts the verified risk matrix when the model did not embed it verbatim."""
+        if not matrix or not matrix.strip():
+            return markdown
+        present = {_squash(line) for line in markdown.split("\n")}
+        if all(_squash(line) in present for line in matrix.strip().split("\n") if line.strip()):
+            return markdown
+
+        lines = markdown.split("\n")
+        for heading_pattern, block in (
+            (r"^#{2,3}\s.*risk matrix", f"\n{matrix.strip()}\n"),
+            (r"^#{2,3}\s.*material risk factors", f"\n### Verified Risk Matrix\n\n{matrix.strip()}\n"),
+        ):
+            idx = next((i for i, l in enumerate(lines) if re.search(heading_pattern, l, re.IGNORECASE)), None)
+            if idx is not None:
+                return "\n".join(lines[: idx + 1] + [block] + lines[idx + 1:])
+        return f"{markdown.rstrip()}\n\n## Verified Risk Matrix\n\n{matrix.strip()}\n"
+
+    @staticmethod
+    def _ensure_risk_audit_trail(markdown: str, risk_audit: RiskAuditOutput) -> str:
+        """Renders risk data-quality notes and uncited quantified disclosures the model left out of the audit trail."""
+        dq = risk_audit.data_quality
+        present = _squash(markdown)
+        notes = [n for n in dq.notes if _squash(n) not in present]
+        uncovered = [t for t in dq.quantified_uncovered if _squash(t) not in present]
+        if not notes and not uncovered:
+            return markdown
+
+        block: List[str] = []
+        if notes:
+            block += ["**Risk analysis data-quality notes**", *[f"- {n}" for n in notes], ""]
+        if uncovered:
+            block += ["**Quantified Item 1A disclosures not cited by any verified risk**", *[f'- "{t}"' for t in uncovered], ""]
+
+        lines = markdown.rstrip().split("\n")
+        heading_idx = next(
+            (i for i, l in enumerate(lines) if re.match(r"^#{2,3}\s.*audit\s+(?:trail|breadcrumbs)", l, re.IGNORECASE)),
+            None,
+        )
+        if heading_idx is None:
+            return "\n".join(lines + ["", "## Risk Analysis Audit Trail", "", *block]).rstrip() + "\n"
+        end = next((i for i in range(heading_idx + 1, len(lines)) if re.match(r"^#{1,3}\s", lines[i])), len(lines))
+        while end > heading_idx + 1 and (not lines[end - 1].strip() or lines[end - 1].lstrip().startswith("> *Synthesis")):
+            end -= 1
+        return "\n".join(lines[:end] + ["", *block] + lines[end:])
 
     def _consolidate_citations(
         self,

@@ -1,0 +1,65 @@
+{% set ra = risk_audit %}
+{% set dq = ra.data_quality %}
+{% set severe = ra.identified_risks | selectattr("severity", "equalto", "Severe") | list %}
+[RISK & RED FLAG ANALYST FINDINGS — VERIFIED AGAINST THE FILING]
+- Overall Risk Profile: {{ ra.overall_risk_profile }} ({{ severe | length }} Severe of {{ ra.identified_risks | length }} verified risks)
+- Primary Existential Threat: {{ ra.primary_threat_risk_id or "n/a" }} — {{ ra.primary_existential_threat or "n/a" }}
+- Coverage: {{ dq.coverage_mode }} ({{ dq.item1a_chunks }} Item 1A chunks, {{ "{:,}".format(dq.chars_read) }} chars read){% if ra.disclosure_changes %} | Disclosure baseline: FY{{ ra.disclosure_changes.prior_fiscal_year }}{% else %} | Disclosure baseline: not assessed{% endif %}
+
+{% if dq.coverage_mode == "not_provided" %}
+- NO RISK FACTORS DISCLOSED: the filing's Item 1A provides no risk factors (not applicable / smaller reporting company). State this plainly in every section; do not infer, invent or rate any risk.
+{% elif dq.coverage_mode == "rag_fallback" %}
+- ITEM 1A NOT LOCATED: risks below come from retrieval across the filing, not from a complete read of Item 1A. Say so in the Risk Summary.
+{% endif %}
+{% if dq.quantified_uncovered %}
+- Quantified Item 1A disclosures not cited by any verified risk (mention them in the audit trail; do not invent ratings for them):
+{% for text in dq.quantified_uncovered %}
+  * "{{ text }}"
+{% endfor %}
+{% endif %}
+{% if not ra.disclosure_changes %}
+- NO PRIOR-YEAR BASELINE: make no year-over-year, prior-year, or "new / heightened" disclosure claims anywhere outside the Year-over-Year section.
+{% endif %}
+{% if dq.notes %}
+- Data-quality notes:
+{% for note in dq.notes %}
+  * {{ note }}
+{% endfor %}
+{% endif %}
+
+VERIFIED RISK MATRIX (embed verbatim):
+{{ ra.risk_matrix_markdown }}
+
+RISK DETAIL:
+{% for r in ra.identified_risks %}
+{{ r.risk_id }}. {{ r.risk_title }} [{{ r.risk_category }} | Likelihood {{ r.likelihood }} | Impact {{ r.impact }} | {{ r.severity }} | vs prior year: {{ r.disclosure_change }}]
+  - Disclosure: {{ r.risk_summary }}
+  - Quantified exposure: {{ r.quantified_exposure or "None stated in the filing" }}
+  - Filing-stated mitigation: {{ r.mitigating_factors or "None stated in the filing" }}
+  - Model lines hit: {{ r.financial_transmission | join(", ") if r.financial_transmission else "n/a" }}
+  - Signposts: {{ r.monitoring_signposts | join("; ") if r.monitoring_signposts else "n/a" }}
+{% for e in r.evidence %}
+  - Evidence [{{ e.chunk_id }} | {{ e.item }}]: "{{ e.quote }}"
+{% endfor %}
+{% for a in r.adjustments %}
+  - Code adjustment: {{ a }}
+{% endfor %}
+{% endfor %}
+
+{% if ra.disclosure_changes %}
+{% set dc = ra.disclosure_changes %}
+YEAR-OVER-YEAR DISCLOSURE CHANGES (FY{{ fiscal_year }} vs FY{{ dc.prior_fiscal_year }}): {{ dc.new_sentences }} new, {{ dc.modified_sentences }} modified, {{ dc.unchanged_sentences }} unchanged, {{ dc.removed_sentences }} removed sentences ({{ dc.change_ratio_pct }}% of current text new or modified).
+New passages:
+{% for p in dc.new_passages %}
+  * [{{ p.chunk_id }}] {{ p.text }}
+{% endfor %}
+{% if dc.removed_passages %}
+Removed passages:
+{% for p in dc.removed_passages %}
+  * {{ p.text }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+VERIFIED EVIDENCE TABLE (embed verbatim):
+{{ ra.evidence_table_markdown }}

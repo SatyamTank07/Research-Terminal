@@ -22,7 +22,7 @@ from langchain_openai import OpenAIEmbeddings
 
 from app.config import settings
 from app.database import SessionLocal
-from app.models import Document, DocumentChunk
+from app.models import ANNUAL_REPORT_FILING_TYPE, Document, DocumentChunk
 
 logger = logging.getLogger("finance_agent.tools.rag_narrative")
 
@@ -149,6 +149,7 @@ def retrieve_10k_narrative(
             .filter(
                 Document.ticker == normalized_ticker,
                 Document.fiscal_year == fiscal_year,
+                Document.filing_type == ANNUAL_REPORT_FILING_TYPE,
             )
             .first()
         )
@@ -181,6 +182,7 @@ def retrieve_10k_narrative(
             base_filters = [
                 Document.ticker == normalized_ticker,
                 Document.fiscal_year == fiscal_year,
+                Document.filing_type == ANNUAL_REPORT_FILING_TYPE,
                 DocumentChunk.chunk_type == "narrative",
             ]
             if target_sec:

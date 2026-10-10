@@ -1,6 +1,43 @@
-Analyze the risk profile for {{ ticker | upper }} from its fiscal year {{ fiscal_year }} SEC 10-K filing.
-1. Query Item 1A narrative across supply chain, regulatory, technological, and macroeconomic vectors.
-2. If an active major lawsuit or regulatory action explicitly cross-references Item 3, apply the gated check on Item 3.
-3. Curate 5 to 8 non-boilerplate risks sorted by severity (Severe -> Moderate -> Low) with mitigating factors.
-4. Identify the single primary existential threat and assign the overall risk profile.
-5. Emit the complete RiskAuditOutput artifact with all citations.
+Build the risk inventory for {{ ticker | upper }} from its fiscal year {{ fiscal_year }} SEC 10-K.
+
+{% if coverage_mode == "rag_fallback" %}
+RETRIEVAL FALLBACK: Item 1A for {{ ticker | upper }} FY{{ fiscal_year }} could not be pre-fetched. Call `retrieve_10k_narrative_tool` (ticker="{{ ticker | upper }}", fiscal_year={{ fiscal_year }}, section_item="Item 1A", limit=6) once per risk vector below, then cite only chunks returned by those calls:
+1. "customer concentration revenue share major customers distributors"
+2. "supplier dependence sole source manufacturing capacity facilities"
+3. "competition competitors pricing pressure substitute products market share"
+4. "demand fluctuations inventory purchase commitments product transitions"
+5. "government regulation export controls licensing legal proceedings investigations"
+6. "international operations tariffs trade restrictions foreign currency geopolitical"
+7. "cybersecurity data privacy intellectual property technology change"
+8. "indebtedness liquidity capital requirements taxation impairment"
+{% else %}
+ITEM 1A — RISK FACTORS (FY{{ fiscal_year }}, {{ "complete section" if coverage_mode == "full_section" else "budgeted: summary chunks in full, other paragraphs truncated to their lead text" }}):
+<item_1a>
+{{ section_context }}
+</item_1a>
+{% endif %}
+
+{% if quantified %}
+QUANTIFIED DISCLOSURES CHECKLIST (code-extracted Item 1A sentences that state a figure; cover every material one with a risk that quotes it):
+{% for q in quantified %}
+- [chunk:{{ q.chunk_id }}] {{ q.text }}
+{% endfor %}
+
+{% endif %}
+{% if diff %}
+DISCLOSURE CHANGES vs FY{{ diff.prior_fiscal_year }} Item 1A ({{ diff.new_sentences }} new, {{ diff.modified_sentences }} modified, {{ diff.removed_sentences }} removed of {{ diff.current_sentences }} current sentences):
+New or rewritten passages in FY{{ fiscal_year }}:
+{% for p in diff.new_passages %}
+- [chunk:{{ p.chunk_id }}] {{ p.text }}
+{% endfor %}
+{% if diff.removed_passages %}
+Passages present in FY{{ diff.prior_fiscal_year }} but removed in FY{{ fiscal_year }}:
+{% for p in diff.removed_passages %}
+- {{ p.text }}
+{% endfor %}
+{% endif %}
+{% else %}
+DISCLOSURE CHANGES: no prior-year Item 1A available; year-over-year change is not assessed.
+{% endif %}
+
+Follow the protocol: map the disclosed risks, select 5 to 8 company-specific risks, rate likelihood and impact, support each with verbatim quotes and their chunk ids, use the legal follow-up only if Item 1A cross-references pending proceedings, choose the primary existential threat, and return the JSON object only.
