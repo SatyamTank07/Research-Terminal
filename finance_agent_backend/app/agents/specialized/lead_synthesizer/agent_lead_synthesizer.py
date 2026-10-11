@@ -1,87 +1,98 @@
 """Lead Synthesizer & Institutional Report Publisher Agent.
 
-Ingests structured payloads across all specialized domain agents (Business Strategist,
-Financial Auditor, Forecaster, DCF Valuation Specialist, Risk Analyst), and orchestrates
-the AI to dynamically generate the complete, publication-grade markdown response
-tailored to the user's inquiry, with zero arithmetic hallucination and full provenance tracking.
+Code-assembled report: the route-specific skeleton and every table (dashboard, audited statements and
+Tables A–F, forecast schedule, WACC, equity bridge, scenarios, sensitivity, risk matrix and evidence) are
+rendered in code from the specialist artifacts (`report_layout.j2`). One structured LLM call writes only
+the analytical prose between them. Prose is screened in code: sentences citing figures absent from the
+verified context are removed, invented dates and unsupported year-over-year risk claims are stripped,
+and every field has a deterministic fallback, so a failed LLM call still yields a complete report.
 """
 
 import json
 import logging
 import re
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Tuple
+
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
 
-from app.agents.base import AgentOutput, BaseAgent
-from app.agents.specialized.prompts import render_prompt
+from app.agents.base import AgentOutput, BaseAgent, StructuredAgent
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
-from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
-from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
 from app.agents.specialized.lead_synthesizer.state_lead_synthesizer import (
     Final10KResearchReport,
     ThreePillarThesis,
 )
-
+from app.agents.specialized.prompts import render_prompt
+from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
+from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
+from app.agents.tools.figure_verification import collect_known_figures, strip_unverified_sentences
 
 logger = logging.getLogger("finance_agent.agents.lead_synthesizer")
 
-RISK_MATRIX_ROUTES = ("risk_factors_only", "full_10k_report")
-_DATE_FIELD = re.compile(
-    r"(?:\*\*)?(?:Analysis|Report|Publication)\s+Date\s*(?:\*\*\s*:|:\s*\*\*|:)[^|\n]*\|?[ \t]*",
-    re.IGNORECASE,
+SYNTHESIS_MAX_TOKENS = 4000
+SynthesisProvenance = Literal["llm_structured", "llm_json_fallback", "template_default"]
+
+_DATE_CLAIM = re.compile(
+    r"\b(?:analysis|report|publication)\s+date\b|\bas of (?:today|the date of this report)\b", re.IGNORECASE
 )
-
-
 _YOY_CLAIM = re.compile(
-    r"year[- ]over[- ]year|\b(?:prior|previous|last)[- ](?:fiscal[- ])?year\b|\bcompared\s+(?:with|to)\s+(?:the\s+)?(?:prior|previous|last)\b",
+    r"year[- ]over[- ]year|\b(?:prior|previous|last)[- ](?:fiscal[- ])?year\b|"
+    r"\bcompared\s+(?:with|to)\s+(?:the\s+)?(?:prior|previous|last)\b|\bnewly (?:added|disclosed)\b",
     re.IGNORECASE,
 )
-_RISK_SECTION_HEADING = re.compile(r"risk|threat", re.IGNORECASE)
-_SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?])\s+(?=[A-Z*])")
-
-
-def _squash(text: str) -> str:
-    return re.sub(r"\s+", " ", text).strip()
-
-
-def _drop_yoy_sentences(text: str) -> str:
-    """Removes sentences making a year-over-year claim from a prose line."""
-    return " ".join(s for s in _SENTENCE_BOUNDARY.split(text) if not _YOY_CLAIM.search(s)).strip()
+_SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?])\s+(?=[A-Z*\"(\[])")
 
 
 class ResearchSynthesisPayload(BaseModel):
-    """Internal Pydantic schema for structured LLM report and thesis generation."""
+    """Prose fields written by the LLM; which ones are requested depends on the route."""
 
-    full_markdown_report: str = Field(
-        ...,
-        description="The complete, publication-grade markdown response dynamically generated to directly answer the user inquiry, embedding verified tables.",
-    )
-    executive_summary: str = Field(
-        ..., description="Executive briefing highlighting core findings and conclusion"
-    )
-    valuation_stance: Literal["Undervalued", "Fairly Valued", "Overvalued"] = Field(
-        default="Fairly Valued", description="Valuation stance"
-    )
-    pillar_1_business_moat: Optional[str] = Field(
-        None, description="Pillar 1: Business architecture and competitive moat durability (if applicable)"
-    )
-    pillar_2_financial_durability: Optional[str] = Field(
-        None, description="Pillar 2: Earnings quality, balance sheet strength, and FCF conversion (if applicable)"
-    )
-    pillar_3_valuation_asymmetry: Optional[str] = Field(
-        None, description="Pillar 3: Intrinsic value vs market price, margin of safety, and risk/reward asymmetry (if applicable)"
-    )
+    executive_summary: Optional[str] = Field(None, description="Executive summary (bullets for the audit route)")
+    bottom_line: Optional[str] = Field(None, description="1-2 sentence stance and what would change it")
+    pillar_1_business_moat: Optional[str] = Field(None, description="Pillar 1: business architecture and moat")
+    pillar_2_financial_durability: Optional[str] = Field(None, description="Pillar 2: earnings quality and balance sheet")
+    pillar_3_valuation_asymmetry: Optional[str] = Field(None, description="Pillar 3: value vs price and margin of safety")
+    business_commentary: Optional[str] = Field(None, description="Moat and segment interpretation")
+    earnings_quality_commentary: Optional[str] = Field(None, description="Reported vs normalized earnings interpretation")
+    cash_flow_balance_sheet_commentary: Optional[str] = Field(None, description="FCF drivers, dilution, liquidity")
+    forecast_commentary: Optional[str] = Field(None, description="What drives the UFCF path")
+    valuation_commentary: Optional[str] = Field(None, description="Valuation interpretation incl. every warning")
+    risk_commentary: Optional[str] = Field(None, description="Risk summary")
+    bear_case_commentary: Optional[str] = Field(None, description="Bear-case linkage of the primary threat")
+    disclosure_change_commentary: Optional[str] = Field(None, description="Year-over-year Item 1A changes")
+
+
+PROSE_FIELDS = tuple(ResearchSynthesisPayload.model_fields)
+_RISK_PROSE = ("risk_commentary", "bear_case_commentary", "disclosure_change_commentary", "executive_summary", "bottom_line")
+
+
+def _drop_sentences(text: str, pattern: re.Pattern) -> str:
+    """Removes sentences matching `pattern`, line by line (bullet prefixes are kept)."""
+    lines = []
+    for line in text.split("\n"):
+        prefix = re.match(r"^(\s*(?:[-*+]|\d+\.)\s+|\s*)", line).group(1)
+        kept = " ".join(s for s in _SENTENCE_BOUNDARY.split(line[len(prefix):]) if not pattern.search(s)).strip()
+        if kept:
+            lines.append(prefix + kept)
+    return "\n".join(lines).strip()
+
+
+def _strip_layout(text: str) -> str:
+    """Prose must not carry its own headings, tables or code fences (the layout owns them)."""
+    lines = [
+        line for line in text.replace("```", "").split("\n")
+        if not line.lstrip().startswith(("#", "|"))
+    ]
+    return "\n".join(lines).strip()
 
 
 @AgentRegistry.register("lead_synthesizer")
 class LeadSynthesizerAgent(BaseAgent):
-    """Institutional report publisher synthesizing multi-agent findings into a final publication."""
+    """Institutional report publisher: code-built report skeleton and tables, LLM-written verified prose."""
 
     def __init__(self, model_name: str = "openai:gpt-4o-mini"):
         self.model_name = model_name
@@ -91,38 +102,14 @@ class LeadSynthesizerAgent(BaseAgent):
         """Cache-first LLM resolver to eliminate redundant disk I/O from load_dotenv."""
         if self._cached_llm is not None:
             return self._cached_llm
-
         load_dotenv(override=True)
-        model_clean = self.model_name.replace("openai:", "")
-        llm = ChatOpenAI(
-            model=model_clean,
+        self._cached_llm = ChatOpenAI(
+            model=self.model_name.replace("openai:", ""),
             temperature=0,
             max_retries=5,
+            max_tokens=SYNTHESIS_MAX_TOKENS,
         )
-        self._cached_llm = llm
-        return llm
-
-    @staticmethod
-    def _fmt(
-        val: Optional[float],
-        fmt_spec: str = ".1f",
-        scale: float = 1.0,
-        prefix: str = "",
-        suffix: str = "",
-        default: str = "N/A",
-    ) -> str:
-        """Safely formats a floating-point metric, returning default if val is None, NaN, or infinite."""
-        if val is None:
-            return default
-        try:
-            import math
-            f = float(val) * scale
-            if math.isnan(f) or math.isinf(f):
-                return default
-            formatted = f"{f:{fmt_spec}}"
-            return f"{prefix}{formatted}{suffix}"
-        except (ValueError, TypeError):
-            return default
+        return self._cached_llm
 
     def synthesize(
         self,
@@ -138,305 +125,279 @@ class LeadSynthesizerAgent(BaseAgent):
         available_fiscal_years: Optional[List[int]] = None,
         user_query: Optional[str] = None,
         query_type: str = "full_10k_report",
+        pipeline_notes: Optional[List[str]] = None,
         callbacks: Optional[List[Any]] = None,
     ) -> Final10KResearchReport:
         """Synthesizes all structured agent payloads into a complete Final10KResearchReport."""
-        llm = self._get_llm()
-
-        # 1. Render prompt with context from all available domain agents
-        prompt_text = render_prompt(
-            "lead_synthesizer",
-            ticker=ticker.upper(),
-            company_name=company_name,
-            fiscal_year=fiscal_year,
-            available_fiscal_years=available_fiscal_years,
+        ticker = ticker.upper()
+        notes = list(dict.fromkeys(pipeline_notes or []))
+        artifacts = dict(
             business_moat=business_moat,
             financial_audit=financial_audit,
             forecast=forecast,
             dcf_valuation=dcf_valuation,
             risk_audit=risk_audit,
+        )
+        query_type = self._effective_route(query_type, artifacts)
+
+        context = render_prompt(
+            "lead_synthesizer",
+            ticker=ticker,
+            company_name=company_name,
+            fiscal_year=fiscal_year,
+            available_fiscal_years=available_fiscal_years,
             query_type=query_type,
             user_query=user_query,
             year_substituted=year_substituted,
+            **artifacts,
         )
-
-        user_instruction = render_prompt(
+        instruction = render_prompt(
             "prompt_synthesizer_instruction.j2",
-            ticker=ticker.upper(),
+            ticker=ticker,
             company_name=company_name,
             fiscal_year=fiscal_year,
             query_type=query_type,
             user_query=user_query,
-            business_moat=business_moat,
+            pipeline_notes=notes,
         )
 
-        # 2. Invoke LLM for qualitative synthesis and complete report generation
-        raw_synthesis: Dict[str, Any] = {}
-        synthesis_provenance: Literal["llm_structured", "llm_json_fallback", "template_default"] = "llm_structured"
-        llm_config = {"callbacks": callbacks} if callbacks else {}
+        raw, provenance = self._invoke_llm(context, instruction, callbacks)
+        prose, removed = self._screen_prose(raw, context, risk_audit)
+        fallback = self._fallback_prose(ticker, company_name, fiscal_year, **artifacts)
+        for key in PROSE_FIELDS:
+            if not prose.get(key):
+                prose[key] = fallback.get(key)
 
-        try:
-            structured_llm = llm.with_structured_output(ResearchSynthesisPayload)
-            synthesis_obj = structured_llm.invoke([
-                SystemMessage(content=prompt_text),
-                HumanMessage(content=user_instruction),
-            ], config=llm_config)
-            if isinstance(synthesis_obj, BaseModel):
-                raw_synthesis = synthesis_obj.model_dump()
-                synthesis_provenance = "llm_structured"
-            elif isinstance(synthesis_obj, dict):
-                raw_synthesis = synthesis_obj
-                synthesis_provenance = "llm_structured"
-        except Exception as e:
-            logger.warning(f"Structured output failed for lead synthesizer: {e}. Falling back to standard invoke.")
-            try:
-                resp = llm.invoke([
-                    SystemMessage(content=prompt_text),
-                    HumanMessage(content=user_instruction),
-                ], config=llm_config)
-                raw_synthesis = self._parse_json_fallback(resp.content)
-                synthesis_provenance = "llm_json_fallback" if raw_synthesis else "template_default"
-            except Exception as e2:
-                logger.error(f"Fallback LLM invocation failed: {e2}. Defaulting to template strings.")
-                raw_synthesis = {}
-                synthesis_provenance = "template_default"
-
-        # 3. Construct ThreePillarThesis with defensive defaults
-        p1 = raw_synthesis.get("pillar_1_business_moat") or (
-            "Competitive positioning and economic moat defensibility analyzed based on reported 10-K business operations."
-            if business_moat else "Business model analyzed based on audited disclosures."
-        )
-        p2 = raw_synthesis.get("pillar_2_financial_durability") or (
-            "Financial durability, operating cash flow generation, and balance sheet resilience evaluated from audited statements."
-            if financial_audit else "Financial durability grounded in audited statements."
-        )
-        p3 = raw_synthesis.get("pillar_3_valuation_asymmetry") or (
-            "Intrinsic DCF fair value offers risk-adjusted valuation perspective relative to prevailing market levels."
-            if dcf_valuation else "Intrinsic valuation derived via discounted cash flow modeling."
-        )
-
-        thesis = ThreePillarThesis(
-            pillar_1_business_moat=p1,
-            pillar_2_financial_durability=p2,
-            pillar_3_valuation_asymmetry=p3,
-        )
-
-        exec_summary = raw_synthesis.get("executive_summary") or (
-            f"Institutional research evaluation of {company_name} ({ticker.upper()}) for Fiscal Year {fiscal_year}."
-        )
-
-        # 4. Resolve valuation stance & share price
-        if dcf_valuation:
-            fair_value = dcf_valuation.implied_fair_value_per_share
-            current_price = dcf_valuation.current_share_price
-            upside = dcf_valuation.upside_downside_pct
-            stance = dcf_valuation.valuation_stance or raw_synthesis.get("valuation_stance", "Fairly Valued")
-        else:
-            fair_value = 0.0
-            current_price = None
-            upside = None
-            stance = "Fairly Valued"
-
-        if stance not in ("Undervalued", "Fairly Valued", "Overvalued"):
-            stance = "Fairly Valued"
-
-        # 5. Retrieve dynamic markdown report generated by the AI with fallback
-        full_report_md = raw_synthesis.get("full_markdown_report")
-        if not full_report_md:
-            full_report_md = (
-                f"# Research Analysis: {company_name} ({ticker.upper()})\n\n"
-                f"> **Fiscal Year**: {fiscal_year} | **Valuation Stance**: **{stance.upper()}**\n\n"
-                f"## Executive Summary\n{exec_summary}\n\n"
-            )
-            if dcf_valuation:
-                full_report_md += f"## DCF Valuation\n{dcf_valuation.equity_bridge_markdown}\n\n"
-                if dcf_valuation.scenario_table_markdown:
-                    full_report_md += f"### Scenario Valuation\n{dcf_valuation.scenario_table_markdown}\n\n"
-                full_report_md += f"### Sensitivity\n{dcf_valuation.sensitivity_matrix_markdown}\n"
-
-        full_report_md = self._strip_unsupported_dates(full_report_md)
-        if risk_audit and query_type in RISK_MATRIX_ROUTES:
-            if risk_audit.disclosure_changes is None:
-                full_report_md = self._strip_unsupported_yoy_claims(full_report_md)
-                if query_type == "risk_factors_only":
-                    exec_summary = _drop_yoy_sentences(exec_summary) or exec_summary
-            full_report_md = self._ensure_risk_matrix(full_report_md, risk_audit.risk_matrix_markdown)
-            full_report_md = self._ensure_risk_audit_trail(full_report_md, risk_audit)
-
-        if year_substituted and "Filing Provenance Note" not in full_report_md:
-            parts = full_report_md.split("\n", 1)
-            prov_note = f"> ⚠️ **Filing Provenance Note**: Requested fiscal year unavailable in database catalog; substituted with latest audited filing (FY{fiscal_year}).\n"
-            if len(parts) == 2:
-                full_report_md = f"{parts[0]}\n{prov_note}\n{parts[1]}"
-            else:
-                full_report_md = f"{full_report_md}\n\n{prov_note}"
-
-        if "Synthesis Provenance" not in full_report_md:
-            full_report_md += f"\n\n> *Synthesis Provenance: `{synthesis_provenance}`*"
-
-        # 6. Deduplicate citations
-        all_citations = self._consolidate_citations(
-            business_moat=business_moat,
-            financial_audit=financial_audit,
-            forecast=forecast,
-            risk_audit=risk_audit,
-        )
-
-        return Final10KResearchReport(
-            ticker=ticker.upper(),
+        full_report_md = render_prompt(
+            "report_layout.j2",
+            ticker=ticker,
             company_name=company_name,
             fiscal_year=fiscal_year,
-            implied_fair_value_per_share=fair_value,
-            current_share_price=current_price,
-            upside_downside_pct=upside,
-            valuation_stance=stance,
-            three_pillar_thesis=thesis,
-            executive_summary=exec_summary,
-            synthesis_provenance=synthesis_provenance,
+            query_type=query_type,
+            year_substituted=year_substituted,
+            p=prose,
+            notes=notes,
+            provenance=provenance,
+            removed_sentences=removed,
+            **artifacts,
+        )
+        full_report_md = re.sub(r"\n{3,}", "\n\n", full_report_md).strip() + "\n"
+
+        val = dcf_valuation
+        return Final10KResearchReport(
+            ticker=ticker,
+            company_name=company_name,
+            fiscal_year=fiscal_year,
+            implied_fair_value_per_share=val.implied_fair_value_per_share if val else None,
+            current_share_price=val.current_share_price if val else None,
+            upside_downside_pct=val.upside_downside_pct if val else None,
+            valuation_stance=val.valuation_stance if val else None,
+            three_pillar_thesis=ThreePillarThesis(
+                pillar_1_business_moat=prose["pillar_1_business_moat"],
+                pillar_2_financial_durability=prose["pillar_2_financial_durability"],
+                pillar_3_valuation_asymmetry=prose["pillar_3_valuation_asymmetry"],
+            ),
+            executive_summary=prose["executive_summary"],
+            synthesis_provenance=provenance,
             year_substituted=year_substituted,
             full_markdown_report=full_report_md,
-            all_citations=all_citations,
+            all_citations=self._consolidate_citations(business_moat, financial_audit, forecast, risk_audit),
         )
 
+    # ------------------------------------------------------------------
+    # LLM call and prose screening
+    # ------------------------------------------------------------------
     @staticmethod
-    def _strip_unsupported_dates(markdown: str) -> str:
-        """Removes model-invented "Analysis Date" / "Report Date" banner fields (no date is supplied in context)."""
-        out: List[str] = []
-        for line in markdown.split("\n"):
-            if _DATE_FIELD.search(line):
-                line = re.sub(r"\s*\|\s*$", "", _DATE_FIELD.sub("", line).rstrip())
-                if line.strip() in ("", ">"):
-                    continue
-            out.append(line)
-        return "\n".join(out)
+    def _effective_route(query_type: str, artifacts: Dict[str, Any]) -> str:
+        """Falls back to the full layout when the artifact a single-topic route needs is missing."""
+        required = {
+            "financial_audit_only": "financial_audit",
+            "business_moat_only": "business_moat",
+            "risk_factors_only": "risk_audit",
+        }.get(query_type)
+        if required and artifacts.get(required) is None:
+            logger.warning(f"Route {query_type} has no {required}; using the full report layout with notes.")
+            return "full_10k_report"
+        return query_type
+
+    def _invoke_llm(
+        self, context: str, instruction: str, callbacks: Optional[List[Any]]
+    ) -> Tuple[Dict[str, Any], SynthesisProvenance]:
+        messages = [SystemMessage(content=context), HumanMessage(content=instruction)]
+        config = {"callbacks": callbacks} if callbacks else {}
+        try:
+            llm = self._get_llm()
+            result = llm.with_structured_output(ResearchSynthesisPayload).invoke(messages, config=config)
+            if isinstance(result, BaseModel):
+                return result.model_dump(), "llm_structured"
+            if isinstance(result, dict):
+                return result, "llm_structured"
+            raise ValueError(f"unexpected structured output type {type(result).__name__}")
+        except Exception as e:
+            logger.warning(f"Structured synthesis failed ({e!r}); retrying as plain JSON.")
+        try:
+            response = self._get_llm().invoke(messages, config=config)
+            parsed = self._parse_json_fallback(response.content)
+            if parsed:
+                return parsed, "llm_json_fallback"
+        except Exception as e:
+            logger.error(f"Synthesis LLM fallback failed ({e!r}); using deterministic commentary.")
+        return {}, "template_default"
 
     @staticmethod
-    def _strip_unsupported_yoy_claims(markdown: str) -> str:
-        """Without a prior-year baseline, removes year-over-year claims from risk sections.
-
-        Only prose inside headings mentioning risk/threat is touched (never tables, headings or quotes),
-        and the Year-over-Year section itself is left as written.
-        """
-        out: List[str] = []
-        in_risk_section = False
-        for line in markdown.split("\n"):
-            stripped = line.lstrip()
-            if stripped.startswith("#"):
-                in_risk_section = bool(_RISK_SECTION_HEADING.search(stripped)) and not _YOY_CLAIM.search(stripped)
-                out.append(line)
+    def _screen_prose(raw: Dict[str, Any], context: str, risk_audit: Optional[RiskAuditOutput]) -> Tuple[Dict[str, Optional[str]], int]:
+        """Keeps only verified prose: no layout, no invented dates, no untraceable figures, no baseless YoY claims."""
+        known = collect_known_figures(context)
+        no_risk_baseline = risk_audit is not None and risk_audit.disclosure_changes is None
+        prose: Dict[str, Optional[str]] = {}
+        removed_total = 0
+        for key in PROSE_FIELDS:
+            text = raw.get(key)
+            if not isinstance(text, str) or not text.strip():
+                prose[key] = None
                 continue
-            if not in_risk_section or stripped.startswith(("|", ">")) or not _YOY_CLAIM.search(line):
-                out.append(line)
-                continue
-            bullet = re.match(r"^(\s*(?:[-*+]|\d+\.)\s+)", line)
-            prefix = bullet.group(1) if bullet else line[: len(line) - len(stripped)]
-            kept = _drop_yoy_sentences(line[len(prefix):])
-            if kept:
-                out.append(prefix + kept)
-        return "\n".join(out)
+            text = _drop_sentences(_strip_layout(text), _DATE_CLAIM)
+            if no_risk_baseline and key in _RISK_PROSE:
+                text = _drop_sentences(text, _YOY_CLAIM)
+            text, removed = strip_unverified_sentences(text, known)
+            removed_total += removed
+            prose[key] = text or None
+        if removed_total:
+            logger.warning(f"Synthesis: removed {removed_total} sentence(s) citing figures absent from the context.")
+        return prose, removed_total
 
+    # ------------------------------------------------------------------
+    # Deterministic fallback commentary (used per field when the LLM leaves it empty or fails)
+    # ------------------------------------------------------------------
     @staticmethod
-    def _ensure_risk_matrix(markdown: str, matrix: str) -> str:
-        """Inserts the verified risk matrix when the model did not embed it verbatim."""
-        if not matrix or not matrix.strip():
-            return markdown
-        present = {_squash(line) for line in markdown.split("\n")}
-        if all(_squash(line) in present for line in matrix.strip().split("\n") if line.strip()):
-            return markdown
+    def _fallback_prose(
+        ticker: str,
+        company_name: str,
+        fiscal_year: int,
+        business_moat: Optional[BusinessMoatOutput],
+        financial_audit: Optional[FinancialAuditOutput],
+        forecast: Optional[ForecastOutput],
+        dcf_valuation: Optional[DCFValuationOutput],
+        risk_audit: Optional[RiskAuditOutput],
+    ) -> Dict[str, str]:
+        out: Dict[str, str] = {}
+        summary: List[str] = [f"{company_name} ({ticker}), FY{fiscal_year} Form 10-K."]
 
-        lines = markdown.split("\n")
-        for heading_pattern, block in (
-            (r"^#{2,3}\s.*risk matrix", f"\n{matrix.strip()}\n"),
-            (r"^#{2,3}\s.*material risk factors", f"\n### Verified Risk Matrix\n\n{matrix.strip()}\n"),
-        ):
-            idx = next((i for i, l in enumerate(lines) if re.search(heading_pattern, l, re.IGNORECASE)), None)
-            if idx is not None:
-                return "\n".join(lines[: idx + 1] + [block] + lines[idx + 1:])
-        return f"{markdown.rstrip()}\n\n## Verified Risk Matrix\n\n{matrix.strip()}\n"
+        if business_moat is not None:
+            out["business_commentary"] = business_moat.moat_rationale
+            out["pillar_1_business_moat"] = (
+                f"Primary moat: {business_moat.economic_moat_type} ({business_moat.moat_durability} durability, "
+                f"{business_moat.moat_trajectory} trajectory). {business_moat.moat_rationale}"
+            )
+            summary.append(f"The business strategist classifies the primary moat as {business_moat.economic_moat_type}.")
+        else:
+            out["pillar_1_business_moat"] = "The business and moat analysis is unavailable for this report."
 
+        if financial_audit is not None:
+            latest = financial_audit.multi_year_history[-1]
+            serious = [f for f in financial_audit.forensic_findings if f.severity in ("high", "medium")]
+            out["earnings_quality_commentary"] = financial_audit.auditor_summary
+            out["pillar_2_financial_durability"] = (
+                f"FY{latest.fiscal_year} revenue was ${latest.revenue:,.1f}M with an operating margin of "
+                f"{latest.operating_margin_pct:.2f}% and free cash flow of ${latest.free_cash_flow:,.1f}M; "
+                f"net debt is ${financial_audit.balance_sheet.net_debt:,.1f}M (negative = net cash). "
+                f"{len(serious)} high/medium forensic finding(s) were flagged."
+            ) if latest.operating_margin_pct is not None else financial_audit.auditor_summary
+            out["cash_flow_balance_sheet_commentary"] = (
+                "See Tables D and E for the FCF bridge, capital intensity, dilution, liquidity and returns."
+            )
+            summary.append(f"The audit flagged {len(serious)} high/medium forensic finding(s).")
+        else:
+            out["pillar_2_financial_durability"] = "The financial statement audit is unavailable for this report."
+
+        if forecast is not None:
+            out["forecast_commentary"] = (
+                f"The base case projects a {forecast.revenue_cagr_pct:.1f}% revenue CAGR over "
+                f"{forecast.forecast_horizon_years} years and cumulative UFCF of ${forecast.cumulative_fcf:,.1f}M "
+                f"({forecast.guidance_source.replace('_', ' ')})."
+            )
+
+        if dcf_valuation is not None:
+            v = dcf_valuation
+            out["valuation_commentary"] = v.valuation_summary
+            if v.current_share_price is not None:
+                valuation_line = (
+                    f"The base-case DCF fair value is ${v.implied_fair_value_per_share:,.2f} per share against a "
+                    f"${v.current_share_price:,.2f} share price ({v.upside_downside_pct:+.1f}%, {v.valuation_stance})."
+                )
+            else:
+                valuation_line = (
+                    f"The base-case DCF fair value is ${v.implied_fair_value_per_share:,.2f} per share; no market price "
+                    "was available, so no stance is stated."
+                )
+            out["pillar_3_valuation_asymmetry"] = valuation_line
+            out["bottom_line"] = valuation_line
+            summary.append(valuation_line)
+        else:
+            out["pillar_3_valuation_asymmetry"] = "The DCF valuation is unavailable for this report."
+
+        if risk_audit is not None:
+            threat = risk_audit.primary_existential_threat or "No primary existential threat was identified."
+            out["risk_commentary"] = (
+                f"- Primary existential threat: {threat}\n"
+                f"- Overall risk profile: {risk_audit.overall_risk_profile}.\n"
+                + (
+                    f"- Disclosure baseline: compared against the FY{risk_audit.disclosure_changes.prior_fiscal_year} Item 1A."
+                    if risk_audit.disclosure_changes else "- No prior-year Item 1A baseline was available."
+                )
+            )
+            primary = next((r for r in risk_audit.identified_risks if r.risk_id == risk_audit.primary_threat_risk_id), None)
+            out["bear_case_commentary"] = (
+                f"A bear case should stress the model lines the primary threat ({primary.risk_id}) hits: "
+                f"{', '.join(primary.financial_transmission)}."
+                if primary is not None and primary.financial_transmission else threat
+            )
+            out["disclosure_change_commentary"] = ""
+            summary.append(f"The overall risk profile is {risk_audit.overall_risk_profile}.")
+
+        out["executive_summary"] = " ".join(summary)
+        return out
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
     @staticmethod
-    def _ensure_risk_audit_trail(markdown: str, risk_audit: RiskAuditOutput) -> str:
-        """Renders risk data-quality notes and uncited quantified disclosures the model left out of the audit trail."""
-        dq = risk_audit.data_quality
-        present = _squash(markdown)
-        notes = [n for n in dq.notes if _squash(n) not in present]
-        uncovered = [t for t in dq.quantified_uncovered if _squash(t) not in present]
-        if not notes and not uncovered:
-            return markdown
-
-        block: List[str] = []
-        if notes:
-            block += ["**Risk analysis data-quality notes**", *[f"- {n}" for n in notes], ""]
-        if uncovered:
-            block += ["**Quantified Item 1A disclosures not cited by any verified risk**", *[f'- "{t}"' for t in uncovered], ""]
-
-        lines = markdown.rstrip().split("\n")
-        heading_idx = next(
-            (i for i, l in enumerate(lines) if re.match(r"^#{2,3}\s.*audit\s+(?:trail|breadcrumbs)", l, re.IGNORECASE)),
-            None,
-        )
-        if heading_idx is None:
-            return "\n".join(lines + ["", "## Risk Analysis Audit Trail", "", *block]).rstrip() + "\n"
-        end = next((i for i in range(heading_idx + 1, len(lines)) if re.match(r"^#{1,3}\s", lines[i])), len(lines))
-        while end > heading_idx + 1 and (not lines[end - 1].strip() or lines[end - 1].lstrip().startswith("> *Synthesis")):
-            end -= 1
-        return "\n".join(lines[:end] + ["", *block] + lines[end:])
-
     def _consolidate_citations(
-        self,
         business_moat: Optional[BusinessMoatOutput],
         financial_audit: Optional[FinancialAuditOutput],
         forecast: Optional[ForecastOutput],
         risk_audit: Optional[RiskAuditOutput],
     ) -> List[Dict[str, Any]]:
         """Aggregates and deduplicates citation records across all sub-agents."""
-        deduped = []
+        deduped: List[Dict[str, Any]] = []
         seen = set()
-
-        raw_lists = []
-        if business_moat and business_moat.citations:
-            raw_lists.append(business_moat.citations)
-        if financial_audit and financial_audit.citations:
-            raw_lists.append(financial_audit.citations)
-        if forecast and forecast.citations:
-            raw_lists.append(forecast.citations)
-        if risk_audit and risk_audit.citations:
-            raw_lists.append(risk_audit.citations)
-
-        for lst in raw_lists:
-            for item in lst:
+        for artifact in (business_moat, financial_audit, forecast, risk_audit):
+            for item in (getattr(artifact, "citations", None) or []):
                 if isinstance(item, dict):
-                    cid = item.get("chunk_id") or item.get("breadcrumb") or json.dumps(item)
+                    cid = item.get("chunk_id") or item.get("breadcrumb") or json.dumps(item, sort_keys=True)
                     if cid not in seen:
                         seen.add(cid)
                         deduped.append(item)
-
         return deduped
 
-    def _parse_json_fallback(self, content: str) -> Dict[str, Any]:
-        """Extracts JSON from text content when structured output fails."""
-        clean = content.strip()
-        if clean.startswith("```"):
-            lines = clean.split("\n")
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].startswith("```"):
-                lines = lines[:-1]
-            clean = "\n".join(lines).strip()
-        try:
-            return json.loads(clean)
-        except Exception:
-            return {}
+    @staticmethod
+    def _parse_json_fallback(content: Any) -> Dict[str, Any]:
+        """Extracts a JSON object from text content when structured output fails."""
+        return StructuredAgent.parse_json_content(content)
 
     def run(
         self,
         messages: List[Dict[str, str]],
         session_state: Optional[Dict[str, Any]] = None,
+        callbacks: Optional[List[Any]] = None,
     ) -> AgentOutput:
-        """Executes the lead synthesizer on conversational messages conforming to BaseAgent."""
+        """The synthesizer is driven by the orchestrator with structured payloads; it has no chat mode."""
         last_user_msg = messages[-1].get("content", "") if messages else ""
         return AgentOutput(
-            content=f"LeadSynthesizerAgent: Ready to publish institutional equity research report. "
-                    f"Awaiting structured multi-agent state payloads for: '{last_user_msg[:60]}'.",
+            content=(
+                "LeadSynthesizerAgent publishes reports from structured multi-agent payloads; "
+                f"route research requests through the orchestrator ('{last_user_msg[:60]}')."
+            ),
             sources=[],
         )
+

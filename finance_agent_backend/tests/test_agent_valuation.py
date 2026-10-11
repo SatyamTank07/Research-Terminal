@@ -8,9 +8,11 @@ the single commentary LLM call with its template fallback, and the orchestrator 
 import asyncio
 import unittest
 from datetime import date
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from app.agents.orchestrator import MultiAgentOrchestrator, valuation_specialist_node
+from app.agents.query_parameters import parse_valuation_overrides
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
@@ -186,6 +188,8 @@ class TestValuationNodeWiring(unittest.TestCase):
         state = {
             "ticker": "AAPL", "fiscal_year": 2025, "financial_audit": make_aapl_audit(),
             "forecast": make_forecast_output(), "user_query": query, "callbacks": None, "session_state": {},
+            # The supervisor parses overrides into the routing plan; the node only reads them from there.
+            "routing_plan": SimpleNamespace(valuation_overrides=parse_valuation_overrides(query).values()),
         }
         with patch("app.agents.orchestrator.fetch_market_context", return_value=market_data), \
                 patch("app.agents.orchestrator._balance_sheet_date", return_value=AAPL_BALANCE_SHEET_DATE), \
@@ -223,13 +227,25 @@ class TestValuationNodeWiring(unittest.TestCase):
 class TestBuildValuationEdges(unittest.TestCase):
     def test_low_ronic_is_floored_at_wacc_and_warned(self):
         forecast = make_forecast_output()
-        diag = forecast.diagnostics.model_copy(update={"ronic_pct": 2.0})
+        diag = forecast.diagnostics.model_copy(update={"steady_state_ronic_pct": 2.0})
         build = build_valuation(
             "AAPL", 2025, make_aapl_audit(), forecast.model_copy(update={"diagnostics": diag}), make_market(),
             terminal_growth_rate=0.025, valuation_date=VALUATION_DATE, balance_sheet_date=AAPL_BALANCE_SHEET_DATE,
         )
         self.assertAlmostEqual(build.ronic_used_pct, build.wacc_audit.wacc * 100.0, places=2)
         self.assertIn("clamped", " ".join(build.data_quality.warnings))
+
+
+
+class TestCommentaryTruncation(unittest.TestCase):
+    def test_trailing_fragment_is_trimmed(self):
+        from app.agents.specialized.valuation_specialist.agent_valuation_specialist import trim_to_complete_sentence
+
+        cut = "Fair value is $83.75 per share. The reverse DCF implies 23.0% growth, which is significantly higher than the modeled growth"
+        self.assertEqual(trim_to_complete_sentence(cut), "Fair value is $83.75 per share.")
+        whole = 'The base case is "Overvalued." Margin of safety is -68.1%.'
+        self.assertEqual(trim_to_complete_sentence(whole), whole)
+        self.assertEqual(trim_to_complete_sentence("no sentence end at all"), "no sentence end at all")
 
 
 if __name__ == "__main__":

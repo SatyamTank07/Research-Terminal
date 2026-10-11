@@ -43,15 +43,13 @@ class RoutingPlan(BaseModel):
         default=None,
         description="Direct professional conversational reply generated immediately when query_type == 'conversational'",
     )
-    needs_confirmation: bool = Field(
-        default=False,
-        description="Deprecated: Retained for backward compatibility. Automatic year substitution is used instead.",
+    valuation_overrides: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Range-checked user valuation parameters (wacc, terminal_growth, beta, share_price as decimals / $), "
+        "merged with ones remembered from earlier turns for the same ticker",
     )
-    confirmation_message: Optional[str] = Field(
-        None, description="Deprecated: Retained for backward compatibility."
-    )
-    suggested_fiscal_year: Optional[int] = Field(
-        None, description="Deprecated: Retained for backward compatibility."
+    parameter_notes: List[str] = Field(
+        default_factory=list, description="Why a user-specified parameter was ignored, or where a value was carried from"
     )
     updated_session_state: Optional[Dict[str, Any]] = Field(
         default=None, description="Updated active session state to persist to PostgreSQL conversation record"

@@ -116,11 +116,71 @@ def make_loss_audit() -> FinancialAuditOutput:
     return make_audit("LOSS", rows, balance)
 
 
+def make_heavy_capex_audit() -> FinancialAuditOutput:
+    """Investment step-up: CapEx 9% -> 11% -> 18% of revenue against 9% D&A; margins 6% -> 10% -> 11%."""
+    rows = [
+        dict(fiscal_year=2023, revenue=500000.0, gross_profit=230000.0, operating_income=30000.0,
+             pretax_income=31000.0, income_tax_expense=5000.0, net_income=26000.0,
+             operating_cash_flow=80000.0, capital_expenditures=45000.0),
+        dict(fiscal_year=2024, revenue=560000.0, gross_profit=270000.0, operating_income=56000.0,
+             pretax_income=58000.0, income_tax_expense=9000.0, net_income=49000.0,
+             operating_cash_flow=110000.0, capital_expenditures=61600.0),
+        dict(fiscal_year=2025, revenue=640000.0, gross_profit=320000.0, operating_income=70400.0,
+             pretax_income=74000.0, income_tax_expense=12000.0, net_income=62000.0,
+             operating_cash_flow=130000.0, capital_expenditures=115200.0, depreciation_amortization=57600.0),
+    ]
+    balance = dict(fiscal_year=2025, cash_and_equivalents=90000.0, marketable_securities=40000.0,
+                   short_term_debt=10000.0, long_term_debt=60000.0, stockholders_equity=380000.0,
+                   weighted_diluted_shares=10800.0, current_assets=200000.0, current_liabilities=190000.0)
+    return make_audit("HCX", rows, balance)
+
+
+def make_shrinking_audit() -> FinancialAuditOutput:
+    """Declining revenue (-8% a year) with a thin, falling margin and net debt."""
+    rows = [
+        dict(fiscal_year=2023, revenue=10000.0, gross_profit=3000.0, operating_income=800.0,
+             pretax_income=700.0, income_tax_expense=150.0, net_income=550.0,
+             operating_cash_flow=900.0, capital_expenditures=400.0),
+        dict(fiscal_year=2024, revenue=9200.0, gross_profit=2700.0, operating_income=600.0,
+             pretax_income=500.0, income_tax_expense=105.0, net_income=395.0,
+             operating_cash_flow=750.0, capital_expenditures=350.0),
+        dict(fiscal_year=2025, revenue=8464.0, gross_profit=2400.0, operating_income=420.0,
+             pretax_income=320.0, income_tax_expense=67.0, net_income=253.0,
+             operating_cash_flow=600.0, capital_expenditures=300.0, depreciation_amortization=380.0),
+    ]
+    balance = dict(fiscal_year=2025, cash_and_equivalents=300.0, marketable_securities=0.0,
+                   short_term_debt=500.0, long_term_debt=2500.0, stockholders_equity=2000.0,
+                   weighted_diluted_shares=100.0, current_assets=2500.0, current_liabilities=2000.0)
+    return make_audit("SHRK", rows, balance)
+
+
 GUIDANCE_CHUNK = (
     "We expect capital expenditures of approximately $14 billion in fiscal 2026, primarily for data centers. "
     "We anticipate Services revenue will continue to grow faster than Products revenue."
 )
 HISTORY_CHUNK = "Net sales increased 6% in 2025 driven by iPhone and Services. Gross margin was 46.9% of net sales."
+# Verbatim from AMZN's FY2025 10-K "Guidance" section: safe-harbor hedging, then single-quarter guidance and an
+# FX-impact note. None of it is annual operating guidance.
+AMZN_SAFE_HARBOR_SENTENCE = (
+    "Our results are inherently unpredictable and may be materially affected by many factors, such as fluctuations "
+    "in foreign exchange rates and energy prices, changes in global economic and geopolitical conditions, tariff and "
+    "trade policies, resource and supply volatility, including for memory chips, and customer demand and spending "
+    "(including the impact of recessionary fears), inflation, interest rates, regional labor market constraints, "
+    "world events, the rate of growth of the internet, online commerce, cloud services, and new and emerging "
+    "technologies, as well as those outlined in Item 1A of Part I, “Risk Factors.”"
+)
+AMZN_FX_SENTENCE = "This guidance anticipates a favorable impact of approximately 180 basis points from foreign exchange rates."
+AMZN_GUIDANCE_CHUNK = (
+    "Guidance\n\nWe provided guidance on February 5, 2026, in our earnings release furnished on Form 8-K as set forth "
+    "below. These forward-looking statements reflect Amazon.com’s expectations as of February 5, 2026, and are "
+    "subject to substantial uncertainty. " + AMZN_SAFE_HARBOR_SENTENCE + "\n\nFirst Quarter 2026 Guidance\n\n"
+    "• Net sales are expected to be between $173.5 billion and $178.5 billion, or to grow between 11% and 15% "
+    "compared with first quarter 2025. " + AMZN_FX_SENTENCE
+)
+MARGIN_OUTLOOK_CHUNK = (
+    "We expect operating margins to decline in 2026 as depreciation from our data center build-out rises. "
+    "We anticipate pricing pressure in our retail segment."
+)
 BOILERPLATE_CHUNK = (
     "This report contains forward-looking statements within the meaning of the Private Securities Litigation "
     "Reform Act of 1995. Actual results could differ materially from those anticipated."
@@ -134,9 +194,11 @@ def make_chunk(chunk_id: str, content: str, item: str = "Item 7") -> NarrativeCh
     )
 
 
-def make_forecast_output(ticker: str = "AAPL", fiscal_year: int = 2025) -> ForecastOutput:
+def make_forecast_output(
+    ticker: str = "AAPL", fiscal_year: int = 2025, audit: Optional[FinancialAuditOutput] = None
+) -> ForecastOutput:
     """Deterministic forecast (historical fade) that never goes through ForecastingAnalystAgent.forecast."""
-    baseline = build_forecast_baseline(make_aapl_audit())
+    baseline = build_forecast_baseline(audit or make_aapl_audit())
     drivers = historical_fade_drivers(baseline, DEFAULT_TERMINAL_GROWTH)
     mdna = MdnaAssessment()
     return build_forecast_output(

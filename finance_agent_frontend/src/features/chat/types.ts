@@ -72,4 +72,6 @@ export type StreamingChatEvent =
   | {
       type: 'error'
       message: string
+      conversation_id?: string
+      message_id?: string
     }

@@ -869,6 +869,33 @@ class TestInstitutionalQualityOfEarnings(unittest.TestCase):
         self.assertEqual([a["label"] for a in fy25["adjustments"]], ["Restructuring and other"])
         self.assertEqual(fy25["normalized_operating_income"], 4849.0)
 
+    def test_07d_recurring_tax_provision_is_rejected_discrete_tax_events_pass(self):
+        # Live AMZN run: the LLM "normalized" the full tax provision of every year as a tax benefit.
+        audit = run_audit_from_inputs(_tsla_fy2025_inputs(), [
+            {"fiscal_year": 2025, "label": "Income Tax Normalization", "amount": 1423.0,
+             "direction": "inflated_reported_earnings", "affects": "net_income",
+             "rationale": "Income tax benefit presented as positive; normalized to expense-positive."},
+            {"fiscal_year": 2024, "label": "Effective tax rate normalization", "amount": 500.0,
+             "direction": "depressed_reported_earnings", "affects": "net_income"},
+            {"fiscal_year": 2024, "label": "Discrete item", "amount": 1837.0,  # equals the FY2024 provision
+             "direction": "inflated_reported_earnings", "affects": "net_income"},
+            {"fiscal_year": 2023, "label": "Income tax benefit", "amount": 5927.0,
+             "direction": "inflated_reported_earnings", "affects": "net_income",
+             "rationale": "Release of the valuation allowance on U.S. federal deferred tax assets."},
+        ])
+        rejected = audit["rejected_normalization_adjustments"]
+        self.assertEqual(
+            sorted(r["label"] for r in rejected),
+            ["Discrete item", "Effective tax rate normalization", "Income Tax Normalization"],
+        )
+        self.assertIn("full income tax provision", next(r for r in rejected if r["label"] == "Discrete item")["rejection"])
+        fy23, fy24, fy25 = audit["earnings_quality"]
+        self.assertEqual([a["label"] for a in fy23["adjustments"]], ["Income tax benefit"])
+        self.assertEqual(fy23["normalized_net_income"], 14997.0 - 5927.0)
+        self.assertEqual(fy24["adjustments"], [])
+        self.assertEqual(fy25["adjustments"], [])
+        self.assertEqual(fy25["normalized_net_income"], 3794.0)
+
     def test_08_share_count_and_prior_balance_sheet_guards(self):
         with self.assertRaises(ValueError):
             BalanceSheetInput(fiscal_year=2025, cash_and_equivalents=1.0, stockholders_equity=1.0)

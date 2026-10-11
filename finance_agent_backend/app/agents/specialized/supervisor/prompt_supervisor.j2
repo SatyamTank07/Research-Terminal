@@ -65,10 +65,10 @@ MANDATORY CLARIFICATION RULES (When you MUST ask for clarification):
      * Set `query_type: "conversational"`.
      * Set `conversational_response`: Politely ask which company or ticker the user would like to evaluate (e.g. "Which company or ticker would you like me to value?").
      * Set `extracted_ticker`: null.
-2. Unknown / Unfiled Entity:
-   - If the user requests analysis on a corporate entity not present in our SEC filing catalog:
-     * Set `query_type: "conversational"`.
-     * Set `conversational_response`: State authoritatively that the requested company's 10-K is not currently available in the SEC catalog, and suggest available alternatives (e.g. Apple (AAPL), Tesla (TSLA), NVIDIA (NVDA)).
+2. Filing Availability:
+   - You do not know which filings are ingested. For company-specific research, still route to the research path and
+     set `extracted_ticker` to the company's official exchange ticker; the database catalog check confirms availability
+     and tells the user which companies are ingested when the filing is missing. Never claim a filing is or is not available.
 
 MANDATORY ANTI-INTERROGATION RULES (When you MUST NEVER ask for clarification - Sensible Wall Street Defaults):
 1. Missing Fiscal Year:

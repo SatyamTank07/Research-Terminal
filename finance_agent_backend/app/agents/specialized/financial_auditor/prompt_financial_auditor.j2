@@ -30,6 +30,9 @@ The task message states the EXTRACTION MODE:
    - Only DISCRETE, separately disclosed line items qualify. NEVER normalize aggregate subtotals such as total
      non-operating income, interest income, or "other income, net" — non-operating dependence is already measured
      deterministically (NON_CORE_INCOME_DEPENDENCE). Never normalize recurring operating costs (R&D, SG&A, SBC).
+   - Never normalize the income tax provision itself or restate it to a "normal" rate: it is a recurring expense, even
+     when the filing presents it as a negative number. Only a discrete, separately disclosed tax event qualifies
+     (valuation-allowance release, deferred-tax remeasurement, tax settlement, tax-law change) — name it in `label`.
    Only use amounts that appear in the filing; cite the chunk.
 3. If you have corrections or adjustments, call `refine_financial_audit_tool` EXACTLY ONCE with all of them. Otherwise do not call it.
    The engine screens every adjustment; anything listed in `rejected_normalization_adjustments` or `rejected_corrections` was NOT applied — never describe it as applied.

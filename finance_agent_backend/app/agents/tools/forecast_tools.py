@@ -137,7 +137,7 @@ def _render_forecast_table(
     return "\n".join(rows)
 
 
-def calculate_forecast_schedule(
+def project_forecast_years(
     base_revenue: float,
     base_year: int,
     revenue_growth_rates: List[float],
@@ -147,9 +147,11 @@ def calculate_forecast_schedule(
     depreciation_pct_of_revenue: Ratio,
     nwc_change_pct_of_revenue: Ratio = 0.0,
     sbc_pct_of_revenue: Ratio = 0.0,
-    historical_rows: Optional[List[HistoricalRow]] = None,
-) -> Dict[str, Any]:
-    """Projects the explicit-horizon schedule. All ratios are decimals; dNWC is a share of incremental revenue."""
+) -> List[ForecastYearResult]:
+    """Validated per-year projection without the table or logging (used directly by the reverse DCF).
+
+    All ratios are decimals; dNWC is a share of incremental revenue. Raises ValueError on invalid inputs.
+    """
     base_rev = _finite(base_revenue, "base_revenue")
     if base_rev <= 0.0:
         raise ValueError(f"'base_revenue' must be strictly positive, got: {base_rev}")
@@ -194,14 +196,39 @@ def calculate_forecast_schedule(
             projected_unlevered_fcf=round(ufcf, 2),
         ))
         prev_rev = rev
+    return schedule
 
+
+def calculate_forecast_schedule(
+    base_revenue: float,
+    base_year: int,
+    revenue_growth_rates: List[float],
+    operating_margins: List[float],
+    tax_rate: float,
+    capex_pct_of_revenue: Ratio,
+    depreciation_pct_of_revenue: Ratio,
+    nwc_change_pct_of_revenue: Ratio = 0.0,
+    sbc_pct_of_revenue: Ratio = 0.0,
+    historical_rows: Optional[List[HistoricalRow]] = None,
+) -> Dict[str, Any]:
+    """Projects the explicit-horizon schedule. All ratios are decimals; dNWC is a share of incremental revenue."""
+    schedule = project_forecast_years(
+        base_revenue, base_year, revenue_growth_rates, operating_margins, tax_rate, capex_pct_of_revenue,
+        depreciation_pct_of_revenue, nwc_change_pct_of_revenue, sbc_pct_of_revenue,
+    )
+    base_rev = float(base_revenue)
+    tax = float(tax_rate)
+    horizon = len(schedule)
+    final_rev = base_rev
+    for g in revenue_growth_rates:
+        final_rev *= 1.0 + float(g)
     projected_fcfs = [s.projected_unlevered_fcf for s in schedule]
     cumulative = sum(projected_fcfs)
     result = ForecastScheduleResult(
         base_revenue=round(base_rev, 2),
         base_year=base_year,
         forecast_horizon_years=horizon,
-        revenue_cagr_pct=round((math.pow(prev_rev / base_rev, 1.0 / horizon) - 1.0) * 100.0, 2),
+        revenue_cagr_pct=round((math.pow(final_rev / base_rev, 1.0 / horizon) - 1.0) * 100.0, 2),
         cumulative_fcf=round(cumulative, 2),
         average_annual_fcf=round(cumulative / horizon, 2),
         tax_rate_pct=round(tax * 100.0, 2),

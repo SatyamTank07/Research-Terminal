@@ -60,7 +60,7 @@ class TestFinancialAuditRendering(unittest.TestCase):
             "| HIGH | TAX_ANOMALY | 2023 |",
             "Completeness: 100%",
             "accounting identity checks passed",
-            "# Financial Statement Audit & Quality of Earnings: Tesla, Inc. (TSLA)",
+            "`earnings_quality_commentary`",
             "| Total revenues | 94,827 | 97,690 | 96,773 |",
         ]:
             self.assertIn(marker, prompt)
@@ -68,7 +68,7 @@ class TestFinancialAuditRendering(unittest.TestCase):
         self.assertIn("| Revenue | 96,773.0 | 97,690.0 | 94,827.0 |\n| Revenue growth % |", prompt)
         self.assertNotIn("forensic_red_flags", prompt)
 
-    def test_02_financial_audit_instruction(self):
+    def test_02_financial_audit_instruction_and_report_layout(self):
         instruction = render_prompt(
             "prompt_synthesizer_instruction.j2",
             ticker="TSLA",
@@ -76,8 +76,16 @@ class TestFinancialAuditRendering(unittest.TestCase):
             fiscal_year=2025,
             query_type="financial_audit_only",
         )
-        self.assertIn("# Financial Statement Audit & Quality of Earnings: Tesla, Inc. (TSLA)", instruction)
-        self.assertIn("VERIFIED TABLES A–F", instruction)
+        self.assertIn("route `financial_audit_only`", instruction)
+
+        report = render_prompt(
+            "report_layout.j2",
+            ticker="TSLA", company_name="Tesla, Inc.", fiscal_year=2025, query_type="financial_audit_only",
+            financial_audit=_tsla_audit_output(), p={}, notes=[], provenance="template_default", removed_sentences=0,
+        )
+        self.assertIn("# Financial Statement Audit & Quality of Earnings: Tesla, Inc. (TSLA)", report)
+        self.assertIn("| Revenue | 96,773.0 | 97,690.0 | 94,827.0 |\n| Revenue growth % |", report)
+        self.assertIn("| Total revenues | 94,827 | 97,690 | 96,773 |", report)
 
     def test_03_ingestion_parser_collapses_split_cells(self):
         html = """

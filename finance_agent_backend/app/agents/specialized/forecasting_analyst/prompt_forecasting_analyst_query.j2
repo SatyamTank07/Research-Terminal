@@ -9,7 +9,8 @@ Baseline built by code:
 - Latest revenue growth: {{ pct(baseline.latest_revenue_growth) }} | {{ baseline.history_years }}-year revenue CAGR: {{ pct(baseline.historical_cagr) }}
 - Base operating margin ({{ baseline.margin_source }}): {{ pct(baseline.base_operating_margin) }}
 - Tax rate ({{ baseline.tax_source }}): {{ pct(baseline.tax_rate) }}
-- CapEx: {{ pct(baseline.capex_pct_of_revenue) }} of revenue ({{ baseline.capex_years }}-year average) | D&A: {{ pct(baseline.da_pct_of_revenue) }} of revenue ({{ baseline.da_source }})
+- Audited margin trend: {{ baseline.margin_trend }}{% if baseline.historical_average_margin is not none %} (audited average {{ pct(baseline.historical_average_margin) }}){% endif %} | Margin range allowed without a margin citation: {{ pct(margin_corridor[0]) }} to {{ pct(margin_corridor[1]) }}
+- CapEx: {{ pct(baseline.capex_pct_of_revenue) }} of revenue in year 1 (recency-weighted {{ baseline.capex_years }}-year; latest {{ pct(baseline.latest_capex_pct_of_revenue) }}), faded by code to a terminal-consistent steady state | D&A: {{ pct(baseline.da_pct_of_revenue) }} of revenue ({{ baseline.da_source }})
 - Working capital: {{ pct(baseline.nwc_pct_of_incremental_revenue) }} of incremental revenue ({{ baseline.nwc_source }}) | SBC: {{ pct(baseline.sbc_pct_of_revenue) }} of revenue ({{ baseline.sbc_source }})
 - Terminal growth used by the valuation: {{ pct(terminal_growth) }}
 {% if moat %}

@@ -7,6 +7,7 @@ institutional commentary; if it fails, a deterministic template is used instead.
 """
 
 import logging
+import re
 from datetime import date
 from typing import Any, List, Optional
 
@@ -21,8 +22,18 @@ from app.agents.tools.valuation_model import MarketInputs, ValuationBuild, build
 
 logger = logging.getLogger("finance_agent.agents.valuation_specialist")
 
-COMMENTARY_MAX_TOKENS = 450
+COMMENTARY_MAX_TOKENS = 650
 MIN_COMMENTARY_CHARS = 200
+_SENTENCE_END = re.compile(r"[.!?][\"')\]]*(?=\s|$)")
+
+
+def trim_to_complete_sentence(text: str) -> str:
+    """Drops a trailing fragment left when the completion hit its token cap mid-sentence."""
+    text = text.strip()
+    ends = list(_SENTENCE_END.finditer(text))
+    if not ends or ends[-1].end() == len(text):
+        return text
+    return text[: ends[-1].end()].rstrip()
 
 
 @AgentRegistry.register("valuation_specialist")
@@ -63,7 +74,8 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
         try:
             summary = self._run_commentary_llm(
                 render_prompt("prompt_valuation_query.j2", v=build), callbacks
-            ).strip()
+            )
+            summary = trim_to_complete_sentence(summary or "")
             if len(summary) >= MIN_COMMENTARY_CHARS:
                 source = "llm"
             else:
@@ -106,16 +118,17 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
             f"ERP {w.equity_risk_premium_pct:.2f}%) and after-tax cost of debt is {w.cost_of_debt_after_tax_pct:.2f}% "
             f"at a {w.debt_weight_pct:.1f}% debt weight.",
         ]
+        grids = "WACC x growth and WACC x RONIC grids" if v.ronic_sensitivity_matrix_markdown else "WACC x growth grid"
         if v.bear_fair_value is not None and v.bull_fair_value is not None:
             paragraphs.append(
                 f"Range: bear ${v.bear_fair_value:.2f}, base ${v.implied_fair_value_per_share:.2f}, "
                 f"bull ${v.bull_fair_value:.2f}; probability-weighted ${v.probability_weighted_fair_value:.2f}. "
-                f"The WACC x growth sensitivity grid brackets the base case."
+                f"The {grids} bracket the base case."
             )
         if v.current_share_price is not None:
             paragraphs.append(
                 f"Margin of safety: against a ${v.current_share_price:.2f} share price the base case implies "
-                f"{v.upside_downside_pct:+.1f}% ({v.valuation_stance})."
+                f"{v.upside_downside_pct:+.1f}% ({v.valuation_stance}). Reverse DCF: {v.reverse_dcf_summary}"
             )
         else:
             paragraphs.append("Margin of safety: no market price was available, so no upside or stance is stated.")
