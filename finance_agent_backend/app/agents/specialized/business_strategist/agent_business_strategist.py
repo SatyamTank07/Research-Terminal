@@ -44,7 +44,12 @@ from app.agents.tools.business_disclosure_tools import (
     render_revenue_mix_markdown,
     render_segment_table_markdown,
 )
-from app.agents.tools.claim_relevance import moat_quote_supports, pricing_claim_supported, threat_quote_supports
+from app.agents.tools.claim_relevance import (
+    moat_quote_supports,
+    pricing_claim_supported,
+    segment_quote_mentions,
+    threat_quote_supports,
+)
 from app.agents.tools.rag_narrative_tools import NarrativeChunkResult, retrieve_10k_narrative
 from app.agents.tools.risk_disclosure_tools import (
     build_section_context,
@@ -390,7 +395,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         dq: StrategistDataQuality,
         claim: str,
         subject: Optional[str],
-        supports: Optional[Callable[[str], bool]] = None,
+        supports: Optional[Callable[[str, str], bool]] = None,
     ) -> List[StrategyEvidence]:
         """Verifies up to MAX_EVIDENCE_PER_CLAIM quotes: the claimed chunk (near-verbatim), else any chunk (exact).
 
@@ -417,7 +422,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             if hit is None:
                 dq.quotes_rejected += 1
                 continue
-            if supports is not None and not supports(quote):
+            if supports is not None and not supports(quote, hit.get("content") or ""):
                 dq.quotes_off_topic += 1
                 continue
             key = (hit["chunk_id"], normalize_text(quote))
@@ -478,7 +483,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         if p_type and p_type != "None":
             dq.claims_proposed += 1
         p_evidence = (
-            self._verify(primary.get("evidence"), pool, dq, "primary_moat", p_type, lambda q: moat_quote_supports(p_type, q))
+            self._verify(primary.get("evidence"), pool, dq, "primary_moat", p_type, lambda q, _c: moat_quote_supports(p_type, q))
             if p_type and p_type != "None" else []
         )
 
@@ -492,7 +497,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
                 continue
             dq.claims_proposed += 1
             s_evidence = self._verify(
-                item.get("evidence"), pool, dq, "secondary_moat", s_type, lambda q, t=s_type: moat_quote_supports(t, q)
+                item.get("evidence"), pool, dq, "secondary_moat", s_type, lambda q, _c, t=s_type: moat_quote_supports(t, q)
             )
             if not s_evidence:
                 dq.claims_dropped += 1
@@ -593,11 +598,15 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             if name_key(canonical) in seen:
                 continue
             seg_evidence = self._verify(
-                item.get("evidence"), pool, dq, "segment_moat", canonical, lambda q, t=m_type: moat_quote_supports(t, q)
+                item.get("evidence"), pool, dq, "segment_moat", canonical,
+                # The segment must be named in the quote or in the chunk it came from.
+                lambda q, c, t=m_type, n=canonical: moat_quote_supports(t, q) and segment_quote_mentions(n, f"{q} {c}"),
             )
             if not seg_evidence:
                 dq.claims_dropped += 1
-                dq.notes.append(f"Segment moat for '{canonical}' dropped: no verified filing quote evidencing {m_type}.")
+                dq.notes.append(
+                    f"Segment moat for '{canonical}' dropped: no verified quote naming the segment and evidencing {m_type}."
+                )
                 continue
             seen.add(name_key(canonical))
             evidence.extend(seg_evidence)
@@ -631,7 +640,8 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             if not threat:
                 continue
             dq.claims_proposed += 1
-            t_evidence = self._verify(item.get("evidence"), pool, dq, "competitive_threat", threat, threat_quote_supports)
+            t_evidence = self._verify(item.get("evidence"), pool, dq, "competitive_threat", threat,
+                                      lambda q, _c: threat_quote_supports(q))
             if not t_evidence or len(kept) >= MAX_THREATS:
                 dq.claims_dropped += 1
                 continue
