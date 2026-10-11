@@ -1,5 +1,6 @@
 import React from 'react'
 import { Button } from '@/shared/ui/button'
+import type { BackendStatus } from '@/shared/types/common'
 import type { UserProfile } from '@/shared/types/user'
 import {
   TrendingUp,
@@ -13,6 +14,13 @@ interface HeaderProps {
   onToggleSidebar?: () => void
   isSidebarOpen?: boolean
   documentsCount?: number
+  backendStatus?: BackendStatus
+}
+
+const STATUS_STYLE: Record<BackendStatus, { label: string; dot: string; text: string }> = {
+  online: { label: 'ONLINE', dot: 'bg-pos shadow-[0_0_6px_var(--color-pos)]', text: 'text-pos' },
+  offline: { label: 'OFFLINE', dot: 'bg-neg', text: 'text-neg' },
+  checking: { label: 'CONNECTING', dot: 'bg-acc animate-pulse', text: 'text-acc' },
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -20,63 +28,78 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleSidebar,
   isSidebarOpen,
   documentsCount,
+  backendStatus,
 }) => {
+  const status = backendStatus ? STATUS_STYLE[backendStatus] : null
+
   return (
-    <header className="w-full border-b border-slate-800/80 bg-[#070a12]/90 backdrop-blur-md px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 sticky top-0 z-30">
+    <header className="@container w-full h-12 shrink-0 border-b border-line border-t-2 border-t-acc bg-surface px-4 sm:px-5 flex items-center justify-between gap-3 sticky top-0 z-30">
       {/* Brand & Expand Toggle (only shown when sidebar is collapsed) */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5 min-w-0">
         {!isSidebarOpen && onToggleSidebar && (
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggleSidebar}
-            className="h-8 w-8 p-0 text-slate-400 hover:text-white hover:bg-slate-800/60 cursor-pointer"
+            className="h-8 w-8 p-0"
             title="Open research dossiers"
           >
             <PanelLeft className="w-4 h-4" />
           </Button>
         )}
 
-        <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shadow-sm shadow-sky-500/10">
-          <TrendingUp className="w-4 h-4 stroke-[2.2]" />
+        <div className="w-7 h-7 rounded-xs bg-acc text-black flex items-center justify-center shrink-0">
+          <TrendingUp className="w-4 h-4 stroke-[2.4]" />
         </div>
-        <div>
-          <h1 className="text-sm sm:text-base font-semibold tracking-tight text-white">
-            Research Terminal
+        <div className="min-w-0">
+          <h1 className="font-mono text-[13px] font-semibold tracking-[0.12em] text-fg-strong leading-tight whitespace-nowrap">
+            RESEARCH TERMINAL
           </h1>
-          <p className="text-[11px] text-slate-400 hidden sm:block">
-            Institutional Fundamental Intelligence & Market Coverage
+          <p className="text-[11px] text-faint hidden @2xl:block leading-tight whitespace-nowrap">
+            Institutional fundamental intelligence
           </p>
         </div>
       </div>
 
-      {/* Right Controls: Indexed Filings Badge + Analyst Profile */}
-      <div className="flex items-center gap-2.5">
+      {/* Right Controls: backend status, indexed filings, analyst profile */}
+      <div className="flex items-center gap-2 font-mono text-[11px] whitespace-nowrap shrink-0">
+        {status && (
+          <div
+            className={`hidden @xl:flex items-center gap-1.5 h-[26px] px-2 rounded-xs border border-line-strong ${status.text}`}
+            title="FastAPI backend status"
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+            {status.label}
+          </div>
+        )}
+
         {documentsCount !== undefined && documentsCount > 0 && (
           <div
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-950/30 border border-emerald-800/60 text-xs text-emerald-300 shadow-xs"
+            className="hidden @lg:flex items-center gap-1.5 h-[26px] px-2 rounded-xs bg-pos-bg border border-pos-dim text-pos"
             title={`${documentsCount} SEC 10-K/10-Q filings active in pgvector database`}
           >
-            <FileText className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="font-semibold">{documentsCount} Filing{documentsCount > 1 ? 's' : ''} Ready</span>
+            <FileText className="w-3 h-3" />
+            <span className="font-semibold">
+              {documentsCount} FILING{documentsCount > 1 ? 'S' : ''} READY
+            </span>
           </div>
         )}
 
         {user ? (
           <div
             title={`Analyst: ${user.full_name || user.username} (${user.email || 'Authorized'})`}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-xs text-slate-300"
+            className="flex items-center gap-1.5 h-[26px] px-2 rounded-xs border border-line-strong text-dim"
           >
-            <div className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-semibold">
+            <div className="w-4 h-4 rounded-xs bg-acc-bg text-acc flex items-center justify-center text-[10px] font-semibold">
               {(user.username || 'A')[0].toUpperCase()}
             </div>
-            <span className="font-medium text-slate-200">{user.full_name || user.username}</span>
-            <span className="text-[10px] text-slate-500 hidden md:inline">• Analyst</span>
+            <span className="text-fg hidden @md:inline">{user.full_name || user.username}</span>
+            <span className="text-faint hidden @3xl:inline">· ANALYST</span>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-xs text-slate-300">
-            <User className="w-3.5 h-3.5 text-slate-400" />
-            <span className="font-medium text-slate-300">Senior Research Analyst</span>
+          <div className="flex items-center gap-1.5 h-[26px] px-2 rounded-xs border border-line-strong text-dim">
+            <User className="w-3.5 h-3.5" />
+            <span>ANALYST</span>
           </div>
         )}
       </div>

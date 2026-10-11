@@ -1,53 +1,57 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
+/*
+ * Terminal Pro design tokens (reference: docs/ui-mockups/03-full-app.html, TOKENS view).
+ * Each --color-* token becomes a Tailwind utility: bg-canvas, text-acc, border-line, ...
+ * Orange is an accent only; green/red mean gain/loss and nothing else.
+ */
+@theme {
+  --color-canvas: #0a0a0a;       /* app background */
+  --color-surface: #0f0f0f;      /* sidebar, header, side panels */
+  --color-panel: #121212;        /* cards, message bodies */
+  --color-raised: #1a1a1a;       /* hover, user message, inputs */
+  --color-line: #262626;         /* hairline borders */
+  --color-line-strong: #333333;
+  --color-fg: #d6d6d6;           /* body text */
+  --color-fg-strong: #ffffff;
+  --color-dim: #8a8a8a;          /* secondary text */
+  --color-faint: #5c5c5c;        /* meta text, placeholders */
 
-    --card: 224 45% 9%;
-    --card-foreground: 210 40% 98%;
+  --color-acc: #fb8b1e;          /* Bloomberg orange */
+  --color-acc-hover: #ffa040;
+  --color-acc-dim: #7a4310;      /* accent borders */
+  --color-acc-bg: #2a1806;       /* accent tint fills */
 
-    --popover: 224 45% 9%;
-    --popover-foreground: 210 40% 98%;
+  --color-pos: #3ddc84;
+  --color-pos-dim: #1f5a35;
+  --color-pos-bg: #0d2618;
+  --color-neg: #ff4d6d;
+  --color-neg-dim: #6b1f2e;
+  --color-neg-bg: #2a0d14;
 
-    --primary: 199 89% 60%;
-    --primary-foreground: 224 71% 4%;
-
-    --secondary: 224 35% 15%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 224 25% 14%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 158 64% 52%;
-    --accent-foreground: 224 71% 4%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 199 89% 60%;
-
-    --radius: 0.5rem;
-  }
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 * {
   box-sizing: border-box;
-  border-color: hsl(var(--border));
+  border-color: var(--color-line);
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #070a12;
-  color: hsl(var(--foreground));
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--color-canvas);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+}
+
+::selection {
+  background-color: var(--color-acc-bg);
+  color: var(--color-acc);
 }
 
 /* Tabular figures for financial data */
@@ -55,23 +59,22 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Custom terminal scrollbar */
+/* Terminal scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 9999px;
+  background: #2a2a2a;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #3a3a3a;
 }
 
 ::highlight(cite-quote) {
-  background-color: rgb(250 204 21 / 0.35);
+  background-color: rgb(251 139 30 / 0.3);
   color: #fff;
 }

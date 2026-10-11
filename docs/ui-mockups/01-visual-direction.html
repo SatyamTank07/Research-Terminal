@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visual Direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+  :root { --page:#e9ebef; --ink:#1d2330; --muted:#5b6475; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--page); color:var(--ink); font-family:Inter, system-ui, sans-serif; padding:28px 16px 48px; }
+  header.intro { max-width:1440px; margin:0 auto 22px; }
+  header.intro h1 { font-size:20px; font-weight:700; }
+  header.intro p { color:var(--muted); font-size:14px; margin-top:6px; max-width:820px; line-height:1.5; }
+  .grid { max-width:1440px; margin:0 auto; display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:20px; }
+  @media (max-width:1200px){ .grid{ grid-template-columns:1fr; max-width:560px; } }
+  .label { font-size:13px; font-weight:700; margin-bottom:8px; display:flex; gap:8px; align-items:baseline; }
+  .label span { font-weight:400; color:var(--muted); }
+  .frame { border-radius:10px; overflow:hidden; box-shadow:0 8px 28px rgba(15,20,35,.18); }
+  .notes { font-size:13px; color:var(--muted); margin-top:10px; line-height:1.55; }
+  .notes b { color:var(--ink); }
+
+  /* shared mock structure */
+  .app { display:grid; grid-template-columns:52px 1fr; min-height:620px; }
+  .rail { display:flex; flex-direction:column; align-items:center; gap:14px; padding:14px 0; }
+  .rail i { width:22px; height:22px; border-radius:6px; display:block; }
+  .main { display:flex; flex-direction:column; min-width:0; }
+  .ctx { display:flex; align-items:center; gap:12px; padding:10px 16px; font-size:12px; }
+  .ctx .tk { font-weight:700; font-size:14px; }
+  .ctx .sp { flex:1; }
+  .body { padding:16px; display:flex; flex-direction:column; gap:14px; }
+  .q { align-self:flex-end; max-width:80%; padding:8px 12px; font-size:13px; }
+  .pipe { display:flex; flex-wrap:wrap; gap:6px; font-size:11px; }
+  .pipe span { padding:3px 8px; }
+  .hero { padding:16px; display:grid; grid-template-columns:1fr auto; gap:6px 16px; }
+  .hero .k { font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
+  .hero .fv { font-size:30px; font-weight:600; line-height:1.1; }
+  .hero .sub { font-size:12px; }
+  .stance { align-self:start; padding:4px 10px; font-size:12px; font-weight:600; }
+  .metrics { grid-column:1 / -1; display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px; }
+  .metrics div { padding:8px; }
+  .metrics small { display:block; font-size:10px; text-transform:uppercase; letter-spacing:.05em; }
+  .metrics b { font-size:14px; font-weight:600; }
+  h4.sec { font-size:13px; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th, td { padding:7px 8px; text-align:right; }
+  th:first-child, td:first-child { text-align:left; }
+  .prose { font-size:13px; line-height:1.6; }
+  sup.c { font-size:10px; padding:0 4px; margin-left:2px; border-radius:3px; cursor:pointer; }
+
+  /* ---------- A: Terminal Pro ---------- */
+  .A { background:#0a0a0a; color:#d6d6d6; font-family:"IBM Plex Sans", sans-serif; }
+  .A .rail { background:#000; border-right:1px solid #262626; }
+  .A .rail i { background:#262626; } .A .rail i:first-child { background:#ff9f1c; }
+  .A .ctx { background:#121212; border-bottom:1px solid #262626; font-family:"IBM Plex Mono", monospace; }
+  .A .ctx .tk { color:#ff9f1c; } .A .ctx .px { color:#fff; } .A .ctx .up { color:#3ddc84; }
+  .A .q { background:#1a1a1a; border:1px solid #333; border-radius:2px; }
+  .A .pipe span { font-family:"IBM Plex Mono", monospace; border:1px solid #333; border-radius:2px; color:#9a9a9a; }
+  .A .pipe .done { color:#3ddc84; border-color:#1f5a35; } .A .pipe .run { color:#ff9f1c; border-color:#7a4d0e; }
+  .A .hero { background:#111; border:1px solid #2a2a2a; border-radius:2px; }
+  .A .hero .k { color:#8a8a8a; font-family:"IBM Plex Mono", monospace; }
+  .A .hero .fv, .A .metrics b, .A td { font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; }
+  .A .hero .fv { color:#fff; } .A .hero .sub { color:#9a9a9a; }
+  .A .stance { background:#2b2108; color:#ffb547; border:1px solid #7a4d0e; border-radius:2px; }
+  .A .metrics div { background:#0a0a0a; border:1px solid #222; } .A .metrics small { color:#777; }
+  .A h4.sec { color:#ff9f1c; font-family:"IBM Plex Mono", monospace; text-transform:uppercase; letter-spacing:.08em; font-size:11px; }
+  .A th { color:#777; font-weight:500; border-bottom:1px solid #333; font-family:"IBM Plex Mono", monospace; font-size:11px; }
+  .A td { border-bottom:1px solid #1c1c1c; } .A tr.base td { color:#fff; background:#161616; }
+  .A .neg { color:#ff5c5c; } .A .pos { color:#3ddc84; }
+  .A .prose { color:#bdbdbd; } .A sup.c { background:#2b2108; color:#ff9f1c; }
+
+  /* ---------- B: Modern Analyst ---------- */
+  .B { background:#0b1120; color:#cbd5e1; font-family:Inter, sans-serif; }
+  .B .rail { background:#080d19; border-right:1px solid #1b2436; }
+  .B .rail i { background:#1b2436; border-radius:8px; } .B .rail i:first-child { background:#38bdf8; }
+  .B .ctx { background:#0f172a; border-bottom:1px solid #1e293b; }
+  .B .ctx .tk { color:#f1f5f9; } .B .ctx .px { color:#e2e8f0; font-family:"JetBrains Mono", monospace; } .B .ctx .up { color:#34d399; font-family:"JetBrains Mono", monospace; }
+  .B .ctx .chip { padding:2px 8px; border-radius:999px; background:#1e293b; color:#94a3b8; }
+  .B .q { background:#1e293b; border-radius:12px 12px 2px 12px; color:#e2e8f0; }
+  .B .pipe span { border-radius:999px; background:#111a2e; color:#64748b; border:1px solid #1e293b; }
+  .B .pipe .done { color:#34d399; border-color:#14532d; background:#0c1f1a; } .B .pipe .run { color:#38bdf8; border-color:#0c4a6e; background:#0c1a2e; }
+  .B .hero { background:linear-gradient(180deg,#111b30,#0f172a); border:1px solid #1e293b; border-radius:12px; }
+  .B .hero .k { color:#64748b; }
+  .B .hero .fv, .B .metrics b, .B td { font-family:"JetBrains Mono", monospace; font-variant-numeric:tabular-nums; }
+  .B .hero .fv { color:#f8fafc; } .B .hero .sub { color:#94a3b8; }
+  .B .stance { background:#172554; color:#93c5fd; border:1px solid #1e3a8a; border-radius:999px; }
+  .B .metrics div { background:#0b1120; border:1px solid #1e293b; border-radius:8px; } .B .metrics small { color:#64748b; }
+  .B h4.sec { color:#f1f5f9; font-weight:600; }
+  .B .tbl { border:1px solid #1e293b; border-radius:10px; overflow:hidden; }
+  .B th { color:#64748b; font-weight:500; background:#0f172a; font-size:11.5px; }
+  .B td { border-top:1px solid #1e293b; } .B tr.base td { background:#0f1d33; color:#f1f5f9; }
+  .B .neg { color:#f87171; } .B .pos { color:#34d399; }
+  .B .prose { color:#cbd5e1; } .B sup.c { background:#0c4a6e; color:#7dd3fc; }
+
+  /* ---------- C: Research Paper ---------- */
+  .C { background:#f7f6f2; color:#26292f; font-family:Inter, sans-serif; }
+  .C .rail { background:#1f2a44; }
+  .C .rail i { background:#33415f; border-radius:6px; } .C .rail i:first-child { background:#c9a227; }
+  .C .ctx { background:#fff; border-bottom:1px solid #e2dfd6; }
+  .C .ctx .tk { color:#1f2a44; } .C .ctx .px { font-family:"JetBrains Mono", monospace; } .C .ctx .up { color:#1d7a46; font-family:"JetBrains Mono", monospace; }
+  .C .ctx .chip { padding:2px 8px; border-radius:4px; background:#f0ede4; color:#6b6558; }
+  .C .q { background:#1f2a44; color:#fff; border-radius:10px 10px 2px 10px; }
+  .C .pipe span { border-radius:4px; background:#fff; color:#8a8577; border:1px solid #e2dfd6; }
+  .C .pipe .done { color:#1d7a46; border-color:#b9dcc6; } .C .pipe .run { color:#1f2a44; border-color:#1f2a44; }
+  .C .hero { background:#fff; border:1px solid #e2dfd6; border-top:3px solid #1f2a44; border-radius:4px; }
+  .C .hero .k { color:#8a8577; }
+  .C .hero .fv { font-family:"Source Serif 4", serif; color:#1f2a44; font-size:34px; }
+  .C .metrics b, .C td { font-family:"JetBrains Mono", monospace; font-variant-numeric:tabular-nums; }
+  .C .hero .sub { color:#6b6558; }
+  .C .stance { background:#fbf4dc; color:#7a5d00; border:1px solid #e6cf7a; border-radius:4px; }
+  .C .metrics div { background:#faf9f5; border:1px solid #ebe8df; border-radius:4px; } .C .metrics small { color:#8a8577; }
+  .C h4.sec { font-family:"Source Serif 4", serif; font-size:17px; color:#1f2a44; border-bottom:1px solid #e2dfd6; padding-bottom:4px; }
+  .C th { color:#6b6558; font-weight:600; border-bottom:2px solid #1f2a44; font-size:11.5px; }
+  .C td { border-bottom:1px solid #ebe8df; } .C tr.base td { background:#f3f1ea; font-weight:600; }
+  .C .neg { color:#b42318; } .C .pos { color:#1d7a46; }
+  .C .prose { font-family:"Source Serif 4", serif; font-size:15px; color:#33363d; } .C sup.c { background:#e8ecf5; color:#1f2a44; font-family:Inter, sans-serif; }
+</style>
+</head>
+<body>
+<header class="intro">
+  <h1>Step 1: Pick a visual direction</h1>
+  <p>The same sample run is shown three ways, with illustrative numbers. Each one has the conversation rail, the ticker context bar, the agent pipeline, the valuation headline, a scenario table, and prose with a citation. Judge the overall feel only. Layout and charts come later.</p>
+</header>
+
+<div class="grid">
+
+  <!-- A -->
+  <section>
+    <div class="label">A · Terminal Pro <span>Bloomberg-like: dense, black, amber + green, monospace</span></div>
+    <div class="frame"><div class="app A">
+      <nav class="rail"><i></i><i></i><i></i><i></i></nav>
+      <div class="main">
+        <div class="ctx"><span class="tk">MSFT US</span><span class="px">378.10</span><span class="up">+1.24%</span><span class="sp"></span><span>10-K FY2025</span></div>
+        <div class="body">
+          <div class="q">Full 10-K report on Microsoft</div>
+          <div class="pipe"><span class="done">✓ SUPERVISOR</span><span class="done">✓ AUDITOR</span><span class="done">✓ STRATEGIST</span><span class="done">✓ RISK</span><span class="run">● VALUATION</span><span>SYNTH</span></div>
+          <div class="hero">
+            <div><div class="k">DCF fair value / share</div><div class="fv">$412.30</div><div class="sub">vs price $378.10 · <span class="pos">+9.0% upside</span></div></div>
+            <div class="stance">FAIRLY VALUED</div>
+            <div class="metrics">
+              <div><small>WACC</small><b>8.40%</b></div><div><small>Term g</small><b>3.00%</b></div>
+              <div><small>Prob-wtd</small><b>$416.25</b></div><div><small>Impl g</small><b>2.40%</b></div>
+            </div>
+          </div>
+          <h4 class="sec">Scenario values</h4>
+          <table><thead><tr><th>Case</th><th>Prob</th><th>Value/sh</th><th>vs Px</th></tr></thead><tbody>
+            <tr><td>Bear</td><td>25%</td><td>301.50</td><td class="neg">−20.3%</td></tr>
+            <tr class="base"><td>Base</td><td>50%</td><td>412.30</td><td class="pos">+9.0%</td></tr>
+            <tr><td>Bull</td><td>25%</td><td>538.90</td><td class="pos">+42.5%</td></tr>
+          </tbody></table>
+          <p class="prose">Commercial cloud revenue grew 22% year over year as Azure consumption broadened across enterprise workloads<sup class="c">3</sup>, supporting an above-trend year-1 growth driver.</p>
+        </div>
+      </div>
+    </div></div>
+    <p class="notes"><b>Feels like:</b> a trading desk. <b>Good for:</b> dense numbers and power users. <b>Risk:</b> long prose reports are tiring to read on pure black with a monospace-heavy UI.</p>
+  </section>
+
+  <!-- B -->
+  <section>
+    <div class="label">B · Modern Analyst <span>Koyfin-like: navy, Inter + mono digits, sky + emerald</span></div>
+    <div class="frame"><div class="app B">
+      <nav class="rail"><i></i><i></i><i></i><i></i></nav>
+      <div class="main">
+        <div class="ctx"><span class="tk">MSFT</span><span style="color:#64748b">Microsoft Corp.</span><span class="px">$378.10</span><span class="up">+1.24%</span><span class="sp"></span><span class="chip">10-K · FY2025</span></div>
+        <div class="body">
+          <div class="q">Full 10-K report on Microsoft</div>
+          <div class="pipe"><span class="done">✓ Supervisor</span><span class="done">✓ Auditor</span><span class="done">✓ Strategist</span><span class="done">✓ Risk</span><span class="run">● Valuation</span><span>Synthesizer</span></div>
+          <div class="hero">
+            <div><div class="k">DCF fair value / share</div><div class="fv">$412.30</div><div class="sub">vs price $378.10 · <span class="pos">+9.0% upside</span></div></div>
+            <div class="stance">Fairly Valued</div>
+            <div class="metrics">
+              <div><small>WACC</small><b>8.40%</b></div><div><small>Terminal g</small><b>3.00%</b></div>
+              <div><small>Prob-weighted</small><b>$416.25</b></div><div><small>Implied g</small><b>2.40%</b></div>
+            </div>
+          </div>
+          <h4 class="sec">Scenario values</h4>
+          <div class="tbl"><table><thead><tr><th>Case</th><th>Probability</th><th>Value / share</th><th>vs price</th></tr></thead><tbody>
+            <tr><td>Bear</td><td>25%</td><td>$301.50</td><td class="neg">−20.3%</td></tr>
+            <tr class="base"><td>Base</td><td>50%</td><td>$412.30</td><td class="pos">+9.0%</td></tr>
+            <tr><td>Bull</td><td>25%</td><td>$538.90</td><td class="pos">+42.5%</td></tr>
+          </tbody></table></div>
+          <p class="prose">Commercial cloud revenue grew 22% year over year as Azure consumption broadened across enterprise workloads<sup class="c">3</sup>, supporting an above-trend year-1 growth driver.</p>
+        </div>
+      </div>
+    </div></div>
+    <p class="notes"><b>Feels like:</b> a modern fintech terminal and a polished version of what you have today. <b>Good for:</b> balancing reports and numbers. <b>Risk:</b> it's the safest option, so it's less distinctive.</p>
+  </section>
+
+  <!-- C -->
+  <section>
+    <div class="label">C · Research Paper <span>Sell-side PDF: light, serif headings, navy + gold</span></div>
+    <div class="frame"><div class="app C">
+      <nav class="rail"><i></i><i></i><i></i><i></i></nav>
+      <div class="main">
+        <div class="ctx"><span class="tk">MSFT</span><span style="color:#8a8577">Microsoft Corp.</span><span class="px">$378.10</span><span class="up">+1.24%</span><span class="sp"></span><span class="chip">10-K · FY2025</span></div>
+        <div class="body">
+          <div class="q">Full 10-K report on Microsoft</div>
+          <div class="pipe"><span class="done">✓ Supervisor</span><span class="done">✓ Auditor</span><span class="done">✓ Strategist</span><span class="done">✓ Risk</span><span class="run">● Valuation</span><span>Synthesizer</span></div>
+          <div class="hero">
+            <div><div class="k">DCF fair value / share</div><div class="fv">$412.30</div><div class="sub">vs price $378.10 · <span class="pos">+9.0% upside</span></div></div>
+            <div class="stance">Fairly Valued</div>
+            <div class="metrics">
+              <div><small>WACC</small><b>8.40%</b></div><div><small>Terminal g</small><b>3.00%</b></div>
+              <div><small>Prob-weighted</small><b>$416.25</b></div><div><small>Implied g</small><b>2.40%</b></div>
+            </div>
+          </div>
+          <h4 class="sec">Scenario values</h4>
+          <table><thead><tr><th>Case</th><th>Probability</th><th>Value / share</th><th>vs price</th></tr></thead><tbody>
+            <tr><td>Bear</td><td>25%</td><td>$301.50</td><td class="neg">−20.3%</td></tr>
+            <tr class="base"><td>Base</td><td>50%</td><td>$412.30</td><td class="pos">+9.0%</td></tr>
+            <tr><td>Bull</td><td>25%</td><td>$538.90</td><td class="pos">+42.5%</td></tr>
+          </tbody></table>
+          <p class="prose">Commercial cloud revenue grew 22% year over year as Azure consumption broadened across enterprise workloads<sup class="c">3</sup>, supporting an above-trend year-1 growth driver.</p>
+        </div>
+      </div>
+    </div></div>
+    <p class="notes"><b>Feels like:</b> a Goldman/Morgan Stanley equity research PDF. <b>Good for:</b> reading long reports and printing. <b>Risk:</b> it moves away from the dark terminal identity you have now.</p>
+  </section>
+
+</div>
+</body>
+</html>

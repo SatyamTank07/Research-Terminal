@@ -24,10 +24,10 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
   const isError = status === 'error'
 
   const strokeColor = isError
-    ? 'stroke-red-400'
+    ? 'stroke-neg'
     : isCompleted
-    ? 'stroke-emerald-400'
-    : 'stroke-sky-400'
+    ? 'stroke-pos'
+    : 'stroke-acc'
 
   return (
     <div
@@ -47,7 +47,7 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
           cy={size / 2}
           r={radius}
           strokeWidth={strokeWidth}
-          className="stroke-slate-800 fill-none"
+          className="stroke-line-strong fill-none"
         />
 
         {/* Dynamic Progress Fill */}
@@ -58,14 +58,14 @@ export const CircularProgress: React.FC<CircularProgressProps> = ({
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          strokeLinecap="round"
+          strokeLinecap="butt"
           className={`${strokeColor} fill-none transition-all duration-300 ease-out`}
         />
       </svg>
 
       {/* Center checkmark when finished */}
       {isCompleted && (
-        <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-emerald-400">
+        <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-pos">
           ✓
         </span>
       )}

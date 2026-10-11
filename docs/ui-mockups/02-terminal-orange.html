@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terminal Orange</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#1a1a1a; color:#ddd; font-family:"IBM Plex Sans", sans-serif; padding:28px 16px 48px; }
+  header.intro { max-width:1440px; margin:0 auto 22px; }
+  header.intro h1 { font-size:20px; font-weight:600; color:#fff; }
+  header.intro p { color:#999; font-size:14px; margin-top:6px; max-width:860px; line-height:1.5; }
+  .grid { max-width:1440px; margin:0 auto; display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:20px; }
+  @media (max-width:1200px){ .grid{ grid-template-columns:1fr; max-width:560px; } }
+  .label { font-size:13px; font-weight:600; margin-bottom:8px; display:flex; gap:10px; align-items:center; color:#fff; }
+  .label span { font-weight:400; color:#999; font-family:"IBM Plex Mono", monospace; font-size:12px; }
+  .sw { width:14px; height:14px; border-radius:3px; background:var(--acc); }
+  .frame { border-radius:8px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.5); border:1px solid #2a2a2a; }
+  .notes { font-size:13px; color:#999; margin-top:10px; line-height:1.55; }
+  .notes b { color:#ddd; }
+
+  /* palette variants */
+  .v1 { --acc:#fb8b1e; --acc-dim:#7a4310; --acc-bg:#2a1806; }
+  .v2 { --acc:#ff6b00; --acc-dim:#803600; --acc-bg:#2b1404; }
+  .v3 { --acc:#e8590c; --acc-dim:#74300a; --acc-bg:#26120a; }
+
+  .app { --pos:#3ddc84; --neg:#ff4d6d; background:#0a0a0a; color:#d6d6d6; display:grid; grid-template-columns:52px 1fr; min-height:640px; }
+  .rail { background:#000; border-right:1px solid #262626; display:flex; flex-direction:column; align-items:center; gap:14px; padding:14px 0; }
+  .rail i { width:22px; height:22px; border-radius:2px; display:block; background:#262626; }
+  .rail i:first-child { background:var(--acc); }
+  .main { display:flex; flex-direction:column; min-width:0; }
+  .ctx { display:flex; align-items:center; gap:12px; padding:10px 16px; font-size:12px; background:#121212; border-bottom:1px solid #262626; border-top:2px solid var(--acc); font-family:"IBM Plex Mono", monospace; }
+  .ctx .tk { color:var(--acc); font-weight:600; font-size:14px; } .ctx .px { color:#fff; } .ctx .up { color:var(--pos); }
+  .ctx .sp { flex:1; } .ctx .fy { color:#888; }
+  .body { padding:16px; display:flex; flex-direction:column; gap:14px; }
+  .q { align-self:flex-end; max-width:80%; padding:8px 12px; font-size:13px; background:#1a1a1a; border:1px solid #333; border-left:2px solid var(--acc); border-radius:2px; }
+  .pipe { display:flex; flex-wrap:wrap; gap:6px; font-size:11px; font-family:"IBM Plex Mono", monospace; }
+  .pipe span { padding:3px 8px; border:1px solid #333; border-radius:2px; color:#777; }
+  .pipe .done { color:var(--pos); border-color:#1f5a35; }
+  .pipe .run { color:var(--acc); border-color:var(--acc-dim); background:var(--acc-bg); }
+  .hero { padding:16px; display:grid; grid-template-columns:1fr auto; gap:6px 16px; background:#111; border:1px solid #2a2a2a; border-radius:2px; }
+  .hero .k { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:#8a8a8a; font-family:"IBM Plex Mono", monospace; }
+  .hero .fv { font-size:30px; font-weight:600; line-height:1.1; color:#fff; }
+  .hero .sub { font-size:12px; color:#9a9a9a; }
+  .fv, .metrics b, td { font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; }
+  .stance { align-self:start; padding:4px 10px; font-size:12px; font-weight:600; font-family:"IBM Plex Mono", monospace; background:var(--acc-bg); color:var(--acc); border:1px solid var(--acc-dim); border-radius:2px; }
+  .metrics { grid-column:1 / -1; display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px; }
+  .metrics div { padding:8px; background:#0a0a0a; border:1px solid #222; }
+  .metrics small { display:block; font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#777; }
+  .metrics b { font-size:14px; font-weight:600; color:#eee; }
+  h4.sec { color:var(--acc); font-family:"IBM Plex Mono", monospace; text-transform:uppercase; letter-spacing:.08em; font-size:11px; font-weight:600; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th, td { padding:7px 8px; text-align:right; }
+  th:first-child, td:first-child { text-align:left; }
+  th { color:#777; font-weight:500; border-bottom:1px solid #333; font-family:"IBM Plex Mono", monospace; font-size:11px; }
+  td { border-bottom:1px solid #1c1c1c; }
+  tr.base td { color:#fff; background:#161616; }
+  tr.base td:first-child { box-shadow:inset 2px 0 0 var(--acc); }
+  .neg { color:var(--neg); } .pos { color:var(--pos); }
+  .prose { font-size:13.5px; line-height:1.65; color:#c4c4c4; }
+  sup.c { font-size:10px; padding:0 4px; margin-left:2px; border-radius:2px; background:var(--acc-bg); color:var(--acc); font-family:"IBM Plex Mono", monospace; cursor:pointer; }
+  .btn { align-self:flex-start; font-family:"IBM Plex Mono", monospace; font-size:12px; font-weight:600; padding:7px 14px; border-radius:2px; background:var(--acc); color:#000; border:0; }
+  .input { margin-top:auto; display:flex; gap:8px; padding:12px 16px; border-top:1px solid #262626; background:#0d0d0d; }
+  .input div { flex:1; padding:8px 10px; border:1px solid #333; border-radius:2px; color:#666; font-size:12.5px; font-family:"IBM Plex Mono", monospace; }
+  .input div::before { content:"> "; color:var(--acc); }
+</style>
+</head>
+<body>
+<header class="intro">
+  <h1>Step 1b: Terminal Pro with an orange accent</h1>
+  <p>This is direction A with three orange shades. Everything else stays the same: black surfaces, monospace numbers, green for gains and red for losses. Losses use a pink-red (#ff4d6d) so they stay distinct from orange. I've also added the primary button and the command bar so you can see the accent on controls.</p>
+</header>
+
+<div class="grid">
+  <!-- template repeated per variant -->
+  <section class="v1">
+    <div class="label"><i class="sw"></i>1 · Bloomberg Orange <span>#fb8b1e</span></div>
+    <div class="frame"><div class="app">
+      <nav class="rail"><i></i><i></i><i></i><i></i></nav>
+      <div class="main">
+        <div class="ctx"><span class="tk">MSFT US</span><span class="px">378.10</span><span class="up">+1.24%</span><span class="sp"></span><span class="fy">10-K FY2025</span></div>
+        <div class="body">
+          <div class="q">Full 10-K report on Microsoft</div>
+          <div class="pipe"><span class="done">✓ SUPERVISOR</span><span class="done">✓ AUDITOR</span><span class="done">✓ STRATEGIST</span><span class="done">✓ RISK</span><span class="run">● VALUATION</span><span>SYNTH</span></div>
+          <div class="hero">
+            <div><div class="k">DCF fair value / share</div><div class="fv">$412.30</div><div class="sub">vs price $378.10 · <span class="pos">+9.0% upside</span></div></div>
+            <div class="stance">FAIRLY VALUED</div>
+            <div class="metrics"><div><small>WACC</small><b>8.40%</b></div><div><small>Term g</small><b>3.00%</b></div><div><small>Prob-wtd</small><b>$416.25</b></div><div><small>Impl g</small><b>2.40%</b></div></div>
+          </div>
+          <h4 class="sec">Scenario values</h4>
+          <table><thead><tr><th>Case</th><th>Prob</th><th>Value/sh</th><th>vs Px</th></tr></thead><tbody>
+            <tr><td>Bear</td><td>25%</td><td>301.50</td><td class="neg">−20.3%</td></tr>
+            <tr class="base"><td>Base</td><td>50%</td><td>412.30</td><td class="pos">+9.0%</td></tr>
+            <tr><td>Bull</td><td>25%</td><td>538.90</td><td class="pos">+42.5%</td></tr>
+          </tbody></table>
+          <p class="prose">Commercial cloud revenue grew 22% year over year as Azure consumption broadened across enterprise workloads<sup class="c">3</sup>, supporting an above-trend year-1 growth driver.</p>
+          <button class="btn">RUN FULL REPORT</button>
+        </div>
+        <div class="input"><div>Ask about a filing, ticker or valuation…</div></div>
+      </div>
+    </div></div>
+    <p class="notes"><b>Classic terminal orange</b>, close to what you have now with a bit more orange. It's the easiest on the eyes for long sessions and pairs well with the green.</p>
+  </section>
+
+  <section class="v2">
+    <div class="label"><i class="sw"></i>2 · Vivid Orange <span>#ff6b00</span></div>
+    <div class="frame"><div class="app">
+      <nav class="rail"><i></i><i></i><i></i><i></i></nav>
+      <div class="main">
+        <div class="ctx"><span class="tk">MSFT US</span><span class="px">378.10</span><span class="up">+1.24%</span><span class="sp"></span><span class="fy">10-K FY2025</span></div>
+        <div class="body">
+          <div class="q">Full 10-K report on Microsoft</div>
+          <div class="pipe"><span class="done">✓ SUPERVISOR</span><span class="done">✓ AUDITOR</span><span class="done">✓ STRATEGIST</span><span class="done">✓ RISK</span><span class="run">● VALUATION</span><span>SYNTH</span></div>
+          <div class="hero">
+            <div><div class="k">DCF fair value / share</div><div class="fv">$412.30</div><div class="sub">vs price $378.10 · <span class="pos">+9.0% upside</span></div></div>
+            <div class="stance">FAIRLY VALUED</div>
+            <div class="metrics"><div><small>WACC</small><b>8.40%</b></div><div><small>Term g</small><b>3.00%</b></div><div><small>Prob-wtd</small><b>$416.25</b></div><div><small>Impl g</small><b>2.40%</b></div></div>
+          </div>
+          <h4 class="sec">Scenario values</h4>
+          <table><thead><tr><th>Case</th><th>Prob</th><th>Value/sh</th><th>vs Px</th></tr></thead><tbody>
+            <tr><td>Bear</td><td>25%</td><td>301.50</td><td class="neg">−20.3%</td></tr>
+            <tr class="base"><td>Base</td><td>50%</td><td>412.30</td><td class="pos">+9.0%</td></tr>
+            <tr><td>Bull</td><td>25%</td><td>538.90</td><td class="pos">+42.5%</td></tr>
+          </tbody></table>
+          <p class="prose">Commercial cloud revenue grew 22% year over year as Azure consumption broadened across enterprise workloads<sup class="c">3</sup>, supporting an above-trend year-1 growth driver.</p>
+          <button class="btn">RUN FULL REPORT</button>
+        </div>
+        <div class="input"><div>Ask about a filing, ticker or valuation…</div></div>
+      </div>
+    </div></div>
+    <p class="notes"><b>Pure, saturated orange.</b> It has the most energy and the strongest brand feel. On large areas it can feel loud, so it should stay on small accents.</p>
+  </section>
+
+  <section class="v3">
+    <div class="label"><i class="sw"></i>3 · Burnt Orange <span>#e8590c</span></div>
+    <div class="frame"><div class="app">
+      <nav class="rail"><i></i><i></i><i></i><i></i></nav>
+      <div class="main">
+        <div class="ctx"><span class="tk">MSFT US</span><span class="px">378.10</span><span class="up">+1.24%</span><span class="sp"></span><span class="fy">10-K FY2025</span></div>
+        <div class="body">
+          <div class="q">Full 10-K report on Microsoft</div>
+          <div class="pipe"><span class="done">✓ SUPERVISOR</span><span class="done">✓ AUDITOR</span><span class="done">✓ STRATEGIST</span><span class="done">✓ RISK</span><span class="run">● VALUATION</span><span>SYNTH</span></div>
+          <div class="hero">
+            <div><div class="k">DCF fair value / share</div><div class="fv">$412.30</div><div class="sub">vs price $378.10 · <span class="pos">+9.0% upside</span></div></div>
+            <div class="stance">FAIRLY VALUED</div>
+            <div class="metrics"><div><small>WACC</small><b>8.40%</b></div><div><small>Term g</small><b>3.00%</b></div><div><small>Prob-wtd</small><b>$416.25</b></div><div><small>Impl g</small><b>2.40%</b></div></div>
+          </div>
+          <h4 class="sec">Scenario values</h4>
+          <table><thead><tr><th>Case</th><th>Prob</th><th>Value/sh</th><th>vs Px</th></tr></thead><tbody>
+            <tr><td>Bear</td><td>25%</td><td>301.50</td><td class="neg">−20.3%</td></tr>
+            <tr class="base"><td>Base</td><td>50%</td><td>412.30</td><td class="pos">+9.0%</td></tr>
+            <tr><td>Bull</td><td>25%</td><td>538.90</td><td class="pos">+42.5%</td></tr>
+          </tbody></table>
+          <p class="prose">Commercial cloud revenue grew 22% year over year as Azure consumption broadened across enterprise workloads<sup class="c">3</sup>, supporting an above-trend year-1 growth driver.</p>
+          <button class="btn">RUN FULL REPORT</button>
+        </div>
+        <div class="input"><div>Ask about a filing, ticker or valuation…</div></div>
+      </div>
+    </div></div>
+    <p class="notes"><b>Deeper and calmer.</b> It feels the most premium of the three. Small text in this shade is harder to read on black, so labels may need a lighter tint.</p>
+  </section>
+</div>
+</body>
+</html>
