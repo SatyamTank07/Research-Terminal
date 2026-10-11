@@ -219,7 +219,7 @@ _Severity is a fixed likelihood × impact matrix computed in code; every risk is
 {{ level }} {{ r.risk_id }} — {{ r.risk_title }}
 - **Disclosure**: {{ r.risk_summary }}{{ cite.risk(r) }}
 - **Quantified exposure**: {{ r.quantified_exposure or "None stated in the filing" }}
-- **Filing-stated mitigation**: {{ r.mitigating_factors or "None stated in the filing" }}{% if r.mitigating_factors %}{{ cite.mitigation(r) }}{% endif %}
+- **Filing-stated mitigation**: {{ r.mitigating_factors or "None stated in the filing" }}{{ cite.mitigation(r) if r.mitigating_factors else "" }}
 - **Model lines hit**: {{ r.financial_transmission | join(", ") if r.financial_transmission else "n/a" }}
 - **Signposts to monitor**: {{ r.monitoring_signposts | join("; ") if r.monitoring_signposts else "n/a" }}
 
@@ -254,7 +254,7 @@ No prior-year Item 1A was available, so year-over-year disclosure changes were n
 {% endmacro %}
 
 {% macro evidence_note() %}
-Every numbered marker in this report opens the cited passage of the 10-K; the numbered source list follows the report.
+{{ cite.evidence_note() or "No filing citations were recorded." }}
 {% endmacro %}
 
 {% macro footer(notes, provenance, removed) %}

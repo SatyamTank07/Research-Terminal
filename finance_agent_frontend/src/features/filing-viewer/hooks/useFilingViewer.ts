@@ -12,6 +12,8 @@ interface ViewerState {
   approximate: boolean
   loading: boolean
   error: string | null
+  /** Changes on every completed open, so re-clicking the same source scrolls back to it. */
+  openCount: number
 }
 
 const CLOSED: ViewerState = {
@@ -22,6 +24,7 @@ const CLOSED: ViewerState = {
   approximate: false,
   loading: false,
   error: null,
+  openCount: 0,
 }
 
 function errorMessage(e: unknown): string {
@@ -71,7 +74,7 @@ export function useFilingViewer() {
           approximate = true
         }
         if (requestId !== latestRequest.current) return
-        setState({ source, chunkPos, filing, targetChunkId, approximate, loading: false, error: null })
+        setState({ source, chunkPos, filing, targetChunkId, approximate, loading: false, error: null, openCount: requestId })
       } catch (e) {
         if (requestId !== latestRequest.current) return
         setState((prev) => ({ ...prev, filing: null, targetChunkId: null, loading: false, error: errorMessage(e) }))

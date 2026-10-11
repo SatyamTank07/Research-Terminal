@@ -87,7 +87,11 @@ ChunkResolver = Callable[[List[str]], Dict[str, SourceChunk]]
 
 
 def resolve_chunk_metadata(chunk_ids: List[str]) -> Dict[str, SourceChunk]:
-    """chunk id -> location metadata for the ids that still exist (one query)."""
+    """chunk id -> location metadata for the ids that still exist (one query).
+
+    A database failure raises: returning {} would silently drop every filing source, while the caller's
+    failure path publishes the report without markers and says so.
+    """
     if not chunk_ids:
         return {}
     db = SessionLocal()
@@ -106,9 +110,6 @@ def resolve_chunk_metadata(chunk_ids: List[str]) -> Dict[str, SourceChunk]:
             .filter(DocumentChunk.id.in_(chunk_ids))
             .all()
         )
-    except Exception as e:
-        logger.warning(f"Chunk metadata lookup failed ({e!r}); filing sources will be dropped.")
-        return {}
     finally:
         db.close()
     return {

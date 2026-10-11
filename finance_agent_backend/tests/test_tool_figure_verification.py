@@ -81,7 +81,7 @@ class TestFigureAttribution(unittest.TestCase):
     def setUp(self):
         self.index = build_figure_index([
             ("416161.000000", "is-2025"),
-            ("31.970000", "is-2025"),
+            ("31.970000%", "is-2025"),
             ("98767.000000", "cf-2025"),
             ("416161.000000", "segment"),
             ("Net sales increased 6% to $416.2 billion", "quote"),
@@ -117,3 +117,17 @@ class TestFigureAttribution(unittest.TestCase):
     def test_annotate_leaves_unattributed_text_unchanged(self):
         self.assertEqual(annotate_sentences("", self.index, lambda keys: "[x]"), "")
         self.assertEqual(annotate_sentences("No numbers. None at all.", self.index, lambda keys: "[x]"), "No numbers. None at all.")
+
+
+class TestAttributionUnitsAndBlockers(unittest.TestCase):
+    def test_percent_figures_match_only_percent_entries(self):
+        index = build_figure_index([("25.000000", "amount-row"), ("6.400000%", "growth-row")])
+        self.assertEqual(attribute_sentence("The base case implies 25% upside.", index), [])
+        self.assertEqual(attribute_sentence("Revenue grew 6.4%.", index), ["growth-row"])
+        self.assertEqual(attribute_sentence("Capex was $25M.", index), ["amount-row"])
+        self.assertEqual(attribute_sentence("Capex was $6.4M.", index), [])
+
+    def test_unciteable_figure_blocks_lower_priority_sources(self):
+        index = build_figure_index([("3.000000%", None), ("3.000000%", "statement"), ("7.000000%", "statement")])
+        self.assertEqual(attribute_sentence("Terminal growth of 3% vs margin growth of 7%.", index), ["statement"])
+        self.assertEqual(annotate_sentences("Terminal growth of 3%.", index, lambda keys: "[x]"), "Terminal growth of 3%.")

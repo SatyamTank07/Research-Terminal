@@ -1,10 +1,11 @@
 """Numbered filing citations (app/agents/tools/citation_registry.py)."""
 
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from app.agents.tools.citation_registry import (
     CitationRegistry,
+    resolve_chunk_metadata,
     SourceChunk,
     SourceSpec,
     marker,
@@ -105,6 +106,14 @@ class TestCitationRegistry(unittest.TestCase):
         text, refs = reg.finalize(f"p{reg.cite(MARKET)}")
         resolver.assert_not_called()
         self.assertEqual(text, f"p{marker(1)}")
+
+    def test_metadata_lookup_failure_raises_instead_of_dropping_every_source(self):
+        session = MagicMock()
+        session.query.side_effect = RuntimeError("database unavailable")
+        with patch("app.agents.tools.citation_registry.SessionLocal", return_value=session):
+            with self.assertRaises(RuntimeError):
+                resolve_chunk_metadata(["c1"])
+        session.close.assert_called_once()
 
     def test_strip_markers(self):
         self.assertEqual(strip_markers(f"a{marker(1)}{marker(12)}."), "a.")

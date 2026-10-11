@@ -133,12 +133,28 @@ class TestReportCiter(unittest.TestCase):
 
     def test_figure_entries_priority(self):
         entries = citer().figure_entries()
-        kinds = [spec.kind for _, spec in entries]
+        kinds = [spec.kind for _, spec in entries if spec is not None]
         self.assertEqual(kinds[0], "derived")
         self.assertIn("market", kinds)
         self.assertEqual(kinds[-1], "verbatim")
-        first_year_texts = [text for text, spec in entries[:20]]
-        self.assertIn(f"{416161.0:.6f}", first_year_texts)
+        texts = [text for text, _ in entries]
+        segment_revenue = texts.index(f"{178353.0:.6f}")
+        self.assertLess(texts.index(f"{416161.0:.6f}"), segment_revenue)
+
+    def test_computed_figures_are_unciteable_and_rank_before_audit_data(self):
+        val = make_valuation_output()
+        entries = citer().figure_entries()
+        first_audit_revenue = [text for text, _ in entries].index(f"{416161.0:.6f}")
+        blockers = [text for text, spec in entries[:first_audit_revenue] if spec is None]
+        self.assertIn(f"{val.wacc_audit.wacc_pct:.6f}%", blockers)
+        self.assertIn(f"{val.terminal_growth_rate * 100:.6f}%", blockers)
+        self.assertIn(f"{val.upside_downside_pct:.6f}%", blockers)
+
+    def test_percentage_fields_are_indexed_as_percentages(self):
+        texts = {text for text, spec in citer().figure_entries() if spec is not None}
+        self.assertIn(f"{416161.0:.6f}", texts)
+        self.assertTrue(any(t.startswith("31.97") and t.endswith("%") for t in texts))
+        self.assertFalse(any(t.startswith("31.97") and not t.endswith("%") for t in texts))
 
     def test_null_citer_is_silent(self):
         self.assertEqual(NullCiter().row("revenue", []), "")

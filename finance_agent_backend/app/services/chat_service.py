@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
 from app.agents import AgentRegistry
+from app.agents.tools.citation_registry import strip_markers
 from app.models import ChatMessage, Conversation, User
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.langfuse_service import flush_langfuse, langfuse_trace_scope
@@ -77,14 +78,18 @@ def _prepare_chat_turn(
     )
     past_messages.reverse()
 
-    history_payload = [
-        {"role": msg.role, "content": msg.content}
+    return conversation, user_msg, _history_payload(past_messages, request.message)
+
+
+def _history_payload(past_messages: List[Any], current_message: str) -> List[Dict[str, str]]:
+    """Agent-facing history; report citation markers are UI-only and never go back to an LLM."""
+    payload = [
+        {"role": msg.role, "content": strip_markers(msg.content) if msg.role == "assistant" else msg.content}
         for msg in past_messages
         if msg.role in ("user", "assistant")
     ]
-    history_payload.append({"role": "user", "content": request.message})
-
-    return conversation, user_msg, history_payload
+    payload.append({"role": "user", "content": current_message})
+    return payload
 
 
 def _finalize_assistant_turn(

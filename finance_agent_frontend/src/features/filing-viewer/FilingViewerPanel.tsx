@@ -10,7 +10,7 @@ interface FilingViewerPanelProps {
 
 export const FilingViewerPanel: React.FC<FilingViewerPanelProps> = ({ viewer }) => {
   const bodyRef = useRef<HTMLDivElement>(null)
-  const { source, filing, targetChunkId, approximate, loading, error, chunkPos } = viewer
+  const { source, filing, targetChunkId, approximate, loading, error, chunkPos, openCount } = viewer
 
   useEffect(() => {
     if (!filing || !targetChunkId || !bodyRef.current) return
@@ -22,7 +22,7 @@ export const FilingViewerPanel: React.FC<FilingViewerPanelProps> = ({ viewer }) 
     } else {
       clearQuoteHighlight()
     }
-  }, [filing, targetChunkId, source])
+  }, [filing, targetChunkId, source, openCount])
 
   useEffect(() => clearQuoteHighlight, [])
 

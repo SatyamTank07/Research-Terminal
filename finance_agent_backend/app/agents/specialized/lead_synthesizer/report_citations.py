@@ -57,12 +57,34 @@ MARKET_INPUTS: Dict[str, Tuple[str, Callable[[Any], Optional[str]]]] = {
     "erp": ("Equity risk premium", lambda v: v.wacc_audit.equity_risk_premium_source),
     "beta": ("Beta", lambda v: v.wacc_audit.beta_source),
 }
-MARKET_FIGURES: Tuple[Tuple[str, Callable[[Any], Any]], ...] = (
-    ("price", lambda v: v.current_share_price),
-    ("rf", lambda v: v.wacc_audit.risk_free_rate_pct),
-    ("erp", lambda v: v.wacc_audit.equity_risk_premium_pct),
-    ("beta", lambda v: v.wacc_audit.beta),
+MARKET_FIGURES: Tuple[Tuple[str, Callable[[Any], Any], bool], ...] = (
+    ("price", lambda v: v.current_share_price, False),
+    ("rf", lambda v: v.wacc_audit.risk_free_rate_pct, True),
+    ("erp", lambda v: v.wacc_audit.equity_risk_premium_pct, True),
+    ("beta", lambda v: v.wacc_audit.beta, False),
 )
+# Computed figures with no filing passage of their own: indexed as unciteable so a prose mention of them
+# never attaches to an unrelated statement row that happens to share the value. (attr path, is percent)
+UNCITEABLE_VALUATION: Tuple[Tuple[str, bool], ...] = (
+    ("wacc_audit.wacc_pct", True), ("wacc_audit.capm_wacc_pct", True), ("wacc_audit.cost_of_equity_pct", True),
+    ("wacc_audit.cost_of_debt_pre_tax_pct", True), ("wacc_audit.cost_of_debt_after_tax_pct", True),
+    ("wacc_audit.equity_weight_pct", True), ("wacc_audit.debt_weight_pct", True),
+    ("upside_downside_pct", True), ("terminal_tax_rate_pct", True), ("ronic_used_pct", True),
+    ("market_implied_growth_pct", True), ("market_implied_wacc_pct", True), ("modeled_revenue_cagr_pct", True),
+    ("market_implied_margin_shift_pp", False), ("implied_terminal_ev_ebitda", False),
+    ("implied_terminal_ev_nopat", False), ("implied_ev_ebitda", False), ("terminal_fcf", False),
+    ("pv_explicit_fcfs", False), ("pv_terminal_value", False),
+)
+UNCITEABLE_FORECAST: Tuple[Tuple[str, bool], ...] = (
+    ("revenue_cagr_pct", True), ("cumulative_fcf", False), ("average_annual_fcf", False),
+)
+EVIDENCE_NOTE = (
+    "Every numbered marker in this report opens the cited passage of the 10-K; "
+    "the numbered source list follows the report."
+)
+NO_CITATIONS_NOTE = "No filing citations were recorded."
+CITATIONS_FAILED_NOTE = "_Filing citations could not be built for this report._"
+
 _AUDIT_SERIES = ("multi_year_history", "earnings_quality", "cost_structure", "working_capital", "capital_intensity", "share_count_history")
 _AUDIT_SNAPSHOTS = ("balance_sheet", "profitability_and_return_ratios", "solvency_and_liquidity_ratios")
 
@@ -241,6 +263,10 @@ class ReportCiter:
     def market(self, name: str) -> str:
         return self.registry.cite(self._market_spec(name))
 
+    @staticmethod
+    def evidence_note() -> str:
+        return EVIDENCE_NOTE
+
     # --- prose attribution ----------------------------------------------
     def _audit_items(self) -> List[Tuple[Optional[int], Any]]:
         fa = self._fa
@@ -257,34 +283,53 @@ class ReportCiter:
                 items.append((snapshot_year, item))
         return sorted(items, key=lambda pair: -(pair[0] or 0))
 
-    def figure_entries(self) -> List[Tuple[str, SourceSpec]]:
-        """(text, source) pairs in attribution priority: audit data newest year first, valuation, segments, quotes."""
-        entries: List[Tuple[str, SourceSpec]] = []
+    def figure_entries(self) -> List[Tuple[str, Optional[SourceSpec]]]:
+        """(text, source) pairs in attribution priority: valuation sources, unciteable computed figures (None),
+        audit data newest year first, segments, quotes. Percent fields carry a "%" so matching is unit-aware."""
+        entries: List[Tuple[str, Optional[SourceSpec]]] = []
 
-        def add(value: Any, spec: Optional[SourceSpec]) -> None:
-            if spec is not None and _is_number(value):
-                entries.append((f"{float(value):.6f}", spec))
+        def add(value: Any, spec: Optional[SourceSpec], pct: bool = False, citeable: bool = True) -> None:
+            if (spec is not None or not citeable) and _is_number(value):
+                entries.append((f"{float(value):.6f}" + ("%" if pct else ""), spec))
 
-        for year, item in self._audit_items():
-            for attr, value in item.model_dump().items():
-                if attr in ROW_STATEMENTS:
-                    add(value, self._field_spec(attr, year))
+        def attr_path(obj: Any, path: str) -> Any:
+            for part in path.split("."):
+                obj = getattr(obj, part, None)
+            return obj
+
         val = self._val
         if val is not None:
             for attr in VALUATION_FIGURES:
-                add(getattr(val, attr, None), self._all_statements_spec())
+                add(getattr(val, attr, None), self._all_statements_spec(), pct="_pct" in attr)
             add(getattr(val, "net_debt", None), self._field_spec("net_debt"))
             add(getattr(val, "diluted_shares", None), self._field_spec("valuation_shares_outstanding"))
-            for name, value_of in MARKET_FIGURES:
-                add(value_of(val), self._market_spec(name))
+            for name, value_of, pct in MARKET_FIGURES:
+                add(value_of(val), self._market_spec(name), pct=pct)
+            for path, pct in UNCITEABLE_VALUATION:
+                add(attr_path(val, path), None, pct=pct, citeable=False)
+            add(val.terminal_growth_rate * 100, None, pct=True, citeable=False)
+            for scenario in val.scenario_valuations:
+                add(scenario.revenue_cagr_pct, None, pct=True, citeable=False)
+                add(scenario.upside_downside_pct, None, pct=True, citeable=False)
+                add(scenario.cumulative_fcf, None, citeable=False)
+        forecast = self._forecast
+        if forecast is not None:
+            for path, pct in UNCITEABLE_FORECAST:
+                add(attr_path(forecast, path), None, pct=pct, citeable=False)
+            for value in forecast.projected_fcfs:
+                add(value, None, citeable=False)
+        for year, item in self._audit_items():
+            for attr, value in item.model_dump().items():
+                if attr in ROW_STATEMENTS:
+                    add(value, self._field_spec(attr, year), pct="_pct" in attr)
         moat = self._moat
         if moat is not None:
             for figure in moat.segment_financials:
                 for attr in SEGMENT_FIGURES:
-                    add(getattr(figure, attr, None), self._segments_spec())
+                    add(getattr(figure, attr, None), self._segments_spec(), pct="_pct" in attr)
             for figure in moat.revenue_lines:
                 for attr in REVENUE_LINE_FIGURES:
-                    add(getattr(figure, attr, None), self._revenue_mix_spec())
+                    add(getattr(figure, attr, None), self._revenue_mix_spec(), pct="_pct" in attr)
             for e in moat.evidence:
                 spec = self._quote_spec(e.chunk_id, e.quote)
                 if spec is not None:

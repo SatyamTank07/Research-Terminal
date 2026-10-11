@@ -12,7 +12,7 @@ each known figure came from, and `annotate_sentences` appends a citation marker 
 import bisect
 import re
 from dataclasses import dataclass
-from typing import Callable, Generic, Hashable, Iterable, List, Tuple, TypeVar
+from typing import Callable, Generic, Hashable, Iterable, List, Optional, Tuple, TypeVar
 
 _FIGURE = re.compile(
     r"(?<![\w.])\$?(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?\s*"
@@ -94,42 +94,54 @@ def strip_unverified_sentences(text: str, known: List[float]) -> Tuple[str, int]
     return "\n".join(out_lines).strip(), removed
 
 
-K = TypeVar("K", bound=Hashable)
+K = TypeVar("K", bound=Optional[Hashable])
 _TRAILING_PUNCT = re.compile(r"[.!?]+[\"')\]*_]*\s*$")
 
 
 @dataclass
 class FigureIndex(Generic[K]):
-    """Known figures (in $ millions when scaled) with the source each came from; lower priority wins."""
+    """Known figures (in $ millions when scaled) with their source and whether they are percentages.
+
+    Lower priority wins. A `None` source marks a known figure that has no filing passage (e.g. WACC,
+    terminal growth): it still wins its window, so it blocks accidental matches with unrelated rows.
+    """
 
     values: List[float]
-    entries: List[Tuple[float, int, K]]
+    entries: List[Tuple[float, int, K, bool]]
 
 
 def build_figure_index(entries: Iterable[Tuple[str, K]]) -> FigureIndex[K]:
     """Indexes every figure in each (text, source) entry; the entry's position is its priority."""
-    rows: List[Tuple[float, int, K]] = []
+    rows: List[Tuple[float, int, K, bool]] = []
     for priority, (text, key) in enumerate(entries):
         for match in _FIGURE.finditer(text or ""):
             value, _, unit, _ = _parse(match)
-            rows.append((value * _SCALE_TO_MILLIONS.get(unit, 1.0), priority, key))
+            rows.append((value * _SCALE_TO_MILLIONS.get(unit, 1.0), priority, key, unit == "%"))
     rows.sort(key=lambda row: (row[0], row[1]))
     return FigureIndex(values=[row[0] for row in rows], entries=rows)
 
 
 def attribute_sentence(sentence: str, index: FigureIndex[K], limit: int = 3) -> List[K]:
-    """Best (highest-priority) source for each figure in `sentence`, in sentence order, at most `limit`."""
+    """Best (highest-priority) source for each figure in `sentence`, in sentence order, at most `limit`.
+
+    Percentages only match percentage entries and amounts only match amounts; a figure whose best match
+    is an unciteable (`None`) entry gets no source.
+    """
     found: List[K] = []
     for match in _FIGURE.finditer(sentence):
         value, decimals, unit, dollar = _parse(match)
         if not _is_figure(value, decimals, unit, dollar):
             continue
         lo, hi = _window(value, decimals, unit)
-        window = index.entries[bisect.bisect_left(index.values, lo):bisect.bisect_right(index.values, hi)]
+        is_pct = unit == "%"
+        window = [
+            row for row in index.entries[bisect.bisect_left(index.values, lo):bisect.bisect_right(index.values, hi)]
+            if row[3] == is_pct
+        ]
         if not window:
             continue
         best = min(window, key=lambda row: row[1])[2]
-        if best not in found:
+        if best is not None and best not in found:
             found.append(best)
         if len(found) >= limit:
             break

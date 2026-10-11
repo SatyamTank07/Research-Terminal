@@ -31,7 +31,13 @@ from app.agents.specialized.lead_synthesizer.state_lead_synthesizer import (
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
-from app.agents.specialized.lead_synthesizer.report_citations import NullCiter, ReportCiter
+from app.agents.specialized.lead_synthesizer.report_citations import (
+    CITATIONS_FAILED_NOTE,
+    EVIDENCE_NOTE,
+    NO_CITATIONS_NOTE,
+    NullCiter,
+    ReportCiter,
+)
 from app.agents.tools.citation_registry import CitationRegistry, SourceRef, strip_markers
 from app.agents.tools.figure_verification import (
     annotate_sentences,
@@ -392,14 +398,18 @@ class LeadSynthesizerAgent(BaseAgent):
 
     @staticmethod
     def _finalize_citations(citer: Any, markdown: str) -> Tuple[str, List[SourceRef]]:
-        """Resolves and renumbers markers; on failure strips them so no dangling [n] is published."""
+        """Resolves and renumbers markers; on failure strips them, says so, and drops the evidence note."""
         if not isinstance(citer, ReportCiter):
             return strip_markers(markdown), []
         try:
-            return citer.registry.finalize(markdown)
+            markdown, sources = citer.registry.finalize(markdown)
         except Exception as e:
             logger.exception(f"Citation finalize failed ({e!r}); publishing without filing markers.")
-            return strip_markers(markdown), []
+            markdown = strip_markers(markdown).replace(EVIDENCE_NOTE, NO_CITATIONS_NOTE)
+            return markdown.rstrip("\n") + "\n\n" + CITATIONS_FAILED_NOTE + "\n", []
+        if not any(s.kind != "market" for s in sources):
+            markdown = markdown.replace(EVIDENCE_NOTE, NO_CITATIONS_NOTE)
+        return markdown, sources
 
     @staticmethod
     def _parse_json_fallback(content: Any) -> Dict[str, Any]:

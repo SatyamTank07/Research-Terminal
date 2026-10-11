@@ -95,6 +95,37 @@ class TestSynthesizerCitations(unittest.TestCase):
         self.assertIn(f"| Operating income{found.group(1)} |", md)
         self.assertRegex(md, r"\| Cash & equivalents\[\[\d+\]\]\(#cite-\d+\) \|")
 
+    def test_computed_valuation_figures_get_no_misattributed_marker(self):
+        # Rounded computed figures that, before unit-aware attribution, collided with unrelated statement rows.
+        dcf, forecast = _create_mock_dcf(), _create_mock_forecast()
+        sentence = (f"Terminal growth is about {dcf.terminal_growth_rate * 100:.0f}% while revenue compounds "
+                    f"at roughly {forecast.revenue_cagr_pct:.0f}%.")
+        prose = FULL_PROSE.model_copy(update={"valuation_commentary": sentence})
+        with patch.object(self.synth, "_get_llm", return_value=_mock_llm(prose)):
+            md = self.synth.synthesize(
+                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, business_moat=moat_with_evidence(),
+                financial_audit=audit_with_provenance(), forecast=_create_mock_forecast(), dcf_valuation=dcf,
+                risk_audit=_create_mock_risk(),
+            ).full_markdown_report
+        self.assertIn(sentence, md)
+
+    def test_lookup_failure_publishes_stripped_report_with_note(self):
+        with patch("app.agents.tools.citation_registry.resolve_chunk_metadata", side_effect=RuntimeError("db down")):
+            report = self._report(query_type="business_moat_only")
+        md = report.full_markdown_report
+        self.assertNotIn("#cite-", md)
+        self.assertEqual(report.sources, [])
+        self.assertIn("Filing citations could not be built for this report.", md)
+        self.assertNotIn("Every numbered marker in this report opens", md)
+
+    def test_evidence_note_shown_when_citations_resolve(self):
+        md = self._report(query_type="business_moat_only").full_markdown_report
+        self.assertIn("Every numbered marker in this report opens the cited passage of the 10-K", md)
+
+    def test_risk_detail_lines_keep_their_line_breaks(self):
+        md = self._report().full_markdown_report
+        self.assertIn("- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**", md)
+
     def test_strategist_and_risk_lines_are_marked(self):
         md = self._report().full_markdown_report
         self.assertRegex(md, r"- Android OEMs\[\[\d+\]\]\(#cite-\d+\)")
