@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Report Reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#0f0f0f; --card:#121212; --raised:#1a1a1a; --border:#262626; --border-strong:#333;
+    --text:#d6d6d6; --text-strong:#fff; --muted:#8a8a8a; --faint:#5c5c5c;
+    --acc:#fb8b1e; --acc-dim:#7a4310; --acc-bg:#2a1806;
+    --pos:#3ddc84; --pos-dim:#1f5a35; --pos-bg:#0d2618; --neg:#ff4d6d; --neg-dim:#6b1f2e; --neg-bg:#2a0d14;
+    --sans:"IBM Plex Sans", system-ui, sans-serif; --mono:"IBM Plex Mono", ui-monospace, monospace;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); font-size:14px; padding:24px 16px 80px; }
+  button { font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+  .mono { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+  .wrap { max-width:900px; margin:0 auto; }
+  .note { font-family:var(--mono); font-size:11px; color:var(--faint); margin-bottom:14px; line-height:1.6; }
+  .note b { color:var(--acc); font-weight:600; }
+  .switch { display:flex; gap:2px; margin-bottom:16px; }
+  .switch button { font-family:var(--mono); font-size:11px; padding:5px 10px; border:1px solid var(--border-strong); color:var(--muted); }
+  .switch button.on { background:var(--acc); color:#000; border-color:var(--acc); font-weight:600; }
+
+  .meta { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); margin-bottom:6px; }
+  .meta .who { color:var(--text); font-weight:600; }
+  .body { background:var(--card); border:1px solid var(--border); padding:24px 26px; }
+  h1 { font-size:20px; font-weight:600; color:var(--text-strong); line-height:1.3; margin-bottom:12px; }
+  blockquote { padding:8px 12px; border-left:2px solid var(--acc); background:var(--acc-bg); font-family:var(--mono); font-size:12px; }
+  blockquote b { color:var(--acc); font-weight:600; }
+  h2 { font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--acc); margin:28px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  p { line-height:1.7; margin-bottom:10px; }
+  strong { color:var(--text-strong); font-weight:600; }
+  sup.c { font-family:var(--mono); font-size:10px; padding:1px 4px; margin-left:2px; background:var(--acc-bg); color:var(--acc); }
+  sup.m { font-family:var(--mono); font-size:10px; padding:1px 4px; margin-left:2px; background:var(--raised); color:var(--muted); }
+
+  /* ===== VALUATION HEADLINE CARD ===== */
+  .vcard { margin:18px 0 6px; border:1px solid var(--border-strong); background:var(--surface); }
+  .vcard-top { display:grid; grid-template-columns:1.1fr 1.4fr; }
+  .vc-main { padding:18px 20px; border-right:1px solid var(--border); }
+  .lbl { font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:4px; }
+  .fv { font-family:var(--mono); font-size:34px; font-weight:600; color:var(--text-strong); line-height:1.15; margin-top:6px; font-variant-numeric:tabular-nums; }
+  .vs { font-family:var(--mono); font-size:12.5px; color:var(--muted); margin-top:4px; }
+  .vs .d { font-weight:600; }
+  .stance { display:inline-block; margin-top:12px; font-family:var(--mono); font-size:11.5px; font-weight:600; letter-spacing:.08em; padding:4px 10px; border:1px solid; }
+  .st-over { color:var(--neg); border-color:var(--neg-dim); background:var(--neg-bg); }
+  .st-fair { color:var(--acc); border-color:var(--acc-dim); background:var(--acc-bg); }
+  .st-under { color:var(--pos); border-color:var(--pos-dim); background:var(--pos-bg); }
+  .stance-note { font-family:var(--mono); font-size:10.5px; color:var(--faint); margin-top:6px; }
+
+  .vc-range { padding:18px 20px; display:flex; flex-direction:column; }
+  .track { position:relative; height:46px; margin:20px 6px 0; }
+  .track .axis { position:absolute; left:0; right:0; top:22px; height:1px; background:var(--border-strong); }
+  .track .band { position:absolute; top:16px; height:13px; background:var(--acc-bg); border:1px solid var(--acc-dim); }
+  .track .tick { position:absolute; top:10px; width:2px; height:25px; background:var(--acc); }
+  .track .px { position:absolute; top:6px; width:2px; height:33px; background:var(--text-strong); }
+  .track .tl { position:absolute; font-family:var(--mono); font-size:10px; white-space:nowrap; transform:translateX(-50%); }
+  .track .tl.top { top:-14px; } .track .tl.bot { top:40px; }
+  .legend { display:flex; gap:14px; margin-top:auto; padding-top:24px; font-family:var(--mono); font-size:10.5px; color:var(--faint); flex-wrap:wrap; }
+  .legend i { display:inline-block; width:10px; height:8px; margin-right:5px; vertical-align:0; }
+
+  .tiles { display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--border); }
+  .tile { padding:11px 14px; border-right:1px solid var(--border); }
+  .tile:last-child { border-right:0; }
+  .tile b { display:block; font-family:var(--mono); font-size:15px; font-weight:600; color:var(--text-strong); margin-top:3px; font-variant-numeric:tabular-nums; }
+  .tile small { display:block; font-family:var(--mono); font-size:10px; color:var(--faint); margin-top:2px; }
+
+  .more { display:flex; align-items:center; gap:8px; width:100%; padding:9px 14px; border-top:1px solid var(--border); font-family:var(--mono); font-size:11px; color:var(--muted); letter-spacing:.05em; }
+  .more:hover { color:var(--acc); background:var(--acc-bg); }
+  .more .car { transition:transform .15s; }
+  .more.open .car { transform:rotate(90deg); }
+  .full { display:none; border-top:1px solid var(--border); }
+  .full.open { display:block; }
+
+  table { width:100%; border-collapse:collapse; font-size:12.5px; line-height:1.4; }
+  th { font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); text-align:left; padding:8px 12px; border-bottom:1px solid var(--border-strong); background:var(--surface); }
+  td { padding:8px 12px; border-bottom:1px solid #1c1c1c; vertical-align:top; }
+  .r { text-align:right; } .c { text-align:center; }
+  td.n { font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .tbl { border:1px solid var(--border); }
+  .katex { font-size:1.05em; color:var(--text-strong); }
+
+  @media (max-width:720px) {
+    body { padding:16px 12px 60px; } .body { padding:16px; }
+    .vcard-top { grid-template-columns:1fr; } .vc-main { border-right:0; border-bottom:1px solid var(--border); }
+    .tiles { grid-template-columns:repeat(2,1fr); } .tile:nth-child(2) { border-right:0; } .tile:nth-child(-n+2) { border-bottom:1px solid var(--border); }
+    .tbl { overflow-x:auto; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="note"><b>STEP 2 · REPORT READER</b> · Real AAPL FY2025 numbers from your saved report. The card is parsed from the dashboard table, so it works for old reports too. Switch the stance to see each color. The full table is one click away, and the source list at the bottom is removed; the inline citation chips still open the 10-K panel.</p>
+  <div class="switch">
+    <button data-s="over" class="on">OVERVALUED (real)</button><button data-s="fair">FAIRLY VALUED</button><button data-s="under">UNDERVALUED</button>
+  </div>
+
+  <div class="meta"><span class="who">Research memorandum</span><span>5:33 PM</span></div>
+  <div class="body">
+    <h1>Institutional Equity Research Report: Apple Inc. (AAPL)</h1>
+    <blockquote><b>Filing Source</b>: SEC Form 10-K (Fiscal Year 2025) | <b>Valuation Stance</b>: <b id="bq-st">Overvalued</b></blockquote>
+
+    <!-- ===== CARD ===== -->
+    <div class="vcard">
+      <div class="vcard-top">
+        <div class="vc-main">
+          <div class="lbl">Base-case DCF fair value / share<sup class="c">1</sup></div>
+          <div class="fv" id="fv">$111.21</div>
+          <div class="vs">vs price <span style="color:var(--text)" id="px">$336.64</span><sup class="m">2</sup> · <span class="d" id="ud" style="color:var(--neg)">−67.0% downside</span></div>
+          <div class="stance st-over" id="st">OVERVALUED</div>
+          <div class="stance-note">Stance band: ±10% around fair value</div>
+        </div>
+        <div class="vc-range">
+          <div class="lbl">Scenario range vs market price</div>
+          <div class="track" id="track"></div>
+          <div class="legend"><span><i style="background:var(--acc-bg);border:1px solid var(--acc-dim)"></i>Bear → bull</span><span><i style="background:var(--acc)"></i>Base</span><span><i style="background:#fff"></i>Price</span></div>
+        </div>
+      </div>
+      <div class="tiles">
+        <div class="tile"><div class="lbl">WACC<sup class="m">3</sup></div><b id="t1">9.75%</b><small>CAPM</small></div>
+        <div class="tile"><div class="lbl">Terminal g</div><b>2.5%</b><small>TV 67.6% of EV</small></div>
+        <div class="tile"><div class="lbl">Prob-weighted</div><b id="t3">$110.94</b><small>bear / base / bull</small></div>
+        <div class="tile"><div class="lbl">Market-implied g</div><b id="t4">32.7%</b><small>vs 3.4% modeled CAGR</small></div>
+      </div>
+      <button class="more" id="more"><span class="car">▸</span>FULL VALUATION DASHBOARD · 17 ROWS</button>
+      <div class="full" id="full">
+        <table>
+          <thead><tr><th>Metric</th><th class="r">Value</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Base-Case DCF Fair Value / Share</strong><sup class="c">1</sup></td><td class="n r"><strong>$111.21</strong></td></tr>
+            <tr><td>Bear / Bull Fair Value</td><td class="n r">$101.02 / $120.31</td></tr>
+            <tr><td>Probability-Weighted Fair Value</td><td class="n r">$110.94</td></tr>
+            <tr><td>Current Share Price<sup class="m">2</sup></td><td class="n r">$336.64 (yfinance_live)</td></tr>
+            <tr><td>Base-Case Upside / Downside</td><td class="n r" style="color:var(--neg)">-67.0%</td></tr>
+            <tr><td>Market-Implied Discount Rate (at modeled cash flows)</td><td class="n r">4.62%</td></tr>
+            <tr><td>Terminal Tax Rate (marginal)</td><td class="n r">25.0%</td></tr>
+            <tr><td>Enterprise Value</td><td class="n r">$1,482,807.6M</td></tr>
+            <tr><td>Net Debt (negative = net cash)<sup class="c">6</sup></td><td class="n r">$-33,763.0M</td></tr>
+            <tr><td>Equity Value (as of 2026-10-11)</td><td class="n r">$1,668,728.4M</td></tr>
+            <tr><td>Valuation Shares<sup class="c">6</sup></td><td class="n r">15,004.7M</td></tr>
+            <tr><td>Forecast</td><td class="r">5-year explicit horizon, 3.4% revenue CAGR (historical fade)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h2>1. Executive summary</h2>
+    <p>Apple Inc. operates in a highly competitive landscape, designing and marketing a diverse range of consumer electronics and services. The current market price of $336.64 significantly exceeds our base-case fair value estimate of $111.21 per share, indicating a potential overvaluation<sup class="m">2</sup><sup class="c">1</sup>.</p>
+
+    <h2>6. Discounted cash flow (DCF) valuation &amp; sensitivity</h2>
+    <p><strong>WACC breakdown</strong> (formulas now rendered by KaTeX)</p>
+    <div class="tbl"><table>
+      <thead><tr><th>WACC parameter</th><th class="c">Value</th><th>Source / methodology</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Risk-Free Rate ($R_f$)</strong></td><td class="n c">5.24%</td><td>us_10y_treasury_live</td></tr>
+        <tr><td><strong>Beta ($\beta$)</strong></td><td class="n c">1.05</td><td>yfinance_raw (Blume-adjusted from raw 1.07)</td></tr>
+        <tr><td><strong>Cost of Equity ($K_e$)</strong></td><td class="n c">9.85%</td><td>CAPM: $R_f + (\beta \times \text{ERP})$</td></tr>
+        <tr><td><strong>After-Tax Cost of Debt</strong></td><td class="n c">4.87%</td><td>$K_d \times (1 - t)$</td></tr>
+        <tr><td><strong>Equity Weight ($W_e$)</strong></td><td class="n c">98.03%</td><td>$E / (E + D)$</td></tr>
+        <tr><td><strong>CAPM Blended WACC</strong></td><td class="n c">9.75%</td><td>$(W_e \times K_e) + (W_d \times K_d \times (1 - t))$</td></tr>
+      </tbody>
+    </table></div>
+    <p style="margin-top:22px;color:var(--faint);font-family:var(--mono);font-size:11px">— end of report: no source list. Citation chips above stay clickable. —</p>
+  </div>
+</div>
+
+<script>
+  const data = {
+    over:  { fv:111.21, bear:101.02, bull:120.31, px:336.64, pw:110.94, st:'OVERVALUED', cls:'st-over', bq:'Overvalued', mg:'32.7%' },
+    fair:  { fv:412.30, bear:301.50, bull:538.90, px:378.10, pw:416.25, st:'FAIRLY VALUED', cls:'st-fair', bq:'Fairly Valued', mg:'2.4%' },
+    under: { fv:248.00, bear:190.40, bull:331.70, px:171.20, pw:252.10, st:'UNDERVALUED', cls:'st-under', bq:'Undervalued', mg:'−1.8%' },
+  };
+  const $ = (id) => document.getElementById(id);
+  const money = (v) => '$' + v.toFixed(2);
+  function render(k) {
+    const d = data[k];
+    const ud = (d.fv / d.px - 1) * 100;
+    $('fv').textContent = money(d.fv); $('px').textContent = money(d.px);
+    $('ud').textContent = (ud >= 0 ? '+' : '−') + Math.abs(ud).toFixed(1) + '% ' + (ud >= 0 ? 'upside' : 'downside');
+    $('ud').style.color = ud >= 0 ? 'var(--pos)' : 'var(--neg)';
+    $('st').textContent = d.st; $('st').className = 'stance ' + d.cls; $('bq-st').textContent = d.bq;
+    $('t3').textContent = money(d.pw); $('t4').textContent = d.mg;
+    const lo = Math.min(d.bear, d.px) * 0.9, hi = Math.max(d.bull, d.px) * 1.08;
+    const pos = (v) => ((v - lo) / (hi - lo) * 100).toFixed(2) + '%';
+    $('track').innerHTML =
+      '<div class="axis"></div>' +
+      `<div class="band" style="left:${pos(d.bear)};width:calc(${pos(d.bull)} - ${pos(d.bear)})"></div>` +
+      `<div class="tick" style="left:${pos(d.fv)}"></div>` +
+      `<div class="px" style="left:${pos(d.px)}"></div>` +
+      `<span class="tl bot" style="left:${pos(d.bear)};color:var(--muted)">${money(d.bear)}</span>` +
+      `<span class="tl top" style="left:${pos(d.fv)};color:var(--acc)">BASE ${money(d.fv)}</span>` +
+      `<span class="tl bot" style="left:${pos(d.bull)};color:var(--muted)">${money(d.bull)}</span>` +
+      `<span class="tl top" style="left:${pos(d.px)};color:#fff">PX ${money(d.px)}</span>`;
+  }
+  document.querySelectorAll('.switch button').forEach((b) => b.onclick = () => {
+    document.querySelectorAll('.switch button').forEach((x) => x.classList.toggle('on', x === b)); render(b.dataset.s);
+  });
+  $('more').onclick = () => { $('more').classList.toggle('open'); $('full').classList.toggle('open'); };
+  render('over');
+  window.addEventListener('load', () => renderMathInElement(document.querySelector('.tbl'), { delimiters: [{ left: '$', right: '$', display: false }] }));
+</script>
+</body>
+</html>

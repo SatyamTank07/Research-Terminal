@@ -1,8 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import type { AgentMilestone, Message } from './types'
-import { MarkdownRenderer } from '@/shared/components/MarkdownRenderer'
 import type { SourceRef } from '@/shared/types/citations'
-import { SourceList } from '@/features/filing-viewer/SourceList'
+import { ReportBody } from '@/features/report/ReportBody'
 import { QuickPrompts } from './QuickPrompts'
 import {
   TrendingUp,
@@ -173,14 +172,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     {message.isError ? (
                       <div className="text-fg">{message.content}</div>
                     ) : (
-                      <>
-                        <MarkdownRenderer
-                          content={message.content}
-                          sources={message.sources}
-                          onCite={onOpenSource}
-                        />
-                        <SourceList sources={message.sources ?? []} onOpen={onOpenSource} />
-                      </>
+                      <ReportBody
+                        content={message.content}
+                        sources={message.sources}
+                        onCite={onOpenSource}
+                      />
                     )}
                   </div>
                 </div>

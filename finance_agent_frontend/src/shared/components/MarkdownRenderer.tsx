@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react'
-import ReactMarkdown, { type Components } from 'react-markdown'
+import ReactMarkdown, { type Components, type Options } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
 import type { SourceRef } from '@/shared/types/citations'
 
 interface MarkdownRendererProps {
@@ -12,8 +14,21 @@ interface MarkdownRendererProps {
 
 const CITE_HREF = /^#cite-(\d+)$/
 
+/**
+ * Reports mix single-dollar LaTeX ("$R_f$", "$K_d \times (1 - t)$") with dollar amounts in prose
+ * ("price of $336.64 ... value of $111.21"), so remark-math's single-dollar mode would turn prose
+ * into math. Math spans open with a letter, backslash or paren (amounts open with a digit); those
+ * are rewritten to `$$...$$`, the only inline form remark-math accepts with singleDollarTextMath off.
+ */
+const INLINE_MATH = /(^|[^\w$\\])\$(?=[A-Za-z\\(])([^$\n]{0,160}?[^\s$])\$(?![\w$])/g
+function markInlineMath(markdown: string): string {
+  return markdown.replace(INLINE_MATH, (_m, pre: string, body: string) => `${pre}$$${body}$$`)
+}
+const REMARK_PLUGINS: Options['remarkPlugins'] = [remarkGfm, [remarkMath, { singleDollarTextMath: false }]]
+const REHYPE_PLUGINS: Options['rehypePlugins'] = [[rehypeKatex, { throwOnError: false, strict: 'ignore' }]]
+
 /** One figure: optional paren/sign/currency, digits, optional unit ("$412.30", "(1.2)", "-20.3%", "$4,912.0M", "12.5x"). */
-const FIGURE = String.raw`\(?[-+−–]?\s*[$€£]?\s*\d[\d,]*(?:\.\d+)?\s*(?:%|x|bps|pp|bn|mm|[KMBT])?\)?`
+const FIGURE = String.raw`\(?[-+−–]?\s*[$€£]?\s*[-−–]?\s*\d[\d,]*(?:\.\d+)?\s*(?:%|x|bps|pp|bn|mm|[KMBT])?\)?`
 /** Whole cell is figures: "a", "a / b", or "a (source note)". Rejects text like "10-K balance sheet". */
 const NUMERIC_CELL = new RegExp(String.raw`^${FIGURE}(?:\s*/\s*${FIGURE})*(?:\s*\([^)]*\))?$`, 'i')
 /** Explicitly signed percentage or point change: "+9.0%", "−20.3%", "-1.5pp". */
@@ -63,7 +78,7 @@ function renderCell(children: React.ReactNode): { className: string; content: Re
   return { className: '', content: children }
 }
 
-const CitationMarker: React.FC<{ source?: SourceRef; n: string; onCite?: (ref: SourceRef) => void }> = ({
+export const CitationMarker: React.FC<{ source?: SourceRef; n: string; onCite?: (ref: SourceRef) => void }> = ({
   source,
   n,
   onCite,
@@ -228,13 +243,15 @@ function MarkdownRendererImpl({ content, sources, onCite }: MarkdownRendererProp
     }),
     [sources, onCite]
   )
+  const markedContent = useMemo(() => markInlineMath(content), [content])
   return (
     <div className="markdown-content text-sm leading-[1.7] break-words text-fg">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={REMARK_PLUGINS}
+        rehypePlugins={REHYPE_PLUGINS}
         components={components}
       >
-        {content}
+        {markedContent}
       </ReactMarkdown>
     </div>
   )
