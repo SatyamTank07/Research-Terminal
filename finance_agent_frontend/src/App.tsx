@@ -16,7 +16,7 @@ export function App() {
   )
 
   // 1. Centralized user identity & documents
-  const { user } = useBackendHealth()
+  const { user, status: backendStatus } = useBackendHealth()
   const { documents, refreshDocuments } = useDocuments()
 
   // 2. Conversation management and URL state
@@ -36,6 +36,7 @@ export function App() {
     },
   })
   const filingViewer = useFilingViewer()
+  const [promptPrefill, setPromptPrefill] = useState<{ text: string; nonce: number } | null>(null)
 
   // Initial load of conversations
   useEffect(() => {
@@ -60,7 +61,7 @@ export function App() {
   }
 
   return (
-    <div className="flex h-screen bg-[#070a12] text-slate-100 selection:bg-sky-500/30 selection:text-sky-200 overflow-hidden">
+    <div className="flex h-screen bg-canvas text-fg overflow-hidden">
       {/* Left Research Dossiers Sidebar */}
       <ConversationSidebar
         conversations={conversations}
@@ -80,6 +81,7 @@ export function App() {
           onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
           isSidebarOpen={isSidebarOpen}
           documentsCount={documents.length}
+          backendStatus={backendStatus}
         />
 
         {/* Main Research Workspace */}
@@ -90,6 +92,7 @@ export function App() {
             isLoading={isLoading}
             activeMilestones={activeMilestones}
             onOpenSource={filingViewer.openSource}
+            onSelectPrompt={(text) => setPromptPrefill({ text, nonce: Date.now() })}
           />
 
 
@@ -98,6 +101,7 @@ export function App() {
             onSendMessage={sendMessage}
             isLoading={isLoading}
             onDocumentIngested={refreshDocuments}
+            prefill={promptPrefill}
           />
         </main>
       </div>

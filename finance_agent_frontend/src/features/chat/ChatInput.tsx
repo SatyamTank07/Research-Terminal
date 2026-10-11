@@ -16,6 +16,8 @@ interface ChatInputProps {
   disabled?: boolean
   isLoading?: boolean
   onDocumentIngested?: () => void
+  /** Text to load into the input (e.g. a quick-prompt prefix); a new nonce re-applies the same text. */
+  prefill?: { text: string; nonce: number } | null
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -23,6 +25,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   disabled,
   isLoading,
   onDocumentIngested,
+  prefill,
 }) => {
   const [input, setInput] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -41,6 +44,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       textareaRef.current.focus()
     }
   }, [isLoading])
+
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!prefill || !el) return
+    setInput(prefill.text)
+    el.focus()
+    requestAnimationFrame(() => el.setSelectionRange(prefill.text.length, prefill.text.length))
+  }, [prefill])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -109,8 +120,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const isIngesting = ['uploading', 'parsing', 'chunking', 'embedding', 'storing'].includes(uploadStage)
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 pb-5 pt-2">
-      <div className="relative rounded-xl border border-slate-800 bg-[#0a0f1d] shadow-2xl p-2.5 focus-within:border-sky-500/70 focus-within:ring-1 focus-within:ring-sky-500/20 transition-all">
+    <div className="w-full max-w-[880px] mx-auto px-3 sm:px-5 pb-3.5 pt-2 shrink-0">
+      <div className="relative border border-line-strong bg-panel focus-within:border-acc focus-within:ring-1 focus-within:ring-acc-dim transition-colors">
         {/* Hidden File Input for .htm only */}
         <input
           type="file"
@@ -120,6 +131,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           className="hidden"
         />
 
+        <div className="flex items-start gap-2 px-3.5 pt-2.5">
+        <span className="font-mono text-sm font-semibold text-acc leading-[22px] pt-px select-none">&gt;</span>
         <Textarea
           ref={textareaRef}
           value={input}
@@ -128,10 +141,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           placeholder="Enter ticker, company name, or research inquiry (e.g. Analyze NVDA gross margin trajectory)..."
           disabled={disabled || isLoading}
           rows={1}
-          className="min-h-[48px] max-h-[140px] border-0 bg-transparent p-2 text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none leading-relaxed"
+          className="min-h-[44px] max-h-[140px] border-0 bg-transparent px-0 py-0.5 font-mono text-[13px] text-fg-strong placeholder:text-faint focus-visible:ring-0 focus-visible:ring-offset-0 resize-none leading-[22px]"
         />
+        </div>
 
-        <div className="flex items-center justify-between pt-2 px-1 border-t border-slate-800/80 mt-1 gap-2">
+        <div className="flex items-center justify-between py-1.5 pl-2 pr-1.5 border-t border-line mt-1 gap-2">
           {/* Left section: Upload trigger + File name & Circular Progress Bar */}
           <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
             {/* Attachment Button */}
@@ -139,27 +153,27 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || isIngesting}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded text-slate-400 hover:text-sky-300 hover:bg-slate-800/60 transition-colors cursor-pointer text-xs shrink-0 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 px-1.5 py-1 rounded-xs font-mono text-[11px] text-dim hover:text-acc hover:bg-raised transition-colors cursor-pointer shrink-0 disabled:opacity-40"
               title="Upload SEC .htm filing (e.g. Form 10-K, 10-Q)"
             >
               <Paperclip className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Attach .htm</span>
+              <span className="hidden sm:inline">ATTACH .HTM</span>
             </button>
 
             {/* If a file is selected: Show file name + round circular progress bar right here! */}
             {selectedFileName ? (
               <div
-                className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-xs border max-w-full truncate transition-all ${
+                className={`inline-flex items-center gap-2 px-2 py-0.5 rounded-xs font-mono text-[11px] border max-w-full truncate transition-colors ${
                   uploadStage === 'error'
-                    ? 'bg-red-950/30 border-red-800/60 text-red-300'
+                    ? 'bg-neg-bg border-neg-dim text-neg'
                     : uploadStage === 'completed'
-                    ? 'bg-emerald-950/20 border-emerald-800/50 text-emerald-300'
-                    : 'bg-slate-900 border-sky-500/40 text-slate-200'
+                    ? 'bg-pos-bg border-pos-dim text-pos'
+                    : 'bg-acc-bg border-acc-dim text-fg'
                 }`}
               >
-                <FileText className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                <FileText className="w-3.5 h-3.5 text-acc shrink-0" />
                 <span
-                  className="truncate font-mono text-[11px] max-w-[120px] sm:max-w-[200px]"
+                  className="truncate max-w-[120px] sm:max-w-[200px]"
                   title={selectedFileName}
                 >
                   {selectedFileName}
@@ -173,13 +187,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     strokeWidth={2.5}
                     status={uploadStage}
                   />
-                  <span className="text-[10px] font-tabular text-slate-400 hidden sm:inline">
+                  <span className="text-[10px] font-tabular text-dim hidden sm:inline">
                     {uploadStage === 'completed' ? 'Indexed' : uploadStage === 'error' ? 'Error' : `${uploadProgress}%`}
                   </span>
                 </div>
 
                 {uploadMessage && (
-                  <span className="text-[10px] text-slate-400 truncate hidden md:inline max-w-[150px]" title={uploadMessage}>
+                  <span className="text-[10px] text-dim truncate hidden md:inline max-w-[150px]" title={uploadMessage}>
                     • {uploadMessage}
                   </span>
                 )}
@@ -189,7 +203,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   type="button"
                   onClick={handleClearFile}
                   disabled={isIngesting}
-                  className="text-slate-500 hover:text-slate-300 p-0.5 ml-0.5 rounded cursor-pointer disabled:opacity-20"
+                  className="text-faint hover:text-fg-strong p-0.5 ml-0.5 rounded-xs cursor-pointer disabled:opacity-20"
                   title="Remove attached filing"
                 >
                   <X className="w-3 h-3" />
@@ -197,9 +211,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               </div>
             ) : (
               /* Default Helper Text */
-              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 truncate">
-                <CornerDownLeft className="w-3 h-3 text-slate-500 shrink-0" />
-                <span className="truncate">Enter to execute inquiry, Shift+Enter for new line</span>
+              <div className="flex items-center gap-1.5 font-mono text-[10.5px] text-faint truncate">
+                <CornerDownLeft className="w-3 h-3 shrink-0" />
+                <span className="truncate">ENTER to run · SHIFT+ENTER new line</span>
               </div>
             )}
           </div>
@@ -209,29 +223,29 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onClick={handleSend}
             disabled={!input.trim() || disabled || isLoading || isIngesting}
             size="sm"
-            className="h-7.5 px-3 rounded-md gap-1.5 text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-slate-950 shadow-sm shadow-sky-500/20 disabled:opacity-40 transition-all cursor-pointer shrink-0"
+            className="h-7 px-3 gap-1.5 text-[11.5px] shrink-0"
           >
             {isLoading ? (
               <>
-                <div className="w-3 h-3 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                <span>Compiling...</span>
+                <div className="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                <span>RUNNING</span>
               </>
             ) : isIngesting ? (
               <>
-                <div className="w-3 h-3 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                <span>Ingesting...</span>
+                <div className="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                <span>INGESTING</span>
               </>
             ) : (
               <>
-                <span>Analyze</span>
+                <span>ANALYZE</span>
                 <ArrowUp className="w-3.5 h-3.5 stroke-[2.5]" />
               </>
             )}
           </Button>
         </div>
       </div>
-      <p className="text-[10px] text-center text-slate-500 mt-2 tracking-wide">
-        Confidential • For Institutional Equity Research and Fundamental Analysis Only.
+      <p className="font-mono text-[10px] text-center text-[#444] mt-1.5 tracking-wider">
+        CONFIDENTIAL · FOR INSTITUTIONAL EQUITY RESEARCH ONLY
       </p>
     </div>
   )

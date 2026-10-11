@@ -3,51 +3,26 @@ import type { AgentMilestone, Message } from './types'
 import { MarkdownRenderer } from '@/shared/components/MarkdownRenderer'
 import type { SourceRef } from '@/shared/types/citations'
 import { SourceList } from '@/features/filing-viewer/SourceList'
+import { QuickPrompts } from './QuickPrompts'
 import {
   TrendingUp,
   User,
   Copy,
   Check,
   AlertCircle,
-  Clock,
   FileText,
-  Activity,
   Sparkles,
 } from 'lucide-react'
 
-const AGENT_META: Record<string, { label: string; badgeColor: string }> = {
-  supervisor: {
-    label: 'Supervisor Router',
-    badgeColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-  },
-  conversational_analyst: {
-    label: 'Research Assistant',
-    badgeColor: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
-  },
-  business_strategist: {
-    label: 'Business & Moat Strategist',
-    badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  },
-  financial_auditor: {
-    label: 'Financial Statement Auditor',
-    badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  },
-  risk_analyst: {
-    label: 'Risk & Red Flag Analyst',
-    badgeColor: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-  },
-  forecasting_analyst: {
-    label: 'Financial Forecasting Analyst',
-    badgeColor: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-  },
-  valuation_specialist: {
-    label: 'DCF Valuation Specialist',
-    badgeColor: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  },
-  lead_synthesizer: {
-    label: 'Lead Synthesizer',
-    badgeColor: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
-  },
+const AGENT_LABELS: Record<string, string> = {
+  supervisor: 'Supervisor',
+  conversational_analyst: 'Research assistant',
+  business_strategist: 'Business strategist',
+  financial_auditor: 'Financial auditor',
+  risk_analyst: 'Risk analyst',
+  forecasting_analyst: 'Forecasting analyst',
+  valuation_specialist: 'Valuation specialist',
+  lead_synthesizer: 'Lead synthesizer',
 }
 
 interface ChatWindowProps {
@@ -55,13 +30,17 @@ interface ChatWindowProps {
   isLoading: boolean
   activeMilestones?: AgentMilestone[]
   onOpenSource?: (ref: SourceRef) => void
+  onSelectPrompt?: (prompt: string) => void
 }
+
+const META_ROW = 'flex items-center gap-2.5 font-mono text-[10.5px] uppercase tracking-[0.08em] text-faint mb-1.5'
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   isLoading,
   activeMilestones = [],
   onOpenSource,
+  onSelectPrompt,
 }) => {
 
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -87,19 +66,26 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   return (
     <div className="flex-1 w-full overflow-y-auto min-h-0">
-      <div className="w-full max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="w-full max-w-[900px] mx-auto px-4 sm:px-5 py-6 space-y-6">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[480px] text-center px-4">
-            <div className="w-14 h-14 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center mb-5 text-sky-400 shadow-sm shadow-sky-500/5">
-              <TrendingUp className="w-7 h-7 stroke-[2]" />
+          <div className="flex flex-col justify-center min-h-[calc(100vh-240px)] py-6">
+            <div className="w-11 h-11 rounded-xs bg-acc text-black flex items-center justify-center mb-5">
+              <TrendingUp className="w-6 h-6 stroke-[2.2]" />
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
-              Research Terminal
+            <h2 className="font-mono text-xl sm:text-2xl font-semibold tracking-[0.12em] text-fg-strong">
+              RESEARCH TERMINAL
             </h2>
-            <p className="text-slate-400 text-xs sm:text-sm max-w-lg mt-2.5 leading-relaxed">
-              Conduct fundamental analysis, evaluate valuation models, review earnings consensus, and analyze regulatory disclosures across equity markets.
+            <p className="text-dim text-sm max-w-xl mt-2 leading-relaxed">
+              Run a multi-agent equity research pipeline on any ingested SEC filing: 3-statement audit, moat assessment,
+              risk matrix, forecast and DCF valuation, with every figure cited back to the 10-K.
             </p>
+
+            {onSelectPrompt && (
+              <div className="mt-8">
+                <QuickPrompts onSelectPrompt={onSelectPrompt} disabled={isLoading} />
+              </div>
+            )}
           </div>
         ) : (
         messages.map((message) => {
@@ -114,98 +100,88 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           return (
             <div key={message.id} className="w-full group">
               {isUser ? (
-                /* Analyst Inquiry Card */
-                <div className="flex flex-col items-end mb-4">
-                  <div className="max-w-[90%] sm:max-w-[82%]">
-                    <div className="flex items-center justify-end gap-2 mb-1.5 px-1">
-                      <span className="text-[10px] text-slate-500 font-tabular flex items-center gap-1">
-                        <Clock className="w-2.5 h-2.5" />
-                        {formatTime(message.timestamp)}
-                      </span>
-                      <span className="text-[11px] font-semibold tracking-wider uppercase text-sky-400 flex items-center gap-1">
+                /* Analyst Inquiry */
+                <div className="flex flex-col items-end">
+                  <div className="max-w-[92%] sm:max-w-[78%]">
+                    <div className={`${META_ROW} justify-end`}>
+                      <span className="font-tabular">{formatTime(message.timestamp)}</span>
+                      <span className="font-semibold text-acc flex items-center gap-1.5">
                         <User className="w-3 h-3" />
-                        Analyst Inquiry
+                        Analyst inquiry
                       </span>
                     </div>
 
-                    <div className="p-3.5 sm:p-4 rounded-xl bg-[#0e1424] border border-slate-800 text-slate-100 text-xs sm:text-sm leading-relaxed shadow-sm font-medium whitespace-pre-wrap">
+                    <div className="px-3.5 py-2.5 bg-raised border border-line-strong border-l-2 border-l-acc text-fg-strong text-sm leading-relaxed whitespace-pre-wrap">
                       {message.content}
                     </div>
                   </div>
                 </div>
               ) : (
-                /* Assistant Response Card */
-                <div className="flex flex-col items-start w-full mb-6">
-                  <div className="w-full">
-                        {/* Top Bar */}
-                        <div className="flex items-center justify-between mb-1.5 px-1">
-                          <div className="flex items-center gap-2">
-                            {isReport ? (
-                              <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-300 flex items-center gap-1.5">
-                                <FileText className="w-3.5 h-3.5 text-sky-400" />
-                                Research Memorandum
-                              </span>
-                            ) : (
-                              <span className="text-[11px] font-semibold tracking-wider uppercase text-sky-400 flex items-center gap-1.5">
-                                <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-                                Research Assistant
-                              </span>
-                            )}
-                            <span className="text-[10px] text-slate-500 font-tabular flex items-center gap-1">
-                              <Clock className="w-2.5 h-2.5" />
-                              {formatTime(message.timestamp)}
-                            </span>
-                          </div>
+                /* Assistant Response */
+                <div className="w-full">
+                  <div className={META_ROW}>
+                    {isReport ? (
+                      <span className="font-semibold text-fg flex items-center gap-1.5">
+                        <FileText className="w-3 h-3 text-acc" />
+                        Research memorandum
+                      </span>
+                    ) : (
+                      <span className="font-semibold text-acc flex items-center gap-1.5">
+                        <Sparkles className="w-3 h-3" />
+                        Research assistant
+                      </span>
+                    )}
+                    <span className="font-tabular">{formatTime(message.timestamp)}</span>
 
-                          {!message.isError && (
-                            <button
-                              onClick={() => copyToClipboard(message.id, message.content)}
-                              className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded text-slate-400 hover:text-white hover:bg-slate-800/80 transition-all cursor-pointer"
-                              title={isReport ? 'Copy research memorandum' : 'Copy response'}
-                            >
-                              {copiedId === message.id ? (
-                                <>
-                                  <Check className="w-3 h-3 text-emerald-400" />
-                                  <span className="text-emerald-400">Copied</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-3 h-3" />
-                                  <span>{isReport ? 'Copy Memo' : 'Copy Response'}</span>
-                                </>
-                              )}
-                            </button>
-                          )}
-                        </div>
+                    {!message.isError && (
+                      <button
+                        onClick={() => copyToClipboard(message.id, message.content)}
+                        className="ml-auto flex items-center gap-1.5 px-1.5 py-0.5 rounded-xs text-dim hover:text-fg-strong hover:bg-raised transition-colors cursor-pointer"
+                        title={isReport ? 'Copy research memorandum' : 'Copy response'}
+                      >
+                        {copiedId === message.id ? (
+                          <>
+                            <Check className="w-3 h-3 text-pos" />
+                            <span className="text-pos">Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" />
+                            <span>{isReport ? 'Copy memo' : 'Copy'}</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
 
-                    {/* Memorandum Body */}
-                    <div
-                      className={`p-4 sm:p-6 rounded-xl text-xs sm:text-sm leading-relaxed shadow-md transition-all ${
-                        message.isError
-                          ? 'bg-red-950/20 border border-red-900/60 text-red-200 whitespace-pre-wrap'
-                          : 'bg-[#0a0f1d] border border-slate-800/90 text-slate-100'
-                      }`}
-                    >
-                      {message.isError && (
-                        <div className="flex items-center gap-1.5 text-red-400 font-semibold mb-2 text-xs">
-                          <AlertCircle className="w-3.5 h-3.5" />
-                          <span>Inquiry Execution Error</span>
-                        </div>
-                      )}
+                  <div
+                    className={`border ${
+                      isReport ? 'px-4 py-5 sm:px-6 sm:py-6' : 'px-4 py-3.5 sm:px-5'
+                    } ${
+                      message.isError
+                        ? 'bg-neg-bg border-neg-dim text-neg text-sm whitespace-pre-wrap'
+                        : 'bg-panel border-line'
+                    }`}
+                  >
+                    {message.isError && (
+                      <div className="flex items-center gap-1.5 font-mono font-semibold mb-2 text-[11px] uppercase tracking-wider">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>Inquiry execution error</span>
+                      </div>
+                    )}
 
-                      {message.isError ? (
-                        <div>{message.content}</div>
-                      ) : (
-                        <>
-                          <MarkdownRenderer
-                            content={message.content}
-                            sources={message.sources}
-                            onCite={onOpenSource}
-                          />
-                          <SourceList sources={message.sources ?? []} onOpen={onOpenSource} />
-                        </>
-                      )}
-                    </div>
+                    {message.isError ? (
+                      <div className="text-fg">{message.content}</div>
+                    ) : (
+                      <>
+                        <MarkdownRenderer
+                          content={message.content}
+                          sources={message.sources}
+                          onCite={onOpenSource}
+                        />
+                        <SourceList sources={message.sources ?? []} onOpen={onOpenSource} />
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -214,78 +190,67 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         })
       )}
 
-      {/* Live Multi-Agent Pipeline Progress Card */}
+      {/* Live Multi-Agent Pipeline Progress */}
       {isLoading && (
-        <div className="w-full mb-6 p-4 sm:p-5 rounded-xl bg-[#0a0f1d] border border-slate-800/90 shadow-lg text-slate-100 animate-in fade-in duration-300">
-          {/* Header */}
-          <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800/80">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500"></span>
-              </span>
-              <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-300 flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-sky-400" />
-                Multi-Agent Research Pipeline Active
-              </span>
-            </div>
+        <div className="w-full bg-panel border border-line border-t-2 border-t-acc">
+          <div className="flex items-center gap-2.5 px-4 py-3 border-b border-line font-mono text-[11px] uppercase tracking-[0.08em]">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-acc opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-acc"></span>
+            </span>
+            <span className="text-fg-strong">Multi-agent pipeline active</span>
             {activeMilestones.length > 0 && (
-              <span className="text-[10px] text-slate-500 font-mono">
-                {activeMilestones.length} milestone{activeMilestones.length !== 1 ? 's' : ''} reached
+              <span className="ml-auto text-faint">
+                {activeMilestones.length} milestone{activeMilestones.length !== 1 ? 's' : ''}
               </span>
             )}
           </div>
 
-          {/* Milestones list */}
           {activeMilestones.length > 0 ? (
-            <div className="space-y-2">
+            <div>
               {activeMilestones.map((ms, index) => {
                 const isLatest = index === activeMilestones.length - 1
-                const meta = AGENT_META[ms.node] || {
-                  label: ms.node.replace('_', ' ').toUpperCase(),
-                  badgeColor: 'bg-slate-800 text-slate-300 border-slate-700',
-                }
+                const label = AGENT_LABELS[ms.node] || ms.node.replace(/_/g, ' ')
 
                 return (
                   <div
                     key={ms.id}
-                    className={`flex items-start gap-2.5 p-2.5 rounded-lg transition-all ${
-                      isLatest
-                        ? 'bg-sky-950/20 border border-sky-500/30 shadow-sm'
-                        : 'bg-slate-900/40 border border-slate-800/40 opacity-75'
+                    className={`grid grid-cols-[16px_1fr_auto] sm:grid-cols-[16px_170px_1fr_auto] gap-x-2.5 gap-y-0.5 items-start px-4 py-2.5 border-b border-[#1a1a1a] last:border-b-0 text-[12.5px] ${
+                      isLatest ? 'bg-acc-bg' : ''
                     }`}
                   >
-                    <div className="mt-0.5 shrink-0">
+                    <div className="mt-0.5">
                       {isLatest ? (
-                        <div className="w-3.5 h-3.5 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
+                        <div className="w-3 h-3 border-2 border-acc border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <Check className="w-3.5 h-3.5 text-pos" />
                       )}
                     </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                        <span
-                          className={`text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded border ${meta.badgeColor}`}
-                        >
-                          {meta.label}
-                        </span>
-                        <span className="text-[10px] text-slate-500 font-tabular">
-                          {formatTime(ms.timestamp)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-200 leading-snug">
-                        {ms.message}
-                      </p>
-                    </div>
+                    <span
+                      className={`font-mono text-[10.5px] uppercase tracking-wider pt-px ${
+                        isLatest ? 'text-acc' : 'text-dim'
+                      }`}
+                    >
+                      {label}
+                    </span>
+                    <span
+                      className={`col-start-2 row-start-2 sm:col-start-auto sm:row-start-auto leading-snug ${
+                        isLatest ? 'text-fg-strong' : 'text-fg'
+                      }`}
+                    >
+                      {ms.message}
+                    </span>
+                    <span className="col-start-3 row-start-1 sm:col-start-auto sm:row-start-auto font-mono text-[10.5px] text-faint text-right font-tabular">
+                      {formatTime(ms.timestamp)}
+                    </span>
                   </div>
                 )
               })}
             </div>
           ) : (
-            <div className="flex items-center gap-2.5 py-1 text-slate-400 text-xs">
-              <div className="w-3.5 h-3.5 border-2 border-sky-400 border-t-transparent rounded-full animate-spin shrink-0" />
-              <span>Initializing multi-agent pipeline & triaging inquiry...</span>
+            <div className="flex items-center gap-2.5 px-4 py-3 text-dim text-xs">
+              <div className="w-3 h-3 border-2 border-acc border-t-transparent rounded-full animate-spin shrink-0" />
+              <span>Initializing multi-agent pipeline and triaging inquiry…</span>
             </div>
           )}
         </div>

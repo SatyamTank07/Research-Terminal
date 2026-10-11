@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terminal Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  /* ================= DESIGN TOKENS (the spec) ================= */
+  :root {
+    --bg:#0a0a0a;          /* app background */
+    --surface:#0f0f0f;     /* sidebar, panels */
+    --card:#121212;        /* cards, message body */
+    --raised:#1a1a1a;      /* hover, user message, inputs */
+    --border:#262626;
+    --border-strong:#333333;
+    --text:#d6d6d6;
+    --text-strong:#ffffff;
+    --muted:#8a8a8a;
+    --faint:#5c5c5c;
+    --acc:#fb8b1e;         /* Bloomberg orange */
+    --acc-hover:#ffa040;
+    --acc-dim:#7a4310;     /* accent borders */
+    --acc-bg:#2a1806;      /* accent tint fills */
+    --pos:#3ddc84; --pos-bg:#0d2618; --pos-dim:#1f5a35;
+    --neg:#ff4d6d; --neg-bg:#2a0d14; --neg-dim:#6b1f2e;
+    --sans:"IBM Plex Sans", system-ui, sans-serif;
+    --mono:"IBM Plex Mono", ui-monospace, monospace;
+    --radius:2px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); font-size:14px; overflow:hidden; }
+  button { font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+  ::selection { background:var(--acc-bg); color:var(--acc); }
+  ::-webkit-scrollbar { width:8px; height:8px; } ::-webkit-scrollbar-thumb { background:#2a2a2a; }
+  .mono { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+  svg.i { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+
+  /* ---- mockup state switcher (not part of the product) ---- */
+  .switch { position:fixed; bottom:14px; left:50%; transform:translateX(-50%); z-index:99; display:flex; gap:2px; padding:3px; background:#000; border:1px solid var(--acc-dim); box-shadow:0 8px 30px rgba(0,0,0,.6); }
+  .switch button { font-family:var(--mono); font-size:11px; padding:6px 12px; color:var(--muted); letter-spacing:.05em; }
+  .switch button.on { background:var(--acc); color:#000; font-weight:600; }
+
+  /* ================= APP SHELL ================= */
+  .app { display:flex; height:100vh; }
+
+  /* Sidebar */
+  aside.side { width:272px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; }
+  .side-top { padding:10px; border-bottom:1px solid var(--border); display:flex; gap:6px; }
+  .btn-primary { display:inline-flex; align-items:center; gap:8px; background:var(--acc); color:#000; font-family:var(--mono); font-weight:600; font-size:12px; letter-spacing:.04em; padding:0 12px; height:34px; border-radius:var(--radius); }
+  .btn-primary:hover { background:var(--acc-hover); }
+  .btn-ghost { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; color:var(--muted); border-radius:var(--radius); }
+  .btn-ghost:hover { background:var(--raised); color:var(--text-strong); }
+  .side-label { padding:12px 14px 6px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:var(--faint); text-transform:uppercase; display:flex; justify-content:space-between; }
+  .dossiers { flex:1; overflow-y:auto; padding:0 6px 10px; }
+  .dos { display:flex; gap:10px; align-items:flex-start; padding:9px 10px; border-left:2px solid transparent; cursor:pointer; }
+  .dos:hover { background:var(--raised); }
+  .dos.on { background:var(--acc-bg); border-left-color:var(--acc); }
+  .dos .tk { font-family:var(--mono); font-size:11px; font-weight:600; color:var(--acc); width:38px; padding-top:1px; }
+  .dos:not(.on) .tk { color:var(--muted); }
+  .dos .t { font-size:12.5px; color:var(--text); line-height:1.35; }
+  .dos.on .t { color:var(--text-strong); }
+  .dos .m { font-family:var(--mono); font-size:10px; color:var(--faint); margin-top:3px; }
+  .side-foot { border-top:1px solid var(--border); padding:10px 14px; font-family:var(--mono); font-size:10.5px; color:var(--faint); display:flex; align-items:center; gap:8px; }
+  .dot { width:7px; height:7px; border-radius:50%; background:var(--pos); box-shadow:0 0 6px var(--pos); }
+
+  /* Main column */
+  .main { flex:1; min-width:0; display:flex; flex-direction:column; }
+  header.top { height:48px; flex-shrink:0; display:flex; align-items:center; gap:14px; padding:0 18px; background:var(--surface); border-bottom:1px solid var(--border); border-top:2px solid var(--acc); }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .logo { width:26px; height:26px; background:var(--acc); color:#000; display:flex; align-items:center; justify-content:center; border-radius:var(--radius); }
+  .brand b { font-family:var(--mono); font-size:13px; letter-spacing:.12em; color:var(--text-strong); }
+  .brand span { font-size:11px; color:var(--faint); }
+  .sp { flex:1; }
+  .chip { display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 9px; font-family:var(--mono); font-size:11px; border:1px solid var(--border-strong); border-radius:var(--radius); color:var(--muted); }
+  .chip.ok { color:var(--pos); border-color:var(--pos-dim); background:var(--pos-bg); }
+  .avatar { width:16px; height:16px; background:var(--acc-bg); color:var(--acc); font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:600; }
+
+  .feed { flex:1; overflow-y:auto; }
+  .feed-in { max-width:900px; margin:0 auto; padding:24px 20px 28px; display:flex; flex-direction:column; gap:22px; }
+
+  /* Message meta row */
+  .meta { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); margin-bottom:6px; }
+  .meta .who { color:var(--acc); font-weight:600; display:flex; align-items:center; gap:6px; }
+  .meta .who.white { color:var(--text); }
+  .meta .act { margin-left:auto; display:flex; gap:4px; }
+  .meta .act button { display:inline-flex; align-items:center; gap:5px; padding:3px 7px; color:var(--muted); letter-spacing:.05em; }
+  .meta .act button:hover { color:var(--text-strong); background:var(--raised); }
+
+  .user-msg { align-self:flex-end; max-width:78%; }
+  .user-msg .meta { justify-content:flex-end; }
+  .user-body { background:var(--raised); border:1px solid var(--border-strong); border-left:2px solid var(--acc); padding:10px 14px; font-size:13.5px; color:var(--text-strong); }
+
+  .asst-body { background:var(--card); border:1px solid var(--border); padding:22px 26px; }
+
+  /* ================= MARKDOWN REPORT STYLES ================= */
+  .md h1 { font-size:20px; font-weight:600; color:var(--text-strong); line-height:1.3; letter-spacing:-.01em; }
+  .md h2 { font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--acc); margin:28px 0 12px; padding-bottom:7px; border-bottom:1px solid var(--border); }
+  .md h3 { font-size:14px; font-weight:600; color:var(--text-strong); margin:18px 0 6px; }
+  .md p { font-size:14px; line-height:1.7; color:var(--text); margin:0 0 10px; }
+  .md strong { color:var(--text-strong); font-weight:600; }
+  .md blockquote { margin:12px 0 4px; padding:8px 12px; border-left:2px solid var(--acc); background:var(--acc-bg); font-size:12.5px; color:var(--text); font-family:var(--mono); }
+  .md blockquote strong { color:var(--acc); }
+  .md ul { margin:0 0 10px 18px; } .md li { line-height:1.65; margin-bottom:3px; }
+  .md table { width:100%; border-collapse:collapse; margin:6px 0 14px; font-size:12.5px; }
+  .md th { font-family:var(--mono); font-size:10.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); text-align:left; padding:7px 10px; border-bottom:1px solid var(--border-strong); background:var(--surface); }
+  .md td { padding:7px 10px; border-bottom:1px solid #1c1c1c; vertical-align:top; }
+  .md td.n, .md th.n { text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; }
+  .md tr:hover td { background:#151515; }
+  .md tr.hl td { background:var(--acc-bg); color:var(--text-strong); }
+  .md tr.hl td:first-child { box-shadow:inset 2px 0 0 var(--acc); }
+  sup.cite { font-family:var(--mono); font-size:10px; font-weight:500; padding:0 4px; margin-left:2px; background:var(--acc-bg); color:var(--acc); border-radius:var(--radius); cursor:pointer; vertical-align:super; line-height:1; }
+  sup.cite:hover, sup.cite.on { background:var(--acc); color:#000; }
+  .pos { color:var(--pos); } .neg { color:var(--neg); }
+  .tag { display:inline-block; font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.06em; padding:2px 6px; border:1px solid; border-radius:var(--radius); }
+  .tag.severe { color:var(--neg); border-color:var(--neg-dim); background:var(--neg-bg); }
+  .tag.high { color:var(--acc); border-color:var(--acc-dim); background:var(--acc-bg); }
+  .tag.mod { color:var(--muted); border-color:var(--border-strong); }
+  .grid-tbl td.n.up { background:rgba(61,220,132,.08); color:var(--pos); }
+  .grid-tbl td.n.dn { background:rgba(255,77,109,.07); color:#ff8fa3; }
+  .grid-tbl td.n.base { background:var(--acc); color:#000; font-weight:600; }
+  .caption { font-family:var(--mono); font-size:10.5px; color:var(--faint); margin:-8px 0 14px; }
+
+  /* Sources */
+  .sources { margin-top:24px; padding-top:14px; border-top:1px solid var(--border); }
+  .sources .lbl { font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+  .src { display:flex; gap:10px; width:100%; text-align:left; padding:7px 10px; border:1px solid var(--border); background:var(--bg); margin-bottom:4px; font-size:12px; }
+  .src:hover, .src.on { border-color:var(--acc-dim); background:var(--acc-bg); }
+  .src .n { font-family:var(--mono); color:var(--acc); }
+  .src .l { color:var(--text-strong); }
+  .src .q { display:block; color:var(--faint); font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  .src.mkt { cursor:default; } .src.mkt .n { color:var(--faint); } .src.mkt .l { color:var(--muted); }
+
+  /* Pipeline (running state) */
+  .pipe-card { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--acc); }
+  .pipe-head { display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; }
+  .pulse { width:8px; height:8px; border-radius:50%; background:var(--acc); animation:p 1.2s infinite; }
+  @keyframes p { 0%,100%{ box-shadow:0 0 0 0 rgba(251,139,30,.6);} 50%{ box-shadow:0 0 0 6px rgba(251,139,30,0);} }
+  .pipe-head .cnt { margin-left:auto; color:var(--faint); }
+  .step { display:grid; grid-template-columns:22px 170px 1fr 70px; gap:10px; align-items:start; padding:9px 16px; border-bottom:1px solid #1a1a1a; font-size:12.5px; }
+  .step .ag { font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding-top:1px; }
+  .step .tm { font-family:var(--mono); font-size:10.5px; color:var(--faint); text-align:right; }
+  .step.done .ic { color:var(--pos); }
+  .step.live { background:var(--acc-bg); } .step.live .ag { color:var(--acc); } .step.live .tx { color:var(--text-strong); }
+  .step.wait { opacity:.4; }
+  .spin { width:12px; height:12px; border:2px solid var(--acc); border-top-color:transparent; border-radius:50%; animation:s .8s linear infinite; margin-top:2px; }
+  @keyframes s { to { transform:rotate(360deg); } }
+
+  /* Empty state */
+  .empty { min-height:calc(100vh - 220px); display:flex; flex-direction:column; justify-content:center; }
+  .empty .hero-logo { width:44px; height:44px; background:var(--acc); color:#000; display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+  .empty h2 { font-family:var(--mono); font-size:22px; letter-spacing:.12em; color:var(--text-strong); font-weight:600; }
+  .empty p.lead { color:var(--muted); font-size:14px; max-width:560px; line-height:1.6; margin-top:8px; }
+  .prompts-lbl { font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin:30px 0 10px; }
+  .prompts { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
+  .prompt { text-align:left; padding:12px 14px; border:1px solid var(--border); background:var(--card); display:flex; gap:12px; }
+  .prompt:hover { border-color:var(--acc-dim); background:var(--acc-bg); }
+  .prompt .k { font-family:var(--mono); font-size:10px; color:var(--acc); letter-spacing:.06em; padding-top:2px; width:28px; }
+  .prompt b { display:block; font-size:13px; font-weight:600; color:var(--text-strong); }
+  .prompt span { font-size:12px; color:var(--muted); }
+
+  /* Command bar */
+  .cmd-wrap { padding:8px 20px 14px; flex-shrink:0; }
+  .cmd { max-width:860px; margin:0 auto; border:1px solid var(--border-strong); background:var(--card); }
+  .cmd:focus-within { border-color:var(--acc); box-shadow:0 0 0 1px var(--acc-dim); }
+  .cmd-row { display:flex; gap:8px; padding:12px 14px 8px; }
+  .cmd-row .pr { font-family:var(--mono); color:var(--acc); font-weight:600; }
+  .cmd textarea { flex:1; background:transparent; border:0; outline:0; resize:none; color:var(--text-strong); font-family:var(--mono); font-size:13px; line-height:1.5; height:22px; }
+  .cmd textarea::placeholder { color:var(--faint); }
+  .cmd-bar { display:flex; align-items:center; gap:8px; padding:6px 8px 6px 10px; border-top:1px solid var(--border); }
+  .attach { display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--muted); padding:4px 7px; }
+  .attach:hover { color:var(--acc); background:var(--raised); }
+  .file { display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; padding:3px 8px; border:1px solid var(--acc-dim); background:var(--acc-bg); color:var(--text); }
+  .ring { width:14px; height:14px; border-radius:50%; background:conic-gradient(var(--acc) 0 64%, #333 64% 100%); -webkit-mask:radial-gradient(circle 5px, transparent 98%, #000 100%); }
+  .hint { font-family:var(--mono); font-size:10.5px; color:var(--faint); }
+  .send { height:28px; font-size:11.5px; }
+  .disc { text-align:center; font-family:var(--mono); font-size:10px; color:#444; margin-top:7px; letter-spacing:.05em; }
+
+  /* Filing viewer panel */
+  aside.viewer { width:440px; flex-shrink:0; background:var(--surface); border-left:1px solid var(--border); display:flex; flex-direction:column; }
+  .v-head { padding:12px 14px; border-bottom:1px solid var(--border); border-top:2px solid var(--acc); display:flex; gap:10px; align-items:flex-start; }
+  .v-head .t { font-family:var(--mono); font-size:12px; font-weight:600; color:var(--text-strong); display:flex; gap:8px; align-items:center; }
+  .v-head .t .n { color:var(--acc); }
+  .v-head .s { font-size:11.5px; color:var(--muted); margin-top:3px; }
+  .v-quote { margin:12px 14px 0; padding:8px 12px; border-left:2px solid var(--acc); background:var(--acc-bg); font-size:12px; font-style:italic; color:#f5d3ad; line-height:1.55; }
+  .v-body { flex:1; display:flex; min-height:0; margin-top:12px; border-top:1px solid var(--border); }
+  .v-toc { width:130px; flex-shrink:0; border-right:1px solid var(--border); padding:8px 6px; overflow-y:auto; }
+  .v-toc button { display:block; width:100%; text-align:left; font-family:var(--mono); font-size:10.5px; color:var(--faint); padding:5px 6px; }
+  .v-toc button:hover { color:var(--text); } .v-toc button.on { color:var(--acc); background:var(--acc-bg); }
+  .v-text { flex:1; overflow-y:auto; padding:14px 16px; font-size:12.5px; line-height:1.7; color:#b5b5b5; }
+  .v-text h5 { font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--text-strong); margin:4px 0 8px; text-transform:uppercase; }
+  .v-text p { margin-bottom:10px; }
+  .v-text .target { outline:1px solid var(--acc-dim); background:rgba(251,139,30,.05); padding:8px; margin:0 -8px 10px; }
+  .v-text mark { background:rgba(251,139,30,.28); color:#fff; padding:0 1px; }
+
+  /* Tokens sheet */
+  .tokens h2 { margin-top:0; }
+  .sw-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; margin-bottom:20px; }
+  .sw { border:1px solid var(--border); background:var(--card); }
+  .sw i { display:block; height:44px; border-bottom:1px solid var(--border); }
+  .sw div { padding:7px 9px; font-family:var(--mono); font-size:10.5px; color:var(--muted); }
+  .sw b { display:block; color:var(--text-strong); font-weight:500; font-size:11px; }
+  .type-row { display:grid; grid-template-columns:180px 1fr; gap:16px; padding:10px 0; border-bottom:1px solid var(--border); align-items:baseline; }
+  .type-row .spec { font-family:var(--mono); font-size:10.5px; color:var(--faint); }
+  .rules li { font-size:13px; line-height:1.7; color:var(--text); }
+
+  [data-view] { display:none; }
+  body[data-state="report"] [data-view~="report"],
+  body[data-state="running"] [data-view~="running"],
+  body[data-state="empty"] [data-view~="empty"],
+  body[data-state="tokens"] [data-view~="tokens"] { display:revert; }
+  body[data-state="report"] aside.viewer[data-view~="report"] { display:flex; }
+
+  @media (max-width:1180px) { aside.viewer { position:fixed; right:0; top:0; bottom:0; z-index:50; box-shadow:-20px 0 40px rgba(0,0,0,.6); } }
+  @media (max-width:820px) {
+    aside.side { display:none; } aside.viewer { width:100%; }
+    .feed-in { padding:16px 16px 24px; } .asst-body { padding:16px; } .user-msg { max-width:92%; }
+    .prompts { grid-template-columns:1fr; } .step { grid-template-columns:22px 1fr 60px; } .step .ag { grid-column:2; } .step .tx { grid-column:2 / 4; }
+    .brand span, .hide-sm { display:none; } .cmd-wrap { padding:8px 12px 12px; } .md table { display:block; overflow-x:auto; }
+  }
+</style>
+</head>
+<body data-state="report">
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-trend" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+  <symbol id="i-line" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+</svg>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="side">
+    <div class="side-top">
+      <button class="btn-primary" style="flex:1"><svg class="i"><use href="#i-plus"/></svg>NEW DOSSIER</button>
+      <button class="btn-ghost" title="Collapse"><svg class="i"><use href="#i-panel"/></svg></button>
+    </div>
+    <div class="side-label"><span>Research dossiers</span><span>6</span></div>
+    <div class="dossiers">
+      <div class="dos on"><span class="tk">MSFT</span><div><div class="t">Full 10-K report on Microsoft</div><div class="m">2m ago</div></div></div>
+      <div class="dos"><span class="tk">NVDA</span><div><div class="t">DCF valuation at 9% WACC</div><div class="m">1h ago</div></div></div>
+      <div class="dos"><span class="tk">AMZN</span><div><div class="t">Financial audit &amp; earnings quality</div><div class="m">Yesterday</div></div></div>
+      <div class="dos"><span class="tk">TSLA</span><div><div class="t">Risk factors: Item 1A threat matrix</div><div class="m">3d ago</div></div></div>
+      <div class="dos"><span class="tk">AAPL</span><div><div class="t">Moat analysis: services ecosystem</div><div class="m">Oct 2</div></div></div>
+      <div class="dos"><span class="tk">—</span><div><div class="t">What is a reverse DCF?</div><div class="m">Sep 28</div></div></div>
+    </div>
+    <div class="side-foot"><i class="dot"></i>BACKEND ONLINE · 12 FILINGS INDEXED</div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="top">
+      <div class="brand">
+        <div class="logo"><svg class="i"><use href="#i-trend"/></svg></div>
+        <div><b>RESEARCH TERMINAL</b><br><span>Institutional fundamental intelligence</span></div>
+      </div>
+      <div class="sp"></div>
+      <span class="chip ok hide-sm"><svg class="i" style="width:12px;height:12px"><use href="#i-file"/></svg>12 FILINGS READY</span>
+      <span class="chip"><span class="avatar">F</span>finance_user <span class="hide-sm" style="color:var(--faint)">· ANALYST</span></span>
+    </header>
+
+    <div class="feed"><div class="feed-in">
+
+      <!-- ===== EMPTY STATE ===== -->
+      <div class="empty" data-view="empty">
+        <div class="hero-logo"><svg class="i" style="width:22px;height:22px"><use href="#i-trend"/></svg></div>
+        <h2>RESEARCH TERMINAL</h2>
+        <p class="lead">Run a multi-agent equity research pipeline on any ingested SEC filing: 3-statement audit, moat assessment, risk matrix, forecast and DCF valuation, with every figure cited back to the 10-K.</p>
+        <div class="prompts-lbl">Start an analysis</div>
+        <div class="prompts">
+          <button class="prompt"><span class="k">F1</span><div><b>Full 10-K report</b><span>Complete 7-agent research memorandum</span></div></button>
+          <button class="prompt"><span class="k">F2</span><div><b>DCF valuation</b><span>WACC, UFCF schedule, scenarios, sensitivity</span></div></button>
+          <button class="prompt"><span class="k">F3</span><div><b>Financial audit</b><span>Ratios, earnings quality, forensic red flags</span></div></button>
+          <button class="prompt"><span class="k">F4</span><div><b>Business &amp; moat</b><span>Segments, moat type, competitive threats</span></div></button>
+          <button class="prompt"><span class="k">F5</span><div><b>Risk factors</b><span>Item 1A matrix and YoY disclosure changes</span></div></button>
+          <button class="prompt"><span class="k">F6</span><div><b>Ask a question</b><span>Quick Q&amp;A on a filing or a concept</span></div></button>
+        </div>
+      </div>
+
+      <!-- ===== USER MESSAGE ===== -->
+      <div class="user-msg" data-view="report running">
+        <div class="meta"><span>10:42 AM</span><span class="who"><svg class="i" style="width:12px;height:12px"><use href="#i-user"/></svg>Analyst inquiry</span></div>
+        <div class="user-body">Full 10-K report on Microsoft</div>
+      </div>
+
+      <!-- ===== RUNNING STATE ===== -->
+      <div class="pipe-card" data-view="running">
+        <div class="pipe-head"><i class="pulse"></i><span style="color:var(--text-strong)">Multi-agent pipeline active</span><span class="cnt">5 / 7 · 00:47</span></div>
+        <div class="step done"><svg class="i ic"><use href="#i-check"/></svg><span class="ag">Supervisor</span><span class="tx">Resolved MSFT · 10-K FY2025 · route full_10k_report</span><span class="tm">10:42:03</span></div>
+        <div class="step done"><svg class="i ic"><use href="#i-check"/></svg><span class="ag">Financial auditor</span><span class="tx">5-year statements extracted, identities reconciled</span><span class="tm">10:42:21</span></div>
+        <div class="step done"><svg class="i ic"><use href="#i-check"/></svg><span class="ag">Business strategist</span><span class="tx">3 segments reconciled · moat claims verified</span><span class="tm">10:42:24</span></div>
+        <div class="step done"><svg class="i ic"><use href="#i-check"/></svg><span class="ag">Risk analyst</span><span class="tx">14 risks located in Item 1A · 2 severe</span><span class="tm">10:42:26</span></div>
+        <div class="step done"><svg class="i ic"><use href="#i-check"/></svg><span class="ag">Forecasting analyst</span><span class="tx">10-year UFCF schedule · bull / base / bear built</span><span class="tm">10:42:39</span></div>
+        <div class="step live"><i class="spin"></i><span class="ag">Valuation specialist</span><span class="tx">Building CAPM WACC and mid-year DCF…</span><span class="tm">10:42:50</span></div>
+        <div class="step wait"><span></span><span class="ag">Lead synthesizer</span><span class="tx">Waiting</span><span class="tm">—</span></div>
+      </div>
+
+      <!-- ===== REPORT ===== -->
+      <div data-view="report">
+        <div class="meta">
+          <span class="who white"><svg class="i" style="width:12px;height:12px;color:var(--acc)"><use href="#i-file"/></svg>Research memorandum</span><span>10:43 AM</span>
+          <span class="act"><button><svg class="i" style="width:12px;height:12px"><use href="#i-copy"/></svg>COPY MEMO</button></span>
+        </div>
+        <div class="asst-body md">
+          <h1>Institutional Equity Research Report: Microsoft Corporation (MSFT)</h1>
+          <blockquote><strong>Filing Source</strong>: SEC Form 10-K (Fiscal Year 2025) | <strong>Valuation Stance</strong>: <strong>Fairly Valued</strong></blockquote>
+
+          <h2>Executive valuation dashboard</h2>
+          <table>
+            <thead><tr><th>Metric</th><th class="n">Value</th></tr></thead>
+            <tbody>
+              <tr class="hl"><td><strong>Base-Case DCF Fair Value / Share</strong><sup class="cite">1</sup></td><td class="n"><strong>$412.30</strong></td></tr>
+              <tr><td>Bear / Bull Fair Value</td><td class="n">$301.50 / $538.90</td></tr>
+              <tr><td>Probability-Weighted Fair Value</td><td class="n">$416.25</td></tr>
+              <tr><td>Current Share Price<sup class="cite">4</sup></td><td class="n">$378.10 (live)</td></tr>
+              <tr><td>Base-Case Upside / Downside</td><td class="n pos">+9.0%</td></tr>
+              <tr><td>Valuation Stance</td><td class="n">Fairly Valued</td></tr>
+              <tr><td>Discount Rate</td><td class="n">8.40% (CAPM WACC)</td></tr>
+              <tr><td>Terminal Growth</td><td class="n">3.0%</td></tr>
+              <tr><td>Terminal Value % of EV</td><td class="n">71.8%</td></tr>
+              <tr><td>Enterprise Value</td><td class="n">$3,021.4B</td></tr>
+              <tr><td>Net Debt (negative = net cash)<sup class="cite">1</sup></td><td class="n neg">−$41.2B</td></tr>
+              <tr><td>Equity Value</td><td class="n">$3,062.6B</td></tr>
+            </tbody>
+          </table>
+
+          <h2>1. Executive summary</h2>
+          <p>Microsoft compounds on a diversified cloud and productivity franchise. Commercial cloud revenue grew 22% year over year as Azure consumption broadened across enterprise workloads<sup class="cite on">2</sup>, and operating margin held at 44.6%<sup class="cite">1</sup>. Our base-case value sits 9.0% above the $378.10 price, inside the ±10% band, so the stance is <strong>Fairly Valued</strong>.</p>
+          <p><strong>Bottom line</strong>: quality is fully priced; the market-implied growth of 2.4% sits below our base case, leaving modest asymmetry.</p>
+
+          <h2>2. Institutional 3-pillar investment thesis</h2>
+          <h3>Pillar 1: Business architecture &amp; competitive moat</h3>
+          <p>Switching costs across the Microsoft 365 installed base and integrated identity, security and data services anchor a durable moat<sup class="cite">3</sup>.</p>
+          <h3>Pillar 2: Financial durability &amp; earnings quality</h3>
+          <p>Cash conversion stays above 100% of net income, with stock-based compensation shown as a memo line rather than added back<sup class="cite">1</sup>.</p>
+
+          <h2>6. DCF valuation &amp; sensitivity</h2>
+          <table class="grid-tbl">
+            <thead><tr><th>WACC \ Terminal g</th><th class="n">2.5%</th><th class="n">3.0%</th><th class="n">3.5%</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">7.4%</td><td class="n up">478.60</td><td class="n up">511.90</td><td class="n up">555.20</td></tr>
+              <tr><td class="mono">7.9%</td><td class="n up">425.10</td><td class="n up">451.80</td><td class="n up">485.30</td></tr>
+              <tr><td class="mono">8.4%</td><td class="n up">389.00</td><td class="n base">412.30</td><td class="n up">440.70</td></tr>
+              <tr><td class="mono">8.9%</td><td class="n dn">356.40</td><td class="n dn">376.20</td><td class="n up">399.80</td></tr>
+              <tr><td class="mono">9.4%</td><td class="n dn">328.70</td><td class="n dn">345.50</td><td class="n dn">365.10</td></tr>
+            </tbody>
+          </table>
+          <p class="caption">Cells tinted against the current price of $378.10. The base case is highlighted.</p>
+
+          <h2>7. Material risk factors</h2>
+          <blockquote><strong>Overall Risk Profile</strong>: <strong>Moderate</strong> | <strong>Severe Risks</strong>: 1 of 4 | <strong>Disclosure Baseline</strong>: vs FY2024</blockquote>
+          <table>
+            <thead><tr><th>Risk</th><th>Category</th><th>Severity</th></tr></thead>
+            <tbody>
+              <tr><td>Antitrust and digital-markets regulation</td><td>Regulatory</td><td><span class="tag severe">SEVERE</span></td></tr>
+              <tr><td>Datacenter capacity constraints</td><td>Operational</td><td><span class="tag high">HIGH</span></td></tr>
+              <tr><td>Cybersecurity incidents</td><td>Operational</td><td><span class="tag high">HIGH</span></td></tr>
+              <tr><td>Foreign exchange headwinds</td><td>Market</td><td><span class="tag mod">MODERATE</span></td></tr>
+            </tbody>
+          </table>
+
+          <div class="sources">
+            <div class="lbl"><svg class="i" style="width:12px;height:12px;color:var(--acc)"><use href="#i-book"/></svg>Cited filings &amp; intelligence</div>
+            <button class="src"><span class="n">[1]</span><span><span class="l">Item 8 · Financial statements</span><span class="q" style="font-style:normal">Derived from income statement, balance sheet, cash flow</span></span></button>
+            <button class="src on"><span class="n">[2]</span><span><span class="l">Item 7 · MD&amp;A</span><span class="q">“Microsoft Cloud revenue increased 22% driven by Azure and other cloud services…”</span></span></button>
+            <button class="src"><span class="n">[3]</span><span><span class="l">Item 1 · Business</span><span class="q">“Our platforms and tools help drive small business productivity…”</span></span></button>
+            <div class="src mkt"><span class="n">[4]</span><svg class="i" style="width:12px;height:12px;color:var(--faint);margin-top:2px"><use href="#i-line"/></svg><span class="l">Share price · yfinance</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TOKENS SHEET ===== -->
+      <div class="tokens md" data-view="tokens">
+        <h2>Color tokens → src/index.css :root</h2>
+        <div class="sw-grid">
+          <div class="sw"><i style="background:#0a0a0a"></i><div><b>--bg</b>#0a0a0a</div></div>
+          <div class="sw"><i style="background:#0f0f0f"></i><div><b>--surface</b>#0f0f0f</div></div>
+          <div class="sw"><i style="background:#121212"></i><div><b>--card</b>#121212</div></div>
+          <div class="sw"><i style="background:#1a1a1a"></i><div><b>--raised</b>#1a1a1a</div></div>
+          <div class="sw"><i style="background:#262626"></i><div><b>--border</b>#262626</div></div>
+          <div class="sw"><i style="background:#d6d6d6"></i><div><b>--text</b>#d6d6d6</div></div>
+          <div class="sw"><i style="background:#8a8a8a"></i><div><b>--muted</b>#8a8a8a</div></div>
+          <div class="sw"><i style="background:#fb8b1e"></i><div><b>--acc</b>#fb8b1e</div></div>
+          <div class="sw"><i style="background:#2a1806"></i><div><b>--acc-bg</b>#2a1806</div></div>
+          <div class="sw"><i style="background:#3ddc84"></i><div><b>--pos</b>#3ddc84</div></div>
+          <div class="sw"><i style="background:#ff4d6d"></i><div><b>--neg</b>#ff4d6d</div></div>
+          <div class="sw"><i style="background:#7a4310"></i><div><b>--acc-dim</b>#7a4310</div></div>
+        </div>
+        <h2>Typography</h2>
+        <div class="type-row"><span class="spec">Report H1 · Plex Sans 20/600</span><span style="font-size:20px;font-weight:600;color:#fff">Institutional Equity Research Report</span></div>
+        <div class="type-row"><span class="spec">Section H2 · Plex Mono 12/600 caps, orange</span><span style="font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--acc)">6. DCF VALUATION &amp; SENSITIVITY</span></div>
+        <div class="type-row"><span class="spec">Prose · Plex Sans 14/1.7</span><span>Commercial cloud revenue grew 22% year over year.</span></div>
+        <div class="type-row"><span class="spec">Numbers · Plex Mono tabular</span><span class="mono" style="color:#fff">$3,021.4B · 412.30 · +9.0%</span></div>
+        <div class="type-row"><span class="spec">Labels · Plex Mono 10.5 caps</span><span style="font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted)">RESEARCH DOSSIERS</span></div>
+        <h2>Rules</h2>
+        <ul class="rules">
+          <li>Use orange as an accent only: ticker, section labels, citations, primary action, active state. Never fill large areas with it.</li>
+          <li>Green and red only mean gain and loss. Severity uses red for severe, orange for high and grey for moderate.</li>
+          <li>Every number uses mono with tabular digits and sits right-aligned in tables.</li>
+          <li>Keep corners square (2px radius) with no shadows except overlays. Separate content with hairline borders.</li>
+          <li>Prose stays in sans at 14px/1.7 so long reports stay readable on black.</li>
+        </ul>
+      </div>
+
+    </div></div>
+
+    <!-- ============ COMMAND BAR ============ -->
+    <div class="cmd-wrap" data-view="report running empty">
+      <div class="cmd">
+        <div class="cmd-row"><span class="pr">&gt;</span><textarea placeholder="Ticker, company or research inquiry (e.g. Analyze NVDA gross margin trajectory)…"></textarea></div>
+        <div class="cmd-bar">
+          <button class="attach"><svg class="i" style="width:13px;height:13px"><use href="#i-clip"/></svg>ATTACH .HTM</button>
+          <span class="file" data-view="running"><svg class="i" style="width:12px;height:12px;color:var(--acc)"><use href="#i-file"/></svg>msft-10k_2025.htm<i class="ring"></i>64% · embedding</span>
+          <span class="hint hide-sm" data-view="report empty">ENTER to run · SHIFT+ENTER new line</span>
+          <span class="sp"></span>
+          <button class="btn-primary send">ANALYZE<svg class="i" style="width:13px;height:13px"><use href="#i-up"/></svg></button>
+        </div>
+      </div>
+      <div class="disc">CONFIDENTIAL · FOR INSTITUTIONAL EQUITY RESEARCH ONLY</div>
+    </div>
+  </div>
+
+  <!-- ============ FILING VIEWER ============ -->
+  <aside class="viewer" data-view="report">
+    <div class="v-head">
+      <div style="flex:1;min-width:0">
+        <div class="t"><svg class="i" style="color:var(--acc)"><use href="#i-file"/></svg>MSFT 10-K · FY2025 <span class="n">[2]</span></div>
+        <div class="s">Item 7 · Management's Discussion and Analysis</div>
+      </div>
+      <button class="btn-ghost" style="width:28px;height:28px"><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="v-quote">“Microsoft Cloud revenue increased 22% driven by Azure and other cloud services…”</div>
+    <div class="v-body">
+      <nav class="v-toc">
+        <button>Item 1 Business</button><button>Item 1A Risks</button><button>Item 2 Properties</button><button>Item 3 Legal</button><button class="on">Item 7 MD&amp;A</button><button>Item 7A Market risk</button><button>Item 8 Financials</button>
+      </nav>
+      <div class="v-text">
+        <h5>Overview</h5>
+        <p>Microsoft is a technology company committed to making digital technology and artificial intelligence available broadly and doing so responsibly, with a mission to empower every person and every organization on the planet to achieve more.</p>
+        <div class="target"><h5>Highlights</h5><p><mark>Microsoft Cloud revenue increased 22% driven by Azure and other cloud services</mark>, with growth across consumption-based services and per-user offerings. Operating income increased, reflecting revenue growth partially offset by investment in cloud and AI infrastructure.</p></div>
+        <p>Industry trends: our industry is dynamic and highly competitive, with frequent changes in both technologies and business models. Each industry shift is an opportunity to conceive new products, new technologies, or new ideas that can further transform the industry and our business.</p>
+        <p class="mono" style="color:var(--faint);font-size:11px">Illustrative sample text.</p>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="switch">
+  <button data-s="report" class="on">REPORT</button>
+  <button data-s="running">RUNNING</button>
+  <button data-s="empty">EMPTY</button>
+  <button data-s="tokens">TOKENS</button>
+</div>
+<script>
+  document.querySelectorAll('.switch button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.body.dataset.state = b.dataset.s;
+      document.querySelectorAll('.switch button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    });
+  });
+</script>
+</body>
+</html>
