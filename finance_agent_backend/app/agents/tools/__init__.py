@@ -39,7 +39,6 @@ from app.agents.tools.forecast_tools import (
     ForecastYearResult,
     ForecastScheduleResult,
     calculate_forecast_schedule,
-    calculate_forecast_schedule_tool,
 )
 from app.agents.tools.rag_narrative_tools import (
     NarrativeChunkResult,
@@ -87,7 +86,6 @@ __all__ = [
     "ForecastYearResult",
     "ForecastScheduleResult",
     "calculate_forecast_schedule",
-    "calculate_forecast_schedule_tool",
     "RiskDisclosureDiff",
     "build_section_context",
     "diff_risk_disclosures",

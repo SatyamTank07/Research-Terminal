@@ -1,20 +1,40 @@
-Construct a disciplined {{ horizon_years }}-year forward financial forecast for {{ ticker | upper }} based on fiscal year {{ fiscal_year }} 10-K audited metrics and Item 7 (MD&A) disclosures.
+{% macro pct(value) %}{{ "n/a" if value is none else "{:.2f}%".format(value * 100) }}{% endmacro %}
+Forecast {{ ticker }} from its FY{{ fiscal_year }} 10-K: choose 5-year revenue growth and operating margin drivers and submit them with propose_forecast_drivers_tool.
 
-Audited Baseline Financials:
-- Base Year (T0): FY{{ base_year }}
-- Base Year Revenue: ${{ "{:,.2f}".format(base_revenue) }} Million
-- Historical {% if history_years_count %}{{ history_years_count }}-Year{% else %}3-Year{% endif %} Revenue CAGR: {{ "{:.2f}%".format(historical_cagr * 100) }}
-- Base Year Operating Margin: {{ "{:.2f}%".format(latest_margin * 100) }}
-- Base Year CapEx: ${{ "{:,.2f}".format(latest_capex) }} Million (CapEx Intensity: {{ "{:.2f}%".format(capex_pct * 100) }} of Revenue)
-- Derived Effective Tax Rate: {{ "{:.2f}%".format(tax_rate * 100) }}%
-{% if moat_context %}
-{{ moat_context }}
+Audited history:
+{{ history_table }}
+
+Baseline built by code:
+- Base year FY{{ baseline.base_year }} revenue: ${{ "{:,.0f}".format(baseline.base_revenue) }}M
+- Latest revenue growth: {{ pct(baseline.latest_revenue_growth) }} | {{ baseline.history_years }}-year revenue CAGR: {{ pct(baseline.historical_cagr) }}
+- Base operating margin ({{ baseline.margin_source }}): {{ pct(baseline.base_operating_margin) }}
+- Tax rate ({{ baseline.tax_source }}): {{ pct(baseline.tax_rate) }}
+- CapEx: {{ pct(baseline.capex_pct_of_revenue) }} of revenue ({{ baseline.capex_years }}-year average) | D&A: {{ pct(baseline.da_pct_of_revenue) }} of revenue ({{ baseline.da_source }})
+- Working capital: {{ pct(baseline.nwc_pct_of_incremental_revenue) }} of incremental revenue ({{ baseline.nwc_source }}) | SBC: {{ pct(baseline.sbc_pct_of_revenue) }} of revenue ({{ baseline.sbc_source }})
+- Terminal growth used by the valuation: {{ pct(terminal_growth) }}
+{% if moat %}
+
+Business context: segments {{ moat.primary_product_segments | join(", ") }}; moat {{ moat.economic_moat_type }} ({{ moat.moat_durability }}).
 {% endif %}
-Accounting Precedence Directive:
-- {{ depr_directive }}
+{% if risk_lines %}
 
-Execution Protocol:
-1. Review Item 7 MD&A narrative context and segment trends.
-2. Calibrate a {{ horizon_years }}-year forward revenue growth schedule fading towards terminal rates, and an operating margin schedule reflecting operating leverage or cost pressures.
-3. Call calculate_forecast_schedule_tool EXACTLY ONCE with these parameters.
-4. Emit the complete ForecastOutput JSON with guidance_source='md&a_explicit'.
+Risk Analyst ({{ risk_profile }} overall risk) - risks that reach revenue or margins:
+{% for line in risk_lines %}
+- {{ line }}
+{% endfor %}
+{% endif %}
+
+Quantified MD&A guidance found by code:
+{% for g in mdna.quantified_guidance %}
+- [{{ g.chunk_id }}] {{ g.sentence }}
+{% else %}
+- None found; rely on the qualitative excerpts and the audited trend.
+{% endfor %}
+
+Item 7 excerpts:
+{% for ex in excerpts %}
+[{{ ex.chunk_id }}] {{ ex.breadcrumb }}
+{{ ex.text }}
+
+{% endfor %}
+Steps: 1) read the excerpts; 2) call propose_forecast_drivers_tool; 3) reply with the JSON object described in your instructions.

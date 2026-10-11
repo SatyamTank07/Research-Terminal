@@ -48,6 +48,7 @@ from app.agents.state import (
     RiskAuditOutput,
     RoutingPlan,
 )
+from app.agents.tools.forecast_drivers import DEFAULT_TERMINAL_GROWTH
 from app.agents.tools.market_data_tools import fetch_market_context
 from app.database import SessionLocal
 from app.models import Document
@@ -154,8 +155,24 @@ async def risk_analyst_node(state: EquityResearchState) -> Dict[str, Any]:
     return {"risk_audit": risk_output}
 
 
+TERMINAL_GROWTH_PATTERN = re.compile(
+    r"(?:terminal growth|terminal rate|growth rate|perpetual growth)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)\s*(%?)",
+    re.IGNORECASE,
+)
+
+
+def _resolve_terminal_growth(user_query: str) -> float:
+    """User-specified perpetual growth ('terminal growth 3%' or 'perpetual growth 0.02'), else the house default."""
+    match = TERMINAL_GROWTH_PATTERN.search(user_query or "")
+    if not match:
+        return DEFAULT_TERMINAL_GROWTH
+    raw = float(match.group(1))
+    return raw / 100.0 if match.group(2) or raw > 1.0 else raw
+
+
 async def forecasting_analyst_node(state: EquityResearchState) -> Dict[str, Any]:
-    """Node 4: Forecasts 5-year revenue, margins, and UFCFs using audit history and segment insights."""
+    """Node 4: Forecasts revenue, margins and UFCFs (5 years, 10 when the growth fade is extended)
+    from the audited baseline, Item 7 guidance and the Risk Analyst profile."""
     ticker = state["ticker"]
     fiscal_year = state["fiscal_year"]
     financial_audit = state.get("financial_audit")
@@ -167,7 +184,7 @@ async def forecasting_analyst_node(state: EquityResearchState) -> Dict[str, Any]
         )
 
     callbacks = state.get("callbacks")
-    logger.info(f"[forecasting_analyst_node] Building 5-yr UFCF schedule for {ticker} FY{fiscal_year}")
+    logger.info(f"[forecasting_analyst_node] Building UFCF forecast for {ticker} FY{fiscal_year}")
     forecaster = ForecastingAnalystAgent()
     forecast_output: ForecastOutput = await asyncio.to_thread(
         forecaster.forecast,
@@ -175,7 +192,8 @@ async def forecasting_analyst_node(state: EquityResearchState) -> Dict[str, Any]
         fiscal_year=fiscal_year,
         financial_audit=financial_audit,
         business_moat=business_moat,
-        horizon_years=5,
+        risk_audit=state.get("risk_audit"),
+        terminal_growth=_resolve_terminal_growth(state.get("user_query", "")),
         callbacks=callbacks,
     )
 
@@ -215,16 +233,7 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
     )
     user_share_price = float(price_match.group(1)) if price_match else None
 
-    growth_match = re.search(
-        r"(?:terminal growth|terminal rate|growth rate|perpetual growth)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)\s*%?",
-        user_query,
-        re.IGNORECASE,
-    )
-    if growth_match:
-        g_raw = float(growth_match.group(1))
-        terminal_growth = (g_raw / 100.0) if g_raw > 1.0 else g_raw
-    else:
-        terminal_growth = 0.025
+    terminal_growth = _resolve_terminal_growth(user_query)
 
     wacc_match = re.search(
         r"\b(?:wacc|discount rate|hurdle rate)\s*(?:of|is|at|=|:)?\s*([0-9]+(?:\.[0-9]+)?)\s*%?",
@@ -454,6 +463,16 @@ class MultiAgentOrchestrator(BaseAgent):
         return self._cached_graph
 
     @staticmethod
+    def _forecast_status_message(fc: Optional[ForecastOutput]) -> str:
+        if fc is None:
+            return "Forecast unavailable"
+        source = "MD&A-informed" if fc.guidance_source == "mdna_informed" else "historical fade"
+        return (
+            f"Built {fc.forecast_horizon_years}-year UFCF forecast ({source}, revenue CAGR "
+            f"{fc.revenue_cagr_pct:.1f}%, {len(fc.scenarios)} scenarios)"
+        )
+
+    @staticmethod
     def _risk_status_message(risk: Optional[RiskAuditOutput]) -> str:
         """SSE status line summarizing the verified risk inventory."""
         if risk is None:
@@ -595,11 +614,10 @@ class MultiAgentOrchestrator(BaseAgent):
                         }
                     elif node_name == "forecasting_analyst":
                         fc: Optional[ForecastOutput] = node_output.get("forecast")
-                        cagr = fc.revenue_cagr_pct if fc else 0.0
                         yield {
                             "type": "status",
                             "node": "forecasting_analyst",
-                            "message": f"Constructed 5-year UFCF projection schedule (Revenue CAGR: {cagr:.1f}%)",
+                            "message": self._forecast_status_message(fc),
                         }
                     elif node_name == "valuation_specialist":
                         val: Optional[DCFValuationOutput] = node_output.get("dcf_valuation")

@@ -288,6 +288,26 @@ class TestValuationSpecialistAgent(unittest.TestCase):
         self.assertTrue(len(result.valuation_summary) > 50)
 
     @patch.object(ValuationSpecialistAgent, "_get_or_create_agent")
+    def test_dcf_recomputed_when_llm_truncates_ten_year_forecast(self, mock_get_agent):
+        """A 10-year forecast must be valued on all 10 years even if the LLM passed only 5 to the DCF tool."""
+        ten_year = [105000.0, 110000.0, 115000.0, 119000.0, 123000.0, 126000.0, 129000.0, 131000.0, 133000.0, 135000.0]
+        mock_get_agent.return_value = _create_mock_valuation_agent(
+            ticker="AAPL", fiscal_year=2025, total_debt=98657.0, net_debt=-33763.0, diluted_shares=15004.7,
+            tax_rate=0.15602379, beta=1.10, share_price=235.0, projected_fcfs=ten_year[:5],
+        )
+        result = ValuationSpecialistAgent().value(
+            ticker="AAPL", fiscal_year=2025, financial_audit=_create_synthetic_aapl_audit(),
+            projected_fcfs=ten_year, beta=1.10, share_price=235.0, terminal_growth_rate=0.025,
+        )
+        expected = calculate_dcf_with_sensitivity(
+            projected_fcfs=ten_year, wacc=result.wacc_audit.wacc, terminal_growth_rate=0.025,
+            net_debt=-33763.0, diluted_shares=15004.7, mid_year_convention=True,
+        )
+        self.assertEqual(result.projected_fcfs, ten_year)
+        self.assertAlmostEqual(result.enterprise_value, expected["enterprise_value"], places=1)
+        self.assertAlmostEqual(result.implied_fair_value_per_share, expected["fair_value_per_share"], places=2)
+
+    @patch.object(ValuationSpecialistAgent, "_get_or_create_agent")
     def test_03_indebted_firm_standalone_valuation(self, mock_get_agent):
         """Verify ValuationSpecialistAgent with an indebted firm (positive Net Debt reduces Equity Value)."""
         mock_get_agent.return_value = _create_mock_valuation_agent(

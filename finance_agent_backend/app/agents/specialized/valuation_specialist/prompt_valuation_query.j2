@@ -28,7 +28,7 @@ Perform an institutional 2-stage DCF valuation for {{ ticker | upper }} for fisc
 {% if wacc_override is not none %}
    - Explicit User-Specified WACC Hurdle Rate: {{ "{:.2f}%".format(wacc_override * 100) }}
 {% endif %}
-3. 5-Year Explicit Forecast UFCFs ($ Millions): {{ projected_fcfs }}
+3. Explicit Forecast UFCFs ({{ projected_fcfs | length }} years, $ Millions; pass ALL of them to calculate_dcf_tool): {{ projected_fcfs }}
 4. Perpetual Terminal Growth Rate: {{ "{:.2f}%".format(terminal_growth_rate * 100) }}
 5. Execution Sequence:
 {% if wacc_override is not none %}
