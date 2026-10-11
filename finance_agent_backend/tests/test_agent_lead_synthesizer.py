@@ -199,16 +199,20 @@ def _failing_llm() -> MagicMock:
     return mock_llm
 
 
+_DCF = _create_mock_dcf()
+FAIR = f"${_DCF.implied_fair_value_per_share:,.2f}"
+TV_SHARE = f"{_DCF.terminal_value_pct_of_ev:.1f}%"
+
 FULL_PROSE = ResearchSynthesisPayload(
     executive_summary="Apple pairs a wide switching-cost moat with net cash of $33.8 billion, but the base case sits below the market price.",
     bottom_line="Overvalued on the base case; a sustained services mix shift would change the view.",
     pillar_1_business_moat="An installed base of 2.2B+ active devices anchors switching costs across the ecosystem.",
     pillar_2_financial_durability="Operating margin reached 31.97% in FY2025 while free cash flow was $98,767M.",
-    pillar_3_valuation_asymmetry="The base-case value of $122.69 per share trails the $235.00 price.",
+    pillar_3_valuation_asymmetry=f"The base-case value of {FAIR} per share trails the $235.00 price.",
     business_commentary="Services deepen the lock-in that hardware creates.",
     earnings_quality_commentary="Net income rose while operating cash flow declined, the one high-severity finding.",
     forecast_commentary="Growth fades toward terminal growth with a stable margin.",
-    valuation_commentary="Terminal value is 69.6% of enterprise value and the RONIC clamp is the key caveat.",
+    valuation_commentary=f"Terminal value is {TV_SHARE} of enterprise value and the RONIC clamp is the key caveat.",
     risk_commentary="Antitrust action on the App Store is the primary existential threat.",
     bear_case_commentary="A bear case should stress services revenue and gross margin.",
 )
@@ -296,7 +300,7 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
                 "Revenue reached $416.2 billion in FY2025. Management will hit $999,999M of revenue by 2030. "
                 "The Analysis Date is October 2023."
             ),
-            "valuation_commentary": "## Heading the model should not write\n| a | b |\nTerminal value is 69.6% of enterprise value.",
+            "valuation_commentary": f"## Heading the model should not write\n| a | b |\nTerminal value is {TV_SHARE} of enterprise value.",
         })
         report = self._full(_mock_llm(payload))
         md = report.full_markdown_report
@@ -304,7 +308,7 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
         self.assertNotIn("999,999", md)
         self.assertNotIn("October 2023", md)
         self.assertNotIn("Heading the model should not write", md)
-        self.assertIn("Terminal value is 69.6% of enterprise value.", md)
+        self.assertIn(f"Terminal value is {TV_SHARE} of enterprise value.", md)
         self.assertIn("1 sentence(s) of commentary were removed", md)
 
     def test_05_run_agent_output_interface(self):
@@ -332,7 +336,7 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
         self.assertIn("## 8. Regulatory Disclaimers & Audit Breadcrumbs", md)
         self.assertIn(_create_mock_dcf().sensitivity_matrix_markdown.strip(), md)
         self.assertIn("Primary moat: High Switching Costs", report.three_pillar_thesis.pillar_1_business_moat)
-        self.assertIn("$122.69", report.executive_summary)
+        self.assertIn(FAIR, report.executive_summary)
 
     def test_08_risk_route_renders_matrix_once_and_details_in_code(self):
         risk = _create_mock_risk()

@@ -26,7 +26,10 @@ Target: {{ company_name }} ({{ ticker }}), Fiscal Year: {{ fiscal_year }}{% if a
 - Market price unavailable: no upside or valuation stance is stated.
 {% endif %}
 - Discount Rate: {{ "{:.2f}%".format(w.wacc_pct) }} ({{ "User-specified override; CAPM WACC would be " ~ "{:.2f}%".format(w.capm_wacc_pct) if w.wacc_source == "user_override" else "CAPM blended WACC" }}) | Ke {{ "{:.2f}%".format(w.cost_of_equity_pct) }} (beta {{ w.beta }} {{ w.beta_source }}, Rf {{ w.risk_free_rate_pct }}% {{ w.risk_free_rate_source }}, ERP {{ w.equity_risk_premium_pct }}%) | Pre-tax Kd {{ "{:.2f}%".format(w.cost_of_debt_pre_tax_pct) }} ({{ w.cost_of_debt_source }})
-- Terminal Value: {{ dcf_valuation.terminal_method }} at {{ "{:.1f}%".format(dcf_valuation.terminal_growth_rate * 100) }} growth{% if dcf_valuation.ronic_used_pct is not none %}, RONIC {{ dcf_valuation.ronic_used_pct }}%{% endif %}; {{ "{:.1f}%".format(dcf_valuation.terminal_value_pct_of_ev) }} of EV{% if dcf_valuation.implied_terminal_ev_ebitda is not none %}; implied terminal EV/EBITDA {{ dcf_valuation.implied_terminal_ev_ebitda }}x{% endif %}
+{% if dcf_valuation.reverse_dcf_summary %}
+- Reverse DCF: {{ dcf_valuation.reverse_dcf_summary }}
+{% endif %}
+- Terminal Value: {{ dcf_valuation.terminal_method }} at {{ "{:.1f}%".format(dcf_valuation.terminal_growth_rate * 100) }} growth{% if dcf_valuation.ronic_used_pct is not none %}, RONIC {{ dcf_valuation.ronic_used_pct }}%{% endif %}; {{ "{:.1f}%".format(dcf_valuation.terminal_value_pct_of_ev) }} of EV{% if dcf_valuation.implied_terminal_ev_ebitda is not none %}; implied terminal EV/EBITDA {{ dcf_valuation.implied_terminal_ev_ebitda }}x{% endif %}{% if dcf_valuation.implied_terminal_ev_nopat is not none %}; implied terminal EV/NOPAT {{ dcf_valuation.implied_terminal_ev_nopat }}x{% endif %}
 
 - Implied Enterprise Value: ${{ "{:,.1f}".format(dcf_valuation.enterprise_value) }}M | Equity Value: ${{ "{:,.1f}".format(dcf_valuation.equity_value) }}M
 - Net Debt: ${{ "{:,.1f}".format(dcf_valuation.net_debt) }}M ({% if dcf_valuation.net_debt <= 0 %}Net Cash Surplus{% else %}Net Debt Drag{% endif %}) | Noncontrolling Interests: ${{ "{:,.1f}".format(dcf_valuation.noncontrolling_interests) }}M | Diluted Shares: {{ "{:,.1f}".format(dcf_valuation.diluted_shares) }}M
@@ -48,6 +51,11 @@ Scenario Valuation Table:
 
 2-Way Sensitivity Matrix Table:
 {{ dcf_valuation.sensitivity_matrix_markdown }}
+{% if dcf_valuation.ronic_sensitivity_matrix_markdown %}
+
+WACC x RONIC Sensitivity Table:
+{{ dcf_valuation.ronic_sensitivity_matrix_markdown }}
+{% endif %}
 {% endif %}
 
 {% if forecast %}
@@ -85,7 +93,21 @@ Forecast Schedule Table:
 - Statutory Reportable Segments (ASC 280): {{ business_moat.reportable_segments | join(', ') }}
 {% endif %}
 - Commercial Revenue Lines (ASC 606): {{ business_moat.primary_product_segments | join(', ') }}
-- Primary Economic Moat: {{ business_moat.economic_moat_type }} (Durability: {{ business_moat.moat_durability }}, Trajectory: {{ business_moat.moat_trajectory }})
+- Primary Economic Moat: {{ business_moat.economic_moat_type }} (Durability: {{ business_moat.moat_durability }}, Trajectory: {{ business_moat.moat_trajectory }}; evidence status: {{ business_moat.moat_assessment }})
+{% if business_moat.segment_table_markdown %}
+- Verified Segment Table:
+{{ business_moat.segment_table_markdown }}
+{% endif %}
+{% if business_moat.revenue_mix_markdown %}
+- Verified Revenue Mix Table:
+{{ business_moat.revenue_mix_markdown }}
+{% endif %}
+{% for e in business_moat.evidence %}
+- Evidence [{{ e.claim }} | {{ e.chunk_id }} | {{ e.item }}]: "{{ e.quote }}"
+{% endfor %}
+{% if business_moat.data_quality.notes %}
+- Business data-quality notes: {{ business_moat.data_quality.notes | join(" | ") }}
+{% endif %}
 {% if business_moat.secondary_moat_types %}
 - Secondary Moats: {{ business_moat.secondary_moat_types | join(', ') }}
 {% endif %}
@@ -160,8 +182,11 @@ Rules:
    figures (ratios, differences, CAGRs) that are not in the context. Sentences with untraceable figures are deleted by code.
 3. Do not state an analysis date, report date, or "as of" date other than dates in the context.
 4. Be balanced: name the strongest bull and bear argument the data supports. Never invent risks, mitigations, segments or guidance.
+{% if business_moat and business_moat.moat_assessment != "verified" %}
+5. The moat evidence status is `{{ business_moat.moat_assessment }}`: describe the competitive position as unproven by the filing; do not assert a durable moat.
+{% endif %}
 {% if risk_audit and not risk_audit.disclosure_changes %}
-5. No prior-year risk baseline exists: make no year-over-year, prior-year, or "new / heightened" risk claims.
+6. No prior-year risk baseline exists: make no year-over-year, prior-year, or "new / heightened" risk claims.
 {% endif %}
 </synthesis_mandate>
 

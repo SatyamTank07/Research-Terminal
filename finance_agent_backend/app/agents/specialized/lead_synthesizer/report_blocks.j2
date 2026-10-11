@@ -21,7 +21,7 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 | Current Share Price | {{ per_share(val.current_share_price) }}{% if val.current_share_price is not none %} ({{ val.data_quality.share_price_source }}){% endif %} |
 | Base-Case Upside / Downside | {{ pct(val.upside_downside_pct, "{:+.1f}%") }} |
 | Valuation Stance | {{ val.valuation_stance or "Not stated (no market price)" }} |
-{% if val.market_implied_growth_pct is defined and val.market_implied_growth_pct is not none %}
+{% if val.market_implied_growth_pct is not none %}
 | Market-Implied Revenue Growth (reverse DCF) | {{ pct(val.market_implied_growth_pct, "{:.1f}%") }} |
 {% endif %}
 | Discount Rate | {{ pct(w.wacc_pct) }} ({{ "user override" if w.wacc_source == "user_override" else "CAPM WACC" }}) |
@@ -43,19 +43,27 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 {% if moat.primary_product_segments %}
 - **Revenue lines (ASC 606)**: {{ moat.primary_product_segments | join(", ") }}
 {% endif %}
-{% if moat.segment_table_markdown is defined and moat.segment_table_markdown %}
+{% if moat.segment_table_markdown %}
+
+**Reportable segments (verified from the segment note)**
 
 {{ moat.segment_table_markdown }}
 
 {% endif %}
-{% for seg in moat.segment_details %}
+{% if moat.revenue_mix_markdown %}
+**Revenue mix (verified from the disaggregation table)**
+
+{{ moat.revenue_mix_markdown }}
+
+{% endif %}
+{% for seg in moat.segment_details if seg.growth_drivers or not moat.revenue_mix_markdown %}
 - **{{ seg.name }}**: {{ seg.description }}{% if seg.growth_drivers %} _Drivers: {{ seg.growth_drivers | join(", ") }}._{% endif %}
 
 {% endfor %}
 {{ "" }}
 | Moat Dimension | Assessment |
 | :--- | :--- |
-| Primary moat | **{{ moat.economic_moat_type }}** |
+| Primary moat | **{{ moat.economic_moat_type }}** ({{ moat.moat_assessment | replace("_", " ") }}) |
 | Secondary moats | {{ moat.secondary_moat_types | join(", ") if moat.secondary_moat_types else "None identified" }} |
 | Durability / trajectory | {{ moat.moat_durability }} / {{ moat.moat_trajectory }} |
 {% for sm in moat.segment_specific_moats %}
@@ -63,6 +71,13 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 {% endfor %}
 
 **Moat rationale (filing-based)**: {{ moat.moat_rationale }}
+{% if moat.data_quality.notes %}
+
+**Business analysis data-quality notes**
+{% for note in moat.data_quality.notes %}
+- {{ note }}
+{% endfor %}
+{% endif %}
 {% endmacro %}
 
 {% macro threats_block(moat) %}
@@ -147,7 +162,7 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 
 {{ val.scenario_table_markdown }}
 {% endif %}
-{% if val.reverse_dcf_summary is defined and val.reverse_dcf_summary %}
+{% if val.reverse_dcf_summary %}
 
 **Reverse DCF**: {{ val.reverse_dcf_summary }}
 {% endif %}
@@ -155,9 +170,9 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 
 {% macro sensitivity_block(val) %}
 {{ val.sensitivity_matrix_markdown }}
-{% if val.secondary_sensitivity_markdown is defined and val.secondary_sensitivity_markdown %}
+{% if val.ronic_sensitivity_matrix_markdown %}
 
-{{ val.secondary_sensitivity_markdown }}
+{{ val.ronic_sensitivity_matrix_markdown }}
 {% endif %}
 {% endmacro %}
 
