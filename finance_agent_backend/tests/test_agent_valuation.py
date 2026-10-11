@@ -8,9 +8,11 @@ the single commentary LLM call with its template fallback, and the orchestrator 
 import asyncio
 import unittest
 from datetime import date
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from app.agents.orchestrator import MultiAgentOrchestrator, valuation_specialist_node
+from app.agents.query_parameters import parse_valuation_overrides
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
@@ -186,6 +188,8 @@ class TestValuationNodeWiring(unittest.TestCase):
         state = {
             "ticker": "AAPL", "fiscal_year": 2025, "financial_audit": make_aapl_audit(),
             "forecast": make_forecast_output(), "user_query": query, "callbacks": None, "session_state": {},
+            # The supervisor parses overrides into the routing plan; the node only reads them from there.
+            "routing_plan": SimpleNamespace(valuation_overrides=parse_valuation_overrides(query).values()),
         }
         with patch("app.agents.orchestrator.fetch_market_context", return_value=market_data), \
                 patch("app.agents.orchestrator._balance_sheet_date", return_value=AAPL_BALANCE_SHEET_DATE), \

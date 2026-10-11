@@ -5,7 +5,8 @@ Moat Strategist, Risk Analyst, Synthesizer) and defines the centralized
 LangGraph TypedDict state graph.
 """
 
-from typing import Any, Dict, List, Optional, TypedDict
+import operator
+from typing import Annotated, Any, Dict, List, Optional, TypedDict
 
 # ==============================================================================
 # 1. Financial Auditor & Statement Analyst Output Schema
@@ -103,6 +104,9 @@ class EquityResearchState(TypedDict, total=False):
     conversational_response: Optional[str]
     sources: List[Dict[str, Any]]
     error_message: Optional[str]
+
+    # Degradation & parameter notes appended by any node (parallel-safe reducer), disclosed in the report
+    pipeline_notes: Annotated[List[str], operator.add]
 
 
 __all__ = [

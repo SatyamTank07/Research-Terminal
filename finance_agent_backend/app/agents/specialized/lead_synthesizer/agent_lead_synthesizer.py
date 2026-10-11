@@ -138,6 +138,7 @@ class LeadSynthesizerAgent(BaseAgent):
         available_fiscal_years: Optional[List[int]] = None,
         user_query: Optional[str] = None,
         query_type: str = "full_10k_report",
+        pipeline_notes: Optional[List[str]] = None,
         callbacks: Optional[List[Any]] = None,
     ) -> Final10KResearchReport:
         """Synthesizes all structured agent payloads into a complete Final10KResearchReport."""
@@ -271,6 +272,8 @@ class LeadSynthesizerAgent(BaseAgent):
             else:
                 full_report_md = f"{full_report_md}\n\n{prov_note}"
 
+        full_report_md = self._ensure_pipeline_notes(full_report_md, pipeline_notes or [])
+
         if "Synthesis Provenance" not in full_report_md:
             full_report_md += f"\n\n> *Synthesis Provenance: `{synthesis_provenance}`*"
 
@@ -297,6 +300,16 @@ class LeadSynthesizerAgent(BaseAgent):
             full_markdown_report=full_report_md,
             all_citations=all_citations,
         )
+
+    @staticmethod
+    def _ensure_pipeline_notes(markdown: str, notes: List[str]) -> str:
+        """Discloses degraded sections and parameter handling (failed agents, ignored or carried-over inputs)."""
+        present = _squash(markdown)
+        missing = [n for n in dict.fromkeys(notes) if _squash(n) not in present]
+        if not missing:
+            return markdown
+        lines = ["## Data Availability & Pipeline Notes", "", *[f"- {n}" for n in missing]]
+        return markdown.rstrip() + "\n\n" + "\n".join(lines) + "\n"
 
     @staticmethod
     def _strip_unsupported_dates(markdown: str) -> str:

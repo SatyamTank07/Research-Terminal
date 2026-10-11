@@ -157,21 +157,40 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
             clean_tables=extraction.clean_tables if extraction else {},
         )
 
-        return self.execute_structured(
-            query,
-            ticker=ticker,
-            fiscal_year=fiscal_year,
-            fallback_defaults={
-                "auditor_summary": "Auditor narrative unavailable; refer to the deterministic analytics and findings.",
-                "restatement_notes": [],
-            },
-            callbacks=callbacks,
+        resolution = dict(
             extraction=extraction,
             extraction_mode=mode,
             baseline=baseline,
             baseline_inputs=baseline_inputs,
             prefetched_tables=tables,
         )
+        fallback_defaults = {
+            "auditor_summary": "Auditor narrative unavailable; refer to the deterministic analytics and findings.",
+            "restatement_notes": [],
+        }
+        try:
+            return self.execute_structured(
+                query,
+                ticker=ticker,
+                fiscal_year=fiscal_year,
+                fallback_defaults=fallback_defaults,
+                callbacks=callbacks,
+                **resolution,
+            )
+        except Exception as e:
+            if baseline is None:
+                raise
+            # The LLM step only refines and narrates; the code-built baseline is a complete audit on its own.
+            logger.warning(f"FinancialAuditor {ticker} FY{fiscal_year}: LLM step failed ({e!r}); using deterministic baseline.")
+            fallback_defaults["auditor_summary"] = (
+                "The auditor narrative step failed, so this audit is the deterministic baseline computed from the "
+                "parsed statements without LLM refinement; refer to the tables and forensic findings."
+            )
+            empty: Dict[str, Any] = {"messages": []}
+            output = self._extract_structured_output(
+                empty, ticker=ticker, fiscal_year=fiscal_year, fallback_defaults=fallback_defaults, **resolution,
+            )
+            return self._post_process_output(output, empty, ticker=ticker, fiscal_year=fiscal_year, **resolution)
 
     # ------------------------------------------------------------------
     # Setup helpers

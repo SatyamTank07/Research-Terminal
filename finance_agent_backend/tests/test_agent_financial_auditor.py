@@ -113,6 +113,20 @@ class TestFinancialAuditorAgent(unittest.TestCase):
         self.assertTrue(result.auditor_summary.startswith("**Earnings Quality**"))
 
     @patch.object(FinancialAuditorAgent, "_prefetch_statement_tables", return_value=tsla_payloads())
+    @patch.object(FinancialAuditorAgent, "execute_structured", side_effect=RuntimeError("API timeout"))
+    def test_03b_llm_failure_returns_deterministic_baseline(self, _exec, _prefetch):
+        result = FinancialAuditorAgent().audit(ticker="tsla", fiscal_year=2025)
+        self.assertEqual(result.data_quality.extraction_mode, "deterministic")
+        self.assertEqual(result.balance_sheet.net_debt, -35683.0)
+        self.assertIn("narrative step failed", result.auditor_summary)
+
+    @patch.object(FinancialAuditorAgent, "_prefetch_statement_tables", return_value={})
+    @patch.object(FinancialAuditorAgent, "execute_structured", side_effect=RuntimeError("API timeout"))
+    def test_03c_llm_failure_without_baseline_raises(self, _exec, _prefetch):
+        with self.assertRaises(RuntimeError):
+            FinancialAuditorAgent().audit(ticker="XYZ", fiscal_year=2025)
+
+    @patch.object(FinancialAuditorAgent, "_prefetch_statement_tables", return_value=tsla_payloads())
     @patch.object(FinancialAuditorAgent, "_get_or_create_agent")
     def test_04_last_refinement_wins_and_is_logged(self, mock_get_agent, _prefetch):
         refine = FinancialAuditorAgent._build_refine_tool(_tsla_baseline_inputs())

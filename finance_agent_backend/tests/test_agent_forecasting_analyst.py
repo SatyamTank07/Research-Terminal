@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from app.agents.orchestrator import MultiAgentOrchestrator, _resolve_terminal_growth, forecasting_analyst_node
+from app.agents.orchestrator import MultiAgentOrchestrator, forecasting_analyst_node
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
 from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import (
@@ -207,18 +207,13 @@ class TestForecastingAnalystAgent(unittest.TestCase):
 
 
 class TestForecastNodeWiring(unittest.TestCase):
-    def test_resolve_terminal_growth(self):
-        self.assertAlmostEqual(_resolve_terminal_growth("DCF for AMZN with terminal growth 3%"), 0.03)
-        self.assertAlmostEqual(_resolve_terminal_growth("terminal growth 0.5%"), 0.005)
-        self.assertAlmostEqual(_resolve_terminal_growth("perpetual growth 0.02"), 0.02)
-        self.assertEqual(_resolve_terminal_growth("value AMZN"), DEFAULT_TERMINAL_GROWTH)
-
     def test_node_passes_risk_and_terminal_growth(self):
         forecast = make_forecast_output()
         risk = SimpleNamespace(overall_risk_profile="High", identified_risks=[])
         state = {
             "ticker": "AAPL", "fiscal_year": 2025, "financial_audit": make_aapl_audit(), "business_moat": None,
             "risk_audit": risk, "user_query": "full report on AAPL with terminal growth 3%", "callbacks": None,
+            "routing_plan": SimpleNamespace(valuation_overrides={"terminal_growth": 0.03}),
         }
         with patch.object(ForecastingAnalystAgent, "forecast", return_value=forecast) as mock_forecast:
             result = asyncio.run(forecasting_analyst_node(state))
@@ -226,6 +221,23 @@ class TestForecastNodeWiring(unittest.TestCase):
         kwargs = mock_forecast.call_args.kwargs
         self.assertIs(kwargs["risk_audit"], risk)
         self.assertAlmostEqual(kwargs["terminal_growth"], 0.03)
+
+    def test_node_defaults_terminal_growth_and_skips_without_audit(self):
+        state = {"ticker": "AAPL", "fiscal_year": 2025, "financial_audit": make_aapl_audit(), "callbacks": None}
+        with patch.object(ForecastingAnalystAgent, "forecast", return_value=make_forecast_output()) as mock_forecast:
+            asyncio.run(forecasting_analyst_node(state))
+        self.assertEqual(mock_forecast.call_args.kwargs["terminal_growth"], DEFAULT_TERMINAL_GROWTH)
+
+        result = asyncio.run(forecasting_analyst_node({**state, "financial_audit": None}))
+        self.assertIsNone(result["forecast"])
+        self.assertIn("no audited financial statements", result["pipeline_notes"][0])
+
+    def test_node_failure_is_recorded_not_raised(self):
+        state = {"ticker": "AAPL", "fiscal_year": 2025, "financial_audit": make_aapl_audit(), "callbacks": None}
+        with patch.object(ForecastingAnalystAgent, "forecast", side_effect=ValueError("base_revenue must be positive")):
+            result = asyncio.run(forecasting_analyst_node(state))
+        self.assertIsNone(result["forecast"])
+        self.assertIn("Forecasting Analyst failed (ValueError: base_revenue must be positive)", result["pipeline_notes"][0])
 
     def test_status_message(self):
         msg = MultiAgentOrchestrator._forecast_status_message(make_forecast_output())

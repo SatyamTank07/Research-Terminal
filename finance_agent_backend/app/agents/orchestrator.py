@@ -13,19 +13,17 @@ Implements:
 - Non-blocking asynchronous execution using LangGraph StateGraph.
 - 5 execution routes (full_10k_report, dcf_valuation_only, financial_audit_only, business_moat_only, risk_factors_only).
 - Parallel fan-out execution for Phase 1 qualitative and statement auditing.
+- Failure isolation: a failed specialist is recorded in `pipeline_notes`, its section is omitted, and the run
+  continues; only a run with no research output at all fails.
 - Milestone status event streaming for real-time UI updates.
 """
 
 import asyncio
 import concurrent.futures
-import json
 import logging
-import re
 from datetime import date
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
 
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
@@ -35,7 +33,6 @@ from app.agents.specialized.business_strategist import BusinessStrategistAgent
 from app.agents.specialized.financial_auditor import FinancialAuditorAgent
 from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
 from app.agents.specialized.lead_synthesizer import LeadSynthesizerAgent
-from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst import RiskAnalystAgent
 from app.agents.specialized.supervisor import SupervisorAgent
 from app.agents.specialized.valuation_specialist import ValuationSpecialistAgent
@@ -62,24 +59,33 @@ logger = logging.getLogger("finance_agent.agents.orchestrator")
 # ==============================================================================
 # 1. Individual Node Execution Functions (Non-blocking Async Wrappers)
 # ==============================================================================
+def _failure_note(agent_label: str, exc: BaseException) -> str:
+    detail = " ".join(str(exc).split())[:240] or type(exc).__name__
+    return f"{agent_label} failed ({type(exc).__name__}: {detail}); its section is omitted from this report."
+
+
+def _overrides(state: EquityResearchState) -> Dict[str, Any]:
+    plan: Optional[RoutingPlan] = state.get("routing_plan")
+    return dict(plan.valuation_overrides) if plan else {}
+
+
+def _terminal_growth(state: EquityResearchState) -> float:
+    """User-specified perpetual growth (range-checked by the supervisor), else the house default."""
+    value = _overrides(state).get("terminal_growth")
+    return float(value) if value is not None else DEFAULT_TERMINAL_GROWTH
+
+
 async def supervisor_node(state: EquityResearchState) -> Dict[str, Any]:
     """Node 0: Triages user inquiry, resolves filing catalog, and emits RoutingPlan."""
-    user_query = state.get("user_query", "")
-    ticker = state.get("ticker")
-    fiscal_year = state.get("fiscal_year")
-    messages = state.get("messages")
-    session_state = state.get("session_state")
-
-    callbacks = state.get("callbacks")
     supervisor = SupervisorAgent()
     routing_plan: RoutingPlan = await asyncio.to_thread(
         supervisor.route,
-        user_query=user_query,
-        ticker=ticker,
-        fiscal_year=fiscal_year,
-        session_state=session_state,
-        messages=messages,
-        callbacks=callbacks,
+        user_query=state.get("user_query", ""),
+        ticker=state.get("ticker"),
+        fiscal_year=state.get("fiscal_year"),
+        session_state=state.get("session_state"),
+        messages=state.get("messages"),
+        callbacks=state.get("callbacks"),
     )
 
     logger.info(
@@ -98,162 +104,104 @@ async def supervisor_node(state: EquityResearchState) -> Dict[str, Any]:
         "conversational_response": routing_plan.conversational_response,
         "error_message": None,
         "updated_session_state": routing_plan.updated_session_state,
+        "pipeline_notes": list(routing_plan.parameter_notes),
     }
 
 
 async def business_strategist_node(state: EquityResearchState) -> Dict[str, Any]:
-    """Node 1: Evaluates business model, product segments, and economic moat (Item 1)."""
-    ticker = state["ticker"]
-    fiscal_year = state["fiscal_year"]
-    callbacks = state.get("callbacks")
-
+    """Node 1: Evaluates business model, product segments, and economic moat (Item 1). Failure is non-fatal."""
+    ticker, fiscal_year = state["ticker"], state["fiscal_year"]
     logger.info(f"[business_strategist_node] Analyzing {ticker} FY{fiscal_year}")
-    strategist = BusinessStrategistAgent()
-    moat_output: BusinessMoatOutput = await asyncio.to_thread(
-        strategist.analyze,
-        ticker=ticker,
-        fiscal_year=fiscal_year,
-        callbacks=callbacks,
-    )
-
+    try:
+        moat_output: BusinessMoatOutput = await asyncio.to_thread(
+            BusinessStrategistAgent().analyze,
+            ticker=ticker,
+            fiscal_year=fiscal_year,
+            callbacks=state.get("callbacks"),
+        )
+    except Exception as e:
+        logger.exception(f"[business_strategist_node] {ticker} FY{fiscal_year} failed")
+        return {"business_moat": None, "pipeline_notes": [_failure_note("Business Strategist", e)]}
     return {"business_moat": moat_output}
 
 
 async def financial_auditor_node(state: EquityResearchState) -> Dict[str, Any]:
-    """Node 2: Audits multi-year financial statements, computes ratios, and checks red flags (Item 8)."""
-    ticker = state["ticker"]
-    fiscal_year = state["fiscal_year"]
+    """Node 2: Audits multi-year financial statements (Item 8). The agent itself falls back to its deterministic
+    baseline when the LLM step fails; a failure here means no statements could be audited at all."""
+    ticker, fiscal_year = state["ticker"], state["fiscal_year"]
     available_fiscal_years = state.get("available_fiscal_years")
-    callbacks = state.get("callbacks")
-
     logger.info(f"[financial_auditor_node] Auditing {ticker} FY{fiscal_year} (available: {available_fiscal_years})")
-    auditor = FinancialAuditorAgent()
-    audit_output: FinancialAuditOutput = await asyncio.to_thread(
-        auditor.audit,
-        ticker=ticker,
-        fiscal_year=fiscal_year,
-        available_fiscal_years=available_fiscal_years,
-        callbacks=callbacks,
-    )
-
+    try:
+        audit_output: FinancialAuditOutput = await asyncio.to_thread(
+            FinancialAuditorAgent().audit,
+            ticker=ticker,
+            fiscal_year=fiscal_year,
+            available_fiscal_years=available_fiscal_years,
+            callbacks=state.get("callbacks"),
+        )
+    except Exception as e:
+        logger.exception(f"[financial_auditor_node] {ticker} FY{fiscal_year} failed")
+        return {"financial_audit": None, "pipeline_notes": [_failure_note("Financial Auditor", e)]}
     return {"financial_audit": audit_output}
 
 
 async def risk_analyst_node(state: EquityResearchState) -> Dict[str, Any]:
-    """Node 3: Extracts material risk factors and structural threats (Item 1A)."""
-    ticker = state["ticker"]
-    fiscal_year = state["fiscal_year"]
-    callbacks = state.get("callbacks")
-
+    """Node 3: Extracts material risk factors and structural threats (Item 1A). Failure is non-fatal."""
+    ticker, fiscal_year = state["ticker"], state["fiscal_year"]
     logger.info(f"[risk_analyst_node] Analyzing risks for {ticker} FY{fiscal_year}")
-    risk_analyst = RiskAnalystAgent()
-    risk_output: RiskAuditOutput = await asyncio.to_thread(
-        risk_analyst.analyze,
-        ticker=ticker,
-        fiscal_year=fiscal_year,
-        available_fiscal_years=state.get("available_fiscal_years"),
-        callbacks=callbacks,
-    )
-
+    try:
+        risk_output: RiskAuditOutput = await asyncio.to_thread(
+            RiskAnalystAgent().analyze,
+            ticker=ticker,
+            fiscal_year=fiscal_year,
+            available_fiscal_years=state.get("available_fiscal_years"),
+            callbacks=state.get("callbacks"),
+        )
+    except Exception as e:
+        logger.exception(f"[risk_analyst_node] {ticker} FY{fiscal_year} failed")
+        return {"risk_audit": None, "pipeline_notes": [_failure_note("Risk Analyst", e)]}
     return {"risk_audit": risk_output}
 
 
-TERMINAL_GROWTH_PATTERN = re.compile(
-    r"(?:terminal growth|terminal rate|growth rate|perpetual growth)\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)\s*(%?)",
-    re.IGNORECASE,
-)
-
-
-def _resolve_terminal_growth(user_query: str) -> float:
-    """User-specified perpetual growth ('terminal growth 3%' or 'perpetual growth 0.02'), else the house default."""
-    match = TERMINAL_GROWTH_PATTERN.search(user_query or "")
-    if not match:
-        return DEFAULT_TERMINAL_GROWTH
-    raw = float(match.group(1))
-    return raw / 100.0 if match.group(2) or raw > 1.0 else raw
-
-
 async def forecasting_analyst_node(state: EquityResearchState) -> Dict[str, Any]:
-    """Node 4: Forecasts revenue, margins and UFCFs (5 years, 10 when the growth fade is extended)
-    from the audited baseline, Item 7 guidance and the Risk Analyst profile."""
-    ticker = state["ticker"]
-    fiscal_year = state["fiscal_year"]
+    """Node 4: Forecasts revenue, margins and UFCFs from the audited baseline, Item 7 guidance and the
+    Risk Analyst profile. Skipped (with a note) when no audited financials are available."""
+    ticker, fiscal_year = state["ticker"], state["fiscal_year"]
     financial_audit = state.get("financial_audit")
-    business_moat = state.get("business_moat")
-
     if financial_audit is None:
-        raise ValueError(
-            f"Cannot execute forecasting_analyst for {ticker}: missing required financial_audit."
-        )
+        return {"forecast": None, "pipeline_notes": ["Forecast skipped: no audited financial statements were available."]}
 
-    callbacks = state.get("callbacks")
     logger.info(f"[forecasting_analyst_node] Building UFCF forecast for {ticker} FY{fiscal_year}")
-    forecaster = ForecastingAnalystAgent()
-    forecast_output: ForecastOutput = await asyncio.to_thread(
-        forecaster.forecast,
-        ticker=ticker,
-        fiscal_year=fiscal_year,
-        financial_audit=financial_audit,
-        business_moat=business_moat,
-        risk_audit=state.get("risk_audit"),
-        terminal_growth=_resolve_terminal_growth(state.get("user_query", "")),
-        callbacks=callbacks,
-    )
-
+    try:
+        forecast_output: ForecastOutput = await asyncio.to_thread(
+            ForecastingAnalystAgent().forecast,
+            ticker=ticker,
+            fiscal_year=fiscal_year,
+            financial_audit=financial_audit,
+            business_moat=state.get("business_moat"),
+            risk_audit=state.get("risk_audit"),
+            terminal_growth=_terminal_growth(state),
+            callbacks=state.get("callbacks"),
+        )
+    except Exception as e:
+        logger.exception(f"[forecasting_analyst_node] {ticker} FY{fiscal_year} failed")
+        return {"forecast": None, "pipeline_notes": [_failure_note("Forecasting Analyst", e)]}
     return {"forecast": forecast_output}
 
 
 async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any]:
-    """Node 5: Computes CAPM WACC hurdle rate, 2-stage Gordon Growth DCF, and 5x5 sensitivity matrix."""
-    ticker = state["ticker"]
-    fiscal_year = state["fiscal_year"]
+    """Node 5: CAPM WACC, 2-stage DCF, scenarios and sensitivity. Skipped (with a note) without audited
+    financials; a valuation failure is non-fatal."""
+    ticker, fiscal_year = state["ticker"], state["fiscal_year"]
     financial_audit = state.get("financial_audit")
-    forecast = state.get("forecast")
-    user_query = state.get("user_query", "")
-    callbacks = state.get("callbacks")
-
     if financial_audit is None:
-        raise ValueError(
-            f"Cannot execute valuation_specialist for {ticker}: missing required financial_audit."
-        )
+        return {"dcf_valuation": None, "pipeline_notes": ["Valuation skipped: no audited financial statements were available."]}
 
-    # 1. Extract user-specified market parameters from the query
-    beta_match = re.search(r"\bbeta\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)\b", user_query, re.IGNORECASE)
-    user_beta = float(beta_match.group(1)) if beta_match else None
+    overrides = _overrides(state)
+    user_beta, user_share_price, user_wacc = overrides.get("beta"), overrides.get("share_price"), overrides.get("wacc")
+    terminal_growth = _terminal_growth(state)
 
-    price_match = re.search(
-        r"(?:price|trading at|share price)\s*[:=]?\s*\$?([0-9]+(?:\.[0-9]+)?)\b",
-        user_query,
-        re.IGNORECASE,
-    )
-    user_share_price = float(price_match.group(1)) if price_match else None
-
-    terminal_growth = _resolve_terminal_growth(user_query)
-
-    wacc_match = re.search(
-        r"\b(?:wacc|discount rate|hurdle rate)\s*(?:of|is|at|=|:)?\s*([0-9]+(?:\.[0-9]+)?)\s*%?",
-        user_query,
-        re.IGNORECASE,
-    )
-    if not wacc_match:
-        wacc_match = re.search(
-            r"([0-9]+(?:\.[0-9]+)?)\s*%\s*(?:wacc|discount rate|hurdle rate)\b",
-            user_query,
-            re.IGNORECASE,
-        )
-    if wacc_match:
-        w_raw = float(wacc_match.group(1))
-        user_wacc = (w_raw / 100.0) if w_raw > 1.0 else w_raw
-    else:
-        user_wacc = None
-        session_state = state.get("session_state") or {}
-        if session_state.get("wacc_override") is not None:
-            try:
-                user_wacc = float(session_state["wacc_override"])
-            except (ValueError, TypeError):
-                user_wacc = None
-
-    # 2. Resolve live market data (price, market cap, raw beta, 10Y Treasury) and the anchor balance-sheet date
+    # Live market data (price, market cap, raw beta, 10Y Treasury) and the anchor balance-sheet date
     market_data, balance_sheet_date = await asyncio.gather(
         asyncio.to_thread(fetch_market_context, ticker),
         asyncio.to_thread(_balance_sheet_date, ticker, fiscal_year),
@@ -274,27 +222,29 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
         market_data_source=market_data.get("market_data_source", "fallback_offline"),
     )
 
+    wacc_label = f"{user_wacc * 100:.2f}%" if user_wacc is not None else "CAPM"
     logger.info(
         f"[valuation_specialist_node] Valuing {ticker} (price=${market.share_price} [{market.share_price_source}], "
         f"beta={market.beta} [{market.beta_source}], rf={market.risk_free_rate} [{market.risk_free_rate_source}], "
-        f"g={terminal_growth*100:.1f}%, balance_sheet_date={balance_sheet_date}, "
-        f"user_wacc={f'{user_wacc*100:.2f}%' if user_wacc is not None else 'CAPM'})"
+        f"g={terminal_growth * 100:.1f}%, balance_sheet_date={balance_sheet_date}, user_wacc={wacc_label})"
     )
-    val_agent = ValuationSpecialistAgent()
-    valuation_output: DCFValuationOutput = await asyncio.to_thread(
-        val_agent.value,
-        ticker=ticker,
-        fiscal_year=fiscal_year,
-        financial_audit=financial_audit,
-        forecast=forecast,
-        market=market,
-        terminal_growth_rate=terminal_growth,
-        wacc_override=user_wacc,
-        valuation_date=date.today(),
-        balance_sheet_date=balance_sheet_date,
-        callbacks=callbacks,
-    )
-
+    try:
+        valuation_output: DCFValuationOutput = await asyncio.to_thread(
+            ValuationSpecialistAgent().value,
+            ticker=ticker,
+            fiscal_year=fiscal_year,
+            financial_audit=financial_audit,
+            forecast=state.get("forecast"),
+            market=market,
+            terminal_growth_rate=terminal_growth,
+            wacc_override=user_wacc,
+            valuation_date=date.today(),
+            balance_sheet_date=balance_sheet_date,
+            callbacks=state.get("callbacks"),
+        )
+    except Exception as e:
+        logger.exception(f"[valuation_specialist_node] {ticker} FY{fiscal_year} failed")
+        return {"dcf_valuation": None, "pipeline_notes": [_failure_note("Valuation Specialist", e)]}
     return {"dcf_valuation": valuation_output}
 
 
@@ -322,27 +272,20 @@ def _balance_sheet_date(ticker: str, fiscal_year: int) -> Optional[str]:
 async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
     """Node 6: Synthesizes findings, builds 3-Pillar Thesis, and compiles publication report."""
     routing_plan = state.get("routing_plan")
-    if routing_plan and routing_plan.needs_confirmation:
-        return {
-            "final_report": None,
-            "sources": [],
-            "error_message": routing_plan.confirmation_message,
-        }
-
     ticker = state["ticker"]
     company_name = state.get("company_name", ticker)
     fiscal_year = state["fiscal_year"]
-    year_substituted = routing_plan.year_substituted if routing_plan else False
-    user_query = state.get("user_query")
     query_type = state.get("query_type", "full_10k_report")
-    callbacks = state.get("callbacks")
+    notes = list(state.get("pipeline_notes") or [])
+
+    if all(state.get(k) is None for k in ("business_moat", "financial_audit", "risk_audit")):
+        raise RuntimeError(f"No research output could be produced for {ticker} FY{fiscal_year}. " + " ".join(notes))
 
     logger.info(
         f"[lead_synthesizer_node] Compiling report for {company_name} ({ticker}) [query_type={query_type}]"
     )
-    synthesizer = LeadSynthesizerAgent()
     report: Final10KResearchReport = await asyncio.to_thread(
-        synthesizer.synthesize,
+        LeadSynthesizerAgent().synthesize,
         ticker=ticker,
         company_name=company_name,
         fiscal_year=fiscal_year,
@@ -351,11 +294,12 @@ async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
         forecast=state.get("forecast"),
         dcf_valuation=state.get("dcf_valuation"),
         risk_audit=state.get("risk_audit"),
-        year_substituted=year_substituted,
+        year_substituted=routing_plan.year_substituted if routing_plan else False,
         available_fiscal_years=state.get("available_fiscal_years"),
-        user_query=user_query,
+        user_query=state.get("user_query"),
         query_type=query_type,
-        callbacks=callbacks,
+        pipeline_notes=notes,
+        callbacks=state.get("callbacks"),
     )
 
     return {
@@ -596,95 +540,21 @@ class MultiAgentOrchestrator(BaseAgent):
         final_state: Dict[str, Any] = {}
 
         try:
-            async for chunk in graph.astream(
-                initial_state,
-                config=config,
-            ):
+            async for chunk in graph.astream(initial_state, config=config):
                 for node_name, node_output in chunk.items():
                     final_state.update(node_output)
-
-                    if node_name == "supervisor":
-                        plan: Optional[RoutingPlan] = node_output.get("routing_plan")
-                        t = node_output.get("ticker", "Target")
-                        y = node_output.get("fiscal_year", "")
-                        q = node_output.get("query_type", "full_10k_report")
-                        if q != "conversational":
-                            sub_note = " (substituted year)" if (plan and plan.year_substituted) else ""
-                            yield {
-                                "type": "status",
-                                "node": "supervisor",
-                                "message": f"Resolved filing: {t} FY{y}{sub_note} | Route: {q}",
-                                "details": {
-                                    "ticker": t,
-                                    "fiscal_year": y,
-                                    "query_type": q,
-                                    "year_substituted": plan.year_substituted if plan else False,
-                                },
-                            }
-                    elif node_name == "business_strategist":
-                        moat: Optional[BusinessMoatOutput] = node_output.get("business_moat")
-                        m_type = moat.economic_moat_type if moat else "Assessed"
-                        yield {
-                            "type": "status",
-                            "node": "business_strategist",
-                            "message": f"Completed economic moat analysis (Moat: {m_type})",
-                        }
-                    elif node_name == "financial_auditor":
-                        audit: Optional[FinancialAuditOutput] = node_output.get("financial_audit")
-                        findings = audit.forensic_findings if audit else []
-                        severe_cnt = sum(1 for f in findings if f.severity in ("high", "medium"))
-                        mode = audit.data_quality.extraction_mode if audit else "n/a"
-                        yield {
-                            "type": "status",
-                            "node": "financial_auditor",
-                            "message": (
-                                f"Audited financial statements & ratios ({severe_cnt} high/medium forensic "
-                                f"findings, {mode} extraction)"
-                            ),
-                        }
-                    elif node_name == "risk_analyst":
-                        risk: Optional[RiskAuditOutput] = node_output.get("risk_audit")
-                        yield {
-                            "type": "status",
-                            "node": "risk_analyst",
-                            "message": self._risk_status_message(risk),
-                        }
-                    elif node_name == "forecasting_analyst":
-                        fc: Optional[ForecastOutput] = node_output.get("forecast")
-                        yield {
-                            "type": "status",
-                            "node": "forecasting_analyst",
-                            "message": self._forecast_status_message(fc),
-                        }
-                    elif node_name == "valuation_specialist":
-                        val: Optional[DCFValuationOutput] = node_output.get("dcf_valuation")
-                        yield {
-                            "type": "status",
-                            "node": "valuation_specialist",
-                            "message": self._valuation_status_message(val),
-                        }
-                    elif node_name == "lead_synthesizer":
-                        report: Optional[Final10KResearchReport] = node_output.get("final_report")
-                        yield {
-                            "type": "status",
-                            "node": "lead_synthesizer",
-                            "message": "Synthesized 3-Pillar Thesis and compiled final publication report.",
-                        }
-        except ValueError as e:
-            logger.warning(f"astream_run caught catalog resolution error: {e}")
-            yield {
-                "type": "result",
-                "response": (
-                    f"### ℹ️ Research Terminal Guidance\n\n"
-                    f"{str(e)}\n\n"
-                    f"**Suggested Inquiries:**\n"
-                    f"- `Analyze Apple` (triggers full 6-agent equity research report)\n"
-                    f"- `Analyze Tesla` or `Analyze TSLA`\n"
-                    f"- `Analyze NVIDIA` or `Analyze NVDA`\n\n"
-                    f"*Tip: You can also attach any SEC 10-K filing using the **Attach .htm** button.*"
-                ),
-                "sources": [],
-            }
+                    message, details = self._node_status(node_name, node_output)
+                    if message:
+                        event: Dict[str, Any] = {"type": "status", "node": node_name, "message": message}
+                        if details:
+                            event["details"] = details
+                        yield event
+                    for note in node_output.get("pipeline_notes") or []:
+                        yield {"type": "status", "node": node_name, "message": note, "details": {"severity": "warning"}}
+        except Exception as e:
+            # Stream an error event instead of tearing the SSE connection down; the chat service persists it.
+            logger.exception("astream_run: research pipeline failed")
+            yield {"type": "error", "message": f"Research pipeline failed: {e}"}
             return
 
         report_obj = final_state.get("final_report")
@@ -707,11 +577,51 @@ class MultiAgentOrchestrator(BaseAgent):
             }
         else:
             yield {
-                "type": "result",
-                "response": final_state.get("error_message") or "Pipeline execution finished.",
-                "sources": final_state.get("sources", []),
-                "updated_session_state": updated_state,
+                "type": "error",
+                "message": final_state.get("error_message") or "The research pipeline finished without a report.",
             }
+
+    def _node_status(self, node_name: str, node_output: Dict[str, Any]) -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
+        """Milestone message (and optional details) for a finished node; None when nothing should be shown."""
+        if node_name == "supervisor":
+            plan: Optional[RoutingPlan] = node_output.get("routing_plan")
+            if node_output.get("query_type") == "conversational" or plan is None:
+                return None, None
+            sub_note = " (substituted year)" if plan.year_substituted else ""
+            return (
+                f"Resolved filing: {plan.ticker} FY{plan.fiscal_year}{sub_note} | Route: {plan.query_type}",
+                {
+                    "ticker": plan.ticker,
+                    "fiscal_year": plan.fiscal_year,
+                    "query_type": plan.query_type,
+                    "year_substituted": plan.year_substituted,
+                    "valuation_overrides": plan.valuation_overrides,
+                },
+            )
+        if node_name == "business_strategist":
+            moat: Optional[BusinessMoatOutput] = node_output.get("business_moat")
+            if moat is None:
+                return "Economic moat analysis unavailable", None
+            return f"Completed economic moat analysis (Moat: {moat.economic_moat_type})", None
+        if node_name == "financial_auditor":
+            audit: Optional[FinancialAuditOutput] = node_output.get("financial_audit")
+            if audit is None:
+                return "Financial statement audit unavailable", None
+            severe_cnt = sum(1 for f in audit.forensic_findings if f.severity in ("high", "medium"))
+            return (
+                f"Audited financial statements & ratios ({severe_cnt} high/medium forensic findings, "
+                f"{audit.data_quality.extraction_mode} extraction)",
+                None,
+            )
+        if node_name == "risk_analyst":
+            return self._risk_status_message(node_output.get("risk_audit")), None
+        if node_name == "forecasting_analyst":
+            return self._forecast_status_message(node_output.get("forecast")), None
+        if node_name == "valuation_specialist":
+            return self._valuation_status_message(node_output.get("dcf_valuation")), None
+        if node_name == "lead_synthesizer":
+            return "Synthesized 3-Pillar Thesis and compiled final publication report.", None
+        return None, None
 
     def run(
         self,
@@ -719,74 +629,34 @@ class MultiAgentOrchestrator(BaseAgent):
         session_state: Optional[Dict[str, Any]] = None,
         callbacks: Optional[List[Any]] = None,
     ) -> AgentOutput:
-        """Executes the agent synchronously conforming to BaseAgent interface."""
+        """Executes the agent synchronously conforming to BaseAgent interface. Failures propagate to the caller."""
         query = messages[-1]["content"] if messages else ""
+        coroutine = self.arun(user_query=query, messages=messages, session_state=session_state, callbacks=callbacks)
 
-        # Safely execute async coroutine inside sync context without blocking or loop collisions
-        extracted_ticker = None
+        # Safely execute the coroutine inside a sync context without loop collisions
         try:
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+        if loop and loop.is_running():
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                state = pool.submit(asyncio.run, coroutine).result()
+        else:
+            state = asyncio.run(coroutine)
 
-            if loop and loop.is_running():
-                with concurrent.futures.ThreadPoolExecutor() as pool:
-                    state = pool.submit(
-                        asyncio.run,
-                        self.arun(
-                            user_query=query,
-                            ticker=extracted_ticker,
-                            messages=messages,
-                            session_state=session_state,
-                            callbacks=callbacks,
-                        ),
-                    ).result()
-            else:
-                state = asyncio.run(
-                    self.arun(
-                        user_query=query,
-                        ticker=extracted_ticker,
-                        messages=messages,
-                        session_state=session_state,
-                        callbacks=callbacks,
-                    )
-                )
-
-            conv_resp = state.get("conversational_response")
-            final_report = state.get("final_report")
-            updated_state = state.get("updated_session_state")
-            if conv_resp:
-                return AgentOutput(
-                    content=conv_resp,
-                    sources=state.get("sources", []),
-                    updated_session_state=updated_state,
-                )
-            if isinstance(final_report, Final10KResearchReport):
-                return AgentOutput(
-                    content=final_report.full_markdown_report,
-                    sources=final_report.all_citations,
-                    updated_session_state=updated_state,
-                )
-
-            error = state.get("error_message") or "Equity research execution completed without final report."
+        conv_resp = state.get("conversational_response")
+        final_report = state.get("final_report")
+        updated_state = state.get("updated_session_state")
+        if conv_resp:
             return AgentOutput(
-                content=error,
+                content=conv_resp,
                 sources=state.get("sources", []),
                 updated_session_state=updated_state,
             )
-
-        except ValueError as e:
-            logger.warning(f"MultiAgentOrchestrator.run caught resolution error: {e}")
+        if isinstance(final_report, Final10KResearchReport):
             return AgentOutput(
-                content=(
-                    f"### ℹ️ Research Terminal Guidance\n\n"
-                    f"{str(e)}\n\n"
-                    f"**Suggested Inquiries:**\n"
-                    f"- `Analyze Apple` (triggers full 6-agent equity research report)\n"
-                    f"- `Analyze Tesla` or `Analyze TSLA`\n"
-                    f"- `Analyze NVIDIA` or `Analyze NVDA`\n\n"
-                    f"*Tip: You can also attach any SEC 10-K filing using the **Attach .htm** button.*"
-                ),
-                sources=[],
+                content=final_report.full_markdown_report,
+                sources=final_report.all_citations,
+                updated_session_state=updated_state,
             )
+        raise RuntimeError(state.get("error_message") or "The research pipeline finished without a report.")

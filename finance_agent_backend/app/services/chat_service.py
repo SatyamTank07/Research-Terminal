@@ -262,6 +262,26 @@ async def stream_chat_service(
                             "sources": sources,
                         }
                         yield f"data: {json.dumps(payload)}\n\n"
+                    elif event_type == "error":
+                        error_msg = event.get("message") or "The research pipeline failed."
+                        logger.error(f"Agent stream reported an error: {error_msg}")
+                        assistant_msg = _finalize_assistant_turn(
+                            conversation=conversation,
+                            user=user,
+                            content=f"Error communicating with agent: {error_msg}",
+                            sources=[],
+                            updated_session_state=None,
+                            db=db,
+                            is_error=True,
+                        )
+                        payload = {
+                            "type": "error",
+                            "message": error_msg,
+                            "conversation_id": conversation.id,
+                            "message_id": assistant_msg.id,
+                        }
+                        yield f"data: {json.dumps(payload)}\n\n"
+                        return
                     elif event_type == "token":
                         yield f"data: {json.dumps(event)}\n\n"
                     else:

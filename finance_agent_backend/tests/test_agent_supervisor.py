@@ -18,7 +18,9 @@ from unittest.mock import MagicMock, patch
 
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
+from app.agents.query_parameters import SESSION_KEY
 from app.agents.specialized.supervisor import SupervisorAgent, SupervisorExtraction
+from app.agents.specialized.supervisor.agent_supervisor import CLARIFY_ENTITY_MESSAGE, extract_fiscal_year, names_entity
 from app.agents.state import RoutingPlan
 
 
@@ -124,14 +126,13 @@ class TestAgentSupervisor(unittest.TestCase):
             fiscal_year=2022,
         )
         self.assertIsInstance(plan, RoutingPlan)
-        self.assertFalse(plan.needs_confirmation, "Must not halt for confirmation")
         self.assertTrue(plan.year_substituted, "Must flag year_substituted=True")
         self.assertEqual(plan.fiscal_year, 2025)
         self.assertIn(2025, plan.available_fiscal_years)
         self.assertEqual(plan.year_requested, 2022)
         self.assertGreater(len(plan.active_agents), 0, "Agents must be immediately scheduled")
         self.assertIn("financial_auditor", plan.active_agents)
-        self.assertIsNone(plan.updated_session_state.get("pending_action"))
+        self.assertNotIn("pending_action", plan.updated_session_state)
 
     @patch.object(SupervisorAgent, "_extract_with_llm")
     def test_07_conversational_single_hop_response_generation(self, mock_extract):
@@ -151,7 +152,6 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertEqual(len(plan.active_agents), 0, "No specialized sub-agents needed for conversational")
         self.assertIsNotNone(plan.conversational_response)
         self.assertIn("Weighted Average Cost of Capital", plan.conversational_response)
-        self.assertFalse(plan.needs_confirmation)
 
     @patch.object(SupervisorAgent, "_extract_with_llm")
     def test_08_run_interface_conversational_output(self, mock_extract):
@@ -345,6 +345,97 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertIn(2025, plan.available_fiscal_years)
         self.assertEqual(plan.updated_session_state.get("active_fiscal_year"), 2024)
         self.assertEqual(plan.updated_session_state.get("available_fiscal_years"), plan.available_fiscal_years)
+
+
+class TestSupervisorSessionContinuity(unittest.TestCase):
+    """Deterministic multi-turn behaviour: session ticker/year fallback and valuation-override carry-over."""
+
+    SESSION = {
+        "active_ticker": "AAPL",
+        "active_company": "Apple Inc.",
+        "active_fiscal_year": 2024,
+        "available_fiscal_years": [2025, 2024],
+        "last_query_type": "full_10k_report",
+    }
+
+    def setUp(self):
+        self.supervisor = SupervisorAgent()
+
+    def _route(self, query, extraction, session=None, messages=None):
+        with patch.object(SupervisorAgent, "_extract_with_llm", return_value=extraction):
+            return self.supervisor.route(user_query=query, session_state=session, messages=messages)
+
+    def test_extract_fiscal_year(self):
+        self.assertEqual(extract_fiscal_year("Analyze FY2023 results"), 2023)
+        self.assertEqual(extract_fiscal_year("fiscal year 2024 audit"), 2024)
+        self.assertEqual(extract_fiscal_year("FY'24 margins"), 2024)
+        self.assertEqual(extract_fiscal_year("Analyze the company for 2024"), 2024)
+        self.assertIsNone(extract_fiscal_year("forecast revenue out to 2099"))
+        self.assertIsNone(extract_fiscal_year("terminal growth 2.5%"))
+
+    def test_names_entity(self):
+        self.assertTrue(names_entity("run a dcf on aapl", "AAPL", "Apple Inc."))
+        self.assertTrue(names_entity("Value Apple now", "AAPL", "Apple Inc."))
+        self.assertFalse(names_entity("now run the DCF", "AAPL", "Apple Inc."))
+        self.assertTrue(names_entity("value amazon", "AMZN", "AMAZON.COM, INC."))
+
+    def test_research_route_falls_back_to_session_ticker(self):
+        plan = self._route("Now show me the risk factors", SupervisorExtraction(query_type="risk_factors_only"), self.SESSION)
+        self.assertEqual(plan.ticker, "AAPL")
+        self.assertEqual(plan.query_type, "risk_factors_only")
+
+    def test_follow_up_keeps_session_year_until_the_company_is_named_again(self):
+        follow_up = self._route(
+            "Now run the DCF", SupervisorExtraction(query_type="dcf_valuation_only", extracted_ticker="AAPL"), self.SESSION,
+        )
+        self.assertEqual(follow_up.fiscal_year, 2024)
+        self.assertFalse(follow_up.year_substituted)
+        self.assertIn("FY2024", " ".join(follow_up.parameter_notes))
+
+        renamed = self._route(
+            "Run a DCF on Apple", SupervisorExtraction(query_type="dcf_valuation_only", extracted_ticker="AAPL"), self.SESSION,
+        )
+        self.assertEqual(renamed.fiscal_year, 2025)
+
+    def test_clarification_turn_parameters_carry_to_the_named_company(self):
+        turn1 = self._route(
+            "Run DCF with an 8% discount rate and terminal growth 3%",
+            SupervisorExtraction(query_type="conversational", conversational_response="Which company?"),
+        )
+        self.assertEqual(turn1.updated_session_state[SESSION_KEY], {"ticker": None, "wacc": 0.08, "terminal_growth": 0.03})
+
+        turn2 = self._route(
+            "Apple",
+            SupervisorExtraction(query_type="dcf_valuation_only", extracted_ticker="AAPL"),
+            turn1.updated_session_state,
+        )
+        self.assertEqual(turn2.valuation_overrides, {"ticker": "AAPL", "wacc": 0.08, "terminal_growth": 0.03})
+        self.assertIn("specified earlier", " ".join(turn2.parameter_notes))
+        self.assertEqual(turn2.updated_session_state[SESSION_KEY]["ticker"], "AAPL")
+
+    def test_overrides_are_dropped_when_switching_company(self):
+        session = {**self.SESSION, SESSION_KEY: {"ticker": "AAPL", "wacc": 0.08}}
+        plan = self._route("Value Tesla", SupervisorExtraction(query_type="dcf_valuation_only", extracted_ticker="TSLA"), session)
+        self.assertEqual(plan.ticker, "TSLA")
+        self.assertEqual(plan.valuation_overrides, {})
+        self.assertNotIn(SESSION_KEY, plan.updated_session_state)
+
+    def test_missing_entity_asks_without_hardcoded_examples(self):
+        plan = self._route("Run a DCF", SupervisorExtraction(query_type="dcf_valuation_only"))
+        self.assertEqual(plan.query_type, "conversational")
+        self.assertEqual(plan.conversational_response, CLARIFY_ENTITY_MESSAGE)
+
+    def test_unknown_ticker_reply_lists_ingested_catalog(self):
+        plan = self._route("Analyze ZZZZ", SupervisorExtraction(query_type="full_10k_report", extracted_ticker="ZZZZ"))
+        self.assertEqual(plan.query_type, "conversational")
+        self.assertIn("Ingested 10-K tickers include:", plan.conversational_response)
+
+    def test_ignored_parameters_are_reported(self):
+        plan = self._route(
+            "Value Apple with WACC 60%", SupervisorExtraction(query_type="dcf_valuation_only", extracted_ticker="AAPL"),
+        )
+        self.assertEqual(plan.valuation_overrides, {})
+        self.assertIn("Ignored discount rate", plan.parameter_notes[0])
 
 
 if __name__ == "__main__":
