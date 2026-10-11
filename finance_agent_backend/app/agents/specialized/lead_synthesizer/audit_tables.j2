@@ -1,6 +1,7 @@
 {# Verified Financial Auditor tables, shared by the synthesizer prompt context and the code-assembled report. #}
 {% macro n(v, f="{:,.1f}") %}{{ f.format(v) if v is not none else "N/A" }}{% endmacro %}
-{% macro row(label, items, attr, f="{:,.1f}") %}| {{ label }} |{% for it in items %} {{ n(it[attr], f) }} |{% endfor %}{{ "\n" }}{% endmacro %}
+{% macro row(label, items, attr, f="{:,.1f}") %}| {{ label }}{% if cite is defined %}{{ cite.row(attr, items) }}{% endif %} |{% for it in items %} {{ n(it[attr], f) }} |{% endfor %}{{ "\n" }}{% endmacro %}
+{% macro fe(attr, year) %}{% if cite is defined %}{{ cite.field(attr, year) }}{% endif %}{% endmacro %}
 {% macro header(items) %}| Metric |{% for it in items %} FY{{ it.fiscal_year }} |{% endfor %}{{ "\n" }}| :--- |{% for it in items %} ---: |{% endfor %}{{ "\n" }}{% endmacro %}
 
 {% macro table_a(fa) %}{{ header(fa.multi_year_history) }}{{ row("Revenue", fa.multi_year_history, "revenue") }}{{ row("Revenue growth %", fa.multi_year_history, "revenue_growth_pct", "{:+.1f}%") }}{{ row("Gross margin %", fa.multi_year_history, "gross_margin_pct", "{:.2f}%") }}{{ row("Operating income", fa.multi_year_history, "operating_income") }}{{ row("Operating margin %", fa.multi_year_history, "operating_margin_pct", "{:.2f}%") }}{{ row("Net income (attrib.)", fa.multi_year_history, "net_income") }}{{ row("Net margin %", fa.multi_year_history, "net_margin_pct", "{:.2f}%") }}{{ row("Operating cash flow", fa.multi_year_history, "operating_cash_flow") }}{{ row("Capex", fa.multi_year_history, "capital_expenditures") }}{{ row("Free cash flow", fa.multi_year_history, "free_cash_flow") }}{{ row("FCF conversion %", fa.multi_year_history, "fcf_conversion_pct", "{:.1f}%") }}{{ row("Stock-based comp.", fa.earnings_quality, "stock_based_compensation") }}{{ row("SBC-adjusted FCF", fa.earnings_quality, "sbc_adjusted_fcf") }}{% endmacro %}
@@ -18,21 +19,21 @@
 {% macro table_e(fa) %}{% set bs = fa.balance_sheet %}{% set pr = fa.profitability_and_return_ratios %}{% set sv = fa.solvency_and_liquidity_ratios %}
 | Metric | Value |
 | :--- | ---: |
-| Cash & equivalents | ${{ n(bs.cash_and_equivalents) }}M |
-| Marketable securities | ${{ n(bs.marketable_securities) }}M |
-| Total liquid cash | ${{ n(bs.total_liquid_cash) }}M |
-| Total debt | ${{ n(bs.total_debt) }}M |
-| Net debt (negative = net cash) | ${{ n(bs.net_debt) }}M |
-| Stockholders' equity | ${{ n(bs.stockholders_equity) }}M |
-| Valuation share count | {{ n(bs.valuation_shares_outstanding) }}M ({{ bs.share_count_source }}) |
-| Current ratio | {{ n(sv.current_ratio, "{:.2f}x") }} |
-| EBITDA | ${{ n(sv.ebitda) }}M |
-| Net debt / EBITDA | {{ n(sv.net_debt_to_ebitda, "{:.2f}x") }} |
-| Debt / equity | {{ n(sv.total_debt_to_equity, "{:.2f}x") }} |
-| Effective tax rate | {{ n(pr.effective_tax_rate_pct, "{:.1f}%") }} ({{ pr.tax_rate_source }}) |
-| ROIC ({{ pr.capital_basis }} capital, net of liquid cash) | {{ n(pr.roic_pct, "{:.1f}%") }} |
-| ROIC ({{ pr.capital_basis }} gross debt + equity) | {{ n(pr.roic_on_gross_capital_pct, "{:.1f}%") }} |
-| ROE ({{ pr.capital_basis }} equity) | {{ n(pr.roe_pct, "{:.1f}%") }} |
+| Cash & equivalents{{ fe("cash_and_equivalents", bs.fiscal_year) }} | ${{ n(bs.cash_and_equivalents) }}M |
+| Marketable securities{{ fe("marketable_securities", bs.fiscal_year) }} | ${{ n(bs.marketable_securities) }}M |
+| Total liquid cash{{ fe("total_liquid_cash", bs.fiscal_year) }} | ${{ n(bs.total_liquid_cash) }}M |
+| Total debt{{ fe("total_debt", bs.fiscal_year) }} | ${{ n(bs.total_debt) }}M |
+| Net debt (negative = net cash){{ fe("net_debt", bs.fiscal_year) }} | ${{ n(bs.net_debt) }}M |
+| Stockholders' equity{{ fe("stockholders_equity", bs.fiscal_year) }} | ${{ n(bs.stockholders_equity) }}M |
+| Valuation share count{{ fe("valuation_shares_outstanding", bs.fiscal_year) }} | {{ n(bs.valuation_shares_outstanding) }}M ({{ bs.share_count_source }}) |
+| Current ratio{{ fe("current_ratio", bs.fiscal_year) }} | {{ n(sv.current_ratio, "{:.2f}x") }} |
+| EBITDA{{ fe("ebitda", bs.fiscal_year) }} | ${{ n(sv.ebitda) }}M |
+| Net debt / EBITDA{{ fe("net_debt_to_ebitda", bs.fiscal_year) }} | {{ n(sv.net_debt_to_ebitda, "{:.2f}x") }} |
+| Debt / equity{{ fe("total_debt_to_equity", bs.fiscal_year) }} | {{ n(sv.total_debt_to_equity, "{:.2f}x") }} |
+| Effective tax rate{{ fe("effective_tax_rate_pct", bs.fiscal_year) }} | {{ n(pr.effective_tax_rate_pct, "{:.1f}%") }} ({{ pr.tax_rate_source }}) |
+| ROIC ({{ pr.capital_basis }} capital, net of liquid cash){{ fe("roic_pct", bs.fiscal_year) }} | {{ n(pr.roic_pct, "{:.1f}%") }} |
+| ROIC ({{ pr.capital_basis }} gross debt + equity){{ fe("roic_on_gross_capital_pct", bs.fiscal_year) }} | {{ n(pr.roic_on_gross_capital_pct, "{:.1f}%") }} |
+| ROE ({{ pr.capital_basis }} equity){{ fe("roe_pct", bs.fiscal_year) }} | {{ n(pr.roe_pct, "{:.1f}%") }} |
 {% endmacro %}
 
 {% macro table_f(fa) %}{% if fa.forensic_findings %}

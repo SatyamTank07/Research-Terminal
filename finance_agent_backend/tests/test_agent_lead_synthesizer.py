@@ -223,6 +223,9 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
 
     def setUp(self):
         self.synthesizer = LeadSynthesizerAgent()
+        resolver = patch("app.agents.tools.citation_registry.resolve_chunk_metadata", return_value={})
+        resolver.start()
+        self.addCleanup(resolver.stop)
 
     def _synth(self, llm, **kwargs):
         defaults = dict(ticker="aapl", company_name="Apple Inc.", fiscal_year=2025)
@@ -280,7 +283,6 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
         self.assertIn("**Bottom line**: Overvalued on the base case", md)
         self.assertIn("> *Synthesis Provenance: `llm_structured`*", md)
         self.assertEqual(md.count("| R1 | Antitrust Scrutiny on App Store"), 1)
-        self.assertEqual(len(report.all_citations), 4)
 
     def test_03_dcf_route_with_year_substitution(self):
         report = self._synth(

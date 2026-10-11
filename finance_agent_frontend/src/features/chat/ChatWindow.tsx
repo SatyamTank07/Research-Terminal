@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react'
 import type { AgentMilestone, Message } from './types'
 import { MarkdownRenderer } from '@/shared/components/MarkdownRenderer'
+import type { SourceRef } from '@/shared/types/citations'
+import { SourceList } from '@/features/filing-viewer/SourceList'
 import {
   TrendingUp,
   User,
@@ -8,7 +10,6 @@ import {
   Check,
   AlertCircle,
   Clock,
-  ExternalLink,
   FileText,
   Activity,
   Sparkles,
@@ -53,12 +54,14 @@ interface ChatWindowProps {
   messages: Message[]
   isLoading: boolean
   activeMilestones?: AgentMilestone[]
+  onOpenSource?: (ref: SourceRef) => void
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   messages,
   isLoading,
   activeMilestones = [],
+  onOpenSource,
 }) => {
 
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -194,33 +197,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                         <div>{message.content}</div>
                       ) : (
                         <>
-                          <MarkdownRenderer content={message.content} />
-
-                          {message.sources && message.sources.length > 0 && (
-                            <div className="mt-4 pt-3.5 border-t border-slate-800/80 flex flex-col gap-2">
-                              <span className="text-[11px] font-semibold tracking-wider uppercase text-slate-400 flex items-center gap-1">
-                                <ExternalLink className="w-3 h-3 text-sky-400" />
-                                Cited Filings & Intelligence
-                              </span>
-                              <div className="flex flex-wrap gap-1.5">
-                                {message.sources.map((src, idx) => (
-                                  <a
-                                    key={idx}
-                                    href={src.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded bg-[#070a12] border border-slate-800 text-sky-300 hover:text-sky-200 hover:border-sky-500/40 transition-colors"
-                                    title={src.snippet || src.title}
-                                  >
-                                    <span className="truncate max-w-[240px]">
-                                      {src.title || src.url}
-                                    </span>
-                                    <ExternalLink className="w-2.5 h-2.5 opacity-60 shrink-0" />
-                                  </a>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                          <MarkdownRenderer
+                            content={message.content}
+                            sources={message.sources}
+                            onCite={onOpenSource}
+                          />
+                          <SourceList sources={message.sources ?? []} onOpen={onOpenSource} />
                         </>
                       )}
                     </div>

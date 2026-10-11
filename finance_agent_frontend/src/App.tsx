@@ -7,6 +7,8 @@ import { ChatWindow } from '@/features/chat/ChatWindow'
 import { ChatInput } from '@/features/chat/ChatInput'
 import { useChat } from '@/features/chat/hooks/useChat'
 import { useDocuments } from '@/features/documents/hooks/useDocuments'
+import { FilingViewerPanel } from '@/features/filing-viewer/FilingViewerPanel'
+import { useFilingViewer } from '@/features/filing-viewer/hooks/useFilingViewer'
 
 export function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() =>
@@ -33,6 +35,7 @@ export function App() {
       await loadConversations(convId)
     },
   })
+  const filingViewer = useFilingViewer()
 
   // Initial load of conversations
   useEffect(() => {
@@ -41,6 +44,7 @@ export function App() {
 
   // Navigation handlers
   const handleSelectConversation = (convId: string) => {
+    filingViewer.close()
     setActiveConversationId(convId)
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false)
@@ -48,6 +52,7 @@ export function App() {
   }
 
   const handleNewChat = () => {
+    filingViewer.close()
     setActiveConversationId(null)
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false)
@@ -84,6 +89,7 @@ export function App() {
             messages={messages}
             isLoading={isLoading}
             activeMilestones={activeMilestones}
+            onOpenSource={filingViewer.openSource}
           />
 
 
@@ -95,6 +101,9 @@ export function App() {
           />
         </main>
       </div>
+
+      {/* Right-hand 10-K viewer for clicked citations */}
+      <FilingViewerPanel viewer={filingViewer} />
     </div>
   )
 }

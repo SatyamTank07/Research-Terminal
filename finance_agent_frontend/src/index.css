@@ -70,3 +70,8 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
+
+::highlight(cite-quote) {
+  background-color: rgb(250 204 21 / 0.35);
+  color: #fff;
+}

@@ -12,6 +12,7 @@ import unittest
 from bs4 import BeautifulSoup
 
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
+from app.agents.specialized.lead_synthesizer.report_citations import NullCiter
 from app.agents.specialized.prompts import render_prompt
 from app.agents.tools.financial_math_tools import run_audit_from_inputs
 from app.agents.tools.statement_extraction import build_statement_grids, extract_audit_inputs
@@ -82,6 +83,7 @@ class TestFinancialAuditRendering(unittest.TestCase):
             "report_layout.j2",
             ticker="TSLA", company_name="Tesla, Inc.", fiscal_year=2025, query_type="financial_audit_only",
             financial_audit=_tsla_audit_output(), p={}, notes=[], provenance="template_default", removed_sentences=0,
+            cite=NullCiter(),
         )
         self.assertIn("# Financial Statement Audit & Quality of Earnings: Tesla, Inc. (TSLA)", report)
         self.assertIn("| Revenue | 96,773.0 | 97,690.0 | 94,827.0 |\n| Revenue growth % |", report)

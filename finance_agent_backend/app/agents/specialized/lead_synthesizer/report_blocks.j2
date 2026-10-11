@@ -1,5 +1,5 @@
 {# Code-assembled report blocks. Every number here comes verbatim from an agent artifact; the LLM writes prose only. #}
-{% import "audit_tables.j2" as t %}
+{% import "audit_tables.j2" as t with context %}
 
 {% macro money(v, f="{:,.1f}") %}{{ ("$" ~ f.format(v) ~ "M") if v is not none else "N/A" }}{% endmacro %}
 {% macro pct(v, f="{:.2f}%") %}{{ f.format(v) if v is not none else "N/A" }}{% endmacro %}
@@ -13,18 +13,18 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 {% set w = val.wacc_audit %}
 | Metric | Value |
 | :--- | ---: |
-| **Base-Case DCF Fair Value / Share** | **{{ per_share(val.implied_fair_value_per_share) }}** |
+| **Base-Case DCF Fair Value / Share**{{ cite.statements() }} | **{{ per_share(val.implied_fair_value_per_share) }}** |
 {% if val.bear_fair_value is not none and val.bull_fair_value is not none %}
 | Bear / Bull Fair Value | {{ per_share(val.bear_fair_value) }} / {{ per_share(val.bull_fair_value) }} |
 | Probability-Weighted Fair Value | {{ per_share(val.probability_weighted_fair_value) }} |
 {% endif %}
-| Current Share Price | {{ per_share(val.current_share_price) }}{% if val.current_share_price is not none %} ({{ val.data_quality.share_price_source }}){% endif %} |
+| Current Share Price{{ cite.market("price") }} | {{ per_share(val.current_share_price) }}{% if val.current_share_price is not none %} ({{ val.data_quality.share_price_source }}){% endif %} |
 | Base-Case Upside / Downside | {{ pct(val.upside_downside_pct, "{:+.1f}%") }} |
 | Valuation Stance | {{ val.valuation_stance or "Not stated (no market price)" }} |
 {% if val.market_implied_growth_pct is not none %}
 | Market-Implied Revenue Growth (reverse DCF) | {{ pct(val.market_implied_growth_pct, "{:.1f}%") }} |
 {% endif %}
-| Discount Rate | {{ pct(w.wacc_pct) }} ({{ "user override" if w.wacc_source == "user_override" else "CAPM WACC" }}) |
+| Discount Rate{{ cite.market("rf") }}{{ cite.market("erp") }}{{ cite.market("beta") }} | {{ pct(w.wacc_pct) }} ({{ "user override" if w.wacc_source == "user_override" else "CAPM WACC" }}) |
 {% if val.market_implied_wacc_pct is not none %}
 | Market-Implied Discount Rate (at modeled cash flows) | {{ pct(val.market_implied_wacc_pct) }} |
 {% endif %}
@@ -32,9 +32,9 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 | Terminal Tax Rate (marginal) | {{ pct(val.terminal_tax_rate_pct, "{:.1f}%") }} |
 | Terminal Value % of EV | {{ pct(val.terminal_value_pct_of_ev, "{:.1f}%") }} |
 | Enterprise Value | {{ money(val.enterprise_value) }} |
-| Net Debt (negative = net cash) | {{ money(val.net_debt) }} |
+| Net Debt (negative = net cash){{ cite.field("net_debt") }} | {{ money(val.net_debt) }} |
 | Equity Value (as of {{ val.valuation_date }}) | {{ money(val.equity_value) }} |
-| Valuation Shares | {{ "{:,.1f}".format(val.diluted_shares) }}M |
+| Valuation Shares{{ cite.field("valuation_shares_outstanding") }} | {{ "{:,.1f}".format(val.diluted_shares) }}M |
 {% if fc %}
 | Forecast | {{ fc.forecast_horizon_years }}-year explicit horizon, {{ pct(fc.revenue_cagr_pct, "{:.1f}%") }} revenue CAGR ({{ fc.guidance_source | replace("_", " ") }}) |
 {% endif %}
@@ -49,13 +49,13 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 {% endif %}
 {% if moat.segment_table_markdown %}
 
-**Reportable segments (verified from the segment note)**
+**Reportable segments (verified from the segment note)**{{ cite.segments() }}
 
 {{ moat.segment_table_markdown }}
 
 {% endif %}
 {% if moat.revenue_mix_markdown %}
-**Revenue mix (verified from the disaggregation table)**
+**Revenue mix (verified from the disaggregation table)**{{ cite.revenue_mix() }}
 
 {{ moat.revenue_mix_markdown }}
 
@@ -67,14 +67,14 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 {{ "" }}
 | Moat Dimension | Assessment |
 | :--- | :--- |
-| Primary moat | **{{ moat.economic_moat_type }}** ({{ moat.moat_assessment | replace("_", " ") }}) |
-| Secondary moats | {{ moat.secondary_moat_types | join(", ") if moat.secondary_moat_types else "None identified" }} |
+| Primary moat{{ cite.evidence("primary_moat") }} | **{{ moat.economic_moat_type }}** ({{ moat.moat_assessment | replace("_", " ") }}) |
+| Secondary moats{{ cite.evidence("secondary_moat") }} | {{ moat.secondary_moat_types | join(", ") if moat.secondary_moat_types else "None identified" }} |
 | Durability / trajectory | {{ moat.moat_durability }} / {{ moat.moat_trajectory }} |
 {% for sm in moat.segment_specific_moats %}
-| {{ sm.segment_name }} | {{ sm.moat_type }}: {{ sm.moat_rationale }} |
+| {{ sm.segment_name }}{{ cite.evidence("segment_moat", sm.segment_name) }} | {{ sm.moat_type }}: {{ sm.moat_rationale }} |
 {% endfor %}
 
-**Moat rationale (filing-based)**: {{ moat.moat_rationale }}
+**Moat rationale (filing-based)**: {{ moat.moat_rationale }}{{ cite.evidence("primary_moat") }}
 {% if moat.data_quality.notes %}
 
 **Business analysis data-quality notes**
@@ -87,7 +87,7 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 {% macro threats_block(moat) %}
 {% if moat.competitive_threats %}
 {% for threat in moat.competitive_threats %}
-- {{ threat }}
+- {{ threat }}{{ cite.evidence("competitive_threat", threat) }}
 {% endfor %}
 {% else %}
 - No specific competitive threats were extracted from Item 1.
@@ -95,8 +95,8 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 {% endmacro %}
 
 {% macro market_power_block(moat) %}
-- **Pricing power**: {{ moat.pricing_power_assessment }}
-- **Customer concentration**: {{ moat.customer_concentration }}
+- **Pricing power**: {{ moat.pricing_power_assessment }}{{ cite.evidence("pricing_power") }}
+- **Customer concentration**: {{ moat.customer_concentration }}{{ cite.evidence("customer_concentration") }}
 {% endmacro %}
 
 {% macro audit_core(fa) %}
@@ -121,9 +121,9 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 {% endmacro %}
 
 {% macro statements_block(fa) %}
-{% for title, table in (("Income Statement", fa.income_statement_markdown_table), ("Balance Sheet", fa.balance_sheet_markdown_table), ("Cash Flow Statement", fa.cash_flow_markdown_table)) %}
+{% for title, key, table in (("Income Statement", "income_statement", fa.income_statement_markdown_table), ("Balance Sheet", "balance_sheet", fa.balance_sheet_markdown_table), ("Cash Flow Statement", "cash_flow", fa.cash_flow_markdown_table)) %}
 {% if table %}
-**{{ title }}**
+**{{ title }}**{{ cite.statement(key) }}
 
 {{ table }}
 
@@ -133,9 +133,9 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 
 {% macro forecast_block(fc) %}
 {% set a = fc.assumptions %}
-- **Baseline**: {{ a.margin_source }} operating margin {{ pct(a.base_operating_margin * 100) }}; tax {{ pct(a.tax_rate * 100) }} ({{ a.tax_source }}); D&A {{ a.da_source }}; working capital {{ a.nwc_source }}
-- **Growth**: {{ fc.growth_rationale }}
-- **Margins**: {{ fc.margin_rationale }}
+- **Baseline**: {{ a.margin_source }} operating margin {{ pct(a.base_operating_margin * 100) }}; tax {{ pct(a.tax_rate * 100) }} ({{ a.tax_source }}); D&A {{ a.da_source }}; working capital {{ a.nwc_source }}{{ cite.statements() }}
+- **Growth**: {{ fc.growth_rationale }}{{ cite.forecast_drivers() }}
+- **Margins**: {{ fc.margin_rationale }}{{ cite.forecast_drivers() }}
 - **Reinvestment**: {{ fc.reinvestment_rationale }}
 
 {{ fc.forecast_table_markdown }}
@@ -156,10 +156,20 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 
 {% macro wacc_block(val) %}
 {{ val.wacc_audit.formula_breakdown_markdown }}
+{% set inputs = cite.market("rf") ~ cite.market("erp") ~ cite.market("beta") %}
+{% if inputs %}
+
+_Market inputs_: risk-free rate, equity risk premium and beta{{ inputs }}
+{% endif %}
 {% endmacro %}
 
 {% macro bridge_block(val) %}
 {{ val.equity_bridge_markdown }}
+{% set bridge = cite.field("net_debt") %}
+{% if bridge %}
+
+_Debt, cash and share count from the audited balance sheet_{{ bridge }}
+{% endif %}
 {% if val.scenario_table_markdown %}
 
 **Scenario valuation (same discount rate, terminal growth and bridge)**
@@ -207,9 +217,9 @@ _Severity is a fixed likelihood × impact matrix computed in code; every risk is
 {% macro risk_details(risk, level="###") %}
 {% for r in risk.identified_risks %}
 {{ level }} {{ r.risk_id }} — {{ r.risk_title }}
-- **Disclosure**: {{ r.risk_summary }}
+- **Disclosure**: {{ r.risk_summary }}{{ cite.risk(r) }}
 - **Quantified exposure**: {{ r.quantified_exposure or "None stated in the filing" }}
-- **Filing-stated mitigation**: {{ r.mitigating_factors or "None stated in the filing" }}
+- **Filing-stated mitigation**: {{ r.mitigating_factors or "None stated in the filing" }}{{ cite.mitigation(r) if r.mitigating_factors else "" }}
 - **Model lines hit**: {{ r.financial_transmission | join(", ") if r.financial_transmission else "n/a" }}
 - **Signposts to monitor**: {{ r.monitoring_signposts | join("; ") if r.monitoring_signposts else "n/a" }}
 
@@ -243,16 +253,8 @@ No prior-year Item 1A was available, so year-over-year disclosure changes were n
 {% endif %}
 {% endmacro %}
 
-{% macro citations_table(citations) %}
-{% if citations %}
-| Chunk ID | Filing Section | Breadcrumb |
-| :--- | :--- | :--- |
-{% for c in citations %}
-| `{{ c.chunk_id }}` | {{ c.item or "—" }} | {{ c.breadcrumb or "—" }} |
-{% endfor %}
-{% else %}
-No filing citations were recorded.
-{% endif %}
+{% macro evidence_note() %}
+{{ cite.evidence_note() or "No filing citations were recorded." }}
 {% endmacro %}
 
 {% macro footer(notes, provenance, removed) %}

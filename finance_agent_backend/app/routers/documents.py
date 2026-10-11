@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal, get_db
 from app.models import Document, DocumentChunk
+from app.services.filing_content import get_filing_content, locate_chunk
 from app.services.ingestion.pipeline import SECIngestionPipeline
 
 logger = logging.getLogger("finance_agent.routers.documents")
@@ -148,6 +149,34 @@ def list_documents(db: Session = Depends(get_db)):
     """Returns a list of all ingested SEC filing documents."""
     docs = db.query(Document).order_by(Document.created_at.desc()).all()
     return [d.to_dict() for d in docs]
+
+
+@router.get("/locate", status_code=status.HTTP_200_OK)
+def locate_filing_chunk(
+    ticker: str,
+    fiscal_year: int,
+    breadcrumb: Optional[str] = None,
+    item: Optional[str] = None,
+    chunk_index: Optional[int] = None,
+    db: Session = Depends(get_db),
+):
+    """Re-ingestion fallback: the closest chunk in the current 10-K for a stale citation."""
+    located = locate_chunk(db, ticker, fiscal_year, breadcrumb=breadcrumb, item=item, chunk_index=chunk_index)
+    if located is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No 10-K filing is ingested for {ticker.upper()} FY{fiscal_year}.",
+        )
+    return located
+
+
+@router.get("/{document_id}/content", status_code=status.HTTP_200_OK)
+def get_document_content(document_id: str, db: Session = Depends(get_db)):
+    """The whole filing in reading order (chunks + item table of contents) for the filing viewer."""
+    content = get_filing_content(db, document_id)
+    if content is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+    return content
 
 
 @router.get("/{document_id}", status_code=status.HTTP_200_OK)
