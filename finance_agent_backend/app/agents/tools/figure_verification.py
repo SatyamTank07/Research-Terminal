@@ -4,11 +4,15 @@ Every number in a sentence must match (within its own rounding precision) a numb
 verified context the model was given; sentences citing anything else are removed. Scale words are
 reconciled with the $-millions convention used across the pipeline ("$716.9 billion" == 716,924).
 Small integers (counts, "5-year", item numbers) and calendar years are not treated as figures.
+
+The same matcher attributes verified figures to their sources: `build_figure_index` records which source
+each known figure came from, and `annotate_sentences` appends a citation marker to each sentence.
 """
 
 import bisect
 import re
-from typing import List, Tuple
+from dataclasses import dataclass
+from typing import Callable, Generic, Hashable, Iterable, List, Tuple, TypeVar
 
 _FIGURE = re.compile(
     r"(?<![\w.])\$?(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?\s*"
@@ -46,12 +50,18 @@ def _is_figure(value: float, decimals: int, unit: str, dollar: bool) -> bool:
     return value > SMALL_INTEGER_MAX
 
 
-def _matches(known: List[float], value: float, decimals: int, unit: str) -> bool:
+def _window(value: float, decimals: int, unit: str) -> Tuple[float, float]:
+    """Inclusive $-millions interval a figure written with `decimals` precision can stand for."""
     scale = _SCALE_TO_MILLIONS.get(unit, 1.0)
     candidate = value * scale
     tolerance = 0.5 * 10 ** (-decimals) * scale + RELATIVE_TOLERANCE * candidate
-    i = bisect.bisect_left(known, candidate - tolerance)
-    return i < len(known) and known[i] <= candidate + tolerance
+    return candidate - tolerance, candidate + tolerance
+
+
+def _matches(known: List[float], value: float, decimals: int, unit: str) -> bool:
+    lo, hi = _window(value, decimals, unit)
+    i = bisect.bisect_left(known, lo)
+    return i < len(known) and known[i] <= hi
 
 
 def sentence_is_verified(sentence: str, known: List[float]) -> bool:
@@ -82,3 +92,70 @@ def strip_unverified_sentences(text: str, known: List[float]) -> Tuple[str, int]
         elif not body.strip():
             out_lines.append(line)
     return "\n".join(out_lines).strip(), removed
+
+
+K = TypeVar("K", bound=Hashable)
+_TRAILING_PUNCT = re.compile(r"[.!?]+[\"')\]*_]*\s*$")
+
+
+@dataclass
+class FigureIndex(Generic[K]):
+    """Known figures (in $ millions when scaled) with the source each came from; lower priority wins."""
+
+    values: List[float]
+    entries: List[Tuple[float, int, K]]
+
+
+def build_figure_index(entries: Iterable[Tuple[str, K]]) -> FigureIndex[K]:
+    """Indexes every figure in each (text, source) entry; the entry's position is its priority."""
+    rows: List[Tuple[float, int, K]] = []
+    for priority, (text, key) in enumerate(entries):
+        for match in _FIGURE.finditer(text or ""):
+            value, _, unit, _ = _parse(match)
+            rows.append((value * _SCALE_TO_MILLIONS.get(unit, 1.0), priority, key))
+    rows.sort(key=lambda row: (row[0], row[1]))
+    return FigureIndex(values=[row[0] for row in rows], entries=rows)
+
+
+def attribute_sentence(sentence: str, index: FigureIndex[K], limit: int = 3) -> List[K]:
+    """Best (highest-priority) source for each figure in `sentence`, in sentence order, at most `limit`."""
+    found: List[K] = []
+    for match in _FIGURE.finditer(sentence):
+        value, decimals, unit, dollar = _parse(match)
+        if not _is_figure(value, decimals, unit, dollar):
+            continue
+        lo, hi = _window(value, decimals, unit)
+        window = index.entries[bisect.bisect_left(index.values, lo):bisect.bisect_right(index.values, hi)]
+        if not window:
+            continue
+        best = min(window, key=lambda row: row[1])[2]
+        if best not in found:
+            found.append(best)
+        if len(found) >= limit:
+            break
+    return found
+
+
+def _attach(sentence: str, mark: str) -> str:
+    """Places `mark` before the sentence's closing punctuation (and any closing emphasis/quotes)."""
+    m = _TRAILING_PUNCT.search(sentence)
+    if m:
+        return sentence[:m.start()] + mark + sentence[m.start():]
+    return sentence.rstrip() + mark
+
+
+def annotate_sentences(text: str, index: FigureIndex[K], render: Callable[[List[K]], str]) -> str:
+    """Appends `render(sources)` to every sentence whose figures are attributable; other text is unchanged."""
+    if not text:
+        return text
+    out_lines: List[str] = []
+    for line in text.split("\n"):
+        prefix = _LINE_PREFIX.match(line).group(1)
+        body = line[len(prefix):]
+        sentences = []
+        for sentence in _SENTENCE_BOUNDARY.split(body):
+            keys = attribute_sentence(sentence, index)
+            mark = render(keys) if keys else ""
+            sentences.append(_attach(sentence, mark) if mark else sentence)
+        out_lines.append(prefix + " ".join(sentences))
+    return "\n".join(out_lines)

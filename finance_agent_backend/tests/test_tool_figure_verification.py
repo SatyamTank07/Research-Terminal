@@ -3,6 +3,9 @@
 import unittest
 
 from app.agents.tools.figure_verification import (
+    annotate_sentences,
+    attribute_sentence,
+    build_figure_index,
     collect_known_figures,
     sentence_is_verified,
     strip_unverified_sentences,
@@ -72,3 +75,45 @@ class TestFigureVerification(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestFigureAttribution(unittest.TestCase):
+    def setUp(self):
+        self.index = build_figure_index([
+            ("416161.000000", "is-2025"),
+            ("31.970000", "is-2025"),
+            ("98767.000000", "cf-2025"),
+            ("416161.000000", "segment"),
+            ("Net sales increased 6% to $416.2 billion", "quote"),
+        ])
+
+    def test_best_source_per_figure(self):
+        self.assertEqual(attribute_sentence("Revenue was $416.2 billion.", self.index), ["is-2025"])
+
+    def test_figures_in_sentence_order_deduped(self):
+        s = "Margin was 31.97% on revenue of $416,161M while FCF was $98.8 billion."
+        self.assertEqual(attribute_sentence(s, self.index), ["is-2025", "cf-2025"])
+
+    def test_years_small_integers_and_unknown_figures_are_ignored(self):
+        self.assertEqual(attribute_sentence("In FY2025 the 3 segments earned $123,456M.", self.index), [])
+
+    def test_limit(self):
+        index = build_figure_index([("1000", "a"), ("2000", "b"), ("3000", "c"), ("4000", "d")])
+        self.assertEqual(attribute_sentence("$1,000M, $2,000M, $3,000M and $4,000M.", index), ["a", "b", "c"])
+
+    def test_annotate_inserts_before_final_punctuation_and_keeps_bullets(self):
+        text = "- Revenue was $416.2 billion. No figures here.\n- FCF was **$98.8 billion.**"
+        out = annotate_sentences(text, self.index, lambda keys: "".join(f"[{k}]" for k in keys))
+        self.assertEqual(
+            out, "- Revenue was $416.2 billion[is-2025]. No figures here.\n- FCF was **$98.8 billion[cf-2025].**"
+        )
+
+    def test_annotate_without_terminal_punctuation_appends(self):
+        self.assertEqual(
+            annotate_sentences("Revenue was $416.2 billion", self.index, lambda keys: "[x]"),
+            "Revenue was $416.2 billion[x]",
+        )
+
+    def test_annotate_leaves_unattributed_text_unchanged(self):
+        self.assertEqual(annotate_sentences("", self.index, lambda keys: "[x]"), "")
+        self.assertEqual(annotate_sentences("No numbers. None at all.", self.index, lambda keys: "[x]"), "No numbers. None at all.")
