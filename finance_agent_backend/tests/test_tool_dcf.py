@@ -235,13 +235,21 @@ class TestDCFTools(unittest.TestCase):
         cash_rich = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, -50.0, 10.0)
         self.assertIn("Plus: net cash | $50.0M", cash_rich["equity_bridge_markdown"])
 
+        # EV rolls forward at WACC; net debt and NCI at the risk-free rate (not the equity value at Ke).
         rolled = calculate_dcf_with_sensitivity(
-            fcfs, 0.10, 0.02, 50.0, 10.0, roll_forward_years=0.5, cost_of_equity=0.12,
+            fcfs, 0.10, 0.02, 50.0, 10.0, roll_forward_years=0.5, risk_free_rate=0.04, noncontrolling_interests=30.0,
         )
         self.assertEqual(rolled["enterprise_value"], plain["enterprise_value"])
-        self.assertAlmostEqual(rolled["equity_value"], plain["equity_value"] * 1.12 ** 0.5, places=1)
-        self.assertAlmostEqual(rolled["roll_forward_factor"], 1.12 ** 0.5, places=5)
-        self.assertIn("Roll-forward 0.50 yrs @ 12.00%", rolled["equity_bridge_markdown"])
+        expected = plain["enterprise_value"] * 1.10 ** 0.5 - (50.0 + 30.0) * 1.04 ** 0.5
+        self.assertAlmostEqual(rolled["equity_value"], expected, places=1)
+        self.assertAlmostEqual(rolled["roll_forward_factor"], 1.10 ** 0.5, places=5)
+        self.assertAlmostEqual(rolled["claims_roll_forward_factor"], 1.04 ** 0.5, places=5)
+        self.assertIn("Enterprise value rolled forward 0.50 yrs @ WACC 10.00%", rolled["equity_bridge_markdown"])
+        self.assertIn("Net debt and NCI rolled forward @ Rf 4.00%", rolled["equity_bridge_markdown"])
+
+        # A net-cash company: the cash pile earns Rf, so it no longer compounds at the cost of equity.
+        cash = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, -500.0, 10.0, roll_forward_years=1.0, risk_free_rate=0.04)
+        self.assertAlmostEqual(cash["equity_value"], cash["enterprise_value"] * 1.10 + 500.0 * 1.04, places=1)
 
     def test_10_sanity_warnings_do_not_raise(self):
         concentrated = calculate_dcf_with_sensitivity([10.0, 10.0, 10.0], 0.04, 0.035, 0.0, 1.0, risk_free_rate=0.03)
@@ -260,7 +268,7 @@ class TestDCFTools(unittest.TestCase):
         res = calculate_dcf_with_sensitivity(
             [100.0, 110.0, 120.0, 130.0, 140.0], 0.0937, 0.025, -20.0, 10.0,
             terminal_nopat=150.0, ronic=0.25, noncontrolling_interests=5.0, roll_forward_years=0.3,
-            cost_of_equity=0.1, terminal_ebitda=180.0,
+            risk_free_rate=0.04, terminal_ebitda=180.0,
         )
         self.assertIn(f"**${res['fair_value_per_share']:.2f}**", res["sensitivity_matrix_markdown"])
         self.assertAlmostEqual(res["implied_terminal_ev_ebitda"], round(res["terminal_value"] / 180.0, 2))
@@ -350,7 +358,7 @@ class TestImpliedMultiplesAndRonicGrid(unittest.TestCase):
 class TestDcfFairValuePerShare(unittest.TestCase):
     def test_matches_headline_engine(self):
         kwargs = dict(terminal_nopat=180.0, ronic=0.15, noncontrolling_interests=20.0,
-                      roll_forward_years=0.75, cost_of_equity=0.11)
+                      roll_forward_years=0.75, risk_free_rate=0.04)
         full = calculate_dcf_with_sensitivity([100.0, 110.0, 120.0], 0.09, 0.025, 50.0, 10.0, **kwargs)
         quick = dcf_fair_value_per_share([100.0, 110.0, 120.0], 0.09, 0.025, 50.0, 10.0, **kwargs)
         self.assertAlmostEqual(quick, full["fair_value_per_share"], places=2)

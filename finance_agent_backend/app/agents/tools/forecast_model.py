@@ -153,9 +153,12 @@ def project_with_overrides(
     *,
     growth: Optional[List[float]] = None,
     margins: Optional[List[float]] = None,
+    terminal_tax: Optional[float] = None,
 ) -> Tuple[List[float], float]:
     """(UFCFs, final-year NOPAT) for `drivers` with the growth and/or margin path replaced and the CapEx steady
-    state rebuilt for the new path. Used by the reverse DCF. Raises ValueError on inputs the engine rejects."""
+    state rebuilt for the new path. Used by the reverse DCF. With `terminal_tax`, a profitable final year's NOPAT
+    is re-taxed at that (marginal) rate, as the headline terminal value does. Raises ValueError on inputs the
+    engine rejects."""
     update: Dict[str, Any] = {}
     if growth is not None:
         update["revenue_growth"] = list(growth)
@@ -167,7 +170,9 @@ def project_with_overrides(
         variant.tax_rate, variant.capex_path, variant.da_pct_of_revenue, variant.nwc_pct_of_incremental_revenue,
         variant.sbc_pct_of_revenue,
     )
-    return [y.projected_unlevered_fcf for y in years], years[-1].projected_nopat
+    final = years[-1]
+    nopat = final.projected_ebit * (1.0 - terminal_tax) if terminal_tax is not None and final.projected_ebit > 0 else final.projected_nopat
+    return [y.projected_unlevered_fcf for y in years], nopat
 
 
 def build_forecast(

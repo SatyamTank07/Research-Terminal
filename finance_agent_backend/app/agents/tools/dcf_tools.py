@@ -6,7 +6,8 @@ Uses the 2-Stage Free Cash Flow to Firm (FCFF) Perpetual Gordon Growth Model wit
 support for both institutional Mid-Year Discounting and standard Year-End conventions,
 an optional value-driver terminal cash flow (NOPAT x (1 - g / RONIC)), a full
 enterprise-to-equity bridge (net debt and noncontrolling interests) and a roll-forward
-from the balance-sheet date to the valuation date.
+from the balance-sheet date to the valuation date (operating value at the discount rate,
+net debt and minority claims at the risk-free rate).
 """
 
 import logging
@@ -66,7 +67,10 @@ class DCFCalculationResult(BaseModel):
     noncontrolling_interests: float = Field(0.0, description="Noncontrolling interests deducted in the bridge ($M)")
     equity_value_at_balance_sheet_date: float = Field(..., description="EV - net debt - NCI ($M)")
     roll_forward_years: float = Field(0.0, description="Years rolled forward from the balance-sheet date")
-    roll_forward_factor: float = Field(1.0, description="(1 + cost of equity) ^ roll_forward_years")
+    roll_forward_factor: float = Field(1.0, description="(1 + WACC) ^ roll_forward_years, applied to enterprise value")
+    claims_roll_forward_factor: float = Field(
+        1.0, description="(1 + risk-free rate) ^ roll_forward_years, applied to net debt and noncontrolling interests"
+    )
     equity_value: float = Field(..., description="Implied equity value at the valuation date in $ millions")
     diluted_shares: float = Field(..., description="Diluted shares outstanding in millions")
     fair_value_per_share: float = Field(..., description="Implied intrinsic fair value per share in dollars")
@@ -110,10 +114,15 @@ def _value_point(
     offset: float,
     net_debt: float,
     noncontrolling_interests: float,
-    roll_factor: float,
+    roll_years: float,
+    claims_roll_factor: float,
     diluted_shares: float,
 ) -> Optional[Dict[str, float]]:
-    """One DCF evaluation; None when the inputs have no finite value (rate <= g, RONIC <= g)."""
+    """One DCF evaluation; None when the inputs have no finite value (rate <= g, RONIC <= g).
+
+    Value at the valuation date: the operating value compounds at the discount rate it was computed with,
+    while net debt and noncontrolling interests (cash and debt balances) compound at the risk-free rate.
+    """
     if terminal_method == "value_driver":
         if ronic is None or terminal_nopat is None or ronic <= g:
             return None
@@ -127,7 +136,7 @@ def _value_point(
     pv_tv = tv / ((1.0 + rate) ** (len(fcfs) - offset))
     ev = pv_fcfs + pv_tv
     equity_bs = ev - net_debt - noncontrolling_interests
-    equity = equity_bs * roll_factor
+    equity = ev * (1.0 + rate) ** roll_years - (net_debt + noncontrolling_interests) * claims_roll_factor
     return {
         "tv_fcf": tv_fcf, "pv_fcfs": pv_fcfs, "tv": tv, "pv_tv": pv_tv, "ev": ev,
         "equity_bs": equity_bs, "equity": equity, "per_share": equity / diluted_shares,
@@ -151,7 +160,7 @@ def dcf_fair_value_per_share(
     ronic: Optional[float] = None,
     noncontrolling_interests: float = 0.0,
     roll_forward_years: float = 0.0,
-    cost_of_equity: Optional[float] = None,
+    risk_free_rate: Optional[float] = None,
     mid_year_convention: bool = True,
 ) -> Optional[float]:
     """Fair value per share with exactly the headline engine's math, without grids, tables or logging.
@@ -162,13 +171,14 @@ def dcf_fair_value_per_share(
         fcfs = [_validate_finite_float(f, "fcf") for f in projected_fcfs]
         if not fcfs or diluted_shares <= 0 or not 0 < wacc < 1.0 or terminal_growth_rate >= wacc:
             return None
-        roll_rate = cost_of_equity if cost_of_equity is not None else wacc
+        roll_years = max(0.0, roll_forward_years or 0.0)
         point = _value_point(
             fcfs, wacc, terminal_growth_rate,
             terminal_method=_terminal_method(terminal_nopat, ronic, terminal_growth_rate),
             terminal_nopat=terminal_nopat, ronic=ronic, offset=0.5 if mid_year_convention else 0.0,
             net_debt=net_debt, noncontrolling_interests=noncontrolling_interests or 0.0,
-            roll_factor=(1.0 + roll_rate) ** max(0.0, roll_forward_years or 0.0), diluted_shares=diluted_shares,
+            roll_years=roll_years, claims_roll_factor=(1.0 + (risk_free_rate or 0.0)) ** roll_years,
+            diluted_shares=diluted_shares,
         )
     except (ValueError, TypeError, ZeroDivisionError, OverflowError):
         return None
@@ -212,7 +222,6 @@ def calculate_dcf_with_sensitivity(
     terminal_ebitda: Optional[float] = None,
     noncontrolling_interests: float = 0.0,
     roll_forward_years: float = 0.0,
-    cost_of_equity: Optional[float] = None,
     risk_free_rate: Optional[float] = None,
 ) -> Dict[str, Any]:
     """
@@ -234,8 +243,9 @@ def calculate_dcf_with_sensitivity(
         Otherwise the final UFCF is grown by (1 + g).
 
     EQUITY BRIDGE:
-        Equity = EV - net debt - noncontrolling interests, valued at the balance-sheet date, then
-        rolled forward to the valuation date at the cost of equity (or WACC when Ke is not given).
+        Equity = EV - net debt - noncontrolling interests at the balance-sheet date. To state it at the
+        valuation date, EV rolls forward at the discount rate and net debt / NCI at the risk-free rate
+        (cash earns, and debt accrues, roughly the risk-free rate; zero when Rf is not given).
         net_debt is NEGATIVE for a net cash surplus.
 
     Raises:
@@ -260,7 +270,6 @@ def calculate_dcf_with_sensitivity(
     terminal_nopat = _optional_finite(terminal_nopat, "terminal_nopat")
     ronic = _optional_finite(ronic, "ronic")
     terminal_ebitda = _optional_finite(terminal_ebitda, "terminal_ebitda")
-    cost_of_equity = _optional_finite(cost_of_equity, "cost_of_equity")
     risk_free_rate = _optional_finite(risk_free_rate, "risk_free_rate")
 
     if wacc <= 0:
@@ -322,8 +331,9 @@ def calculate_dcf_with_sensitivity(
     num_years = len(cleaned_fcfs)
     convention_label = "mid_year" if mid_year_convention else "year_end"
     offset = 0.5 if mid_year_convention else 0.0
-    roll_rate = cost_of_equity if cost_of_equity is not None else wacc
-    roll_factor = (1.0 + roll_rate) ** roll_forward_years
+    roll_factor = (1.0 + wacc) ** roll_forward_years
+    claims_rate = risk_free_rate if risk_free_rate is not None else 0.0
+    claims_roll_factor = (1.0 + claims_rate) ** roll_forward_years
 
     if roll_forward_years > STALE_ROLL_FORWARD_YEARS:
         warnings.append(
@@ -341,7 +351,7 @@ def calculate_dcf_with_sensitivity(
         return _value_point(
             cleaned_fcfs, rate, g, terminal_method=terminal_method, terminal_nopat=terminal_nopat,
             ronic=ronic_value, offset=offset, net_debt=net_debt, noncontrolling_interests=noncontrolling_interests,
-            roll_factor=roll_factor, diluted_shares=diluted_shares,
+            roll_years=roll_forward_years, claims_roll_factor=claims_roll_factor, diluted_shares=diluted_shares,
         )
 
     # --------------------------------------------------------------------------
@@ -446,9 +456,12 @@ def calculate_dcf_with_sensitivity(
         f"| Equity value at balance-sheet date | ${base['equity_bs']:,.1f}M |",
     ]
     if roll_forward_years > 0:
-        bridge_lines.append(
-            f"| Roll-forward {roll_forward_years:.2f} yrs @ {roll_rate * 100:.2f}% | x{roll_factor:.4f} |"
-        )
+        bridge_lines += [
+            f"| Enterprise value rolled forward {roll_forward_years:.2f} yrs @ WACC {wacc * 100:.2f}% | "
+            f"${enterprise_value * roll_factor:,.1f}M |",
+            f"| {'Net cash' if net_debt < 0 else 'Net debt'} and NCI rolled forward @ Rf {claims_rate * 100:.2f}% | "
+            f"${-(net_debt + noncontrolling_interests) * claims_roll_factor:,.1f}M |",
+        ]
     bridge_lines += [
         f"| **Equity value at valuation date** | **${base['equity']:,.1f}M** |",
         f"| Diluted shares | {diluted_shares:,.2f}M |",
@@ -471,6 +484,7 @@ def calculate_dcf_with_sensitivity(
         equity_value_at_balance_sheet_date=round(base["equity_bs"], 2),
         roll_forward_years=round(roll_forward_years, 4),
         roll_forward_factor=round(roll_factor, 6),
+        claims_roll_forward_factor=round(claims_roll_factor, 6),
         equity_value=round(base["equity"], 2),
         diluted_shares=round(diluted_shares, 2),
         fair_value_per_share=round(base["per_share"], 2),

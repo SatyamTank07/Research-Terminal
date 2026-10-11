@@ -25,7 +25,11 @@ _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% 
 | Market-Implied Revenue Growth (reverse DCF) | {{ pct(val.market_implied_growth_pct, "{:.1f}%") }} |
 {% endif %}
 | Discount Rate | {{ pct(w.wacc_pct) }} ({{ "user override" if w.wacc_source == "user_override" else "CAPM WACC" }}) |
+{% if val.market_implied_wacc_pct is not none %}
+| Market-Implied Discount Rate (at modeled cash flows) | {{ pct(val.market_implied_wacc_pct) }} |
+{% endif %}
 | Terminal Growth | {{ pct(val.terminal_growth_rate * 100, "{:.1f}%") }} |
+| Terminal Tax Rate (marginal) | {{ pct(val.terminal_tax_rate_pct, "{:.1f}%") }} |
 | Terminal Value % of EV | {{ pct(val.terminal_value_pct_of_ev, "{:.1f}%") }} |
 | Enterprise Value | {{ money(val.enterprise_value) }} |
 | Net Debt (negative = net cash) | {{ money(val.net_debt) }} |

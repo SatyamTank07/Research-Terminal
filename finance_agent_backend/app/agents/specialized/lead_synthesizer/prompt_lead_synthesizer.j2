@@ -26,6 +26,10 @@ Target: {{ company_name }} ({{ ticker }}), Fiscal Year: {{ fiscal_year }}{% if a
 - Market price unavailable: no upside or valuation stance is stated.
 {% endif %}
 - Discount Rate: {{ "{:.2f}%".format(w.wacc_pct) }} ({{ "User-specified override; CAPM WACC would be " ~ "{:.2f}%".format(w.capm_wacc_pct) if w.wacc_source == "user_override" else "CAPM blended WACC" }}) | Ke {{ "{:.2f}%".format(w.cost_of_equity_pct) }} (beta {{ w.beta }} {{ w.beta_source }}, Rf {{ w.risk_free_rate_pct }}% {{ w.risk_free_rate_source }}, ERP {{ w.equity_risk_premium_pct }}%) | Pre-tax Kd {{ "{:.2f}%".format(w.cost_of_debt_pre_tax_pct) }} ({{ w.cost_of_debt_source }})
+{% if dcf_valuation.market_implied_wacc_pct is not none %}
+- Market-implied discount rate at the modeled cash flows: {{ "{:.2f}%".format(dcf_valuation.market_implied_wacc_pct) }} (applied: {{ "{:.2f}%".format(w.wacc_pct) }})
+{% endif %}
+- Terminal NOPAT taxed at the {{ dcf_valuation.terminal_tax_rate_pct }}% marginal rate (explicit years use the normalized effective rate)
 {% if dcf_valuation.reverse_dcf_summary %}
 - Reverse DCF: {{ dcf_valuation.reverse_dcf_summary }}
 {% endif %}
