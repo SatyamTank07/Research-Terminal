@@ -102,6 +102,8 @@ export async function sendChatMessageStream(
               conversation_id: parsed.conversation_id,
               message_id: parsed.message_id || crypto.randomUUID(),
               sources: parsed.sources || [],
+              final_report: parsed.final_report,
+              updated_session_state: parsed.updated_session_state,
             }
           } else if (parsed.type === 'error') {
             throw new Error(parsed.message || 'Stream encountered an error')

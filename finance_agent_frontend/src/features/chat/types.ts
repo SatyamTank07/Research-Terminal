@@ -27,6 +27,10 @@ export interface ChatResponse {
   conversation_id: string
   message_id: string
   sources?: SourceItem[]
+  /** Structured Final10KResearchReport (streamed research routes only). */
+  final_report?: Record<string, any>
+  /** Conversation session state persisted by the backend after this turn (streamed responses only). */
+  updated_session_state?: Record<string, any>
 }
 
 export interface ChatMessageResponse {
