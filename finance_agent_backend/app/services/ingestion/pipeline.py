@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, delete
 
 from app.models import Document, DocumentChunk
-from app.services.ingestion.sec_parser import SECParser
+from app.services.ingestion.sec_parser import SECParser, missing_core_sections
 from app.services.ingestion.chunker import SECChunker
 from app.services.ingestion.embedder import SECBatchEmbedder
 
@@ -42,12 +42,16 @@ class SECIngestionPipeline:
         metadata, sections = self.parser.parse(file_path)
         parse_duration = time.time() - t0
         logger.info(f"Parsed filing in {parse_duration:.2f}s: {metadata.company_name} ({metadata.ticker}) FY{metadata.fiscal_year}")
+        missing_sections = missing_core_sections(metadata.filing_type, sections)
+        section_warning = (
+            f" Warning: no section headings found for {', '.join(missing_sections)}." if missing_sections else ""
+        )
 
         if progress_callback:
             progress_callback({
                 "stage": "chunking",
                 "progress": 35,
-                "message": f"Identified {metadata.company_name} ({metadata.ticker}) FY{metadata.fiscal_year}. Chunking {len(sections)} sections...",
+                "message": f"Identified {metadata.company_name} ({metadata.ticker}) FY{metadata.fiscal_year}. Chunking {len(sections)} sections...{section_warning}",
             })
 
         # Step 2: Metadata-based Chunking
@@ -159,6 +163,7 @@ class SECIngestionPipeline:
             "total_chunks": len(chunks),
             "narrative_chunks": narrative_count,
             "table_chunks": table_count,
+            "missing_core_sections": missing_sections,
             "timing": {
                 "parse_seconds": round(parse_duration, 2),
                 "chunk_seconds": round(chunk_duration, 2),
@@ -172,7 +177,7 @@ class SECIngestionPipeline:
             progress_callback({
                 "stage": "completed",
                 "progress": 100,
-                "message": f"Successfully indexed {metadata.ticker} FY{metadata.fiscal_year} ({len(chunks)} chunks ready)!",
+                "message": f"Successfully indexed {metadata.ticker} FY{metadata.fiscal_year} ({len(chunks)} chunks ready)!{section_warning}",
                 "data": result,
             })
 
