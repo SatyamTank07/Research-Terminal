@@ -92,6 +92,10 @@ class AnnualFinancialInput(BaseModel):
         validation_alias=AliasChoices("operating_income", "ebit", "operating_profit", "income_from_operations"),
     )
     interest_income: Optional[float] = Field(None, validation_alias=AliasChoices("interest_income"))
+    interest_expense: Optional[float] = Field(
+        None, description="Gross interest expense as a POSITIVE magnitude (None when not reported separately)",
+        validation_alias=AliasChoices("interest_expense"),
+    )
     pretax_income: Optional[float] = Field(
         None, description="Income before income taxes",
         validation_alias=AliasChoices(
@@ -289,6 +293,7 @@ class YearFinancialsResult(BaseModel):
     capital_expenditures: float
     free_cash_flow: float
     depreciation_amortization: Optional[float] = None
+    interest_expense: Optional[float] = None
     fcf_conversion_pct: Optional[float] = None
     revenue_growth_pct: Optional[float] = None
     operating_income_growth_pct: Optional[float] = None
@@ -303,6 +308,7 @@ class BalanceSheetResult(BaseModel):
     short_term_debt: float
     long_term_debt: float
     total_debt: float
+    prior_total_debt: Optional[float] = Field(None, description="Prior-year gross debt (for average-debt Kd)")
     net_debt: float
     net_cash_position: bool
     stockholders_equity: float
@@ -543,6 +549,7 @@ def calculate_financial_ratios(
             capital_expenditures=capex,
             free_cash_flow=fcf,
             depreciation_amortization=f.depreciation_amortization,
+            interest_expense=abs(f.interest_expense) if f.interest_expense is not None else None,
             fcf_conversion_pct=_pct(fcf, ni),
             revenue_growth_pct=_growth(rev, prev.revenue) if prev else None,
             operating_income_growth_pct=_growth(ebit, prev.operating_income) if prev else None,
@@ -645,6 +652,10 @@ def calculate_financial_ratios(
             short_term_debt=st_debt,
             long_term_debt=lt_debt,
             total_debt=total_debt,
+            prior_total_debt=(
+                round((prior_balance_sheet.short_term_debt or 0.0) + (prior_balance_sheet.long_term_debt or 0.0), 2)
+                if prior_balance_sheet is not None else None
+            ),
             net_debt=net_debt,
             net_cash_position=net_cash_pos,
             stockholders_equity=equity,

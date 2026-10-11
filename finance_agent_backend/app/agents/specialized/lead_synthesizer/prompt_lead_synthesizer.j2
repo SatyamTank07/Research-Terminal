@@ -13,30 +13,41 @@ Target: {{ company_name }} ({{ ticker }}), Fiscal Year: {{ fiscal_year }}{% if a
 <operating_context>
 {% if dcf_valuation %}
 [DCF VALUATION SPECIALIST FINDINGS & DETERMINISTIC TABLES]
-- Implied Fair Value Per Share: ${{ "{:.2f}".format(dcf_valuation.implied_fair_value_per_share) if dcf_valuation.implied_fair_value_per_share is not none else "N/A" }}
-{% if dcf_valuation.current_share_price %}
-- Current Market Share Price: ${{ "{:.2f}".format(dcf_valuation.current_share_price) }}
-- Upside / Downside: {{ "{:+.1f}%".format(dcf_valuation.upside_downside_pct) if dcf_valuation.upside_downside_pct is not none else "N/A" }}
+{% set w = dcf_valuation.wacc_audit %}
+- Base-Case Fair Value Per Share: ${{ "{:.2f}".format(dcf_valuation.implied_fair_value_per_share) }} (valued as of {{ dcf_valuation.valuation_date }}; balance sheet {{ dcf_valuation.balance_sheet_date or "date unknown" }}, rolled forward {{ "{:.2f}".format(dcf_valuation.roll_forward_years) }} yrs)
+{% if dcf_valuation.bear_fair_value is not none and dcf_valuation.bull_fair_value is not none %}
+- Scenario Range: Bear ${{ "{:.2f}".format(dcf_valuation.bear_fair_value) }} / Base ${{ "{:.2f}".format(dcf_valuation.implied_fair_value_per_share) }} / Bull ${{ "{:.2f}".format(dcf_valuation.bull_fair_value) }}; Probability-Weighted ${{ "{:.2f}".format(dcf_valuation.probability_weighted_fair_value) if dcf_valuation.probability_weighted_fair_value is not none else "N/A" }}
 {% endif %}
-- Valuation Stance: {{ dcf_valuation.valuation_stance or "Fairly Valued" }}
-- Blended WACC: {{ "{:.2f}%".format(dcf_valuation.wacc_audit.wacc_pct) if dcf_valuation.wacc_audit.wacc_pct is not none else "N/A" }} (Cost of Equity Ke: {{ "{:.2f}%".format(dcf_valuation.wacc_audit.cost_of_equity_pct) if dcf_valuation.wacc_audit.cost_of_equity_pct is not none else "N/A" }}, Pre-tax Kd: {{ "{:.2f}%".format(dcf_valuation.wacc_audit.cost_of_debt_pre_tax_pct) if dcf_valuation.wacc_audit.cost_of_debt_pre_tax_pct is not none else "N/A" }})
-- Terminal Growth Rate: {{ "{:.1f}%".format(dcf_valuation.terminal_growth_rate * 100) if dcf_valuation.terminal_growth_rate is not none else "N/A" }}
-- Terminal Value % of Enterprise Value: {{ "{:.1f}%".format(dcf_valuation.terminal_value_pct_of_ev) if dcf_valuation.terminal_value_pct_of_ev is not none else "N/A" }}
-- Implied Enterprise Value: ${{ "{:,.1f}".format(dcf_valuation.enterprise_value) if dcf_valuation.enterprise_value is not none else "N/A" }}M
-- Implied Equity Value: ${{ "{:,.1f}".format(dcf_valuation.equity_value) if dcf_valuation.equity_value is not none else "N/A" }}M
-- Net Debt: ${{ "{:,.1f}".format(dcf_valuation.net_debt) if dcf_valuation.net_debt is not none else "N/A" }}M ({% if dcf_valuation.net_debt is not none %}{% if dcf_valuation.net_debt <= 0 %}Net Cash Surplus{% else %}Net Debt Drag{% endif %}{% else %}N/A{% endif %})
-- Diluted Shares Outstanding: {{ "{:,.1f}".format(dcf_valuation.diluted_shares) if dcf_valuation.diluted_shares is not none else "N/A" }}M
+{% if dcf_valuation.current_share_price %}
+- Current Market Share Price: ${{ "{:.2f}".format(dcf_valuation.current_share_price) }} ({{ dcf_valuation.data_quality.share_price_source }})
+- Base-Case Upside / Downside: {{ "{:+.1f}%".format(dcf_valuation.upside_downside_pct) if dcf_valuation.upside_downside_pct is not none else "N/A" }}
+- Valuation Stance: {{ dcf_valuation.valuation_stance }}
+{% else %}
+- Market price unavailable: no upside or valuation stance is stated.
+{% endif %}
+- Discount Rate: {{ "{:.2f}%".format(w.wacc_pct) }} ({{ "User-specified override; CAPM WACC would be " ~ "{:.2f}%".format(w.capm_wacc_pct) if w.wacc_source == "user_override" else "CAPM blended WACC" }}) | Ke {{ "{:.2f}%".format(w.cost_of_equity_pct) }} (beta {{ w.beta }} {{ w.beta_source }}, Rf {{ w.risk_free_rate_pct }}% {{ w.risk_free_rate_source }}, ERP {{ w.equity_risk_premium_pct }}%) | Pre-tax Kd {{ "{:.2f}%".format(w.cost_of_debt_pre_tax_pct) }} ({{ w.cost_of_debt_source }})
+- Terminal Value: {{ dcf_valuation.terminal_method }} at {{ "{:.1f}%".format(dcf_valuation.terminal_growth_rate * 100) }} growth{% if dcf_valuation.ronic_used_pct is not none %}, RONIC {{ dcf_valuation.ronic_used_pct }}%{% endif %}; {{ "{:.1f}%".format(dcf_valuation.terminal_value_pct_of_ev) }} of EV{% if dcf_valuation.implied_terminal_ev_ebitda is not none %}; implied terminal EV/EBITDA {{ dcf_valuation.implied_terminal_ev_ebitda }}x{% endif %}
+
+- Implied Enterprise Value: ${{ "{:,.1f}".format(dcf_valuation.enterprise_value) }}M | Equity Value: ${{ "{:,.1f}".format(dcf_valuation.equity_value) }}M
+- Net Debt: ${{ "{:,.1f}".format(dcf_valuation.net_debt) }}M ({% if dcf_valuation.net_debt <= 0 %}Net Cash Surplus{% else %}Net Debt Drag{% endif %}) | Noncontrolling Interests: ${{ "{:,.1f}".format(dcf_valuation.noncontrolling_interests) }}M | Diluted Shares: {{ "{:,.1f}".format(dcf_valuation.diluted_shares) }}M
 - Valuation Commentary: {{ dcf_valuation.valuation_summary }}
-{% if dcf_valuation.wacc_audit.formula_breakdown_markdown %}
+{% if dcf_valuation.data_quality.warnings %}
+- Valuation Data-Quality Warnings (disclose these): {{ dcf_valuation.data_quality.warnings | join(" | ") }}
+{% endif %}
+
+Equity Bridge Table:
+{{ dcf_valuation.equity_bridge_markdown }}
 
 WACC Audit Table:
-{{ dcf_valuation.wacc_audit.formula_breakdown_markdown }}
+{{ w.formula_breakdown_markdown }}
+{% if dcf_valuation.scenario_table_markdown %}
+
+Scenario Valuation Table:
+{{ dcf_valuation.scenario_table_markdown }}
 {% endif %}
-{% if dcf_valuation.sensitivity_matrix_markdown %}
 
 2-Way Sensitivity Matrix Table:
 {{ dcf_valuation.sensitivity_matrix_markdown }}
-{% endif %}
 {% endif %}
 
 {% if forecast %}
@@ -117,10 +128,11 @@ CRITICAL GENERALIZATION DIRECTIVES:
    - **If the user asked specifically about DCF valuation / target price / WACC** (or `query_type == "dcf_valuation_only"`):
      Provide a focused, high-conviction DCF Valuation & Sensitivity publication:
      * Header: `# DCF Valuation & Intrinsic Sensitivity: {{ company_name }} ({{ ticker }})` with model metadata and valuation stance.
-     * Executive Valuation Dashboard card (table with Implied DCF Fair Value, Current Market Price, Implied Margin of Safety / Upside, Valuation Verdict, Blended WACC Hurdle, Terminal Growth Rate, Terminal Value % of EV, Enterprise Value, Net Debt, Diluted Shares).
+     * Executive Valuation Dashboard card (table with Base-Case DCF Fair Value, Bear / Bull / Probability-Weighted Values, Current Market Price, Implied Margin of Safety / Upside, Valuation Verdict, Discount Rate, Terminal Growth Rate, Terminal Value % of EV, Enterprise Value, Net Debt, Noncontrolling Interests, Diluted Shares).
      * 1. Valuation Executive Summary: Synthesizing the DCF intrinsic value vs market price, margin of safety, and highlighting any user-specified parameters (e.g. if the user specified a custom WACC such as 9%, explicitly note that the DCF was evaluated using the specified hurdle rate).
      * 2. 5-Year Explicit UFCF Projections Schedule: Discussion of revenue CAGR and UFCF trajectory, embedding the verified forecast schedule markdown table verbatim.
      * 3. WACC Hurdle Rate Breakdown: Embed the verified WACC audit markdown table verbatim.
+     * 3b. Equity Bridge and Scenario Valuation: Embed the verified equity bridge table and scenario valuation table verbatim, and disclose every valuation data-quality warning.
      * 4. 2-Way Sensitivity Matrix (WACC vs. Perpetual Terminal Growth): Embed the verified 5x5 sensitivity matrix table verbatim.
      * 5. Valuation Commentary & Margin of Safety: Analysis of valuation asymmetry, sensitivity range, and investment stance.
      * 6. Regulatory Disclaimers.

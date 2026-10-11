@@ -21,6 +21,7 @@ import concurrent.futures
 import json
 import logging
 import re
+from datetime import date
 from typing import Any, AsyncIterator, Dict, List, Optional
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -50,8 +51,10 @@ from app.agents.state import (
 )
 from app.agents.tools.forecast_drivers import DEFAULT_TERMINAL_GROWTH
 from app.agents.tools.market_data_tools import fetch_market_context
+from app.agents.tools.valuation_model import MarketInputs
+from app.config import settings
 from app.database import SessionLocal
-from app.models import Document
+from app.models import ANNUAL_REPORT_FILING_TYPE, Document
 
 logger = logging.getLogger("finance_agent.agents.orchestrator")
 
@@ -214,15 +217,7 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
             f"Cannot execute valuation_specialist for {ticker}: missing required financial_audit."
         )
 
-    # 1. Resolve projected cash flows from forecaster (or base FCFs if unavailable)
-    if forecast and forecast.projected_fcfs:
-        projected_fcfs = forecast.projected_fcfs
-    else:
-        # Fallback to historical latest FCF if forecasting was skipped
-        base_fcf = financial_audit.multi_year_history[-1].free_cash_flow
-        projected_fcfs = [base_fcf * (1.05 ** i) for i in range(1, 6)]
-
-    # 2. Extract or default market parameters from user query
+    # 1. Extract user-specified market parameters from the query
     beta_match = re.search(r"\bbeta\s*[:=]?\s*([0-9]+(?:\.[0-9]+)?)\b", user_query, re.IGNORECASE)
     user_beta = float(beta_match.group(1)) if beta_match else None
 
@@ -258,23 +253,31 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
             except (ValueError, TypeError):
                 user_wacc = None
 
-    # 3. Resolve live market data (share_price, market_cap, beta) via yfinance with graceful fallbacks
-    market_data = await asyncio.to_thread(fetch_market_context, ticker)
-    share_price = user_share_price if user_share_price is not None else market_data.get("share_price")
-    market_cap = market_data.get("market_cap")
-    beta = user_beta if user_beta is not None else market_data.get("beta", 1.0)
-
-    # Fallback to book stockholders_equity if both market_cap and share_price are missing
-    if market_cap is None and share_price is None:
-        book_equity = getattr(financial_audit.balance_sheet, "stockholders_equity", None)
-        if book_equity and book_equity > 0:
-            market_cap = float(book_equity)
-        else:
-            market_cap = max(float(financial_audit.balance_sheet.total_debt) * 4.0, 10000.0)
+    # 2. Resolve live market data (price, market cap, raw beta, 10Y Treasury) and the anchor balance-sheet date
+    market_data, balance_sheet_date = await asyncio.gather(
+        asyncio.to_thread(fetch_market_context, ticker),
+        asyncio.to_thread(_balance_sheet_date, ticker, fiscal_year),
+    )
+    live_price = market_data.get("share_price")
+    market = MarketInputs(
+        share_price=user_share_price if user_share_price is not None else live_price,
+        share_price_source=(
+            "user_provided" if user_share_price is not None
+            else ("yfinance_live" if live_price is not None else "unavailable")
+        ),
+        # A user price makes the live market cap inconsistent; weights then use price x valuation shares.
+        market_cap=None if user_share_price is not None else market_data.get("market_cap"),
+        beta=user_beta if user_beta is not None else market_data.get("beta"),
+        beta_source="user_provided" if user_beta is not None else market_data.get("beta_source", "unavailable"),
+        risk_free_rate=market_data.get("risk_free_rate", settings.DEFAULT_RISK_FREE_RATE),
+        risk_free_rate_source=market_data.get("risk_free_rate_source", "house_default_config"),
+        market_data_source=market_data.get("market_data_source", "fallback_offline"),
+    )
 
     logger.info(
-        f"[valuation_specialist_node] Valuing {ticker} (price=${share_price}, "
-        f"market_cap=${market_cap}M, beta={beta:.2f}, g={terminal_growth*100:.1f}%, "
+        f"[valuation_specialist_node] Valuing {ticker} (price=${market.share_price} [{market.share_price_source}], "
+        f"beta={market.beta} [{market.beta_source}], rf={market.risk_free_rate} [{market.risk_free_rate_source}], "
+        f"g={terminal_growth*100:.1f}%, balance_sheet_date={balance_sheet_date}, "
         f"user_wacc={f'{user_wacc*100:.2f}%' if user_wacc is not None else 'CAPM'})"
     )
     val_agent = ValuationSpecialistAgent()
@@ -283,16 +286,37 @@ async def valuation_specialist_node(state: EquityResearchState) -> Dict[str, Any
         ticker=ticker,
         fiscal_year=fiscal_year,
         financial_audit=financial_audit,
-        projected_fcfs=projected_fcfs,
-        beta=beta,
-        share_price=share_price,
-        market_cap=market_cap,
+        forecast=forecast,
+        market=market,
         terminal_growth_rate=terminal_growth,
         wacc_override=user_wacc,
+        valuation_date=date.today(),
+        balance_sheet_date=balance_sheet_date,
         callbacks=callbacks,
     )
 
     return {"dcf_valuation": valuation_output}
+
+
+def _balance_sheet_date(ticker: str, fiscal_year: int) -> Optional[str]:
+    """Fiscal year-end (period_end_date) of the anchor 10-K, used to roll the DCF forward to today."""
+    db = SessionLocal()
+    try:
+        row = (
+            db.query(Document.period_end_date)
+            .filter(
+                Document.ticker == ticker.upper(),
+                Document.fiscal_year == fiscal_year,
+                Document.filing_type == ANNUAL_REPORT_FILING_TYPE,
+            )
+            .first()
+        )
+        return row[0] if row and row[0] else None
+    except Exception as e:
+        logger.warning(f"Balance-sheet date lookup failed for {ticker} FY{fiscal_year}: {e}")
+        return None
+    finally:
+        db.close()
 
 
 async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
@@ -473,6 +497,19 @@ class MultiAgentOrchestrator(BaseAgent):
         )
 
     @staticmethod
+    def _valuation_status_message(val: Optional[DCFValuationOutput]) -> str:
+        if val is None:
+            return "Valuation unavailable"
+        message = (
+            f"Discounted at {val.wacc_audit.wacc_pct:.2f}% "
+            f"({'user override' if val.wacc_audit.wacc_source == 'user_override' else 'CAPM WACC'}); "
+            f"base-case DCF fair value ${val.implied_fair_value_per_share:.2f}/share"
+        )
+        if val.bear_fair_value is not None and val.bull_fair_value is not None:
+            message += f" (bear ${val.bear_fair_value:.2f} - bull ${val.bull_fair_value:.2f})"
+        return message
+
+    @staticmethod
     def _risk_status_message(risk: Optional[RiskAuditOutput]) -> str:
         """SSE status line summarizing the verified risk inventory."""
         if risk is None:
@@ -621,12 +658,10 @@ class MultiAgentOrchestrator(BaseAgent):
                         }
                     elif node_name == "valuation_specialist":
                         val: Optional[DCFValuationOutput] = node_output.get("dcf_valuation")
-                        fv = val.implied_fair_value_per_share if val else 0.0
-                        w = val.wacc_audit.wacc_pct if val else 0.0
                         yield {
                             "type": "status",
                             "node": "valuation_specialist",
-                            "message": f"Derived CAPM WACC ({w:.2f}%) and calculated DCF Fair Value (${fv:.2f}/share)",
+                            "message": self._valuation_status_message(val),
                         }
                     elif node_name == "lead_synthesizer":
                         report: Optional[Final10KResearchReport] = node_output.get("final_report")

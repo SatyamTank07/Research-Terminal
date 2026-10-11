@@ -11,10 +11,15 @@ Validates:
 7. Clean statement rendering.
 """
 
+import re
 import unittest
 
 from app.agents.tools.financial_math_tools import run_audit_from_inputs
-from app.agents.tools.statement_extraction import build_statement_grids, extract_audit_inputs
+from app.agents.tools.statement_extraction import (
+    INCOME_STATEMENT_SYNONYMS,
+    build_statement_grids,
+    extract_audit_inputs,
+)
 from app.services.financial_tables import (
     is_well_formed,
     parse_statement_rows,
@@ -108,6 +113,23 @@ class TestTeslaExtraction(unittest.TestCase):
         self.assertEqual(fy25["diluted_weighted_shares"], 3528.0)
         self.assertEqual(self.result.annual[2023]["income_tax_expense"], -5001.0)
         self.assertEqual(self.result.annual[2023]["net_income"], 14997.0)
+
+    def test_02b_interest_expense_is_positive_gross_cost(self):
+        self.assertEqual(self.result.annual[2025]["interest_expense"], 338.0)  # presented as ( 338 )
+        self.assertEqual(self.result.annual[2023]["interest_expense"], 156.0)
+        record = next(r for r in self.result.to_annual_inputs() if r["fiscal_year"] == 2025)
+        self.assertEqual(record["interest_expense"], 338.0)
+        audit = run_audit_from_inputs(self.result.to_tool_kwargs())
+        self.assertEqual(audit["multi_year_history"][-1]["interest_expense"], 338.0)
+        self.assertIsNotNone(audit["balance_sheet"]["prior_total_debt"])
+
+    def test_02c_interest_expense_label_screen(self):
+        patterns = [re.compile(p) for p in INCOME_STATEMENT_SYNONYMS["interest_expense"]]
+        matches = lambda label: any(p.search(label) for p in patterns)
+        self.assertTrue(matches("interest expense"))
+        self.assertTrue(matches("interest and debt expense"))
+        for label in ("interest expense, net", "interest income", "interest and other income (expense), net"):
+            self.assertFalse(matches(label), label)
 
     def test_03_cash_flow_fields(self):
         fy25 = self.result.annual[2025]

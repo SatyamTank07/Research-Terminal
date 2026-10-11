@@ -83,6 +83,8 @@ INCOME_STATEMENT_SYNONYMS: Dict[str, List[str]] = {
         r"^operating (profit|loss|income \(loss\))$",
     ],
     "interest_income": [r"^interest income(, net)?$", r"^interest and dividend income$"],
+    # Gross interest cost only: "interest expense, net" / "interest and other income" are rejected.
+    "interest_expense": [r"^interest expense$", r"^interest expense on (debt|borrowings)$", r"^interest and debt expense$"],
     "pretax_income": [r"^(income|earnings|loss)( \(loss\))?.* before .*tax"],
     "income_tax_expense": [
         r"^(?!.*\bbefore\b)(?!.*net of tax)(?=.*\b(provision|benefit|expense)\b).*\bincome tax",
@@ -209,7 +211,8 @@ class ExtractionResult:
             record: Dict[str, Any] = {"fiscal_year": yr}
             for key in [
                 "revenue", "gross_profit", "cost_of_revenue", "operating_expenses", "operating_income",
-                "interest_income", "pretax_income", "income_tax_expense", "net_income", "net_income_total",
+                "interest_income", "interest_expense", "pretax_income", "income_tax_expense", "net_income",
+                "net_income_total",
                 "operating_cash_flow", "capital_expenditures", "depreciation_amortization",
                 "stock_based_compensation", "deferred_income_taxes", "diluted_weighted_shares",
             ]:
@@ -329,7 +332,8 @@ def _extract_income_fields(grid: StatementGrid, year: int) -> Dict[str, Tuple[fl
     for fname, patterns in INCOME_STATEMENT_SYNONYMS.items():
         row = _find_row(grid, patterns, year)
         if row is not None:
-            found[fname] = (_scaled(grid, row.values[year]), row)
+            value = _scaled(grid, row.values[year])
+            found[fname] = (abs(value) if fname == "interest_expense" else value, row)
     shares_row = _find_diluted_shares_row(grid, year)
     if shares_row is not None:
         found["diluted_weighted_shares"] = (_normalize_shares(shares_row.values[year]), shares_row)

@@ -31,6 +31,11 @@ class Settings:
     DEFAULT_USER_EMAIL: str = os.getenv("DEFAULT_USER_EMAIL", "user@financeagent.local")
     DEFAULT_USER_FULL_NAME: str = os.getenv("DEFAULT_USER_FULL_NAME", "Finance User")
 
+    # Valuation market assumptions (fallbacks when live data is unavailable)
+    DEFAULT_RISK_FREE_RATE: float = float(os.getenv("DEFAULT_RISK_FREE_RATE", "0.042"))
+    DEFAULT_EQUITY_RISK_PREMIUM: float = float(os.getenv("DEFAULT_EQUITY_RISK_PREMIUM", "0.050"))
+    DEFAULT_CREDIT_SPREAD: float = float(os.getenv("DEFAULT_CREDIT_SPREAD", "0.0125"))
+
     @property
     def database_url(self) -> str:
         if self.DATABASE_URL:

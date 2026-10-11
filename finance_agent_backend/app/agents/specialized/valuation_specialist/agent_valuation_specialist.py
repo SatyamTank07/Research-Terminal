@@ -1,371 +1,124 @@
 """DCF Valuation Specialist Agent.
 
-Specialized autonomous agent that ingests audited balance sheet metrics and cash flows,
-derives the Weighted Average Cost of Capital (WACC) via CAPM, computes intrinsic fair value
-using a 2-stage Gordon Growth DCF model with mid-year discounting, generates a 5x5 sensitivity
-matrix, and emits a structured DCFValuationOutput artifact.
+Deterministic-first: `build_valuation` derives the CAPM WACC, the 2-stage mid-year DCF (value-driver
+terminal value, full equity bridge, roll-forward to the valuation date), the bull/base/bear scenario
+values and the 5x5 sensitivity grid in Python. A single tool-free LLM call then writes the
+institutional commentary; if it fails, a deterministic template is used instead.
 """
 
-import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import date
+from typing import Any, List, Optional
 
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
-from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
-from app.agents.specialized.valuation_specialist.state_valuation_specialist import (
-    DCFValuationOutput,
-    WACCAudit,
-)
-from app.agents.tools.dcf_tools import calculate_dcf_tool, calculate_dcf_with_sensitivity
-from app.agents.tools.wacc_tools import calculate_wacc_tool
+from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
+from app.agents.specialized.prompts import render_prompt
+from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
+from app.agents.tools.valuation_model import MarketInputs, ValuationBuild, build_valuation
 
 
 logger = logging.getLogger("finance_agent.agents.valuation_specialist")
 
+COMMENTARY_MAX_TOKENS = 450
+MIN_COMMENTARY_CHARS = 200
+
 
 @AgentRegistry.register("valuation_specialist")
 class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
-    """Autonomous tool-calling agent executing deterministic DCF valuation and sensitivity modeling."""
+    """Code-built DCF valuation with one LLM call for commentary."""
 
     prompt_name = "valuation_specialist"
-    tools = [calculate_wacc_tool, calculate_dcf_tool]
+    tools = []
     output_schema = DCFValuationOutput
-    default_recursion_limit = 50
 
     def value(
         self,
         ticker: str,
         fiscal_year: int,
         financial_audit: FinancialAuditOutput,
-        projected_fcfs: List[float],
-        beta: float,
-        share_price: Optional[float] = None,
-        market_cap: Optional[float] = None,
-        terminal_growth_rate: float = 0.025,
-        risk_free_rate: float = 0.042,
-        equity_risk_premium: float = 0.050,
-        cost_of_debt: Optional[float] = None,
-        base_year_ebitda: Optional[float] = None,
+        forecast: Optional[ForecastOutput],
+        market: MarketInputs,
+        terminal_growth_rate: float,
         wacc_override: Optional[float] = None,
+        valuation_date: Optional[date] = None,
+        balance_sheet_date: Optional[str] = None,
         callbacks: Optional[List[Any]] = None,
     ) -> DCFValuationOutput:
-        """Direct programmatic interface for LangGraph orchestrator and verification tests.
-
-        Ingests FinancialAuditOutput and market inputs, executes deterministic tools,
-        and returns a validated DCFValuationOutput instance.
-        """
-        # Extract audited figures from FinancialAuditOutput
-        total_debt = financial_audit.balance_sheet.total_debt
-        net_debt = financial_audit.balance_sheet.net_debt
-        diluted_shares = financial_audit.balance_sheet.valuation_shares_outstanding
-
-        # Resolve effective tax rate as decimal (e.g. 0.1561)
-        ratios = financial_audit.profitability_and_return_ratios
-        tax_rate_val = getattr(ratios, "effective_tax_rate_pct", None)
-        if tax_rate_val is not None:
-            tax_rate = (tax_rate_val / 100.0) if tax_rate_val > 1.0 else tax_rate_val
-        else:
-            tax_rate = getattr(ratios, "effective_tax_rate", 0.21)
-
-        # Resolve latest operating income (EBIT)
-        latest_operating_income = None
-        if financial_audit.multi_year_history:
-            latest_operating_income = financial_audit.multi_year_history[-1].operating_income
-
-        # Resolve audited EBITDA from Solvency ratios (only if real EBITDA is available)
-        if (
-            base_year_ebitda is None
-            and hasattr(financial_audit, "solvency_and_liquidity_ratios")
-            and financial_audit.solvency_and_liquidity_ratios
-        ):
-            base_year_ebitda = getattr(
-                financial_audit.solvency_and_liquidity_ratios, "ebitda", None
-            )
-
-        # Fallback to book stockholders_equity or target capital structure if neither price nor market_cap passed
-        if share_price is None and market_cap is None:
-            book_equity = getattr(financial_audit.balance_sheet, "stockholders_equity", None)
-            if book_equity is not None and book_equity > 0:
-                market_cap = float(book_equity)
-            else:
-                market_cap = max(float(total_debt) * 4.0, 10000.0)
-            logger.info(
-                f"Neither share_price nor market_cap provided for {ticker}. "
-                f"Defaulted capital structure equity to: ${market_cap:,.2f}M"
-            )
-
-        query = render_prompt(
-            "prompt_valuation_query.j2",
-            ticker=ticker.upper(),
-            fiscal_year=fiscal_year,
-            total_debt=total_debt,
-            net_debt=net_debt,
-            diluted_shares=diluted_shares,
-            tax_rate=tax_rate,
-            latest_operating_income=latest_operating_income,
-            base_year_ebitda=base_year_ebitda,
-            beta=beta,
-            share_price=share_price,
-            market_cap=market_cap,
-            risk_free_rate=risk_free_rate,
-            equity_risk_premium=equity_risk_premium,
-            cost_of_debt=cost_of_debt,
-            wacc_override=wacc_override,
-            projected_fcfs=projected_fcfs,
+        """Entry point for the LangGraph orchestrator and tests."""
+        build = build_valuation(
+            ticker,
+            fiscal_year,
+            financial_audit,
+            forecast,
+            market,
             terminal_growth_rate=terminal_growth_rate,
+            wacc_override=wacc_override,
+            valuation_date=valuation_date,
+            balance_sheet_date=balance_sheet_date,
         )
 
-        fallback_defaults = {
-            "valuation_summary": "Valuation completed.",
-            "discounting_convention": "mid_year",
-        }
-
-        return self.execute_structured(
-            query,
-            ticker=ticker,
-            fiscal_year=fiscal_year,
-            fallback_defaults=fallback_defaults,
-            callbacks=callbacks,
-            projected_fcfs=projected_fcfs,
-            share_price=share_price,
-            terminal_growth_rate=terminal_growth_rate,
-            base_year_ebitda=base_year_ebitda,
-            wacc_override=wacc_override,
-        )
-
-    def _extract_tool_valuation_data(
-        self, messages: List[Any]
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
-        """Extracts calculate_wacc and calculate_dcf tool outputs from message history."""
-        tool_wacc_data = None
-        tool_dcf_data = None
-        for msg in messages:
-            msg_name = getattr(msg, "name", "") or ""
-            if "calculate_wacc" in msg_name:
-                raw = getattr(msg, "content", "")
-                if isinstance(raw, str):
-                    try:
-                        tool_wacc_data = json.loads(raw)
-                    except Exception:
-                        pass
-                elif isinstance(raw, dict):
-                    tool_wacc_data = raw
-            elif "calculate_dcf" in msg_name:
-                raw = getattr(msg, "content", "")
-                if isinstance(raw, str):
-                    try:
-                        tool_dcf_data = json.loads(raw)
-                    except Exception:
-                        pass
-                elif isinstance(raw, dict):
-                    tool_dcf_data = raw
-        return tool_wacc_data, tool_dcf_data
-
-    def _pre_validate_data(
-        self,
-        data: Dict[str, Any],
-        result: Dict[str, Any],
-        ticker: Optional[str] = None,
-        fiscal_year: Optional[int] = None,
-        projected_fcfs: Optional[List[float]] = None,
-        share_price: Optional[float] = None,
-        terminal_growth_rate: float = 0.025,
-        base_year_ebitda: Optional[float] = None,
-        **kwargs,
-    ) -> Dict[str, Any]:
-        """Overlays deterministic tool figures onto parsed dictionary prior to Pydantic validation."""
-        messages = result.get("messages", [])
-        tool_wacc_data, tool_dcf_data = self._extract_tool_valuation_data(messages)
-        wacc_override = kwargs.get("wacc_override")
-        self._overlay_tool_data(
-            data,
-            tool_wacc_data=tool_wacc_data,
-            tool_dcf_data=tool_dcf_data,
-            ticker=ticker or data.get("ticker", ""),
-            fiscal_year=fiscal_year or data.get("fiscal_year", 0),
-            projected_fcfs=projected_fcfs or [],
-            share_price=share_price,
-            terminal_growth_rate=terminal_growth_rate,
-            base_year_ebitda=base_year_ebitda,
-            wacc_override=wacc_override,
-        )
-        return data
-
-    def _post_process_output(
-        self,
-        output: DCFValuationOutput,
-        result: Dict[str, Any],
-        projected_fcfs: Optional[List[float]] = None,
-        share_price: Optional[float] = None,
-        terminal_growth_rate: float = 0.025,
-        base_year_ebitda: Optional[float] = None,
-        **kwargs,
-    ) -> DCFValuationOutput:
-        """Enforces exact deterministic values from calculate_wacc_tool and calculate_dcf_tool."""
-        messages = result.get("messages", [])
-        tool_wacc_data, tool_dcf_data = self._extract_tool_valuation_data(messages)
-        wacc_override = kwargs.get("wacc_override")
-
-        # Enforce exact mathematical values from tools or user override
-        if wacc_override is not None:
-            wacc_pct = round(wacc_override * 100.0, 2)
-            breakdown_md = (
-                "| WACC Parameter | Value | Institutional Source / Methodology |\n"
-                "| :--- | :---: | :--- |\n"
-                f"| **User Hurdle Rate (WACC)** | **{wacc_pct:.2f}%** | Explicit User Specified Override |\n"
-                f"| **Discount Convention** | Mid-Year | Standard Institutional DCF |"
-            )
-            output.wacc_audit = WACCAudit(
-                wacc=wacc_override,
-                wacc_pct=wacc_pct,
-                cost_of_equity_pct=wacc_pct,
-                cost_of_debt_pre_tax_pct=0.0,
-                cost_of_debt_after_tax_pct=0.0,
-                cost_of_debt_source="explicit_provided",
-                equity_weight_pct=100.0,
-                debt_weight_pct=0.0,
-                formula_breakdown_markdown=breakdown_md,
-            )
-        elif tool_wacc_data:
-            output.wacc_audit = WACCAudit.model_validate(tool_wacc_data)
-        if tool_dcf_data and projected_fcfs and tool_dcf_data.get("forecast_years_count") != len(projected_fcfs):
-            # The LLM passed a different horizon than the forecaster built (e.g. truncated a 10-year fade
-            # to 5 years); revalue every forecast year in code with the same WACC, net debt and shares.
-            logger.warning(
-                f"DCF tool valued {tool_dcf_data.get('forecast_years_count')} years but the forecast has "
-                f"{len(projected_fcfs)}; recomputing the DCF in code."
-            )
-            tool_dcf_data = calculate_dcf_with_sensitivity(
-                projected_fcfs=projected_fcfs,
-                wacc=output.wacc_audit.wacc,
-                terminal_growth_rate=terminal_growth_rate,
-                net_debt=tool_dcf_data["net_debt"],
-                diluted_shares=tool_dcf_data["diluted_shares"],
-                mid_year_convention=tool_dcf_data.get("discounting_convention", "mid_year") == "mid_year",
-            )
-        if tool_dcf_data:
-            output.enterprise_value = tool_dcf_data["enterprise_value"]
-            output.pv_explicit_fcfs = tool_dcf_data["pv_explicit_fcfs"]
-            output.pv_terminal_value = tool_dcf_data["pv_terminal_value"]
-            output.terminal_value_pct_of_ev = tool_dcf_data["terminal_value_pct_of_ev"]
-            output.net_debt = tool_dcf_data["net_debt"]
-            output.equity_value = tool_dcf_data["equity_value"]
-            output.diluted_shares = tool_dcf_data["diluted_shares"]
-            output.implied_fair_value_per_share = tool_dcf_data["fair_value_per_share"]
-            output.sensitivity_matrix_markdown = tool_dcf_data["sensitivity_matrix_markdown"]
-            output.discounting_convention = tool_dcf_data.get("discounting_convention", "mid_year")
-
-        if projected_fcfs is not None:
-            output.projected_fcfs = projected_fcfs
-
-        # Re-derive upside/downside and valuation stance if share price is supplied
-        if share_price is not None and share_price > 0:
-            output.current_share_price = share_price
-            fair = output.implied_fair_value_per_share
-            upside = round(((fair - share_price) / share_price) * 100.0, 2)
-            output.upside_downside_pct = upside
-            if upside > 10.0:
-                output.valuation_stance = "Undervalued"
-            elif upside < -10.0:
-                output.valuation_stance = "Overvalued"
+        summary, source = None, "template"
+        try:
+            summary = self._run_commentary_llm(
+                render_prompt("prompt_valuation_query.j2", v=build), callbacks
+            ).strip()
+            if len(summary) >= MIN_COMMENTARY_CHARS:
+                source = "llm"
             else:
-                output.valuation_stance = "Fairly Valued"
-        else:
-            output.current_share_price = None
-            output.upside_downside_pct = None
-            output.valuation_stance = None
+                logger.warning(f"Valuation commentary for {ticker} too short ({len(summary)} chars); using template.")
+        except Exception as e:
+            logger.warning(f"Valuation commentary LLM failed for {ticker}: {e}; using template.")
 
-        # Re-derive implied EV/EBITDA multiple cross-check strictly if base year EBITDA provided
-        if base_year_ebitda is not None and base_year_ebitda > 0:
-            output.implied_ev_ebitda = round(output.enterprise_value / base_year_ebitda, 2)
-            output.ev_ebitda_source = "derived_from_10k_ebit_plus_depreciation"
-        else:
-            output.implied_ev_ebitda = None
-            output.ev_ebitda_source = None
+        if source == "template":
+            summary = self._template_summary(build)
+        return DCFValuationOutput(**build.model_dump(), valuation_summary=summary, commentary_source=source)
 
-        return output
+    def _run_commentary_llm(self, prompt: str, callbacks: Optional[List[Any]]) -> str:
+        """Single tool-free completion that turns the code-built valuation into commentary."""
+        from dotenv import load_dotenv
+        from langchain_core.messages import HumanMessage, SystemMessage
+        from langchain_openai import ChatOpenAI
 
-    def _overlay_tool_data(
-        self,
-        target: Dict[str, Any],
-        tool_wacc_data: Optional[Dict[str, Any]],
-        tool_dcf_data: Optional[Dict[str, Any]],
-        ticker: str,
-        fiscal_year: int,
-        projected_fcfs: List[float],
-        share_price: Optional[float],
-        terminal_growth_rate: float,
-        base_year_ebitda: Optional[float],
-        wacc_override: Optional[float] = None,
-    ):
-        """Overlays verified mathematical figures from tools onto parsed dict."""
-        target["ticker"] = ticker.upper()
-        target["fiscal_year"] = fiscal_year
-        target["projected_fcfs"] = projected_fcfs
-        target["terminal_growth_rate"] = terminal_growth_rate
-        target.setdefault("discounting_convention", "mid_year")
+        load_dotenv(override=True)
+        llm = ChatOpenAI(
+            model=self.model_name.replace("openai:", ""),
+            temperature=0,
+            max_retries=5,
+            max_tokens=COMMENTARY_MAX_TOKENS,
+        )
+        config = {"callbacks": callbacks} if callbacks else {}
+        messages = [SystemMessage(content=self.get_system_prompt()), HumanMessage(content=prompt)]
+        return llm.invoke(messages, config=config).content
 
-        if wacc_override is not None:
-            wacc_pct = round(wacc_override * 100.0, 2)
-            breakdown_md = (
-                "| WACC Parameter | Value | Institutional Source / Methodology |\n"
-                "| :--- | :---: | :--- |\n"
-                f"| **User Hurdle Rate (WACC)** | **{wacc_pct:.2f}%** | Explicit User Specified Override |\n"
-                f"| **Discount Convention** | Mid-Year | Standard Institutional DCF |"
+    @staticmethod
+    def _template_summary(v: ValuationBuild) -> str:
+        w = v.wacc_audit
+        paragraphs = [
+            f"Valuation bridge: the base-case DCF implies an enterprise value of ${v.enterprise_value:,.0f}M, "
+            f"of which {v.terminal_value_pct_of_ev:.1f}% comes from the terminal value "
+            f"({v.terminal_method.replace('_', ' ')}, {v.terminal_growth_rate * 100:.1f}% perpetual growth). "
+            f"After net debt of ${v.net_debt:,.0f}M and noncontrolling interests of ${v.noncontrolling_interests:,.0f}M, "
+            f"equity value is ${v.equity_value:,.0f}M, or ${v.implied_fair_value_per_share:.2f} per share.",
+            f"Hurdle rate: the applied discount rate is {w.wacc_pct:.2f}% ({w.wacc_source.replace('_', ' ')}); "
+            f"CAPM cost of equity is {w.cost_of_equity_pct:.2f}% (beta {w.beta:.2f}, Rf {w.risk_free_rate_pct:.2f}%, "
+            f"ERP {w.equity_risk_premium_pct:.2f}%) and after-tax cost of debt is {w.cost_of_debt_after_tax_pct:.2f}% "
+            f"at a {w.debt_weight_pct:.1f}% debt weight.",
+        ]
+        if v.bear_fair_value is not None and v.bull_fair_value is not None:
+            paragraphs.append(
+                f"Range: bear ${v.bear_fair_value:.2f}, base ${v.implied_fair_value_per_share:.2f}, "
+                f"bull ${v.bull_fair_value:.2f}; probability-weighted ${v.probability_weighted_fair_value:.2f}. "
+                f"The WACC x growth sensitivity grid brackets the base case."
             )
-            target["wacc_audit"] = {
-                "wacc": wacc_override,
-                "wacc_pct": wacc_pct,
-                "cost_of_equity_pct": wacc_pct,
-                "cost_of_debt_pre_tax_pct": 0.0,
-                "cost_of_debt_after_tax_pct": 0.0,
-                "cost_of_debt_source": "explicit_provided",
-                "equity_weight_pct": 100.0,
-                "debt_weight_pct": 0.0,
-                "formula_breakdown_markdown": breakdown_md,
-            }
-        elif tool_wacc_data:
-            target["wacc_audit"] = tool_wacc_data
-
-        if tool_dcf_data:
-            target["enterprise_value"] = tool_dcf_data["enterprise_value"]
-            target["pv_explicit_fcfs"] = tool_dcf_data["pv_explicit_fcfs"]
-            target["pv_terminal_value"] = tool_dcf_data["pv_terminal_value"]
-            target["terminal_value_pct_of_ev"] = tool_dcf_data["terminal_value_pct_of_ev"]
-            target["net_debt"] = tool_dcf_data["net_debt"]
-            target["equity_value"] = tool_dcf_data["equity_value"]
-            target["diluted_shares"] = tool_dcf_data["diluted_shares"]
-            target["implied_fair_value_per_share"] = tool_dcf_data["fair_value_per_share"]
-            target["sensitivity_matrix_markdown"] = tool_dcf_data["sensitivity_matrix_markdown"]
-            target["discounting_convention"] = tool_dcf_data.get("discounting_convention", "mid_year")
-
-        if share_price is not None and share_price > 0:
-            target["current_share_price"] = share_price
-            fair = target.get("implied_fair_value_per_share", 0.0)
-            if fair > 0:
-                upside = round(((fair - share_price) / share_price) * 100.0, 2)
-                target["upside_downside_pct"] = upside
-                if upside > 10.0:
-                    target["valuation_stance"] = "Undervalued"
-                elif upside < -10.0:
-                    target["valuation_stance"] = "Overvalued"
-                else:
-                    target["valuation_stance"] = "Fairly Valued"
+        if v.current_share_price is not None:
+            paragraphs.append(
+                f"Margin of safety: against a ${v.current_share_price:.2f} share price the base case implies "
+                f"{v.upside_downside_pct:+.1f}% ({v.valuation_stance})."
+            )
         else:
-            target["current_share_price"] = None
-            target["upside_downside_pct"] = None
-            target["valuation_stance"] = None
-
-        if base_year_ebitda is not None and base_year_ebitda > 0:
-            ev = target.get("enterprise_value", 0.0)
-            if ev > 0:
-                target["implied_ev_ebitda"] = round(ev / base_year_ebitda, 2)
-                target["ev_ebitda_source"] = "derived_from_10k_ebit_plus_depreciation"
-            else:
-                target["implied_ev_ebitda"] = None
-                target["ev_ebitda_source"] = None
-        else:
-            target["implied_ev_ebitda"] = None
-            target["ev_ebitda_source"] = None
+            paragraphs.append("Margin of safety: no market price was available, so no upside or stance is stated.")
+        if v.data_quality.warnings:
+            paragraphs.append("Caveats: " + " ".join(v.data_quality.warnings))
+        return "\n\n".join(paragraphs)

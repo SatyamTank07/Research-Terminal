@@ -31,7 +31,6 @@ from app.agents.state import (
     RiskItem,
     SegmentDetail,
     ThreePillarThesis,
-    WACCAudit,
 )
 from app.agents.tools.risk_disclosure_tools import (
     DisclosurePassage,
@@ -48,6 +47,7 @@ from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import (
     ResearchSynthesisPayload,
 )
 from tests.forecast_fixtures import make_forecast_output
+from tests.valuation_fixtures import make_valuation_output
 
 
 def _create_mock_audit() -> FinancialAuditOutput:
@@ -140,39 +140,8 @@ def _create_mock_forecast() -> ForecastOutput:
 
 
 def _create_mock_dcf() -> DCFValuationOutput:
-    """Helper creating verified DCFValuationOutput."""
-    wacc_audit = WACCAudit(
-        wacc=0.0953,
-        wacc_pct=9.53,
-        cost_of_equity_pct=9.70,
-        cost_of_debt_pre_tax_pct=3.85,
-        cost_of_debt_after_tax_pct=3.25,
-        cost_of_debt_source="derived_from_10k_interest_expense",
-        equity_weight_pct=97.2,
-        debt_weight_pct=2.8,
-        formula_breakdown_markdown="| Component | Weight | Rate | Weighted |\n| :--- | :---: | :---: | :---: |\n| Cost of Equity | 97.2% | 9.70% | 9.43% |\n| After-Tax Debt | 2.8% | 3.25% | 0.09% |\n| **Blended WACC** | **100.0%** | - | **9.53%** |",
-    )
-    return DCFValuationOutput(
-        ticker="AAPL",
-        fiscal_year=2025,
-        wacc_audit=wacc_audit,
-        terminal_growth_rate=0.025,
-        discounting_convention="mid_year",
-        projected_fcfs=[105659.6, 112258.9, 118697.7, 124902.9, 130799.5],
-        pv_explicit_fcfs=460124.0,
-        pv_terminal_value=1224850.0,
-        terminal_value_pct_of_ev=72.7,
-        enterprise_value=1684974.0,
-        net_debt=-33775.0,  # Cash surplus
-        equity_value=1718749.0,
-        diluted_shares=15004.7,
-        implied_fair_value_per_share=245.50,
-        current_share_price=230.00,
-        upside_downside_pct=6.7,
-        valuation_stance="Fairly Valued",
-        sensitivity_matrix_markdown="| WACC \\ g | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---| :---: | :---: | :---: | :---: | :---: |\n| **8.5%** | $285.20 | $298.10 | $312.50 | $328.60 | $346.80 |\n| **9.5%** | $228.40 | $236.60 | **$245.50** | $255.40 | $266.30 |\n| **10.5%** | $188.70 | $194.20 | $200.10 | $206.50 | $213.50 |",
-        valuation_summary="DCF valuation yields $245.50 implied fair value per share based on 9.53% WACC and 2.5% perpetual growth.",
-    )
+    """Code-built valuation (template commentary) on the synthetic AAPL audit and forecast."""
+    return make_valuation_output()
 
 
 def _create_mock_risk() -> RiskAuditOutput:
@@ -322,10 +291,10 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
         self.assertIn(report.synthesis_provenance, ["llm_structured", "llm_json_fallback", "template_default"])
 
         # Valuation numbers must match DCF output exactly (Zero Hallucination)
-        self.assertAlmostEqual(report.implied_fair_value_per_share, 245.50, places=2)
-        self.assertEqual(report.current_share_price, 230.00)
-        self.assertEqual(report.upside_downside_pct, 6.7)
-        self.assertEqual(report.valuation_stance, "Fairly Valued")
+        self.assertEqual(report.implied_fair_value_per_share, dcf.implied_fair_value_per_share)
+        self.assertEqual(report.current_share_price, dcf.current_share_price)
+        self.assertEqual(report.upside_downside_pct, dcf.upside_downside_pct)
+        self.assertEqual(report.valuation_stance, dcf.valuation_stance)
 
         # Verify 3-Pillar Thesis components
         thesis = report.three_pillar_thesis
@@ -407,7 +376,7 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
             )
 
         self.assertIsInstance(report, Final10KResearchReport)
-        self.assertEqual(report.implied_fair_value_per_share, 245.50)
+        self.assertEqual(report.implied_fair_value_per_share, dcf.implied_fair_value_per_share)
         self.assertEqual(report.year_substituted, True)
         self.assertIn("Filing Provenance Note", report.full_markdown_report)
         self.assertIn("## Executive Valuation Dashboard", report.full_markdown_report)
