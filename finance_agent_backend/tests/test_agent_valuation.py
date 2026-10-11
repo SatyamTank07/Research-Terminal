@@ -227,7 +227,7 @@ class TestValuationNodeWiring(unittest.TestCase):
 class TestBuildValuationEdges(unittest.TestCase):
     def test_low_ronic_is_floored_at_wacc_and_warned(self):
         forecast = make_forecast_output()
-        diag = forecast.diagnostics.model_copy(update={"ronic_pct": 2.0})
+        diag = forecast.diagnostics.model_copy(update={"steady_state_ronic_pct": 2.0})
         build = build_valuation(
             "AAPL", 2025, make_aapl_audit(), forecast.model_copy(update={"diagnostics": diag}), make_market(),
             terminal_growth_rate=0.025, valuation_date=VALUATION_DATE, balance_sheet_date=AAPL_BALANCE_SHEET_DATE,

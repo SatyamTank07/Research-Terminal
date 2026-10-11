@@ -11,7 +11,7 @@ from the balance-sheet date to the valuation date.
 
 import logging
 import math
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
@@ -20,6 +20,21 @@ logger = logging.getLogger("finance_agent.tools.dcf")
 
 TV_CONCENTRATION_WARNING_PCT = 85.0
 STALE_ROLL_FORWARD_YEARS = 1.5
+
+# Plausibility bands for the multiples implied by the terminal value (TV at year N / year-N metric).
+# EV/EBITDA: developed-market companies rarely sustain below ~5x outside distress or cyclical peaks, and a
+# perpetuity growing at <= 3.5% cannot justify more than ~30x. EV/NOPAT is the cleaner check because the
+# value-driver identity gives TV/NOPAT = (1 + g)(1 - g/RONIC)/(WACC - g): about 7x at a 15% WACC with no
+# value-creating growth, and only above ~35x with a very low WACC and a very high RONIC. A multiple outside
+# these bands usually means the final-year reinvestment or margin is not a steady state.
+TERMINAL_EV_EBITDA_BAND = (5.0, 30.0)
+TERMINAL_EV_NOPAT_BAND = (6.0, 35.0)
+# Sensitivity grid steps
+SENSITIVITY_WACC_STEPS = (-0.010, -0.005, 0.0, 0.005, 0.010)
+SENSITIVITY_GROWTH_STEPS = (-0.006, -0.003, 0.0, 0.003, 0.006)
+SENSITIVITY_RONIC_STEPS = (-0.04, -0.02, 0.0, 0.05, 0.10)
+RONIC_GRID_MIN_SPREAD_OVER_G = 0.01
+RONIC_EQUALS_WACC_TOLERANCE = 0.005
 
 
 # ==============================================================================
@@ -41,6 +56,9 @@ class DCFCalculationResult(BaseModel):
     implied_terminal_ev_ebitda: Optional[float] = Field(
         None, description="Terminal value / final-year EBITDA (exit-multiple sanity check)"
     )
+    implied_terminal_ev_nopat: Optional[float] = Field(
+        None, description="Terminal value / final-year NOPAT (sanity check; band 6x-35x)"
+    )
     net_debt: float = Field(
         ...,
         description="Net debt in $ millions (Total Debt - Liquid Cash); negative indicates net cash surplus"
@@ -60,6 +78,9 @@ class DCFCalculationResult(BaseModel):
         description="'mid_year' (explicit FCFs and perpetuity TV at t-0.5) or 'year_end'"
     )
     sensitivity_matrix_markdown: str = Field(..., description="5x5 Markdown sensitivity table flexing WACC against Growth")
+    ronic_sensitivity_matrix_markdown: str = Field(
+        "", description="5x5 Markdown table flexing WACC against terminal RONIC ('' unless the TV is value-driver)"
+    )
     equity_bridge_markdown: str = Field(..., description="Markdown EV-to-equity-to-per-share bridge")
     warnings: List[str] = Field(default_factory=list, description="Valuation sanity warnings")
 
@@ -76,6 +97,103 @@ def _validate_finite_float(val: Any, name: str) -> float:
 
 def _optional_finite(val: Any, name: str) -> Optional[float]:
     return None if val is None else _validate_finite_float(val, name)
+
+
+def _value_point(
+    fcfs: List[float],
+    rate: float,
+    g: float,
+    *,
+    terminal_method: str,
+    terminal_nopat: Optional[float],
+    ronic: Optional[float],
+    offset: float,
+    net_debt: float,
+    noncontrolling_interests: float,
+    roll_factor: float,
+    diluted_shares: float,
+) -> Optional[Dict[str, float]]:
+    """One DCF evaluation; None when the inputs have no finite value (rate <= g, RONIC <= g)."""
+    if terminal_method == "value_driver":
+        if ronic is None or terminal_nopat is None or ronic <= g:
+            return None
+        tv_fcf = terminal_nopat * (1.0 + g) * (1.0 - g / ronic)
+    else:
+        tv_fcf = fcfs[-1] * (1.0 + g)
+    if rate <= g or rate <= 0:
+        return None
+    pv_fcfs = sum(fcf / ((1.0 + rate) ** (idx + 1 - offset)) for idx, fcf in enumerate(fcfs))
+    tv = tv_fcf / (rate - g)
+    pv_tv = tv / ((1.0 + rate) ** (len(fcfs) - offset))
+    ev = pv_fcfs + pv_tv
+    equity_bs = ev - net_debt - noncontrolling_interests
+    equity = equity_bs * roll_factor
+    return {
+        "tv_fcf": tv_fcf, "pv_fcfs": pv_fcfs, "tv": tv, "pv_tv": pv_tv, "ev": ev,
+        "equity_bs": equity_bs, "equity": equity, "per_share": equity / diluted_shares,
+    }
+
+
+def _terminal_method(terminal_nopat: Optional[float], ronic: Optional[float], g: float) -> str:
+    if terminal_nopat is not None and ronic is not None and terminal_nopat > 0 and ronic > g:
+        return "value_driver"
+    return "last_fcf_growth"
+
+
+def dcf_fair_value_per_share(
+    projected_fcfs: List[float],
+    wacc: float,
+    terminal_growth_rate: float,
+    net_debt: float,
+    diluted_shares: float,
+    *,
+    terminal_nopat: Optional[float] = None,
+    ronic: Optional[float] = None,
+    noncontrolling_interests: float = 0.0,
+    roll_forward_years: float = 0.0,
+    cost_of_equity: Optional[float] = None,
+    mid_year_convention: bool = True,
+) -> Optional[float]:
+    """Fair value per share with exactly the headline engine's math, without grids, tables or logging.
+
+    Never raises: returns None for invalid or non-convergent inputs. Used by the reverse DCF solver.
+    """
+    try:
+        fcfs = [_validate_finite_float(f, "fcf") for f in projected_fcfs]
+        if not fcfs or diluted_shares <= 0 or not 0 < wacc < 1.0 or terminal_growth_rate >= wacc:
+            return None
+        roll_rate = cost_of_equity if cost_of_equity is not None else wacc
+        point = _value_point(
+            fcfs, wacc, terminal_growth_rate,
+            terminal_method=_terminal_method(terminal_nopat, ronic, terminal_growth_rate),
+            terminal_nopat=terminal_nopat, ronic=ronic, offset=0.5 if mid_year_convention else 0.0,
+            net_debt=net_debt, noncontrolling_interests=noncontrolling_interests or 0.0,
+            roll_factor=(1.0 + roll_rate) ** max(0.0, roll_forward_years or 0.0), diluted_shares=diluted_shares,
+        )
+    except (ValueError, TypeError, ZeroDivisionError, OverflowError):
+        return None
+    if point is None or not math.isfinite(point["per_share"]):
+        return None
+    return point["per_share"]
+
+
+def _multiple_warning(name: str, value: Optional[float], band: Tuple[float, float]) -> Optional[str]:
+    if value is None:
+        return None
+    lo, hi = band
+    if value < lo:
+        return (
+            f"Implied terminal {name} of {value:.1f}x is below the {lo:.0f}x-{hi:.0f}x plausibility band: the "
+            f"terminal cash flow is small relative to earnings (heavy final-year reinvestment, a low RONIC or a "
+            f"high discount rate), so the terminal value may be understated."
+        )
+    if value > hi:
+        return (
+            f"Implied terminal {name} of {value:.1f}x is above the {lo:.0f}x-{hi:.0f}x plausibility band: the "
+            f"perpetuity assumes more than a mature company typically sustains (high RONIC, low discount rate or "
+            f"depressed final-year earnings), so the terminal value may be overstated."
+        )
+    return None
 
 
 # ==============================================================================
@@ -219,27 +337,12 @@ def calculate_dcf_with_sensitivity(
         f"TV method: {terminal_method}"
     )
 
-    def _terminal_fcf(g: float) -> Optional[float]:
-        if terminal_method == "value_driver":
-            if ronic <= g:
-                return None
-            return terminal_nopat * (1.0 + g) * (1.0 - g / ronic)
-        return cleaned_fcfs[-1] * (1.0 + g)
-
-    def _value_at(rate: float, g: float) -> Optional[Dict[str, float]]:
-        tv_fcf = _terminal_fcf(g)
-        if tv_fcf is None or rate <= g or rate <= 0:
-            return None
-        pv_fcfs = sum(fcf / ((1.0 + rate) ** (idx + 1 - offset)) for idx, fcf in enumerate(cleaned_fcfs))
-        tv = tv_fcf / (rate - g)
-        pv_tv = tv / ((1.0 + rate) ** (num_years - offset))
-        ev = pv_fcfs + pv_tv
-        equity_bs = ev - net_debt - noncontrolling_interests
-        equity = equity_bs * roll_factor
-        return {
-            "tv_fcf": tv_fcf, "pv_fcfs": pv_fcfs, "tv": tv, "pv_tv": pv_tv, "ev": ev,
-            "equity_bs": equity_bs, "equity": equity, "per_share": equity / diluted_shares,
-        }
+    def _value_at(rate: float, g: float, ronic_value: Optional[float] = ronic) -> Optional[Dict[str, float]]:
+        return _value_point(
+            cleaned_fcfs, rate, g, terminal_method=terminal_method, terminal_nopat=terminal_nopat,
+            ronic=ronic_value, offset=offset, net_debt=net_debt, noncontrolling_interests=noncontrolling_interests,
+            roll_factor=roll_factor, diluted_shares=diluted_shares,
+        )
 
     # --------------------------------------------------------------------------
     # Steps 1-3: Explicit PV, Terminal Value, Valuation Bridge
@@ -261,12 +364,22 @@ def calculate_dcf_with_sensitivity(
     implied_tv_multiple = None
     if terminal_ebitda is not None and terminal_ebitda > 0 and base["tv"] > 0:
         implied_tv_multiple = round(base["tv"] / terminal_ebitda, 2)
+    implied_tv_nopat = None
+    if terminal_nopat is not None and terminal_nopat > 0 and base["tv"] > 0:
+        implied_tv_nopat = round(base["tv"] / terminal_nopat, 2)
+    for name, value, band in (
+        ("EV/EBITDA", implied_tv_multiple, TERMINAL_EV_EBITDA_BAND),
+        ("EV/NOPAT", implied_tv_nopat, TERMINAL_EV_NOPAT_BAND),
+    ):
+        message = _multiple_warning(name, value, band)
+        if message:
+            warnings.append(message)
 
     # --------------------------------------------------------------------------
     # Step 4: 5x5 Two-Way Sensitivity Matrix (WACC vs. Perpetual Growth)
     # --------------------------------------------------------------------------
-    wacc_steps = [round(wacc + d, 4) for d in (-0.010, -0.005, 0.0, 0.005, 0.010)]
-    growth_steps = [round(terminal_growth_rate + d, 4) for d in (-0.006, -0.003, 0.0, 0.003, 0.006)]
+    wacc_steps = [round(wacc + d, 4) for d in SENSITIVITY_WACC_STEPS]
+    growth_steps = [round(terminal_growth_rate + d, 4) for d in SENSITIVITY_GROWTH_STEPS]
 
     header_cols = [f"{g * 100:.1f}%" for g in growth_steps]
     table_lines = [
@@ -283,7 +396,41 @@ def calculate_dcf_with_sensitivity(
             cell = _value_at(w, g)
             cells.append("N/A" if cell is None else f"${cell['per_share']:.2f}")
         table_lines.append("| " + " | ".join(cells) + " |")
+    if terminal_method == "value_driver" and abs(ronic - wacc) <= RONIC_EQUALS_WACC_TOLERANCE:
+        table_lines.append("")
+        table_lines.append(
+            f"_Terminal RONIC ({ronic * 100:.1f}%) is at WACC, so growth beyond the horizon creates no value and the "
+            f"growth columns barely move; the WACC x RONIC grid shows what returns on new capital are worth._"
+        )
     sensitivity_markdown = "\n".join(table_lines)
+
+    # --------------------------------------------------------------------------
+    # Step 4b: WACC vs. terminal RONIC (value-driver TV only). Informative even when RONIC = WACC flattens
+    # the growth grid. Columns are base RONIC +/- steps, floored at g + 1 pp so every cell converges.
+    # --------------------------------------------------------------------------
+    ronic_markdown = ""
+    if terminal_method == "value_driver":
+        floor = terminal_growth_rate + RONIC_GRID_MIN_SPREAD_OVER_G
+        ronic_cols: List[float] = []
+        for d in SENSITIVITY_RONIC_STEPS:
+            col = round(max(ronic + d, floor), 4)
+            if col not in ronic_cols:
+                ronic_cols.append(col)
+        base_col = round(ronic, 4)
+        ronic_lines = [
+            "| WACC \\ RONIC | " + " | ".join(f"{r * 100:.1f}%" for r in ronic_cols) + " |",
+            "|:---|" + "|".join([":---:"] * len(ronic_cols)) + "|",
+        ]
+        for i, w in enumerate(wacc_steps):
+            cells = [f"**{w * 100:.1f}%**" + (" *(Base)*" if i == 2 else "")]
+            for r in ronic_cols:
+                if i == 2 and r == base_col:
+                    cells.append(f"**${base['per_share']:.2f}**")
+                    continue
+                cell = _value_at(w, terminal_growth_rate, r)
+                cells.append("N/A" if cell is None else f"${cell['per_share']:.2f}")
+            ronic_lines.append("| " + " | ".join(cells) + " |")
+        ronic_markdown = "\n".join(ronic_lines)
 
     # --------------------------------------------------------------------------
     # Step 5: Equity Bridge Table
@@ -318,6 +465,7 @@ def calculate_dcf_with_sensitivity(
         terminal_fcf=round(base["tv_fcf"], 2),
         ronic=round(ronic, 6) if terminal_method == "value_driver" else None,
         implied_terminal_ev_ebitda=implied_tv_multiple,
+        implied_terminal_ev_nopat=implied_tv_nopat,
         net_debt=round(net_debt, 2),
         noncontrolling_interests=round(noncontrolling_interests, 2),
         equity_value_at_balance_sheet_date=round(base["equity_bs"], 2),
@@ -331,6 +479,7 @@ def calculate_dcf_with_sensitivity(
         forecast_years_count=num_years,
         discounting_convention=convention_label,
         sensitivity_matrix_markdown=sensitivity_markdown,
+        ronic_sensitivity_matrix_markdown=ronic_markdown,
         equity_bridge_markdown="\n".join(bridge_lines),
         warnings=warnings,
     )

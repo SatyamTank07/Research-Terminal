@@ -2,14 +2,25 @@
 
 `ForecastDrivers` holds decimals. `ForecastDriverProposal` is what the LLM submits, in WHOLE percent;
 `screen_forecast_drivers` converts it once and clamps it to code-owned bounds.
+
+Margin screen: a margin path within 1 pp of the normalized base margin needs no evidence. Beyond that
+noise band, a path without a cited forward-looking MD&A margin/cost chunk must stay in a corridor set by
+the audited margin trend:
+- expanding trend: may hold or continue up by at most 3 pp in total; a decline below base - 1 pp is an
+  unsupported reversal and is clamped;
+- contracting trend: the mirror image (continue down by at most 3 pp, no unsupported recovery);
+- mixed trend (e.g. a spike then a give-back): may move between the base and the audited average margin
+  (mean reversion), +/- 1 pp;
+- one audited year: base +/- 1 pp.
+With accepted margin evidence, only the 3 pp per-year step limit applies.
 """
 
 import math
-from typing import List, Literal, Optional, Set, Tuple
+from typing import AbstractSet, List, Literal, Optional, Set, Tuple
 
 from pydantic import BaseModel, Field
 
-from app.agents.tools.forecast_baseline import ForecastBaseline
+from app.agents.tools.forecast_baseline import MARGIN_FLOOR, ForecastBaseline
 
 DEFAULT_TERMINAL_GROWTH = 0.025
 BASE_HORIZON_YEARS = 5
@@ -22,6 +33,8 @@ GROWTH_MAX = 1.00
 YEAR1_BAND_MIN = 0.15
 YEAR1_BAND_RELATIVE = 0.5
 MARGIN_STEP_MAX = 0.03
+MARGIN_NOISE_BAND = 0.01
+UNSUPPORTED_TREND_ALLOWANCE = 0.03
 CAPEX_OVERRIDE_MULTIPLES = (0.5, 2.5)
 CAPEX_OVERRIDE_CEILING = 0.30
 NWC_OVERRIDE_BOUND = 0.50
@@ -29,15 +42,34 @@ DECIMAL_READING_MARGIN = 0.5
 
 
 class ForecastDrivers(BaseModel):
-    """Per-year growth and margin paths plus reinvestment intensities (all decimals)."""
+    """Per-year growth and margin paths plus reinvestment intensities (all decimals).
+
+    `capex_pct_of_revenue` is the year-1 intensity; `build_forecast` fills `capex_path`, which fades it
+    linearly to `steady_state_capex_pct_of_revenue` in the final explicit year. D&A is held at
+    `da_pct_of_revenue` (no PP&E roll-forward is modeled; the final-year net reinvestment is pinned by the
+    steady state, so the D&A level does not change terminal cash flow).
+    """
 
     revenue_growth: List[float]
     operating_margin: List[float]
     tax_rate: float
-    capex_pct_of_revenue: float
+    capex_pct_of_revenue: float = Field(..., description="Year-1 CapEx intensity (decimal)")
     da_pct_of_revenue: float
     nwc_pct_of_incremental_revenue: float
     sbc_pct_of_revenue: float
+    capex_path: List[float] = Field(
+        default_factory=list, description="Applied per-year CapEx intensity (decimals); filled by build_forecast"
+    )
+    steady_state_capex_pct_of_revenue: Optional[float] = Field(
+        None, description="Final-year CapEx intensity consistent with terminal growth (decimal)"
+    )
+    reinvestment_method: Optional[Literal["value_driver_fade", "maintenance_fade"]] = Field(
+        None,
+        description=(
+            "'value_driver_fade': final-year net reinvestment = terminal growth / steady-state RONIC x NOPAT; "
+            "'maintenance_fade': final-year NOPAT is not positive, so CapEx fades to D&A"
+        ),
+    )
 
 
 class ForecastDriverProposal(BaseModel):
@@ -45,6 +77,7 @@ class ForecastDriverProposal(BaseModel):
 
     revenue_growth_pct: List[float]
     operating_margin_pct: List[float]
+    margin_citation_chunk_id: Optional[str] = None
     capex_pct_of_revenue: Optional[float] = None
     capex_citation_chunk_id: Optional[str] = None
     nwc_pct_of_incremental_revenue: Optional[float] = None
@@ -66,6 +99,9 @@ class DriverScreenResult(BaseModel):
     drivers: Optional[ForecastDrivers] = None
     adjustments: List[DriverAdjustment] = Field(default_factory=list)
     evidence_chunk_ids: List[str] = Field(default_factory=list)
+    margin_evidence_accepted: bool = Field(
+        False, description="True when margin_citation_chunk_id is an MD&A chunk with forward-looking margin/cost language"
+    )
     errors: List[str] = Field(default_factory=list)
 
 
@@ -110,7 +146,13 @@ def screen_forecast_drivers(
     baseline: ForecastBaseline,
     allowed_chunk_ids: Set[str],
     terminal_growth: float = DEFAULT_TERMINAL_GROWTH,
+    margin_evidence_chunk_ids: AbstractSet[str] = frozenset(),
 ) -> DriverScreenResult:
+    """Never raises: malformed proposals come back with accepted=False and the errors to fix.
+
+    `margin_evidence_chunk_ids` are the allowed MD&A chunks carrying forward-looking margin/cost language
+    (see `mdna_guidance.margin_evidence_chunk_ids`); citing one lifts the trend corridor on the margin path.
+    """
     errors: List[str] = []
     for name, series in (
         ("revenue_growth_pct", proposal.revenue_growth_pct),
@@ -136,8 +178,16 @@ def screen_forecast_drivers(
         return DriverScreenResult(accepted=False, errors=errors)
 
     adjustments: List[DriverAdjustment] = []
+    margin_evidence = (
+        proposal.margin_citation_chunk_id is not None
+        and proposal.margin_citation_chunk_id in allowed_chunk_ids
+        and proposal.margin_citation_chunk_id in margin_evidence_chunk_ids
+    )
     growth = _screen_growth([v / 100.0 for v in proposal.revenue_growth_pct], baseline, terminal_growth, adjustments)
-    margins = _screen_margins([v / 100.0 for v in proposal.operating_margin_pct], baseline, adjustments)
+    margins = _screen_margins(
+        [v / 100.0 for v in proposal.operating_margin_pct], baseline, margin_evidence,
+        proposal.margin_citation_chunk_id, adjustments,
+    )
     capex = _screen_override(
         "capex_pct_of_revenue", proposal.capex_pct_of_revenue, proposal.capex_citation_chunk_id,
         baseline.capex_pct_of_revenue, _capex_bounds(baseline), allowed_chunk_ids, adjustments,
@@ -153,6 +203,7 @@ def screen_forecast_drivers(
         drivers=ForecastDrivers(revenue_growth=growth, operating_margin=margins, **intensities),
         adjustments=adjustments,
         evidence_chunk_ids=[c for c in proposal.evidence_chunk_ids if c in allowed_chunk_ids],
+        margin_evidence_accepted=margin_evidence,
     )
 
 
@@ -209,15 +260,62 @@ def _screen_growth(
     return out
 
 
-def _screen_margins(margins: List[float], baseline: ForecastBaseline, adjustments: List[DriverAdjustment]) -> List[float]:
+def unsupported_margin_corridor(baseline: ForecastBaseline) -> Tuple[float, float, str]:
+    """(low, high, description) bounds for a margin path that cites no MD&A margin/cost evidence."""
+    m0 = baseline.base_operating_margin
+    tol = MARGIN_NOISE_BAND
+    trend = baseline.margin_trend
+    if trend == "expanding":
+        return m0 - tol, m0 + UNSUPPORTED_TREND_ALLOWANCE, (
+            f"the expanding audited margin trend (hold within {tol * 100:.0f} pp of the {m0 * 100:.2f}% base or "
+            f"continue up by at most {UNSUPPORTED_TREND_ALLOWANCE * 100:.0f} pp)"
+        )
+    if trend == "contracting":
+        return m0 - UNSUPPORTED_TREND_ALLOWANCE, m0 + tol, (
+            f"the contracting audited margin trend (hold within {tol * 100:.0f} pp of the {m0 * 100:.2f}% base or "
+            f"continue down by at most {UNSUPPORTED_TREND_ALLOWANCE * 100:.0f} pp)"
+        )
+    avg = baseline.historical_average_margin
+    if trend == "mixed" and avg is not None:
+        return min(m0, avg) - tol, max(m0, avg) + tol, (
+            f"the mixed audited margin history (between the {m0 * 100:.2f}% base and the {avg * 100:.2f}% "
+            f"audited average, +/- {tol * 100:.0f} pp)"
+        )
+    return m0 - tol, m0 + tol, f"{tol * 100:.0f} pp of the {m0 * 100:.2f}% base margin (one audited year)"
+
+
+def _screen_margins(
+    margins: List[float],
+    baseline: ForecastBaseline,
+    evidence_accepted: bool,
+    citation: Optional[str],
+    adjustments: List[DriverAdjustment],
+) -> List[float]:
+    """3 pp per-year step limit always; without accepted margin evidence, also the trend corridor."""
+    corr_lo, corr_hi, corridor = unsupported_margin_corridor(baseline)
+    if evidence_accepted:
+        corr_lo, corr_hi = -math.inf, math.inf
+    evidence_note = (
+        f"citation '{citation}' is not an MD&A chunk with forward-looking margin/cost language"
+        if citation else "no margin_citation_chunk_id was given"
+    )
     prev = baseline.base_operating_margin
     out: List[float] = []
     for year, m in enumerate(margins, start=1):
-        applied = round(_clamp(m, prev - MARGIN_STEP_MAX, prev + MARGIN_STEP_MAX), 4)
+        step_lo, step_hi = prev - MARGIN_STEP_MAX, prev + MARGIN_STEP_MAX
+        lo, hi = max(step_lo, corr_lo, MARGIN_FLOOR), min(step_hi, corr_hi, 1.0)
+        if lo > hi:  # rounding drift only: prev always sits inside the corridor
+            lo = hi = _clamp(prev, corr_lo, corr_hi)
+        applied = round(_clamp(m, lo, hi), 4)
         if applied != round(m, 4):
+            step_bound = (m < lo and lo == step_lo) or (m > hi and hi == step_hi)
+            reason = (
+                f"moves more than {MARGIN_STEP_MAX * 100:.0f} pp from the prior year's {prev * 100:.2f}%"
+                if step_bound else f"leaves {corridor}; {evidence_note}"
+            )
             adjustments.append(DriverAdjustment(
                 driver="operating_margin", year=year, proposed=round(m, 4), applied=applied, action="clamped",
-                reason=f"moves more than {MARGIN_STEP_MAX * 100:.0f} pp from the prior year's {prev * 100:.2f}%",
+                reason=reason,
             ))
         out.append(applied)
         prev = applied

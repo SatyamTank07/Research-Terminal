@@ -8,13 +8,15 @@ All `_pct` fields from upstream agents are whole percents and are converted to d
 from __future__ import annotations
 
 import logging
+import math
 from datetime import date
-from typing import TYPE_CHECKING, List, Literal, Optional
+from typing import TYPE_CHECKING, Callable, List, Literal, Optional, Tuple
 
 from pydantic import BaseModel, Field
 
-from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
-from app.agents.tools.forecast_model import SCENARIO_PROBABILITIES
+from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity, dcf_fair_value_per_share
+from app.agents.tools.forecast_baseline import MARGIN_FLOOR
+from app.agents.tools.forecast_model import SCENARIO_PROBABILITIES, project_with_overrides
 from app.agents.tools.wacc_tools import WACCCalculationResult, calculate_wacc
 from app.config import settings
 
@@ -30,7 +32,22 @@ NAIVE_FALLBACK_GROWTH = 0.05
 NAIVE_FALLBACK_YEARS = 5
 DAYS_PER_YEAR = 365.25
 
+# Reverse DCF: constant explicit-period revenue growth that makes the base DCF equal the share price, with
+# margins, tax, the CapEx/D&A/working-capital logic, WACC, terminal growth, terminal RONIC and the equity
+# bridge held fixed. Scanned on a grid, then bisected inside the sign-change bracket nearest the modeled
+# CAGR: bounded and always terminates. The range spans steep decline to hyper-growth for 5-10 years.
+REVERSE_DCF_GROWTH_BOUNDS = (-0.20, 0.60)
+# Companion solve: uniform operating-margin shift (decimal pp) at modeled growth, margins kept in [-200%, 100%].
+REVERSE_DCF_MARGIN_SHIFT_BOUNDS = (-0.30, 0.50)
+REVERSE_DCF_SCAN_POINTS = 33
+REVERSE_DCF_MAX_ITERATIONS = 60
+REVERSE_DCF_TOLERANCE = 1e-5
+REVERSE_DCF_GAP_WARNING_PP = 5.0
+
 ValuationStance = Literal["Undervalued", "Fairly Valued", "Overvalued"]
+ReverseDCFStatus = Literal[
+    "solved", "price_above_range", "price_below_range", "no_solution", "price_unavailable", "forecast_unavailable"
+]
 
 
 class MarketInputs(BaseModel):
@@ -78,7 +95,12 @@ class ValuationBuild(BaseModel):
     terminal_method: str
     terminal_fcf: float
     ronic_used_pct: Optional[float] = None
-    implied_terminal_ev_ebitda: Optional[float] = None
+    implied_terminal_ev_ebitda: Optional[float] = Field(
+        None, description="Terminal value / final-year EBITDA; warned outside 5x-30x"
+    )
+    implied_terminal_ev_nopat: Optional[float] = Field(
+        None, description="Terminal value / final-year NOPAT; warned outside 6x-35x"
+    )
 
     projected_fcfs: List[float]
     pv_explicit_fcfs: float
@@ -101,7 +123,34 @@ class ValuationBuild(BaseModel):
     bear_fair_value: Optional[float] = None
     bull_fair_value: Optional[float] = None
 
+    market_implied_growth_pct: Optional[float] = Field(
+        None,
+        description="Reverse DCF: constant explicit-period revenue growth (whole %) at which the base DCF equals "
+        "the share price, all other inputs held; None unless reverse_dcf_status == 'solved'",
+    )
+    modeled_revenue_cagr_pct: Optional[float] = Field(
+        None, description="Base-case revenue CAGR over the same explicit horizon (whole %), for comparison"
+    )
+    reverse_dcf_horizon_years: Optional[int] = Field(None, description="Explicit years the implied growth applies to")
+    market_implied_margin_shift_pp: Optional[float] = Field(
+        None,
+        description="Reverse DCF companion: uniform operating-margin shift (percentage points, every explicit year) "
+        "at modeled growth that equates the base DCF to the price; None without a price or a root in -30..+50 pp",
+    )
+    modeled_final_margin_pct: Optional[float] = Field(
+        None, description="Base-case final explicit-year operating margin (whole %), for the margin comparison"
+    )
+    reverse_dcf_status: ReverseDCFStatus = Field(
+        "price_unavailable",
+        description="'solved'; 'price_above_range' / 'price_below_range' (no growth in -20%..60% reaches the price); "
+        "'no_solution' (no finite DCF values); 'price_unavailable'; 'forecast_unavailable'",
+    )
+    reverse_dcf_summary: str = Field("", description="One-line reverse-DCF result or the reason there is none")
+
     sensitivity_matrix_markdown: str
+    ronic_sensitivity_matrix_markdown: str = Field(
+        "", description="WACC x terminal RONIC grid of fair value per share ('' unless the TV is value-driver)"
+    )
     equity_bridge_markdown: str
     scenario_table_markdown: str = ""
     data_quality: ValuationDataQuality
@@ -136,20 +185,174 @@ def _stance(upside: Optional[float]) -> Optional[ValuationStance]:
 
 
 def _resolve_ronic(forecast: Optional["ForecastOutput"], wacc: float, warnings: List[str]) -> Optional[float]:
-    """RONIC for the value-driver TV: forecast RONIC, else base ROIC, clamped to [WACC, 30%]."""
+    """RONIC for the value-driver TV, clamped to [WACC, 30%].
+
+    Prefers the forecast's steady-state RONIC, which already sized the final explicit year's reinvestment,
+    so the terminal value continues the same reinvestment identity; falls back to the horizon RONIC, then
+    base ROIC.
+    """
     if forecast is None:
         return None
     diag = forecast.diagnostics
-    raw_pct = diag.ronic_pct if diag.ronic_pct is not None else diag.base_roic_pct
+    raw_pct = next(
+        (p for p in (diag.steady_state_ronic_pct, diag.ronic_pct, diag.base_roic_pct) if p is not None), None
+    )
     if raw_pct is None:
         warnings.append("No RONIC or base ROIC available; terminal value grows the final UFCF instead.")
         return None
     raw = raw_pct / 100.0
     clamped = min(max(raw, wacc), RONIC_CAP)
     if clamped != raw:
-        bound = "WACC (no value created by growth beyond the horizon)" if raw < wacc else f"{RONIC_CAP:.0%} cap"
-        warnings.append(f"Terminal RONIC {raw * 100:.1f}% clamped to {clamped * 100:.1f}% ({bound}).")
+        if raw < wacc:
+            warnings.append(
+                f"Terminal RONIC {raw * 100:.1f}% clamped to {clamped * 100:.1f}% (WACC: growth beyond the horizon "
+                f"creates no value). The final explicit year still reinvests at the {raw * 100:.1f}% steady-state "
+                f"return, so the explicit period is more conservative than the terminal value."
+            )
+        else:
+            warnings.append(f"Terminal RONIC {raw * 100:.1f}% clamped to {clamped * 100:.1f}% ({RONIC_CAP:.0%} cap).")
     return clamped
+
+
+def solve_reverse_dcf(
+    value_fn: Callable[[float], Optional[float]],
+    target: float,
+    bounds: Tuple[float, float] = REVERSE_DCF_GROWTH_BOUNDS,
+    anchor: Optional[float] = None,
+) -> Tuple[Optional[float], str]:
+    """Finds x in `bounds` with value_fn(x) == target. Never raises; at most
+    REVERSE_DCF_SCAN_POINTS + REVERSE_DCF_MAX_ITERATIONS evaluations.
+
+    Returns (root, 'solved'), or (None, 'price_above_range' | 'price_below_range' | 'no_solution').
+    `value_fn` may return None (no finite value); such points are skipped. With several brackets (a
+    non-monotonic value curve) the one nearest `anchor` wins.
+    """
+    def f(x: float) -> Optional[float]:
+        try:
+            v = value_fn(x)
+        except Exception:  # noqa: BLE001 - the solver must never raise
+            return None
+        return v - target if v is not None and math.isfinite(v) else None
+
+    lo, hi = bounds
+    xs = [lo + (hi - lo) * i / (REVERSE_DCF_SCAN_POINTS - 1) for i in range(REVERSE_DCF_SCAN_POINTS)]
+    points = [(x, fx) for x, fx in ((x, f(x)) for x in xs) if fx is not None]
+    if not points:
+        return None, "no_solution"
+    exact = [x for x, fx in points if fx == 0.0]
+    brackets = [
+        (a, fa, b, fb) for (a, fa), (b, fb) in zip(points, points[1:]) if fa != 0.0 and fb != 0.0 and (fa < 0) != (fb < 0)
+    ]
+    if not exact and not brackets:
+        return None, ("price_above_range" if all(fx < 0 for _, fx in points) else "price_below_range")
+    ref = anchor if anchor is not None else (lo + hi) / 2.0
+    candidates = [(abs(x - ref), x, None) for x in exact] + [
+        (abs((br[0] + br[2]) / 2.0 - ref), None, br) for br in brackets
+    ]
+    _, exact_root, bracket = min(candidates, key=lambda c: c[0])
+    if bracket is None:
+        return exact_root, "solved"
+    a, fa, b, fb = bracket
+    for _ in range(REVERSE_DCF_MAX_ITERATIONS):
+        mid = (a + b) / 2.0
+        fm = f(mid)
+        if fm is None:  # undefined inside the bracket: settle on the bracket midpoint
+            break
+        if fm == 0.0 or (b - a) / 2.0 < REVERSE_DCF_TOLERANCE:
+            return mid, "solved"
+        if (fa < 0) != (fm < 0):
+            b, fb = mid, fm
+        else:
+            a, fa = mid, fm
+    return (a + b) / 2.0, "solved"
+
+
+def _reverse_dcf(
+    forecast: Optional["ForecastOutput"],
+    price: Optional[float],
+    terminal_growth_rate: float,
+    dcf_kwargs: dict,
+    warnings: List[str],
+) -> dict:
+    """Market-implied constant explicit-period revenue growth, plus the uniform operating-margin shift that
+    reaches the price at modeled growth; never raises."""
+    empty = dict(
+        market_implied_growth_pct=None, modeled_revenue_cagr_pct=None, reverse_dcf_horizon_years=None,
+        market_implied_margin_shift_pp=None, modeled_final_margin_pct=None,
+    )
+    if forecast is None or not forecast.applied_drivers.revenue_growth:
+        return {**empty, "reverse_dcf_status": "forecast_unavailable",
+                "reverse_dcf_summary": "No forecast schedule, so no market-implied growth was solved."}
+    horizon = len(forecast.applied_drivers.revenue_growth)
+    modeled = forecast.revenue_cagr_pct
+    baseline, drivers = forecast.assumptions, forecast.applied_drivers
+    final_margin = drivers.operating_margin[-1]
+    base = {
+        **empty, "modeled_revenue_cagr_pct": modeled, "reverse_dcf_horizon_years": horizon,
+        "modeled_final_margin_pct": round(final_margin * 100.0, 2),
+    }
+    if price is None:
+        return {**base, "reverse_dcf_status": "price_unavailable",
+                "reverse_dcf_summary": "No share price, so no market-implied growth was solved."}
+
+    def value_at_growth(growth: float) -> Optional[float]:
+        fcfs, nopat = project_with_overrides(baseline, drivers, terminal_growth_rate, growth=[growth] * horizon)
+        return dcf_fair_value_per_share(fcfs, terminal_nopat=nopat, **dcf_kwargs)
+
+    def value_at_margin_shift(shift: float) -> Optional[float]:
+        margins = [min(max(m + shift, MARGIN_FLOOR), 1.0) for m in drivers.operating_margin]
+        fcfs, nopat = project_with_overrides(baseline, drivers, terminal_growth_rate, margins=margins)
+        return dcf_fair_value_per_share(fcfs, terminal_nopat=nopat, **dcf_kwargs)
+
+    root, status = solve_reverse_dcf(value_at_growth, price, anchor=modeled / 100.0)
+    shift, shift_status = solve_reverse_dcf(value_at_margin_shift, price, REVERSE_DCF_MARGIN_SHIFT_BOUNDS, anchor=0.0)
+    shift_pp = round(shift * 100.0, 2) if shift_status == "solved" else None
+    if shift_pp is not None:
+        margin_text = (
+            f" At modeled growth the price instead needs a {shift_pp:+.1f} pp operating-margin shift in every year "
+            f"(final-year margin {min(max(final_margin + shift, MARGIN_FLOOR), 1.0) * 100:.1f}% versus "
+            f"{final_margin * 100:.1f}% modeled)."
+        )
+    else:
+        lo_m, hi_m = REVERSE_DCF_MARGIN_SHIFT_BOUNDS
+        margin_text = (
+            f" No uniform operating-margin shift between {lo_m * 100:+.0f} and {hi_m * 100:+.0f} pp reaches the price "
+            f"at modeled growth."
+        )
+    base["market_implied_margin_shift_pp"] = shift_pp
+
+    lo, hi = REVERSE_DCF_GROWTH_BOUNDS
+    if status == "solved":
+        implied = round(root * 100.0, 2)
+        gap = implied - modeled
+        summary = (
+            f"At ${price:.2f} the market implies {implied:.1f}% constant revenue growth for {horizon} years (then "
+            f"{terminal_growth_rate * 100:.1f}% terminal), holding modeled margins, reinvestment, WACC and terminal "
+            f"RONIC, versus a {modeled:.1f}% modeled revenue CAGR." + margin_text
+        )
+        if abs(gap) > REVERSE_DCF_GAP_WARNING_PP:
+            warnings.append(
+                f"Reverse DCF: the share price implies {implied:.1f}% annual revenue growth for {horizon} years versus "
+                f"{modeled:.1f}% modeled ({gap:+.1f} pp); the market is pricing materially "
+                f"{'more' if gap > 0 else 'less'} growth, or different margins and returns, than the base case."
+            )
+        return {**base, "market_implied_growth_pct": implied, "reverse_dcf_status": "solved",
+                "reverse_dcf_summary": summary}
+    if status == "price_above_range":
+        summary = (
+            f"The ${price:.2f} share price exceeds the DCF value even at {hi * 100:.0f}% constant revenue growth for "
+            f"{horizon} years at modeled margins."
+        )
+    elif status == "price_below_range":
+        summary = (
+            f"The ${price:.2f} share price is below the DCF value even at {lo * 100:.0f}% constant revenue growth for "
+            f"{horizon} years at modeled margins."
+        )
+    else:
+        summary = "The reverse DCF found no finite valuation across the growth range."
+    summary += margin_text
+    warnings.append(f"Reverse DCF: {summary}")
+    return {**base, "reverse_dcf_status": status, "reverse_dcf_summary": summary}
 
 
 def _scenario_terminal_nopat(forecast: "ForecastOutput", scenario, tax: float) -> Optional[float]:
@@ -291,6 +494,17 @@ def build_valuation(
     price = market.share_price if market.share_price and market.share_price > 0 else None
     upside = _upside(fair, price)
 
+    # 4b. Reverse DCF (market-implied explicit-period growth), same WACC / TV / bridge as the headline
+    reverse = _reverse_dcf(
+        forecast if forecast_source == "forecasting_analyst" else None, price, terminal_growth_rate,
+        dict(
+            wacc=wacc, terminal_growth_rate=terminal_growth_rate, net_debt=bs.net_debt, diluted_shares=shares,
+            ronic=ronic, noncontrolling_interests=bs.noncontrolling_interests or 0.0,
+            roll_forward_years=roll_years, cost_of_equity=wacc_audit.cost_of_equity, mid_year_convention=True,
+        ),
+        warnings,
+    )
+
     # 5. Scenario valuations (same WACC, growth and bridge; base reuses the headline DCF)
     scenario_vals: List[ScenarioValuation] = []
     if forecast is not None:
@@ -337,6 +551,7 @@ def build_valuation(
         terminal_fcf=base["terminal_fcf"],
         ronic_used_pct=round(base["ronic"] * 100.0, 2) if base["ronic"] is not None else None,
         implied_terminal_ev_ebitda=base["implied_terminal_ev_ebitda"],
+        implied_terminal_ev_nopat=base["implied_terminal_ev_nopat"],
         projected_fcfs=projected_fcfs,
         pv_explicit_fcfs=base["pv_explicit_fcfs"],
         pv_terminal_value=base["pv_terminal_value"],
@@ -355,7 +570,9 @@ def build_valuation(
         probability_weighted_fair_value=weighted,
         bear_fair_value=by_name["bear"].fair_value_per_share if "bear" in by_name else None,
         bull_fair_value=by_name["bull"].fair_value_per_share if "bull" in by_name else None,
+        **reverse,
         sensitivity_matrix_markdown=base["sensitivity_matrix_markdown"],
+        ronic_sensitivity_matrix_markdown=base["ronic_sensitivity_matrix_markdown"],
         equity_bridge_markdown=base["equity_bridge_markdown"],
         scenario_table_markdown=_scenario_table(scenario_vals, weighted, price) if scenario_vals else "",
         data_quality=ValuationDataQuality(
