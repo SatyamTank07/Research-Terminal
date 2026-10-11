@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '@/shared/config/env'
 import { request } from '@/shared/services/apiClient'
+import { toSourceRefs } from '@/shared/types/citations'
 import type {
   AgentMilestone,
   ChatMessageResponse,
@@ -101,7 +102,7 @@ export async function sendChatMessageStream(
               response: parsed.response,
               conversation_id: parsed.conversation_id,
               message_id: parsed.message_id || crypto.randomUUID(),
-              sources: parsed.sources || [],
+              sources: toSourceRefs(parsed.sources),
               final_report: parsed.final_report,
               updated_session_state: parsed.updated_session_state,
             }
@@ -138,7 +139,7 @@ export async function getConversationMessages(
     content: m.content,
     timestamp: new Date(m.created_at),
     isError: m.is_error,
-    sources: m.sources || [],
+    sources: toSourceRefs(m.sources),
   }))
 }
 

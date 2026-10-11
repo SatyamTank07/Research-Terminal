@@ -1,10 +1,6 @@
-export type MessageRole = 'user' | 'assistant' | 'system'
+import type { SourceRef } from '@/shared/types/citations'
 
-export interface SourceItem {
-  title?: string
-  url?: string
-  snippet?: string
-}
+export type MessageRole = 'user' | 'assistant' | 'system'
 
 export interface Message {
   id: string
@@ -13,7 +9,7 @@ export interface Message {
   content: string
   timestamp: Date
   isError?: boolean
-  sources?: SourceItem[]
+  sources?: SourceRef[]
 }
 
 export interface ChatRequest {
@@ -26,7 +22,7 @@ export interface ChatResponse {
   response: string
   conversation_id: string
   message_id: string
-  sources?: SourceItem[]
+  sources?: SourceRef[]
   /** Structured Final10KResearchReport (streamed research routes only). */
   final_report?: Record<string, any>
   /** Conversation session state persisted by the backend after this turn (streamed responses only). */
@@ -39,7 +35,7 @@ export interface ChatMessageResponse {
   user_id?: number | null
   role: MessageRole
   content: string
-  sources?: SourceItem[]
+  sources?: SourceRef[]
   token_count?: number | null
   is_error?: boolean
   created_at: string
@@ -69,7 +65,7 @@ export type StreamingChatEvent =
       response: string
       conversation_id: string
       message_id?: string
-      sources?: SourceItem[]
+      sources?: SourceRef[]
       final_report?: Record<string, any>
       updated_session_state?: Record<string, any>
     }
