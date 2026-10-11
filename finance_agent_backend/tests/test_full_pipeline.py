@@ -35,7 +35,6 @@ from app.agents.state import (
     Final10KResearchReport,
     FinancialAuditOutput,
     ForecastOutput,
-    ForecastYear,
     RiskAuditOutput,
     RiskItem,
     ThreePillarThesis,
@@ -52,6 +51,7 @@ from app.database import SessionLocal
 from app.models import ChatMessage, Conversation, User
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.chat_service import process_chat, stream_chat_service
+from tests.forecast_fixtures import make_forecast_output
 
 
 class TestMilestone6FullPipeline(unittest.TestCase):
@@ -199,38 +199,7 @@ class TestMilestone6FullPipeline(unittest.TestCase):
 
     @staticmethod
     def _mock_forecast(ticker: str, fiscal_year: int, financial_audit: FinancialAuditOutput, **kwargs) -> ForecastOutput:
-        sched = [
-            ForecastYear(
-                projected_year=fiscal_year + i,
-                projected_revenue=400000.0 * (1.05 ** i),
-                projected_revenue_growth_pct=5.0,
-                projected_ebit=130000.0 * (1.05 ** i),
-                projected_ebit_margin_pct=32.5,
-                projected_nopat=110000.0 * (1.05 ** i),
-                projected_capex=12000.0 * (1.05 ** i),
-                projected_unlevered_fcf=98000.0 * (1.05 ** i),
-            )
-            for i in range(1, 6)
-        ]
-        fcfs = [y.projected_unlevered_fcf for y in sched]
-        return ForecastOutput(
-            ticker=ticker.upper(),
-            fiscal_year=fiscal_year,
-            base_revenue=416161.0,
-            forecast_horizon_years=5,
-            revenue_cagr_pct=5.0,
-            cumulative_5yr_fcf=sum(fcfs),
-            average_annual_fcf=sum(fcfs) / 5.0,
-            provenance_mode="simplified_nopat_less_capex",
-            guidance_source="md&a_explicit",
-            tax_rate_pct=15.6,
-            projected_fcfs=fcfs,
-            forecast_schedule=sched,
-            forecast_table_markdown="| Metric | FY26 | FY27 | FY28 | FY29 | FY30 |\n| :--- | :---: | :---: | :---: |\n| UFCF | $98,000 | $102,900 | $108,045 | $113,447 | $119,120 |",
-            growth_rationale="5-year forecast calibrated to audited guidance.",
-            margin_expansion_rationale="Operating margin expansion from efficiency.",
-            citations=[{"chunk_id": f"chunk-{ticker.lower()}-item7-01", "item": "Item 7"}],
-        )
+        return make_forecast_output(ticker, fiscal_year)
 
     @staticmethod
     def _mock_dcf_value(ticker: str, fiscal_year: int, financial_audit: FinancialAuditOutput, projected_fcfs: List[float], **kwargs) -> DCFValuationOutput:

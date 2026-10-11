@@ -18,7 +18,7 @@ from app.agents.specialized.valuation_specialist.state_valuation_specialist impo
     DCFValuationOutput,
     WACCAudit,
 )
-from app.agents.tools.dcf_tools import calculate_dcf_tool
+from app.agents.tools.dcf_tools import calculate_dcf_tool, calculate_dcf_with_sensitivity
 from app.agents.tools.wacc_tools import calculate_wacc_tool
 
 
@@ -230,6 +230,21 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
             )
         elif tool_wacc_data:
             output.wacc_audit = WACCAudit.model_validate(tool_wacc_data)
+        if tool_dcf_data and projected_fcfs and tool_dcf_data.get("forecast_years_count") != len(projected_fcfs):
+            # The LLM passed a different horizon than the forecaster built (e.g. truncated a 10-year fade
+            # to 5 years); revalue every forecast year in code with the same WACC, net debt and shares.
+            logger.warning(
+                f"DCF tool valued {tool_dcf_data.get('forecast_years_count')} years but the forecast has "
+                f"{len(projected_fcfs)}; recomputing the DCF in code."
+            )
+            tool_dcf_data = calculate_dcf_with_sensitivity(
+                projected_fcfs=projected_fcfs,
+                wacc=output.wacc_audit.wacc,
+                terminal_growth_rate=terminal_growth_rate,
+                net_debt=tool_dcf_data["net_debt"],
+                diluted_shares=tool_dcf_data["diluted_shares"],
+                mid_year_convention=tool_dcf_data.get("discounting_convention", "mid_year") == "mid_year",
+            )
         if tool_dcf_data:
             output.enterprise_value = tool_dcf_data["enterprise_value"]
             output.pv_explicit_fcfs = tool_dcf_data["pv_explicit_fcfs"]

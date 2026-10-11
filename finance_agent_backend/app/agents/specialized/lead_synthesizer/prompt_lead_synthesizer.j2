@@ -41,17 +41,25 @@ WACC Audit Table:
 
 {% if forecast %}
 [FINANCIAL FORECASTING ANALYST PROJECTIONS]
-- 5-Year Revenue CAGR: {{ "{:.1f}%".format(forecast.revenue_cagr_pct) if forecast.revenue_cagr_pct is not none else "N/A" }}
-- 5-Year Cumulative Explicit UFCF: ${{ "{:,.1f}".format(forecast.cumulative_5yr_fcf) if forecast.cumulative_5yr_fcf is not none else "N/A" }}M (Average Annual: ${{ "{:,.1f}".format(forecast.average_annual_fcf) if forecast.average_annual_fcf is not none else "N/A" }}M)
-- Forecast Guidance Source: {{ forecast.guidance_source }} (Mode: {{ forecast.provenance_mode }})
+- Explicit horizon: {{ forecast.forecast_horizon_years }} years | Guidance source: {{ forecast.guidance_source }}
+- Base-case revenue CAGR: {{ "{:.1f}%".format(forecast.revenue_cagr_pct) }} | Cumulative UFCF (SBC expensed in EBIT): ${{ "{:,.1f}".format(forecast.cumulative_fcf) }}M (average ${{ "{:,.1f}".format(forecast.average_annual_fcf) }}M per year)
+- Baseline: {{ forecast.assumptions.margin_source }} operating margin {{ "{:.2f}%".format(forecast.assumptions.base_operating_margin * 100) }}; tax {{ "{:.2f}%".format(forecast.assumptions.tax_rate * 100) }} ({{ forecast.assumptions.tax_source }}); D&A {{ forecast.assumptions.da_source }}; working capital {{ forecast.assumptions.nwc_source }}
 - Growth Rationale: {{ forecast.growth_rationale }}
-- Margin Expansion Rationale: {{ forecast.margin_expansion_rationale }}
+- Margin Rationale: {{ forecast.margin_rationale }}
 - Reinvestment Rationale: {{ forecast.reinvestment_rationale }}
-{% if forecast.forecast_table_markdown %}
-
-5-Year UFCF Forecast Schedule Table:
-{{ forecast.forecast_table_markdown }}
+- Scenarios:
+{% for s in forecast.scenarios %}
+  - {{ s.name | capitalize }} ({{ "{:.0f}%".format(s.probability * 100) }}): revenue CAGR {{ "{:.1f}%".format(s.revenue_cagr_pct) }}, cumulative UFCF ${{ "{:,.0f}".format(s.cumulative_fcf) }}M
+{% endfor %}
+{% if forecast.diagnostics.warnings %}
+- Forecast diagnostics:
+{% for w in forecast.diagnostics.warnings %}
+  - {{ w }}
+{% endfor %}
 {% endif %}
+
+Forecast Schedule Table:
+{{ forecast.forecast_table_markdown }}
 {% endif %}
 
 {% if financial_audit %}

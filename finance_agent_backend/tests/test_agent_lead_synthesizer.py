@@ -24,7 +24,6 @@ from app.agents.state import (
     Final10KResearchReport,
     FinancialAuditOutput,
     ForecastOutput,
-    ForecastYear,
     RiskAuditOutput,
     RiskDataQuality,
     RiskDisclosureDiff,
@@ -48,6 +47,7 @@ from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import (
     LeadSynthesizerAgent,
     ResearchSynthesisPayload,
 )
+from tests.forecast_fixtures import make_forecast_output
 
 
 def _create_mock_audit() -> FinancialAuditOutput:
@@ -134,31 +134,8 @@ def _create_mock_moat() -> BusinessMoatOutput:
 
 
 def _create_mock_forecast() -> ForecastOutput:
-    """Helper creating verified ForecastOutput."""
-    schedule = [
-        ForecastYear(projected_year=2026, projected_revenue=441130.7, projected_revenue_growth_pct=6.0, projected_ebit=141161.8, projected_ebit_margin_pct=32.0, projected_nopat=119139.6, projected_capex=13480.0, projected_unlevered_fcf=105659.6),
-        ForecastYear(projected_year=2027, projected_revenue=465392.8, projected_revenue_growth_pct=5.5, projected_ebit=149856.5, projected_ebit_margin_pct=32.2, projected_nopat=126478.9, projected_capex=14220.0, projected_unlevered_fcf=112258.9),
-        ForecastYear(projected_year=2028, projected_revenue=488662.5, projected_revenue_growth_pct=5.0, projected_ebit=158326.7, projected_ebit_margin_pct=32.4, projected_nopat=133627.7, projected_capex=14930.0, projected_unlevered_fcf=118697.7),
-        ForecastYear(projected_year=2029, projected_revenue=510652.3, projected_revenue_growth_pct=4.5, projected_ebit=166472.6, projected_ebit_margin_pct=32.6, projected_nopat=140502.9, projected_capex=15600.0, projected_unlevered_fcf=124902.9),
-        ForecastYear(projected_year=2030, projected_revenue=531078.4, projected_revenue_growth_pct=4.0, projected_ebit=174193.7, projected_ebit_margin_pct=32.8, projected_nopat=147019.5, projected_capex=16220.0, projected_unlevered_fcf=130799.5),
-    ]
-    return ForecastOutput(
-        ticker="AAPL",
-        fiscal_year=2025,
-        base_revenue=416161.0,
-        forecast_horizon_years=5,
-        revenue_cagr_pct=5.0,
-        cumulative_5yr_fcf=592318.6,
-        average_annual_fcf=118463.7,
-        provenance_mode="simplified_nopat_less_capex",
-        guidance_source="md&a_explicit",
-        tax_rate_pct=15.6,
-        projected_fcfs=[105659.6, 112258.9, 118697.7, 124902.9, 130799.5],
-        forecast_schedule=schedule,
-        forecast_table_markdown="| Metric | FY26 | FY27 | FY28 | FY29 | FY30 |\n| :--- | :---: | :---: | :---: | :---: |\n| Revenue | $441,131 | $465,393 | $488,663 | $510,652 | $531,078 |",
-        growth_rationale="Revenue growth models steady 5% CAGR underpinned by Services expansion and Apple Intelligence upgrade cycle.",
-        margin_expansion_rationale="Modest 80bps operating margin expansion over 5 years driven by growing mix of high-margin Services.",
-        citations=[{"chunk_id": "narrative-chunk-item7-01", "item": "Item 7"}],
+    return make_forecast_output().model_copy(
+        update={"citations": [{"chunk_id": "narrative-chunk-item7-01", "item": "Item 7"}]}
     )
 
 

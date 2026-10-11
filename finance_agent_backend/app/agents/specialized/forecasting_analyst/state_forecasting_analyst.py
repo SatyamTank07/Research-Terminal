@@ -1,58 +1,43 @@
 """State and Output Schemas for Financial Forecasting Analyst Agent."""
 
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal
+
 from pydantic import BaseModel, Field
 
-from app.agents.tools.forecast_tools import (
-    ForecastYearResult,
-    ForecastScheduleResult,
-    ProvenanceMode,
-)
+from app.agents.tools.forecast_baseline import ForecastBaseline
+from app.agents.tools.forecast_drivers import DriverAdjustment, ForecastDrivers
+from app.agents.tools.forecast_model import ForecastDiagnostics, ForecastScenario
+from app.agents.tools.forecast_tools import ForecastYearResult
+from app.agents.tools.mdna_guidance import MdnaAssessment
 
 ForecastYear = ForecastYearResult
-GuidanceSource = Literal["md&a_explicit", "historical_cagr_decay"]
+GuidanceSource = Literal["mdna_informed", "historical_fade"]
 
 
 class ForecastOutput(BaseModel):
-    """Structured artifact emitted by the Financial Forecasting Analyst Agent."""
+    """Structured artifact emitted by the Financial Forecasting Analyst Agent. Every number is code-built."""
 
-    ticker: str = Field(..., description="Stock ticker symbol (e.g. AAPL)")
-    fiscal_year: int = Field(..., description="Base 10-K fiscal year audited (e.g. 2025)")
-    base_revenue: float = Field(..., description="Audited base year revenue in $ Millions")
-    forecast_horizon_years: int = Field(default=5, description="Number of forward explicit projection years")
-    revenue_cagr_pct: float = Field(..., description="5-year Compound Annual Growth Rate of Revenue as %")
-    cumulative_5yr_fcf: float = Field(..., description="Total cumulative explicit UFCF generated over 5 years in $ Millions")
-    average_annual_fcf: float = Field(..., description="Average annual UFCF in $ Millions")
-    provenance_mode: ProvenanceMode = Field(
-        ..., description="Accounting bridge used: 'comprehensive_line_item' or 'simplified_nopat_less_capex'"
-    )
+    ticker: str = Field(..., description="Stock ticker symbol")
+    fiscal_year: int = Field(..., description="Base 10-K fiscal year")
+    base_revenue: float = Field(..., description="Audited base-year revenue ($M)")
+    forecast_horizon_years: int = Field(..., description="Explicit years modeled (5, or 10 when the growth fade was extended)")
+    revenue_cagr_pct: float = Field(..., description="Base-case revenue CAGR over the explicit horizon (%)")
+    cumulative_fcf: float = Field(..., description="Sum of base-case UFCF over the explicit horizon ($M)")
+    average_annual_fcf: float = Field(..., description="Average base-case UFCF per year ($M)")
     guidance_source: GuidanceSource = Field(
-        default="md&a_explicit",
-        description="Provenance of forward growth assumptions: 'md&a_explicit' (derived from 10-K Item 7 guidance) or 'historical_cagr_decay' (deterministic 75bps/yr decay from historical 3-year CAGR)",
+        ..., description="'mdna_informed' = LLM drivers screened against Item 7 evidence; 'historical_fade' = no-LLM fade"
     )
-    tax_rate_pct: float = Field(..., description="Effective tax rate percentage used")
-
-    # Direct handoff into DCF Valuation Specialist
-    projected_fcfs: List[float] = Field(
-        ..., description="Explicit forecast period UFCFs ($M) feeding directly into calculate_dcf_tool"
-    )
-    forecast_schedule: List[ForecastYearResult] = Field(
-        ..., description="Year-by-year projected line items (Revenue, EBIT, NOPAT, CapEx, UFCF)"
-    )
-    forecast_table_markdown: str = Field(
-        ..., description="Publication-ready Markdown forecast comparison table"
-    )
-
-    # Forecaster Synthesis & Rationale
-    growth_rationale: str = Field(
-        ..., description="Evidence-backed defense of revenue growth curve linked to Item 7 MD&A disclosures"
-    )
-    margin_expansion_rationale: str = Field(
-        ..., description="Rationale for EBIT margin progression (operating leverage, product mix, cost discipline)"
-    )
-    reinvestment_rationale: Optional[str] = Field(
-        None, description="Analysis of CapEx and working capital intensity relative to historical trend"
-    )
-    citations: List[Dict[str, Any]] = Field(
-        default_factory=list, description="Citations to Item 7 tables and MD&A disclosures"
-    )
+    tax_rate_pct: float = Field(..., description="Tax rate applied to EBIT (%)")
+    projected_fcfs: List[float] = Field(..., description="Base-case UFCF ($M; SBC already expensed in EBIT), handed to the DCF")
+    forecast_schedule: List[ForecastYearResult]
+    forecast_table_markdown: str
+    assumptions: ForecastBaseline
+    applied_drivers: ForecastDrivers
+    driver_adjustments: List[DriverAdjustment] = Field(default_factory=list)
+    scenarios: List[ForecastScenario]
+    diagnostics: ForecastDiagnostics
+    mdna_assessment: MdnaAssessment
+    growth_rationale: str
+    margin_rationale: str
+    reinvestment_rationale: str
+    citations: List[Dict[str, Any]] = Field(default_factory=list)
