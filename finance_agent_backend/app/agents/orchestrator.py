@@ -304,7 +304,7 @@ async def lead_synthesizer_node(state: EquityResearchState) -> Dict[str, Any]:
 
     return {
         "final_report": report,
-        "sources": report.all_citations,
+        "sources": [s.model_dump() for s in report.sources],
     }
 
 
@@ -571,7 +571,7 @@ class MultiAgentOrchestrator(BaseAgent):
             yield {
                 "type": "result",
                 "response": report_obj.full_markdown_report,
-                "sources": report_obj.all_citations,
+                "sources": [s.model_dump() for s in report_obj.sources],
                 "final_report": report_obj.model_dump(),
                 "updated_session_state": updated_state,
             }
@@ -656,7 +656,7 @@ class MultiAgentOrchestrator(BaseAgent):
         if isinstance(final_report, Final10KResearchReport):
             return AgentOutput(
                 content=final_report.full_markdown_report,
-                sources=final_report.all_citations,
+                sources=[s.model_dump() for s in final_report.sources],
                 updated_session_state=updated_state,
             )
         raise RuntimeError(state.get("error_message") or "The research pipeline finished without a report.")

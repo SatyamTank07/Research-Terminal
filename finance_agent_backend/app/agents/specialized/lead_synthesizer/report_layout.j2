@@ -1,6 +1,6 @@
 {# Route-specific report skeleton. `p` holds the (verified) prose fields; all tables come from the artifacts. #}
-{% import "report_blocks.j2" as b %}
-{% import "audit_tables.j2" as t %}
+{% import "report_blocks.j2" as b with context %}
+{% import "audit_tables.j2" as t with context %}
 {% set title_suffix = company_name ~ " (" ~ ticker ~ ")" %}
 {% set horizon = (forecast.forecast_horizon_years ~ "-Year") if forecast else "Multi-Year" %}
 {% macro prose(text) %}{% if text %}{{ text }}
@@ -103,7 +103,7 @@
 {{ b.market_power_block(m) }}
 ## 6. Filing Evidence & Audit Trail
 
-{{ b.citations_table(m.citations) }}
+{{ b.evidence_note() }}
 {{ b.footer(notes, provenance, removed_sentences) }}
 {% elif query_type == "risk_factors_only" %}
 {% set r = risk_audit %}

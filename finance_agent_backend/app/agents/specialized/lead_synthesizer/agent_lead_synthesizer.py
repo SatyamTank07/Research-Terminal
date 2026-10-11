@@ -6,9 +6,10 @@ rendered in code from the specialist artifacts (`report_layout.j2`). One structu
 the analytical prose between them. Prose is screened in code: sentences citing figures absent from the
 verified context are removed, invented dates and unsupported year-over-year risk claims are stripped,
 and every field has a deterministic fallback, so a failed LLM call still yields a complete report.
+Every filing-backed table row, quote and prose figure carries an inline [[n]](#cite-n) marker built in code
+(report_citations.py); the numbered sources ship as Final10KResearchReport.sources.
 """
 
-import json
 import logging
 import re
 from typing import Any, Dict, List, Literal, Optional, Tuple
@@ -30,7 +31,14 @@ from app.agents.specialized.lead_synthesizer.state_lead_synthesizer import (
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
-from app.agents.tools.figure_verification import collect_known_figures, strip_unverified_sentences
+from app.agents.specialized.lead_synthesizer.report_citations import NullCiter, ReportCiter
+from app.agents.tools.citation_registry import CitationRegistry, SourceRef, strip_markers
+from app.agents.tools.figure_verification import (
+    annotate_sentences,
+    build_figure_index,
+    collect_known_figures,
+    strip_unverified_sentences,
+)
 
 logger = logging.getLogger("finance_agent.agents.lead_synthesizer")
 
@@ -168,6 +176,7 @@ class LeadSynthesizerAgent(BaseAgent):
             if not prose.get(key):
                 prose[key] = fallback.get(key)
 
+        citer, cited_prose = self._cite_prose(prose, fiscal_year, artifacts, notes)
         full_report_md = render_prompt(
             "report_layout.j2",
             ticker=ticker,
@@ -175,13 +184,15 @@ class LeadSynthesizerAgent(BaseAgent):
             fiscal_year=fiscal_year,
             query_type=query_type,
             year_substituted=year_substituted,
-            p=prose,
+            p=cited_prose,
             notes=notes,
             provenance=provenance,
             removed_sentences=removed,
+            cite=citer,
             **artifacts,
         )
         full_report_md = re.sub(r"\n{3,}", "\n\n", full_report_md).strip() + "\n"
+        full_report_md, sources = self._finalize_citations(citer, full_report_md)
 
         val = dcf_valuation
         return Final10KResearchReport(
@@ -201,7 +212,7 @@ class LeadSynthesizerAgent(BaseAgent):
             synthesis_provenance=provenance,
             year_substituted=year_substituted,
             full_markdown_report=full_report_md,
-            all_citations=self._consolidate_citations(business_moat, financial_audit, forecast, risk_audit),
+            sources=sources,
         )
 
     # ------------------------------------------------------------------
@@ -362,23 +373,33 @@ class LeadSynthesizerAgent(BaseAgent):
     # Helpers
     # ------------------------------------------------------------------
     @staticmethod
-    def _consolidate_citations(
-        business_moat: Optional[BusinessMoatOutput],
-        financial_audit: Optional[FinancialAuditOutput],
-        forecast: Optional[ForecastOutput],
-        risk_audit: Optional[RiskAuditOutput],
-    ) -> List[Dict[str, Any]]:
-        """Aggregates and deduplicates citation records across all sub-agents."""
-        deduped: List[Dict[str, Any]] = []
-        seen = set()
-        for artifact in (business_moat, financial_audit, forecast, risk_audit):
-            for item in (getattr(artifact, "citations", None) or []):
-                if isinstance(item, dict):
-                    cid = item.get("chunk_id") or item.get("breadcrumb") or json.dumps(item, sort_keys=True)
-                    if cid not in seen:
-                        seen.add(cid)
-                        deduped.append(item)
-        return deduped
+    def _cite_prose(
+        prose: Dict[str, Optional[str]], fiscal_year: int, artifacts: Dict[str, Any], notes: List[str]
+    ) -> Tuple[Any, Dict[str, Optional[str]]]:
+        """Builds the report citer and appends source markers to verified prose; never raises."""
+        try:
+            citer = ReportCiter(CitationRegistry(), fiscal_year, **artifacts)
+            index = build_figure_index(citer.figure_entries())
+            cited = {
+                key: annotate_sentences(text, index, citer.registry.cite_all) if text else text
+                for key, text in prose.items()
+            }
+            return citer, cited
+        except Exception as e:
+            logger.exception(f"Citation build failed ({e!r}); publishing without filing markers.")
+            notes.append("Filing citations could not be built for this report.")
+            return NullCiter(), dict(prose)
+
+    @staticmethod
+    def _finalize_citations(citer: Any, markdown: str) -> Tuple[str, List[SourceRef]]:
+        """Resolves and renumbers markers; on failure strips them so no dangling [n] is published."""
+        if not isinstance(citer, ReportCiter):
+            return strip_markers(markdown), []
+        try:
+            return citer.registry.finalize(markdown)
+        except Exception as e:
+            logger.exception(f"Citation finalize failed ({e!r}); publishing without filing markers.")
+            return strip_markers(markdown), []
 
     @staticmethod
     def _parse_json_fallback(content: Any) -> Dict[str, Any]:

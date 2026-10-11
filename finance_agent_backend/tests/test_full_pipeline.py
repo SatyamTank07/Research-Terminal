@@ -249,14 +249,6 @@ class TestMilestone6FullPipeline(unittest.TestCase):
             f"## 8. Regulatory Disclaimers & Audit Breadcrumbs\n"
             f"Institutional research disclaimer."
         )
-        all_citations = []
-        for k in ["business_moat", "financial_audit", "forecast", "risk_audit"]:
-            o = kwargs.get(k)
-            if o and hasattr(o, "citations") and o.citations:
-                all_citations.extend(o.citations)
-        if not all_citations:
-            all_citations = [{"chunk_id": f"chunk-{ticker.lower()}-01", "item": "Item 1"}]
-
         return Final10KResearchReport(
             ticker=ticker.upper(),
             company_name=company_name,
@@ -270,7 +262,6 @@ class TestMilestone6FullPipeline(unittest.TestCase):
             synthesis_provenance="llm_structured",
             year_substituted=kwargs.get("year_substituted", False),
             full_markdown_report=md_report,
-            all_citations=all_citations,
         )
 
     @classmethod
@@ -480,9 +471,6 @@ class TestMilestone6FullPipeline(unittest.TestCase):
         self.assertIn("5-Year Financial Forecast & Cash Flow Schedule", md)
         self.assertIn("Discounted Cash Flow (DCF) Valuation & Sensitivity", md)
         self.assertIn("Material Risk Factors & Existential Overhangs", md)
-
-        # 6. Deduplicated citations
-        self.assertGreater(len(report.all_citations), 0)
 
     def test_06_chat_service_integration(self):
         """Verify process_chat executes through MultiAgentOrchestrator and persists in PostgreSQL."""

@@ -1,7 +1,9 @@
 """State and Output Schemas for Lead Synthesizer Agent."""
 
-from typing import Any, Dict, List, Literal, Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
+
+from app.agents.tools.citation_registry import SourceRef
 
 
 class ThreePillarThesis(BaseModel):
@@ -59,7 +61,7 @@ class Final10KResearchReport(BaseModel):
     full_markdown_report: str = Field(
         ..., description="Complete, institutional-grade Markdown publication report"
     )
-    all_citations: List[Dict[str, Any]] = Field(
+    sources: List[SourceRef] = Field(
         default_factory=list,
-        description="Deduplicated consolidation of all chunk IDs and table references used"
+        description="Numbered filing sources; every [[n]](#cite-n) marker in full_markdown_report resolves to sources[n-1]",
     )

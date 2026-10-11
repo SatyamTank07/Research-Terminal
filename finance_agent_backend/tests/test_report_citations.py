@@ -77,7 +77,7 @@ class TestReportCiter(unittest.TestCase):
         spec = c.registry._specs[0]
         self.assertEqual(spec.kind, "derived")
         self.assertEqual(spec.chunk_ids, ("income_statement-fy2025",))
-        self.assertEqual(spec.derived_from, "Computed from the audited income statement (FY2023–FY2025)")
+        self.assertEqual(spec.derived_from, "Computed from the audited income statement")
 
     def test_unmapped_or_unprovenanced_rows_get_no_marker(self):
         c = citer()

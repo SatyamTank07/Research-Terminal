@@ -144,8 +144,8 @@ class ReportCiter:
             return None
         names = [STATEMENT_NAMES[s] for s in statements if s in STATEMENT_NAMES]
         listed = names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
-        span = f"FY{span_years[0]}" if len(span_years) == 1 else f"FY{span_years[0]}–FY{span_years[-1]}"
-        return SourceSpec(kind="derived", chunk_ids=tuple(ids), derived_from=f"Computed from the audited {listed} ({span})")
+        # No year span: derived sources dedupe on their chunk set, so one label serves every row built from it.
+        return SourceSpec(kind="derived", chunk_ids=tuple(ids), derived_from=f"Computed from the audited {listed}")
 
     def _field_spec(self, attr: str, year: Optional[int] = None) -> Optional[SourceSpec]:
         return self._statement_spec(ROW_STATEMENTS.get(attr, ()), [year or self._anchor])
