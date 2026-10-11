@@ -56,7 +56,8 @@ Every entry in `ChatMessage.sources` becomes (ordered by `n`, 1-based):
   "ticker": "AAPL",
   "fiscal_year": 2025,
   "chunks": [
-    {"chunk_id": "uuid", "chunk_index": 112, "item": "Item 7", "breadcrumb": "Item 7 > Liquidity ..."}
+    {"chunk_id": "uuid", "document_id": "uuid", "chunk_index": 112, "ticker": "AAPL", "fiscal_year": 2025,
+     "item": "Item 7", "breadcrumb": "Item 7 > Liquidity ..."}
   ],
   "quote": "verbatim excerpt (verbatim kind only) | null",
   "derived_from": "e.g. 'ROIC FY2025 = NOPAT / avg invested capital' (derived kind only) | null",
@@ -66,6 +67,8 @@ Every entry in `ChatMessage.sources` becomes (ordered by `n`, 1-based):
 
 - `verbatim`: exactly one chunk + the verified quote.
 - `derived`: one or more input chunks (statement tables) + a short formula/description.
+- `document_id` lives on each chunk (a derived source can span filings, e.g. FY2023 values from the FY2024
+  10-K); the source-level `document_id`/`ticker`/`fiscal_year` mirror its first chunk.
 - `market`: no chunks, no `document_id`; `provider` names the source tag already produced by
   `market_data_tools.py` / config defaults.
 - `chunk_index`, `ticker`, `fiscal_year`, `breadcrumb` are stored so a reference survives re-ingestion
@@ -85,11 +88,12 @@ conversational path for Q&A).
 - `cite_market(label, provider) -> str` — returns the marker for a market input. All kinds use the same
   `[[n]](#cite-n)` encoding; the frontend decides navigability from `kind`.
 - `marker(n) -> "[[n]](#cite-n)"`; multiple sources on one sentence render as `[[2]](#cite-2)[[5]](#cite-5)`.
-- Dedupe key: `(kind, tuple(sorted chunk_ids), normalized quote | derived_from | provider)`; the same
-  source cited twice reuses its `n`.
-- `sources() -> List[SourceRef]` in `n` order.
+- Dedupe key: verbatim `(chunk_ids, normalized quote)`; derived `(chunk_ids)` only, so every audit row built
+  from the same statement tables shares one `n` (the first `derived_from` wins); market `(label, provider)`.
+- `finalize(markdown) -> (markdown, List[SourceRef])`: resolves metadata, drops dead sources and their
+  markers, renumbers survivors 1..N by first appearance in the text.
 - Chunk metadata (`document_id`, `chunk_index`, `item`, `breadcrumb`) is resolved in **one** batched DB
-  query (`DocumentChunk.id IN (...)`) at `sources()` time for any chunk the producer did not fully
+  query (`DocumentChunk.id IN (...)`) at `finalize()` time for any chunk the producer did not fully
   describe. Unknown chunk ids are dropped from the source; a source left with no chunks is dropped and
   its markers are removed from the text (never a dangling `[n]`).
 
@@ -118,9 +122,9 @@ lives next to the code that computes each figure so the input list stays in sync
   **per chunk** (and per derived-figure text block), mapping each known value to the source keys that
   contain it. `collect_known_figures` becomes a view over this index, so verification behaviour is unchanged.
 - New `attribute_sentence(sentence, index) -> List[source_key]`: for each figure in a verified sentence,
-  the source keys whose values match under the same rounding/scale tolerance (`_matches`). Ties: prefer
-  the chunk from the anchor fiscal year, then the statement table over narrative, then lowest
-  `chunk_index`; at most 3 markers per sentence.
+  the source keys whose values match under the same rounding/scale tolerance (`_matches`). Each figure
+  takes its highest-priority source, where priority is the order producers add entries (anchor-year
+  audit data, then valuation, then segment figures, then verified quotes); at most 3 markers per sentence.
 - The synthesizer's `_screen_prose` keeps verified sentences as today, then appends markers produced by
   `registry.cite_*` for the attributed source keys. Sentences whose figures appear only in computed
   context (e.g. fair value) attribute to that figure's derived source.
@@ -154,8 +158,8 @@ same item; 404 when no filing exists.
 - Research routes: the synthesizer owns the registry; `report_layout.j2` receives markers as
   pre-rendered strings on each row/sentence (template stays dumb). `Final10KResearchReport.sources`
   replaces `all_citations`; orchestrator/chat_service pass it through unchanged.
-- Conversational route: `BaseAgent.run` builds a registry from the chunks returned by its RAG tools,
-  attributes figures in the final answer (3.4) and returns `registry.sources()` as `sources`.
+- Conversational route: out of scope. The supervisor answers from its own LLM call with no filing
+  retrieval, so there is nothing to cite; it keeps returning `sources: []`.
 
 ## 4. Frontend design
 
@@ -193,17 +197,17 @@ side-by-side on wide screens; the left conversation sidebar is unchanged.
 
 | Failure | Behaviour |
 |---|---|
-| Producer cites an unknown chunk id | Dropped at `sources()` time; markers removed from text; logged |
-| Registry/attribution raises | Synthesizer catches, emits report without markers, appends to `pipeline_notes` (failure isolation) |
+| Producer cites an unknown chunk id | Dropped at `finalize()` time; markers removed from text; logged |
+| Registry/attribution or a template marker raises | Synthesizer catches, emits report without markers, appends to `pipeline_notes` (failure isolation) |
 | `/content` 404 | Panel inline error, chat unaffected |
 | Re-ingested filing | `locate` fallback with "approximate" note |
-| Old messages with legacy citation dicts | Rendered as plain unnumbered list entries without click (no backend shim) |
+| Old messages with legacy citation dicts | Filtered out by the frontend (`isSourceRef`); they never rendered meaningfully (empty pills) |
 
 ## 6. Testing
 
 Backend (pytest, deterministic, no live LLM calls):
 - `test_citation_registry.py`: numbering, dedupe, marker format, multi-marker sentences, unknown-chunk
-  drop removes markers, `sources()` ordering, batched metadata resolution (one query).
+  drop removes markers, `finalize()` renumbering, batched metadata resolution (one query).
 - `test_figure_verification.py` additions: per-chunk index, figure attributed only to chunks containing it,
   rounding/scale-aware attribution (`$716.9 billion` ↔ `716,924`), tie-break order, max 3 markers,
   existing verification behaviour unchanged.
