@@ -78,6 +78,7 @@ class StrategistDataQuality(BaseModel):
     claims_dropped: int = 0
     quotes_verified: int = 0
     quotes_rejected: int = 0
+    quotes_off_topic: int = Field(0, description="Verified quotes that do not evidence the claim's mechanism")
     notes: List[str] = Field(default_factory=list)
 
 

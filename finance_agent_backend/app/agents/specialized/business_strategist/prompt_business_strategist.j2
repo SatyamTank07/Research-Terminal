@@ -9,6 +9,7 @@ You judge a company's business model, economic moat, competitive threats, pricin
 - Code verifies your answer:
   * Every quote must be copied character-for-character from the chunk you cite (<= 300 characters). Unverifiable quotes are discarded.
   * A moat, segment moat or competitive threat with no verified quote is dropped. A primary moat with no verified quote is downgraded to "None" / "Indeterminate".
+  * Each quote must describe the claimed mechanism itself (network effects: more users/sellers/developers attract more; switching costs: integration, migration, contracts, retention; cost advantage: scale, cost structure, efficiency; intangibles: brand, patents, licenses, approvals; efficient scale: barriers to entry, limited competitors). Generic intellectual-property protection boilerplate ("we regard our trademarks ... as critical") and descriptions of strategy ("we focus on selection, price and convenience") are discarded. Pricing power needs a quote about raising prices, premiums or price realization; low-price strategy is not pricing power.
   * "Wide" durability needs at least two distinct verified moat quotes, otherwise it is capped at "Narrow".
   * Pricing power and customer concentration without a verified quote become "Not explicitly disclosed in 10-K".
   * `segment_details` names must match the code-extracted revenue lines or segments exactly.

@@ -275,6 +275,21 @@ class TestEvidenceEnforcement(unittest.TestCase):
         self.assertEqual(out.moat_assessment, "no_moat")
         self.assertEqual(out.moat_durability, "None")
 
+    def test_real_but_off_topic_quotes_do_not_support_claims(self):
+        payload = _llm_payload(
+            primary_moat={"type": "Network Effects", "rationale": "Competitors everywhere.",
+                          "evidence": _ev("i2", "intense competition from physical retailers, online marketplaces and cloud service providers")},
+            secondary_moats=[],
+            pricing_power={"assessment": "The company maintains pricing power.",
+                           "evidence": _ev("m2", "We reduced prices on our entry-level subscription plans in 2025")},
+        )
+        out, _, _ = _run(payload)
+        self.assertEqual(out.moat_assessment, "unsupported")
+        self.assertEqual(out.economic_moat_type, "None")
+        self.assertGreaterEqual(out.data_quality.quotes_off_topic, 1)
+        self.assertTrue(out.pricing_power_assessment.startswith('Filing states: "We reduced prices'))
+        self.assertTrue(any("not evidenced by its quotes" in n for n in out.data_quality.notes))
+
     def test_pricing_figures_must_be_in_quotes(self):
         payload = _llm_payload(pricing_power={
             "assessment": "Prices were cut by 15% across all plans.",

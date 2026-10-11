@@ -7,6 +7,7 @@ institutional commentary; if it fails, a deterministic template is used instead.
 """
 
 import logging
+import re
 from datetime import date
 from typing import Any, List, Optional
 
@@ -21,8 +22,18 @@ from app.agents.tools.valuation_model import MarketInputs, ValuationBuild, build
 
 logger = logging.getLogger("finance_agent.agents.valuation_specialist")
 
-COMMENTARY_MAX_TOKENS = 450
+COMMENTARY_MAX_TOKENS = 650
 MIN_COMMENTARY_CHARS = 200
+_SENTENCE_END = re.compile(r"[.!?][\"')\]]*(?=\s|$)")
+
+
+def trim_to_complete_sentence(text: str) -> str:
+    """Drops a trailing fragment left when the completion hit its token cap mid-sentence."""
+    text = text.strip()
+    ends = list(_SENTENCE_END.finditer(text))
+    if not ends or ends[-1].end() == len(text):
+        return text
+    return text[: ends[-1].end()].rstrip()
 
 
 @AgentRegistry.register("valuation_specialist")
@@ -63,7 +74,8 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
         try:
             summary = self._run_commentary_llm(
                 render_prompt("prompt_valuation_query.j2", v=build), callbacks
-            ).strip()
+            )
+            summary = trim_to_complete_sentence(summary or "")
             if len(summary) >= MIN_COMMENTARY_CHARS:
                 source = "llm"
             else:

@@ -17,7 +17,7 @@ returned, with the qualitative fields marked as not assessed.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
@@ -44,6 +44,7 @@ from app.agents.tools.business_disclosure_tools import (
     render_revenue_mix_markdown,
     render_segment_table_markdown,
 )
+from app.agents.tools.claim_relevance import moat_quote_supports, pricing_claim_supported, threat_quote_supports
 from app.agents.tools.rag_narrative_tools import NarrativeChunkResult, retrieve_10k_narrative
 from app.agents.tools.risk_disclosure_tools import (
     build_section_context,
@@ -389,8 +390,13 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         dq: StrategistDataQuality,
         claim: str,
         subject: Optional[str],
+        supports: Optional[Callable[[str], bool]] = None,
     ) -> List[StrategyEvidence]:
-        """Verifies up to MAX_EVIDENCE_PER_CLAIM quotes: the claimed chunk (near-verbatim), else any chunk (exact)."""
+        """Verifies up to MAX_EVIDENCE_PER_CLAIM quotes: the claimed chunk (near-verbatim), else any chunk (exact).
+
+        `supports` additionally requires the quote to evidence the claim's mechanism (claim_relevance); a real
+        but off-topic quote is counted in `quotes_off_topic` and not kept.
+        """
         if isinstance(raw_evidence, dict):
             raw_evidence = [raw_evidence]
         if not isinstance(raw_evidence, list):
@@ -410,6 +416,9 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
                 hit = next((c for cid, c in pool.items() if cid != chunk_id and verify_quote(quote, c["content"], allow_fuzzy=False)), None)
             if hit is None:
                 dq.quotes_rejected += 1
+                continue
+            if supports is not None and not supports(quote):
+                dq.quotes_off_topic += 1
                 continue
             key = (hit["chunk_id"], normalize_text(quote))
             if key in seen:
@@ -468,7 +477,10 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         p_rationale = self._text(primary.get("rationale"))
         if p_type and p_type != "None":
             dq.claims_proposed += 1
-        p_evidence = self._verify(primary.get("evidence"), pool, dq, "primary_moat", p_type) if p_type and p_type != "None" else []
+        p_evidence = (
+            self._verify(primary.get("evidence"), pool, dq, "primary_moat", p_type, lambda q: moat_quote_supports(p_type, q))
+            if p_type and p_type != "None" else []
+        )
 
         secondaries: List[Tuple[str, str, List[StrategyEvidence]]] = []
         raw_secondary = data.get("secondary_moats") if isinstance(data.get("secondary_moats"), list) else []
@@ -479,10 +491,12 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             if not s_type or s_type == "None":
                 continue
             dq.claims_proposed += 1
-            s_evidence = self._verify(item.get("evidence"), pool, dq, "secondary_moat", s_type)
+            s_evidence = self._verify(
+                item.get("evidence"), pool, dq, "secondary_moat", s_type, lambda q, t=s_type: moat_quote_supports(t, q)
+            )
             if not s_evidence:
                 dq.claims_dropped += 1
-                dq.notes.append(f"Secondary moat '{s_type}' dropped: no verified filing quote.")
+                dq.notes.append(f"Secondary moat '{s_type}' dropped: no verified filing quote evidencing its mechanism.")
                 continue
             secondaries.append((s_type, self._text(item.get("rationale")), s_evidence))
 
@@ -494,7 +508,8 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             if p_type and p_type != "None":
                 dq.claims_dropped += 1
                 dq.notes.append(
-                    f"Primary moat '{p_type}' had no verified quote; verified secondary moat '{promoted[0]}' promoted to primary."
+                    f"Primary moat '{p_type}' had no verified quote evidencing its mechanism; verified secondary moat "
+                    f"'{promoted[0]}' promoted to primary."
                 )
             p_type, p_rationale, p_evidence = promoted
             p_evidence = [e.model_copy(update={"claim": "primary_moat"}) for e in p_evidence]
@@ -506,8 +521,8 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             if p_type:
                 dq.claims_dropped += 1
             dq.notes.append(
-                f"Primary moat {repr(p_type) if p_type else '(missing)'} had no verified filing quote; "
-                "moat downgraded to None / Indeterminate."
+                f"Primary moat {repr(p_type) if p_type else '(missing)'} had no verified filing quote evidencing its "
+                "mechanism; moat downgraded to None / Indeterminate."
             )
 
         kept_secondary: List[str] = []
@@ -536,7 +551,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         else:
             p_type, durability, trajectory = "None", "Indeterminate", "Indeterminate"
             kept_secondary = []
-            rationale = _not_assessed("no proposed moat was supported by a verified filing quote")
+            rationale = _not_assessed("no proposed moat was supported by a verified filing quote that evidences its mechanism")
 
         return {
             "economic_moat_type": p_type if assessment == "verified" else "None",
@@ -577,10 +592,12 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
                 continue
             if name_key(canonical) in seen:
                 continue
-            seg_evidence = self._verify(item.get("evidence"), pool, dq, "segment_moat", canonical)
+            seg_evidence = self._verify(
+                item.get("evidence"), pool, dq, "segment_moat", canonical, lambda q, t=m_type: moat_quote_supports(t, q)
+            )
             if not seg_evidence:
                 dq.claims_dropped += 1
-                dq.notes.append(f"Segment moat for '{canonical}' dropped: no verified filing quote.")
+                dq.notes.append(f"Segment moat for '{canonical}' dropped: no verified filing quote evidencing {m_type}.")
                 continue
             seen.add(name_key(canonical))
             evidence.extend(seg_evidence)
@@ -614,7 +631,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             if not threat:
                 continue
             dq.claims_proposed += 1
-            t_evidence = self._verify(item.get("evidence"), pool, dq, "competitive_threat", threat)
+            t_evidence = self._verify(item.get("evidence"), pool, dq, "competitive_threat", threat, threat_quote_supports)
             if not t_evidence or len(kept) >= MAX_THREATS:
                 dq.claims_dropped += 1
                 continue
@@ -638,6 +655,11 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             dq.notes.append("Pricing-power assessment dropped: no verified filing quote.")
             return NOT_DISCLOSED
         evidence.extend(verified)
+        if not any(pricing_claim_supported(assessment, e.quote) for e in verified):
+            dq.claims_dropped += 1
+            dq.notes.append("Pricing-power claim not evidenced by its quotes (they describe pricing, not pricing power); "
+                            "replaced by the verified quote.")
+            return f'Filing states: "{verified[0].quote}"'
         if not numbers_supported(assessment, [pool[e.chunk_id]["content"] for e in verified]):
             dq.notes.append("Pricing-power text cited figures absent from its quotes; replaced by the verified quote.")
             return f'Filing states: "{verified[0].quote}"'
