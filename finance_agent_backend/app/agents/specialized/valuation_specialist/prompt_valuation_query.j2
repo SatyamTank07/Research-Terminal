@@ -3,7 +3,7 @@ Write the valuation commentary for {{ v.ticker }} (FY{{ v.fiscal_year }} 10-K, v
 
 FACTS ($ millions unless stated)
 - Bridge: PV explicit UFCF {{ "{:,.0f}".format(v.pv_explicit_fcfs) }} ({{ v.projected_fcfs | length }} yrs, {{ v.discounting_convention }}); PV terminal value {{ "{:,.0f}".format(v.pv_terminal_value) }} = {{ v.terminal_value_pct_of_ev }}% of EV; EV {{ "{:,.0f}".format(v.enterprise_value) }}
-- Terminal: {{ v.terminal_method }}, growth {{ "%.2f" | format(v.terminal_growth_rate * 100) }}%{% if v.ronic_used_pct is not none %}, RONIC {{ v.ronic_used_pct }}%{% endif %}{% if v.implied_terminal_ev_ebitda is not none %}, implied terminal EV/EBITDA {{ v.implied_terminal_ev_ebitda }}x{% endif %}
+- Terminal: {{ v.terminal_method }}, growth {{ "%.2f" | format(v.terminal_growth_rate * 100) }}%{% if v.ronic_used_pct is not none %}, RONIC {{ v.ronic_used_pct }}%{% endif %}{% if v.implied_terminal_ev_ebitda is not none %}, implied terminal EV/EBITDA {{ v.implied_terminal_ev_ebitda }}x{% endif %}{% if v.implied_terminal_ev_nopat is not none %}, EV/NOPAT {{ v.implied_terminal_ev_nopat }}x{% endif %}
 
 - Equity: net debt {{ "{:,.0f}".format(v.net_debt) }} (negative = net cash); NCI {{ "{:,.0f}".format(v.noncontrolling_interests) }}; roll-forward {{ "%.2f" | format(v.roll_forward_years) }} yrs from {{ v.balance_sheet_date or "fiscal year-end (date unknown)" }}; equity value {{ "{:,.0f}".format(v.equity_value) }}; diluted shares {{ "{:,.1f}".format(v.diluted_shares) }}M
 - Base-case fair value: ${{ "%.2f" | format(v.implied_fair_value_per_share) }}/share{% if v.implied_ev_ebitda is not none %}; EV / base-year EBITDA {{ v.implied_ev_ebitda }}x{% endif %}
@@ -14,6 +14,11 @@ FACTS ($ millions unless stated)
 {% endif %}
 - Sensitivity grid (fair value per share, WACC rows x growth columns):
 {{ v.sensitivity_matrix_markdown }}
+{% if v.ronic_sensitivity_matrix_markdown %}
+- Sensitivity grid (fair value per share, WACC rows x terminal RONIC columns):
+{{ v.ronic_sensitivity_matrix_markdown }}
+{% endif %}
+- Reverse DCF: {{ v.reverse_dcf_summary }}
 {% if v.current_share_price is not none %}
 - Market: share price ${{ "%.2f" | format(v.current_share_price) }}; base-case upside {{ "%+.1f" | format(v.upside_downside_pct) }}%; stance {{ v.valuation_stance }}
 {% else %}

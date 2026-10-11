@@ -18,6 +18,7 @@ import logging
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
 from langchain_core.tools import StructuredTool
+from pydantic import ValidationError
 
 from app.agents.base import StructuredAgent
 from app.agents.registry import AgentRegistry
@@ -41,9 +42,10 @@ from app.agents.tools.forecast_drivers import (
     ForecastDrivers,
     historical_fade_drivers,
     screen_forecast_drivers,
+    unsupported_margin_corridor,
 )
 from app.agents.tools.forecast_model import build_forecast
-from app.agents.tools.mdna_guidance import MdnaAssessment, assess_mdna_guidance
+from app.agents.tools.mdna_guidance import MdnaAssessment, assess_mdna_guidance, margin_evidence_chunk_ids
 from app.agents.tools.rag_narrative_tools import (
     NarrativeChunkResult,
     retrieve_10k_narrative,
@@ -59,7 +61,7 @@ MDNA_CHUNK_LIMIT = 6
 EXCERPT_CHARS = 700
 MAX_PROMPT_RISKS = 3
 RISK_TRANSMISSIONS = {"Revenue", "Gross Margin", "Operating Expenses"}
-RATIONALE_KEYS = ("growth_rationale", "margin_rationale", "reinvestment_rationale")
+RATIONALE_KEYS = ("growth_rationale", "margin_rationale")
 NO_DRIVERS_REASON = "No screened LLM drivers were accepted, so growth fades linearly from the historical trend."
 NO_ACCEPTED_DRIVERS_WARNING = (
     "The LLM did not submit accepted drivers; growth fades from the historical trend to terminal growth."
@@ -69,13 +71,17 @@ LLM_STEP_FAILED_WARNING = "The LLM step failed before finishing; the forecast wa
 PROPOSE_TOOL_DESCRIPTION = """Submit 5-year revenue growth and operating margin drivers for screening and a schedule preview.
 
 All values are WHOLE percent (6.5 means 6.5%). Code clamps year-1 growth to a band around the latest
-audited growth, limits margin moves to 3 percentage points per year, and only accepts CapEx or
-working-capital overrides that cite a chunk_id from the MD&A excerpts in the task.
+audited growth and limits margin moves to 3 percentage points per year. A margin path more than 1 point
+from the base margin must either follow the audited margin trend shown in the task or cite, in
+margin_citation_chunk_id, an MD&A excerpt with forward-looking margin or cost language; otherwise it is
+clamped. CapEx or working-capital overrides need a chunk_id from the MD&A excerpts. CapEx then fades in
+code to a steady state consistent with terminal growth.
 
 Args:
     revenue_growth_pct: exactly 5 YoY revenue growth rates, year 1 first.
     operating_margin_pct: exactly 5 EBIT margins, year 1 first.
-    capex_pct_of_revenue: optional CapEx intensity override (whole percent of revenue).
+    margin_citation_chunk_id: chunk_id supporting a margin path that departs from the audited trend.
+    capex_pct_of_revenue: optional year-1 CapEx intensity override (whole percent of revenue).
     capex_citation_chunk_id: chunk_id supporting the CapEx override.
     nwc_pct_of_incremental_revenue: optional working-capital intensity override (whole percent of incremental revenue).
     nwc_citation_chunk_id: chunk_id supporting the working-capital override.
@@ -98,14 +104,43 @@ def driver_rationales(baseline: ForecastBaseline, drivers: ForecastDrivers, term
             f"Operating margin moves from the {baseline.margin_source} base of "
             f"{baseline.base_operating_margin * 100:.2f}% to {m[-1] * 100:.2f}% by year {len(m)}."
         ),
-        "reinvestment_rationale": (
-            f"CapEx at {drivers.capex_pct_of_revenue * 100:.2f}% of revenue ({baseline.capex_years}-year average "
-            f"{baseline.capex_pct_of_revenue * 100:.2f}%); D&A at {drivers.da_pct_of_revenue * 100:.2f}% "
-            f"({baseline.da_source}); working capital at {drivers.nwc_pct_of_incremental_revenue * 100:.2f}% of "
-            f"incremental revenue ({baseline.nwc_source}); SBC at {drivers.sbc_pct_of_revenue * 100:.2f}% of "
-            f"revenue is already expensed in EBIT, so UFCF treats it as a cash cost."
-        ),
+        "reinvestment_rationale": _reinvestment_rationale(baseline, drivers, terminal_growth),
     }
+
+
+def _reinvestment_rationale(baseline: ForecastBaseline, drivers: ForecastDrivers, terminal_growth: float) -> str:
+    start = drivers.capex_path[0] if drivers.capex_path else drivers.capex_pct_of_revenue
+    steady = drivers.steady_state_capex_pct_of_revenue
+    n = len(drivers.capex_path) or len(drivers.revenue_growth)
+    if drivers.capex_pct_of_revenue == baseline.capex_pct_of_revenue:
+        origin = (
+            f"the recency-weighted {baseline.capex_years}-year audited level (latest year "
+            f"{baseline.latest_capex_pct_of_revenue * 100:.2f}%, simple average "
+            f"{baseline.capex_average_pct_of_revenue * 100:.2f}%)"
+        )
+    else:
+        origin = "a cited MD&A CapEx plan"
+    if steady is None:
+        fade = ""
+    elif drivers.reinvestment_method == "maintenance_fade":
+        fade = (
+            f" and fades to {steady * 100:.2f}% by year {n}, maintenance level (equal to D&A), because "
+            f"final-year NOPAT is not positive"
+        )
+    else:
+        fade = (
+            f" and fades to a {steady * 100:.2f}% steady state by year {n}, where net reinvestment equals "
+            f"{terminal_growth * 100:.2f}% terminal growth / {baseline.steady_state_ronic * 100:.1f}% return on new "
+            f"capital ({baseline.steady_state_ronic_source.replace('_', ' ')}) = "
+            f"{terminal_growth / baseline.steady_state_ronic * 100:.1f}% of NOPAT"
+        )
+    return (
+        f"CapEx starts at {start * 100:.2f}% of revenue from {origin}{fade}; D&A is held at "
+        f"{drivers.da_pct_of_revenue * 100:.2f}% ({baseline.da_source}); working capital at "
+        f"{drivers.nwc_pct_of_incremental_revenue * 100:.2f}% of incremental revenue ({baseline.nwc_source}); "
+        f"SBC at {drivers.sbc_pct_of_revenue * 100:.2f}% of revenue is already expensed in EBIT, so UFCF treats "
+        f"it as a cash cost."
+    )
 
 
 def mdna_fade_reason(mdna: MdnaAssessment) -> str:
@@ -118,9 +153,8 @@ def mdna_fade_reason(mdna: MdnaAssessment) -> str:
 def fallback_rationales(
     baseline: ForecastBaseline, drivers: ForecastDrivers, terminal_growth: float, reason: str
 ) -> Dict[str, str]:
-    texts = driver_rationales(baseline, drivers, terminal_growth)
-    texts["growth_rationale"] = f"{reason} {texts['growth_rationale']}"
-    return texts
+    """Growth rationale prefixed with why no guided forecast was built (the rest stays code-written)."""
+    return {"growth_rationale": f"{reason} {driver_rationales(baseline, drivers, terminal_growth)['growth_rationale']}"}
 
 
 def build_forecast_output(
@@ -138,10 +172,14 @@ def build_forecast_output(
     citations: Sequence[Dict[str, Any]] = (),
     extra_warnings: Sequence[str] = (),
 ) -> ForecastOutput:
-    """Assembles ForecastOutput from code-built numbers; missing rationales get factual defaults."""
+    """Assembles ForecastOutput from code-built numbers; missing rationales get factual defaults.
+
+    The reinvestment rationale is always code-written: code owns the whole CapEx/D&A/working-capital path.
+    """
     build = build_forecast(baseline, drivers, terminal_growth, risk_profile)
     sched = build.schedule
-    texts = {**driver_rationales(baseline, build.drivers, terminal_growth), **(rationales or {})}
+    code_texts = driver_rationales(baseline, build.drivers, terminal_growth)
+    texts = {**code_texts, **(rationales or {}), "reinvestment_rationale": code_texts["reinvestment_rationale"]}
     diagnostics = build.diagnostics.model_copy(
         update={"warnings": build.diagnostics.warnings + list(extra_warnings)}
     )
@@ -233,7 +271,9 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
                 rationales=fallback_rationales(baseline, drivers, terminal_growth, mdna_fade_reason(mdna)),
             )
 
-        self._configure_tools(baseline, {c.chunk_id for c in chunks}, terminal_growth, risk_profile)
+        self._configure_tools(
+            baseline, {c.chunk_id for c in chunks}, margin_evidence_chunk_ids(chunks), terminal_growth, risk_profile
+        )
         query = self._render_query(ticker, fiscal_year, baseline, mdna, chunks, business_moat, risk_audit, terminal_growth)
         context = {
             "baseline": baseline,
@@ -286,6 +326,7 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
             fiscal_year=fiscal_year,
             baseline=baseline,
             history_table=render_history_table(baseline.historical_rows),
+            margin_corridor=unsupported_margin_corridor(baseline),
             terminal_growth=terminal_growth,
             moat=business_moat,
             risk_profile=risk_audit.overall_risk_profile if risk_audit is not None else None,
@@ -301,28 +342,36 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
         self,
         baseline: ForecastBaseline,
         allowed_chunk_ids: Set[str],
+        margin_chunk_ids: Set[str],
         terminal_growth: float,
         risk_profile: Optional[str],
     ) -> None:
         def propose_forecast_drivers(
             revenue_growth_pct: List[float],
             operating_margin_pct: List[float],
+            margin_citation_chunk_id: Optional[str] = None,
             capex_pct_of_revenue: Optional[float] = None,
             capex_citation_chunk_id: Optional[str] = None,
             nwc_pct_of_incremental_revenue: Optional[float] = None,
             nwc_citation_chunk_id: Optional[str] = None,
             evidence_chunk_ids: Optional[List[str]] = None,
         ) -> Dict[str, Any]:
-            proposal = ForecastDriverProposal(
-                revenue_growth_pct=revenue_growth_pct,
-                operating_margin_pct=operating_margin_pct,
-                capex_pct_of_revenue=capex_pct_of_revenue,
-                capex_citation_chunk_id=capex_citation_chunk_id,
-                nwc_pct_of_incremental_revenue=nwc_pct_of_incremental_revenue,
-                nwc_citation_chunk_id=nwc_citation_chunk_id,
-                evidence_chunk_ids=evidence_chunk_ids or [],
+            try:
+                proposal = ForecastDriverProposal(
+                    revenue_growth_pct=revenue_growth_pct,
+                    operating_margin_pct=operating_margin_pct,
+                    margin_citation_chunk_id=margin_citation_chunk_id,
+                    capex_pct_of_revenue=capex_pct_of_revenue,
+                    capex_citation_chunk_id=capex_citation_chunk_id,
+                    nwc_pct_of_incremental_revenue=nwc_pct_of_incremental_revenue,
+                    nwc_citation_chunk_id=nwc_citation_chunk_id,
+                    evidence_chunk_ids=evidence_chunk_ids or [],
+                )
+            except ValidationError as e:
+                return {"status": "rejected", "errors": [f"Invalid driver inputs: {e.errors()[0]['msg']}"]}
+            screen = screen_forecast_drivers(
+                proposal, baseline, allowed_chunk_ids, terminal_growth, margin_evidence_chunk_ids=margin_chunk_ids,
             )
-            screen = screen_forecast_drivers(proposal, baseline, allowed_chunk_ids, terminal_growth)
             if not screen.accepted:
                 return {"status": "rejected", "errors": screen.errors}
             try:
@@ -335,6 +384,7 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
                 "applied_drivers": screen.drivers.model_dump(),
                 "adjustments": [a.model_dump() for a in screen.adjustments],
                 "evidence_chunk_ids": screen.evidence_chunk_ids,
+                "margin_evidence_accepted": screen.margin_evidence_accepted,
                 "forecast_horizon_years": build.schedule["forecast_horizon_years"],
                 "revenue_cagr_pct": build.schedule["revenue_cagr_pct"],
                 "preview": build.preview_rows(),

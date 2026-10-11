@@ -8,8 +8,11 @@ whole-percentage WACC detection, and 5x5 sensitivity matrix generation.
 
 import unittest
 from app.agents.tools.dcf_tools import (
+    TERMINAL_EV_EBITDA_BAND,
+    TERMINAL_EV_NOPAT_BAND,
     calculate_dcf_with_sensitivity,
     calculate_dcf_tool,
+    dcf_fair_value_per_share,
     DCFCalculationResult,
 )
 
@@ -278,6 +281,95 @@ class TestDCFTools(unittest.TestCase):
         self.assertGreater(result["fair_value_per_share"], 100.0)
         self.assertLess(result["fair_value_per_share"], 260.0)
         self.assertGreater(result["enterprise_value"], 1_500_000.0)  # > $1.5 Trillion EV
+
+
+class TestImpliedMultiplesAndRonicGrid(unittest.TestCase):
+    FCFS = [100.0, 110.0, 120.0, 130.0, 140.0]
+
+    def test_low_implied_multiples_are_warned(self):
+        # Heavy final-year reinvestment: UFCF far below NOPAT, last-FCF TV => ~2x NOPAT, ~1.5x EBITDA
+        res = calculate_dcf_with_sensitivity(
+            [10.0] * 5, 0.12, 0.025, 0.0, 10.0, terminal_nopat=60.0, terminal_ebitda=80.0,
+        )
+        self.assertEqual(res["terminal_method"], "last_fcf_growth")
+        self.assertLess(res["implied_terminal_ev_ebitda"], TERMINAL_EV_EBITDA_BAND[0])
+        self.assertLess(res["implied_terminal_ev_nopat"], TERMINAL_EV_NOPAT_BAND[0])
+        joined = " ".join(res["warnings"])
+        self.assertIn("EV/EBITDA", joined)
+        self.assertIn("EV/NOPAT", joined)
+        self.assertIn("below", joined)
+
+    def test_high_implied_multiple_is_warned(self):
+        res = calculate_dcf_with_sensitivity(
+            [100.0] * 5, 0.06, 0.035, 0.0, 10.0, terminal_nopat=100.0, ronic=0.30, terminal_ebitda=60.0,
+        )
+        self.assertGreater(res["implied_terminal_ev_ebitda"], TERMINAL_EV_EBITDA_BAND[1])
+        self.assertIn("above", " ".join(res["warnings"]))
+
+    def test_plausible_multiples_are_silent(self):
+        res = calculate_dcf_with_sensitivity(
+            self.FCFS, 0.09, 0.025, 0.0, 10.0, terminal_nopat=180.0, ronic=0.15, terminal_ebitda=260.0,
+        )
+        self.assertTrue(TERMINAL_EV_NOPAT_BAND[0] <= res["implied_terminal_ev_nopat"] <= TERMINAL_EV_NOPAT_BAND[1])
+        self.assertFalse(any("plausibility band" in w for w in res["warnings"]))
+
+    def test_multiples_none_when_terminal_value_not_positive(self):
+        res = calculate_dcf_with_sensitivity([50.0, 20.0, -40.0], 0.09, 0.02, 0.0, 10.0,
+                                             terminal_nopat=-5.0, ronic=0.2, terminal_ebitda=10.0)
+        self.assertIsNone(res["implied_terminal_ev_ebitda"])
+        self.assertIsNone(res["implied_terminal_ev_nopat"])
+
+    def test_ronic_grid_is_informative_when_ronic_equals_wacc(self):
+        res = calculate_dcf_with_sensitivity(self.FCFS, 0.10, 0.025, 0.0, 10.0, terminal_nopat=180.0, ronic=0.10)
+        growth_grid = res["sensitivity_matrix_markdown"]
+        self.assertIn("growth beyond the horizon creates no value", growth_grid)
+        base_row = next(line for line in growth_grid.splitlines() if "*(Base)*" in line)
+        cells = [float(c.strip().strip("*$")) for c in base_row.split("|")[2:-1]]
+        self.assertLess(max(cells) / min(cells), 1.01)  # TV = NOPAT x (1 + g) / WACC: nearly flat in g
+
+        grid = res["ronic_sensitivity_matrix_markdown"]
+        self.assertIn("WACC \\ RONIC", grid)
+        self.assertIn(f"**${res['fair_value_per_share']:.2f}**", grid)
+        ronic_row = next(line for line in grid.splitlines() if "*(Base)*" in line)
+        values = [float(c.strip().strip("*$")) for c in ronic_row.split("|")[2:-1]]
+        self.assertEqual(values, sorted(values))  # higher RONIC, higher value
+        self.assertGreater(values[-1], values[0])
+
+    def test_ronic_grid_columns_floor_above_growth(self):
+        res = calculate_dcf_with_sensitivity(self.FCFS, 0.10, 0.025, 0.0, 10.0, terminal_nopat=180.0, ronic=0.04)
+        header = res["ronic_sensitivity_matrix_markdown"].splitlines()[0]
+        self.assertIn("3.5%", header)  # 4% - 4 pp floored at g + 1 pp
+        self.assertNotIn("N/A", res["ronic_sensitivity_matrix_markdown"])
+
+    def test_no_ronic_grid_without_value_driver(self):
+        res = calculate_dcf_with_sensitivity(self.FCFS, 0.10, 0.025, 0.0, 10.0)
+        self.assertEqual(res["ronic_sensitivity_matrix_markdown"], "")
+        self.assertNotIn("creates no value", res["sensitivity_matrix_markdown"])
+
+
+class TestDcfFairValuePerShare(unittest.TestCase):
+    def test_matches_headline_engine(self):
+        kwargs = dict(terminal_nopat=180.0, ronic=0.15, noncontrolling_interests=20.0,
+                      roll_forward_years=0.75, cost_of_equity=0.11)
+        full = calculate_dcf_with_sensitivity([100.0, 110.0, 120.0], 0.09, 0.025, 50.0, 10.0, **kwargs)
+        quick = dcf_fair_value_per_share([100.0, 110.0, 120.0], 0.09, 0.025, 50.0, 10.0, **kwargs)
+        self.assertAlmostEqual(quick, full["fair_value_per_share"], places=2)
+        last = dcf_fair_value_per_share([100.0, 110.0, 120.0], 0.09, 0.025, -50.0, 10.0)
+        self.assertAlmostEqual(
+            last, calculate_dcf_with_sensitivity([100.0, 110.0, 120.0], 0.09, 0.025, -50.0, 10.0)["fair_value_per_share"],
+            places=2,
+        )
+
+    def test_never_raises(self):
+        for args in (
+            ([], 0.09, 0.02, 0.0, 10.0),
+            ([100.0], 0.02, 0.03, 0.0, 10.0),
+            ([100.0], 0.09, 0.02, 0.0, 0.0),
+            ([float("nan")], 0.09, 0.02, 0.0, 10.0),
+            ([100.0], 8.5, 0.02, 0.0, 10.0),
+            (["x"], 0.09, 0.02, 0.0, 10.0),
+        ):
+            self.assertIsNone(dcf_fair_value_per_share(*args), args)
 
 
 if __name__ == "__main__":
