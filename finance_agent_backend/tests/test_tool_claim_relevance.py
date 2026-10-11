@@ -6,6 +6,7 @@ from app.agents.tools.claim_relevance import (
     is_ip_boilerplate,
     moat_quote_supports,
     pricing_claim_supported,
+    segment_quote_mentions,
     threat_quote_supports,
 )
 
@@ -34,6 +35,18 @@ class TestClaimRelevance(unittest.TestCase):
         for moat, quote in cases.items():
             with self.subTest(moat=moat):
                 self.assertTrue(moat_quote_supports(moat, quote))
+
+    def test_low_price_strategy_is_not_cost_advantage(self):
+        quote = ("We believe that offering low prices to our customers is fundamental to our future success, "
+                 "and one way we offer lower prices is through shipping offers.")
+        self.assertFalse(moat_quote_supports("Cost Advantage", quote))
+
+    def test_segment_quotes_must_name_the_segment(self):
+        quote = "We operate a global logistics network that lowers our cost to serve each order."
+        self.assertFalse(segment_quote_mentions("AWS", quote))
+        self.assertTrue(segment_quote_mentions("AWS", "AWS customers migrate workloads at significant cost."))
+        self.assertTrue(segment_quote_mentions("North America", "Our North America fulfillment network lowers costs."))
+        self.assertFalse(segment_quote_mentions("Other", "Other income rose."))  # no distinctive word
 
     def test_unknown_moat_or_empty_quote(self):
         self.assertFalse(moat_quote_supports("Made-up Moat", "network effects everywhere"))

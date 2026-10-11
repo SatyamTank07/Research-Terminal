@@ -43,6 +43,8 @@ REVERSE_DCF_SCAN_POINTS = 33
 REVERSE_DCF_MAX_ITERATIONS = 60
 REVERSE_DCF_TOLERANCE = 1e-5
 REVERSE_DCF_GAP_WARNING_PP = 5.0
+IMPLIED_WACC_UPPER = 0.30
+IMPLIED_WACC_MIN_SPREAD_OVER_G = 0.005
 
 ValuationStance = Literal["Undervalued", "Fairly Valued", "Overvalued"]
 ReverseDCFStatus = Literal[
@@ -91,6 +93,7 @@ class ValuationBuild(BaseModel):
 
     wacc_audit: WACCCalculationResult
     terminal_growth_rate: float
+    terminal_tax_rate_pct: float = Field(..., description="Marginal tax rate applied to terminal NOPAT and the debt shield")
     discounting_convention: str
     terminal_method: str
     terminal_fcf: float
@@ -146,6 +149,9 @@ class ValuationBuild(BaseModel):
         "'no_solution' (no finite DCF values); 'price_unavailable'; 'forecast_unavailable'",
     )
     reverse_dcf_summary: str = Field("", description="One-line reverse-DCF result or the reason there is none")
+    market_implied_wacc_pct: Optional[float] = Field(
+        None, description="Discount rate at which the base-case cash flows and terminal value equal the share price (%)"
+    )
 
     sensitivity_matrix_markdown: str
     ronic_sensitivity_matrix_markdown: str = Field(
@@ -273,6 +279,7 @@ def _reverse_dcf(
     terminal_growth_rate: float,
     dcf_kwargs: dict,
     warnings: List[str],
+    terminal_tax: float,
 ) -> dict:
     """Market-implied constant explicit-period revenue growth, plus the uniform operating-margin shift that
     reaches the price at modeled growth; never raises."""
@@ -296,12 +303,16 @@ def _reverse_dcf(
                 "reverse_dcf_summary": "No share price, so no market-implied growth was solved."}
 
     def value_at_growth(growth: float) -> Optional[float]:
-        fcfs, nopat = project_with_overrides(baseline, drivers, terminal_growth_rate, growth=[growth] * horizon)
+        fcfs, nopat = project_with_overrides(
+            baseline, drivers, terminal_growth_rate, growth=[growth] * horizon, terminal_tax=terminal_tax
+        )
         return dcf_fair_value_per_share(fcfs, terminal_nopat=nopat, **dcf_kwargs)
 
     def value_at_margin_shift(shift: float) -> Optional[float]:
         margins = [min(max(m + shift, MARGIN_FLOOR), 1.0) for m in drivers.operating_margin]
-        fcfs, nopat = project_with_overrides(baseline, drivers, terminal_growth_rate, margins=margins)
+        fcfs, nopat = project_with_overrides(
+            baseline, drivers, terminal_growth_rate, margins=margins, terminal_tax=terminal_tax
+        )
         return dcf_fair_value_per_share(fcfs, terminal_nopat=nopat, **dcf_kwargs)
 
     root, status = solve_reverse_dcf(value_at_growth, price, anchor=modeled / 100.0)
@@ -355,6 +366,15 @@ def _reverse_dcf(
     return {**base, "reverse_dcf_status": status, "reverse_dcf_summary": summary}
 
 
+def _terminal_nopat(final_year, terminal_tax: float) -> Optional[float]:
+    """Final-year NOPAT re-taxed at the marginal rate; a loss year keeps its scheduled NOPAT."""
+    if final_year is None:
+        return None
+    if final_year.projected_ebit <= 0:
+        return final_year.projected_nopat
+    return round(final_year.projected_ebit * (1.0 - terminal_tax), 2)
+
+
 def _scenario_terminal_nopat(forecast: "ForecastOutput", scenario, tax: float) -> Optional[float]:
     """Final-year NOPAT of a scenario rebuilt from its growth and margin path (same formula as the schedule)."""
     if not scenario.revenue_growth_pct or not scenario.operating_margin_pct:
@@ -363,6 +383,22 @@ def _scenario_terminal_nopat(forecast: "ForecastOutput", scenario, tax: float) -
     for g in scenario.revenue_growth_pct:
         revenue *= 1.0 + g / 100.0
     return revenue * scenario.operating_margin_pct[-1] / 100.0 * (1.0 - tax)
+
+
+def _implied_discount_rate(
+    projected_fcfs: List[float], price: Optional[float], terminal_growth_rate: float, dcf_kwargs: dict,
+    wacc: float,
+) -> Optional[float]:
+    """Discount rate that makes the base-case DCF equal the share price, holding cash flows, terminal RONIC and
+    the bridge fixed (the market's required return on these cash flows). None without a price or a root."""
+    if price is None:
+        return None
+    bounds = (terminal_growth_rate + IMPLIED_WACC_MIN_SPREAD_OVER_G, IMPLIED_WACC_UPPER)
+    root, status = solve_reverse_dcf(
+        lambda w: dcf_fair_value_per_share(projected_fcfs, w, terminal_growth_rate, **dcf_kwargs),
+        price, bounds, anchor=wacc,
+    )
+    return round(root * 100.0, 2) if status == "solved" else None
 
 
 def _scenario_table(scenarios: List[ScenarioValuation], weighted: Optional[float], price: Optional[float]) -> str:
@@ -407,19 +443,21 @@ def build_valuation(
     shares = bs.valuation_shares_outstanding
     valuation_date = valuation_date or date.today()
 
-    # 1. Cash flows and tax rate
+    # 1. Cash flows
     if forecast is not None and forecast.projected_fcfs:
         projected_fcfs = list(forecast.projected_fcfs)
-        tax_rate = forecast.tax_rate_pct / 100.0
         forecast_source = "forecasting_analyst"
     else:
         projected_fcfs = [
             round(latest.free_cash_flow * (1.0 + NAIVE_FALLBACK_GROWTH) ** i, 2)
             for i in range(1, NAIVE_FALLBACK_YEARS + 1)
         ]
-        tax_rate = financial_audit.profitability_and_return_ratios.effective_tax_rate_pct / 100.0
         forecast_source = "naive_5pct_fallback"
         warnings.append("No forecast available: UFCF is the last audited FCF grown 5% a year (placeholder).")
+
+    # Explicit years keep the normalized effective rate; the perpetuity and the debt tax shield use the
+    # marginal rate, since tax deferrals and credits behind a low effective rate do not last forever.
+    terminal_tax = min(max(settings.DEFAULT_MARGINAL_TAX_RATE, 0.0), 0.5)
 
     # 2. Market inputs and capital-structure equity value
     beta, beta_source, blume = market.beta, market.beta_source, market.beta_source == "yfinance_raw"
@@ -447,12 +485,12 @@ def build_valuation(
         market_cap=equity_value_for_weights,
         risk_free_rate=market.risk_free_rate,
         equity_risk_premium=settings.DEFAULT_EQUITY_RISK_PREMIUM,
-        tax_rate=min(max(tax_rate, 0.0), 0.5),
+        tax_rate=terminal_tax,
         interest_expense=latest.interest_expense,
         apply_blume_adjustment=blume,
         beta_source=beta_source,
         risk_free_rate_source=market.risk_free_rate_source,
-        equity_risk_premium_source="house_assumption_config",
+        equity_risk_premium_source=settings.EQUITY_RISK_PREMIUM_SOURCE,
         equity_value_source=equity_value_source,
         wacc_override=wacc_override,
     ))
@@ -480,12 +518,11 @@ def build_valuation(
         ronic=ronic,
         noncontrolling_interests=bs.noncontrolling_interests or 0.0,
         roll_forward_years=roll_years,
-        cost_of_equity=wacc_audit.cost_of_equity,
         risk_free_rate=market.risk_free_rate,
     )
     base = calculate_dcf_with_sensitivity(
         projected_fcfs=projected_fcfs,
-        terminal_nopat=final_year.projected_nopat if final_year else None,
+        terminal_nopat=_terminal_nopat(final_year, terminal_tax),
         terminal_ebitda=(final_year.projected_ebit + final_year.projected_depreciation) if final_year else None,
         **common,
     )
@@ -500,10 +537,26 @@ def build_valuation(
         dict(
             wacc=wacc, terminal_growth_rate=terminal_growth_rate, net_debt=bs.net_debt, diluted_shares=shares,
             ronic=ronic, noncontrolling_interests=bs.noncontrolling_interests or 0.0,
-            roll_forward_years=roll_years, cost_of_equity=wacc_audit.cost_of_equity, mid_year_convention=True,
+            roll_forward_years=roll_years, risk_free_rate=market.risk_free_rate, mid_year_convention=True,
         ),
         warnings,
+        terminal_tax,
     )
+
+    implied_wacc = _implied_discount_rate(
+        projected_fcfs, price, terminal_growth_rate,
+        dict(
+            net_debt=bs.net_debt, diluted_shares=shares, terminal_nopat=_terminal_nopat(final_year, terminal_tax),
+            ronic=ronic, noncontrolling_interests=bs.noncontrolling_interests or 0.0, roll_forward_years=roll_years,
+            risk_free_rate=market.risk_free_rate, mid_year_convention=True,
+        ),
+        wacc,
+    )
+    if implied_wacc is not None:
+        reverse["reverse_dcf_summary"] = (
+            f"{reverse['reverse_dcf_summary']} Holding the modeled cash flows, the price corresponds to a "
+            f"{implied_wacc:.2f}% discount rate versus the {wacc * 100:.2f}% applied."
+        ).strip()
 
     # 5. Scenario valuations (same WACC, growth and bridge; base reuses the headline DCF)
     scenario_vals: List[ScenarioValuation] = []
@@ -514,7 +567,7 @@ def build_valuation(
             else:
                 res = calculate_dcf_with_sensitivity(
                     projected_fcfs=sc.projected_fcfs,
-                    terminal_nopat=_scenario_terminal_nopat(forecast, sc, tax_rate),
+                    terminal_nopat=_scenario_terminal_nopat(forecast, sc, terminal_tax),
                     **common,
                 )
                 ev, per_share = res["enterprise_value"], res["fair_value_per_share"]
@@ -546,6 +599,7 @@ def build_valuation(
         roll_forward_years=base["roll_forward_years"],
         wacc_audit=wacc_audit,
         terminal_growth_rate=terminal_growth_rate,
+        terminal_tax_rate_pct=round(terminal_tax * 100.0, 2),
         discounting_convention=base["discounting_convention"],
         terminal_method=base["terminal_method"],
         terminal_fcf=base["terminal_fcf"],
@@ -571,6 +625,7 @@ def build_valuation(
         bear_fair_value=by_name["bear"].fair_value_per_share if "bear" in by_name else None,
         bull_fair_value=by_name["bull"].fair_value_per_share if "bull" in by_name else None,
         **reverse,
+        market_implied_wacc_pct=implied_wacc,
         sensitivity_matrix_markdown=base["sensitivity_matrix_markdown"],
         ronic_sensitivity_matrix_markdown=base["ronic_sensitivity_matrix_markdown"],
         equity_bridge_markdown=base["equity_bridge_markdown"],

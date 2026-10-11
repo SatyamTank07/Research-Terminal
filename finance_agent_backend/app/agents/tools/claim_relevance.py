@@ -26,7 +26,7 @@ MOAT_MECHANISMS = {
     ),
     "Cost Advantage": re.compile(
         r"\bscale\b|economies of scale|cost structure|low[- ]cost|cost (?:advantage|leadership)|cost to serve|unit costs?|"
-        r"\blower(?:s|ed|ing)? (?:our |its |the )?(?:costs?|prices?|cost to serve|expenses)\b|reduc\w* (?:our |its )?costs?|"
+        r"\blower(?:s|ed|ing)? (?:our |its |the )?(?:costs?|cost to serve|expenses)\b|reduc\w* (?:our |its )?costs?|"
         r"efficien|purchasing power|vertical(?:ly)? integrat|automation|fixed costs?|operating leverage|"
         r"\bproprietary (?:process|manufacturing|technology)\b|infrastructure",
         re.IGNORECASE,
@@ -82,6 +82,16 @@ def moat_quote_supports(moat_type: Optional[str], quote: str) -> bool:
     if pattern is None or not quote:
         return False
     return not is_ip_boilerplate(quote) and bool(pattern.search(quote))
+
+
+_NAME_STOPWORDS = {"and", "the", "of", "other", "services", "service", "segment", "products", "sales", "net"}
+
+
+def segment_quote_mentions(segment_name: str, quote: str) -> bool:
+    """True when `text` names the segment (any distinctive word of its name, e.g. 'AWS', 'North America')."""
+    words = [w for w in re.findall(r"[a-z0-9]+", (segment_name or "").lower()) if w not in _NAME_STOPWORDS and len(w) > 1]
+    text = (quote or "").lower()
+    return bool(words) and any(re.search(rf"\b{re.escape(w)}", text) for w in words)
 
 
 def threat_quote_supports(quote: str) -> bool:

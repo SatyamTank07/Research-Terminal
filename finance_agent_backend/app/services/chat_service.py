@@ -260,8 +260,10 @@ async def stream_chat_service(
                             "conversation_id": conversation.id,
                             "message_id": assistant_msg.id,
                             "sources": sources,
+                            "final_report": event.get("final_report"),
+                            "updated_session_state": updated_state,
                         }
-                        yield f"data: {json.dumps(payload)}\n\n"
+                        yield f"data: {json.dumps(payload, default=str)}\n\n"
                     elif event_type == "error":
                         error_msg = event.get("message") or "The research pipeline failed."
                         logger.error(f"Agent stream reported an error: {error_msg}")

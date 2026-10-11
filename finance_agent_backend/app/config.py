@@ -33,7 +33,12 @@ class Settings:
 
     # Valuation market assumptions (fallbacks when live data is unavailable)
     DEFAULT_RISK_FREE_RATE: float = float(os.getenv("DEFAULT_RISK_FREE_RATE", "0.042"))
-    DEFAULT_EQUITY_RISK_PREMIUM: float = float(os.getenv("DEFAULT_EQUITY_RISK_PREMIUM", "0.050"))
+    # Implied (forward-looking) ERP for the S&P 500 over the T-bond rate: Damodaran, July 1 2026 update (4.42%).
+    # Refresh periodically; the source tag is shown in every WACC table.
+    DEFAULT_EQUITY_RISK_PREMIUM: float = float(os.getenv("DEFAULT_EQUITY_RISK_PREMIUM", "0.044"))
+    EQUITY_RISK_PREMIUM_SOURCE: str = os.getenv("EQUITY_RISK_PREMIUM_SOURCE", "damodaran_implied_sp500_2026-07")
+    # Marginal tax rate (US federal 21% + average state) for the terminal value and the debt tax shield.
+    DEFAULT_MARGINAL_TAX_RATE: float = float(os.getenv("DEFAULT_MARGINAL_TAX_RATE", "0.25"))
     DEFAULT_CREDIT_SPREAD: float = float(os.getenv("DEFAULT_CREDIT_SPREAD", "0.0125"))
 
     @property

@@ -34,6 +34,12 @@ def _value(audit, forecast, market, ticker="TEST"):
     )
 
 
+
+def nopat_base(forecast, v):
+    """Headline terminal NOPAT: final-year EBIT re-taxed at the marginal rate."""
+    return round(forecast.forecast_schedule[-1].projected_ebit * (1.0 - v.terminal_tax_rate_pct / 100.0), 2)
+
+
 class TestSolveReverseDcf(unittest.TestCase):
     def test_linear_root(self):
         root, status = solve_reverse_dcf(lambda g: 100.0 + 1000.0 * g, 150.0)
@@ -86,13 +92,27 @@ class TestReverseDcfInBuildValuation(unittest.TestCase):
         self.assertEqual(v.modeled_revenue_cagr_pct, self.forecast.revenue_cagr_pct)
         self.assertGreater(v.market_implied_growth_pct, v.modeled_revenue_cagr_pct)  # price is above fair value
         g = v.market_implied_growth_pct / 100.0
-        fcfs, nopat = project_with_overrides(self.forecast.assumptions, self.forecast.applied_drivers, 0.025, growth=[g] * 5)
+        fcfs, nopat = project_with_overrides(
+            self.forecast.assumptions, self.forecast.applied_drivers, 0.025, growth=[g] * 5,
+            terminal_tax=v.terminal_tax_rate_pct / 100.0,
+        )
         w = v.wacc_audit
         repriced = dcf_fair_value_per_share(
             fcfs, w.wacc, 0.025, v.net_debt, v.diluted_shares, terminal_nopat=nopat, ronic=v.ronic_used_pct / 100.0,
-            roll_forward_years=v.roll_forward_years, cost_of_equity=w.cost_of_equity,
+            roll_forward_years=v.roll_forward_years, risk_free_rate=w.risk_free_rate_pct / 100.0,
         )
         self.assertAlmostEqual(repriced, 235.0, delta=0.5)
+
+        # The market-implied discount rate reprices the unchanged base case to the same price.
+        self.assertIsNotNone(v.market_implied_wacc_pct)
+        self.assertLess(v.market_implied_wacc_pct, w.wacc_pct)  # price above fair value -> lower required return
+        at_implied = dcf_fair_value_per_share(
+            list(v.projected_fcfs), v.market_implied_wacc_pct / 100.0, 0.025, v.net_debt, v.diluted_shares,
+            terminal_nopat=nopat_base(self.forecast, v), ronic=v.ronic_used_pct / 100.0,
+            roll_forward_years=v.roll_forward_years, risk_free_rate=w.risk_free_rate_pct / 100.0,
+        )
+        self.assertAlmostEqual(at_implied, 235.0, delta=0.5)
+        self.assertIn("discount rate versus the", v.reverse_dcf_summary)
         self.assertIn("market implies", v.reverse_dcf_summary)
 
         # Companion solve: uniform margin shift at modeled growth reprices to the same price.
@@ -101,10 +121,10 @@ class TestReverseDcfInBuildValuation(unittest.TestCase):
         shift = v.market_implied_margin_shift_pp / 100.0
         margins = [m + shift for m in self.forecast.applied_drivers.operating_margin]
         fcfs, nopat = project_with_overrides(self.forecast.assumptions, self.forecast.applied_drivers, 0.025,
-                                             margins=margins)
+                                             margins=margins, terminal_tax=v.terminal_tax_rate_pct / 100.0)
         repriced = dcf_fair_value_per_share(
             fcfs, w.wacc, 0.025, v.net_debt, v.diluted_shares, terminal_nopat=nopat, ronic=v.ronic_used_pct / 100.0,
-            roll_forward_years=v.roll_forward_years, cost_of_equity=w.cost_of_equity,
+            roll_forward_years=v.roll_forward_years, risk_free_rate=w.risk_free_rate_pct / 100.0,
         )
         self.assertAlmostEqual(repriced, 235.0, delta=0.5)
         self.assertIn("operating-margin shift", v.reverse_dcf_summary)

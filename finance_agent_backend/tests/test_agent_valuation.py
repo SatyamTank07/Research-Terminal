@@ -19,6 +19,7 @@ from app.agents.specialized.valuation_specialist import DCFValuationOutput, Valu
 from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
 from app.agents.tools.valuation_model import MarketInputs, build_valuation
 from app.agents.tools.wacc_tools import blume_adjust
+from app.config import settings
 from tests.forecast_fixtures import make_aapl_audit, make_audit, make_forecast_output
 from tests.valuation_fixtures import AAPL_BALANCE_SHEET_DATE, VALUATION_DATE, make_market, make_valuation_output
 
@@ -78,15 +79,17 @@ class TestValuationSpecialistAgent(unittest.TestCase):
         self.assertEqual(w.risk_free_rate_pct, 4.5)
         self.assertEqual(w.wacc_source, "capm_blended")
         self.assertEqual(w.cost_of_debt_source, "institutional_credit_spread_fallback")  # AAPL fixture: no interest line
-        self.assertAlmostEqual(w.effective_tax_rate_pct, forecast.tax_rate_pct, places=2)
+        # The debt tax shield and the terminal NOPAT use the marginal rate; explicit years keep the forecast's rate.
+        self.assertAlmostEqual(w.effective_tax_rate_pct, settings.DEFAULT_MARGINAL_TAX_RATE * 100.0, places=2)
+        self.assertAlmostEqual(out.terminal_tax_rate_pct, settings.DEFAULT_MARGINAL_TAX_RATE * 100.0, places=2)
 
         # Every headline figure equals an independent engine run with the same inputs.
         roll = (VALUATION_DATE - date(2025, 9, 27)).days / 365.25
         expected = calculate_dcf_with_sensitivity(
             forecast.projected_fcfs, w.wacc, 0.025, audit.balance_sheet.net_debt,
             audit.balance_sheet.valuation_shares_outstanding,
-            terminal_nopat=forecast.forecast_schedule[-1].projected_nopat,
-            ronic=out.ronic_used_pct / 100.0, roll_forward_years=roll, cost_of_equity=w.cost_of_equity,
+            terminal_nopat=round(forecast.forecast_schedule[-1].projected_ebit * (1.0 - settings.DEFAULT_MARGINAL_TAX_RATE), 2),
+            ronic=out.ronic_used_pct / 100.0, roll_forward_years=roll, risk_free_rate=w.risk_free_rate_pct / 100.0,
         )
         self.assertAlmostEqual(out.implied_fair_value_per_share, expected["fair_value_per_share"], delta=0.05)
         self.assertAlmostEqual(out.enterprise_value, expected["enterprise_value"], delta=0.0005 * expected["enterprise_value"])

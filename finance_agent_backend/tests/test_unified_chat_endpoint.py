@@ -143,6 +143,8 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
                 "response": "Apple is undervalued with strong moat",
                 "sources": [],
                 "tokens_streamed": False,
+                "final_report": {"ticker": "AAPL", "valuation_stance": "Undervalued"},
+                "updated_session_state": {"active_ticker": "AAPL", "active_fiscal_year": 2025},
             }
 
         mock_agent.astream_run = mock_astream_run
@@ -178,6 +180,9 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
         self.assertEqual(result_event["conversation_id"], "conv-abc")
         self.assertEqual(result_event["message_id"], "msg-xyz")
         self.assertEqual(result_event["response"], "Apple is undervalued with strong moat")
+        # The structured report and the persisted session state reach the client (API contract).
+        self.assertEqual(result_event["final_report"], {"ticker": "AAPL", "valuation_stance": "Undervalued"})
+        self.assertEqual(result_event["updated_session_state"], {"active_ticker": "AAPL", "active_fiscal_year": 2025})
 
     @patch("app.services.chat_service._prepare_chat_turn")
     @patch("app.services.chat_service._finalize_assistant_turn")
