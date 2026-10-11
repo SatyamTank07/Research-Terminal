@@ -1,0 +1,205 @@
+{# Route-specific report skeleton. `p` holds the (verified) prose fields; all tables come from the artifacts. #}
+{% import "report_blocks.j2" as b %}
+{% import "audit_tables.j2" as t %}
+{% set title_suffix = company_name ~ " (" ~ ticker ~ ")" %}
+{% set horizon = (forecast.forecast_horizon_years ~ "-Year") if forecast else "Multi-Year" %}
+{% macro prose(text) %}{% if text %}{{ text }}
+
+{% endif %}{% endmacro %}
+{% macro provenance_note() %}{% if year_substituted %}
+> ⚠️ **Filing Provenance Note**: Requested fiscal year unavailable in database catalog; substituted with latest audited filing (FY{{ fiscal_year }}).
+{% endif %}{% endmacro %}
+{% if query_type == "dcf_valuation_only" %}
+# DCF Valuation & Intrinsic Sensitivity: {{ title_suffix }}
+> **Filing Source**: SEC Form 10-K (FY{{ fiscal_year }}) | **Valuation Stance**: **{{ (dcf_valuation.valuation_stance or "Not stated") if dcf_valuation else "Unavailable" }}**
+{{ provenance_note() }}
+
+{% if dcf_valuation %}
+## Executive Valuation Dashboard
+
+{{ b.dashboard(dcf_valuation, forecast) }}
+## 1. Valuation Executive Summary
+
+{{ prose(p.executive_summary) }}
+## 2. {{ horizon }} Explicit UFCF Projections
+
+{{ prose(p.forecast_commentary) }}{% if forecast %}{{ b.forecast_block(forecast) }}{% else %}{{ b.unavailable("The forecast", notes) }}{% endif %}
+
+## 3. WACC Hurdle Rate Breakdown
+
+{{ b.wacc_block(dcf_valuation) }}
+## 4. Equity Bridge & Scenario Valuation
+
+{{ b.bridge_block(dcf_valuation) }}
+## 5. Sensitivity Analysis
+
+{{ b.sensitivity_block(dcf_valuation) }}
+## 6. Valuation Commentary & Margin of Safety
+
+{{ prose(p.valuation_commentary) }}{{ b.valuation_warnings(dcf_valuation) }}
+{% else %}
+## 1. Valuation Executive Summary
+
+{{ prose(p.executive_summary) }}{{ b.unavailable("The DCF valuation", notes) }}
+{% endif %}
+
+## 7. Regulatory Disclaimers
+
+{{ b.footer(notes, provenance, removed_sentences) }}
+{% elif query_type == "financial_audit_only" %}
+{% set fa = financial_audit %}
+# Financial Statement Audit & Quality of Earnings: {{ title_suffix }}
+> **Filing Source**: SEC Form 10-K (FY{{ fiscal_year }}) | **Extraction**: {{ fa.data_quality.extraction_mode }} | **Forensic Findings**: {{ fa.forensic_findings | selectattr("severity", "in", ["high", "medium"]) | list | length }} high/medium
+{{ provenance_note() }}
+
+## 1. Executive Summary
+
+{{ prose(p.executive_summary) }}
+## 2. Multi-Year Performance
+
+{{ t.table_a(fa) }}
+## 3. Earnings Quality & Normalization
+
+{{ prose(p.earnings_quality_commentary) }}{{ t.table_b(fa) }}{{ t.normalization_lines(fa) }}
+
+## 4. Margins, Cost Structure & Working Capital
+
+{{ t.table_c(fa) }}
+## 5. Cash Flow, Capital Intensity & Dilution
+
+{{ prose(p.cash_flow_balance_sheet_commentary) }}{{ t.table_d(fa) }}
+## 6. Balance Sheet, Liquidity & Returns
+{{ t.table_e(fa) }}
+## 7. Forensic Findings
+{{ t.table_f(fa) }}
+## 8. Restatement Review & Data Quality
+
+{{ b.restatement_block(fa) }}
+## 9. Audited Statements
+
+{{ b.statements_block(fa) }}
+{{ b.footer(notes, provenance, removed_sentences) }}
+{% elif query_type == "business_moat_only" %}
+{% set m = business_moat %}
+# Business Operations & Economic Moat Analysis: {{ title_suffix }}
+> **Filing Source**: SEC Form 10-K (FY{{ fiscal_year }}) | **Primary Moat**: **{{ m.economic_moat_type }}** | **Durability**: **{{ m.moat_durability }}** | **Trajectory**: **{{ m.moat_trajectory }}**
+{{ provenance_note() }}
+
+## 1. Executive Summary & Revenue Architecture
+
+{{ prose(p.executive_summary) }}**Revenue architecture (filing-based)**: {{ m.revenue_architecture }}
+
+## 2. Segments & Disaggregated Revenue Architecture
+
+{{ b.business_block(m) }}
+## 3. Economic Moat Deconstruction
+
+{{ prose(p.business_commentary) }}
+## 4. Competitive Threats & Counter-Evidence Stress Test
+
+{{ b.threats_block(m) }}
+## 5. Market Power & Customer Concentration
+
+{{ b.market_power_block(m) }}
+## 6. Filing Evidence & Audit Trail
+
+{{ b.citations_table(m.citations) }}
+{{ b.footer(notes, provenance, removed_sentences) }}
+{% elif query_type == "risk_factors_only" %}
+{% set r = risk_audit %}
+# Material Risk Factors & Existential Overhangs: {{ title_suffix }}
+{{ b.risk_banner(r) }}
+{{ provenance_note() }}
+
+## 1. Risk Summary
+
+{{ prose(p.risk_commentary) }}
+## 2. Verified Risk Matrix
+
+{{ b.risk_matrix(r) }}
+## 3. Risk-by-Risk Assessment
+
+{{ b.risk_details(r) }}
+## 4. Primary Existential Threat & Bear-Case Linkage
+
+{{ prose(p.bear_case_commentary) }}
+## 5. Year-over-Year Disclosure Changes
+
+{{ b.disclosure_changes(r) }}
+{{ prose(p.disclosure_change_commentary) }}
+## 6. Filing Evidence & Audit Trail
+
+{{ b.risk_audit_trail(r) }}
+
+{{ b.footer(notes, provenance, removed_sentences) }}
+{% else %}
+# Institutional Equity Research Report: {{ title_suffix }}
+> **Filing Source**: SEC Form 10-K (Fiscal Year {{ fiscal_year }}) | **Valuation Stance**: **{{ (dcf_valuation.valuation_stance or "Not stated") if dcf_valuation else "Unavailable" }}**
+{{ provenance_note() }}
+
+## Executive Valuation Dashboard
+
+{% if dcf_valuation %}{{ b.dashboard(dcf_valuation, forecast) }}{% else %}{{ b.unavailable("The DCF valuation", notes) }}{% endif %}
+
+## 1. Executive Summary
+
+{{ prose(p.executive_summary) }}{% if p.bottom_line %}**Bottom line**: {{ p.bottom_line }}
+
+{% endif %}
+## 2. Institutional 3-Pillar Investment Thesis
+
+### Pillar 1: Business Architecture & Competitive Moat
+
+{{ prose(p.pillar_1_business_moat) }}
+### Pillar 2: Financial Durability & Earnings Quality
+
+{{ prose(p.pillar_2_financial_durability) }}
+### Pillar 3: Valuation Asymmetry & Margin of Safety
+
+{{ prose(p.pillar_3_valuation_asymmetry) }}
+## 3. Business Operations & Economic Moat Analysis
+
+{% if business_moat %}{{ prose(p.business_commentary) }}{{ b.business_block(business_moat) }}
+**Competitive threats**
+
+{{ b.threats_block(business_moat) }}
+{{ b.market_power_block(business_moat) }}{% else %}{{ b.unavailable("The business and moat analysis", notes) }}{% endif %}
+
+## 4. Audited Financial Statements & Quality of Earnings
+
+{% if financial_audit %}{{ prose(p.earnings_quality_commentary) }}{{ b.audit_core(financial_audit) }}
+{{ b.restatement_block(financial_audit) }}{% else %}{{ b.unavailable("The financial statement audit", notes) }}{% endif %}
+
+## 5. {{ horizon }} Financial Forecast & Cash Flow Schedule
+
+{% if forecast %}{{ prose(p.forecast_commentary) }}{{ b.forecast_block(forecast) }}{% else %}{{ b.unavailable("The forecast", notes) }}{% endif %}
+
+## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity
+
+{% if dcf_valuation %}{{ prose(p.valuation_commentary) }}**WACC breakdown**
+
+{{ b.wacc_block(dcf_valuation) }}
+**Equity bridge**
+
+{{ b.bridge_block(dcf_valuation) }}
+
+**Sensitivity**
+
+{{ b.sensitivity_block(dcf_valuation) }}
+
+{{ b.valuation_warnings(dcf_valuation) }}{% else %}{{ b.unavailable("The DCF valuation", notes) }}{% endif %}
+
+## 7. Material Risk Factors & Existential Overhangs
+
+{% if risk_audit %}{{ b.risk_banner(risk_audit) }}
+
+{{ prose(p.risk_commentary) }}{{ b.risk_matrix(risk_audit) }}
+{{ b.risk_details(risk_audit, "####") }}{{ prose(p.bear_case_commentary) }}{% else %}{{ b.unavailable("The risk factor analysis", notes) }}{% endif %}
+
+## 8. Regulatory Disclaimers & Audit Breadcrumbs
+
+{% if risk_audit %}{{ b.risk_audit_trail(risk_audit) }}
+
+{% endif %}
+{{ b.footer(notes, provenance, removed_sentences) }}
+{% endif %}

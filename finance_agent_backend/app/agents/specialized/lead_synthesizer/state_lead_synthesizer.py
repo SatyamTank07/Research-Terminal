@@ -26,13 +26,15 @@ class Final10KResearchReport(BaseModel):
     fiscal_year: int = Field(..., description="Target fiscal year analyzed")
 
     # Valuation & Stance Summary
-    implied_fair_value_per_share: float = Field(..., description="DCF fair value per share ($)")
+    implied_fair_value_per_share: Optional[float] = Field(
+        None, description="Base-case DCF fair value per share ($); None when the route has no valuation"
+    )
     current_share_price: Optional[float] = Field(None, description="Current market share price ($)")
     upside_downside_pct: Optional[float] = Field(
         None, description="Implied upside/downside % relative to market price"
     )
-    valuation_stance: Literal["Undervalued", "Fairly Valued", "Overvalued"] = Field(
-        ..., description="High-level investment stance based on margin of safety threshold (+/- 10%)"
+    valuation_stance: Optional[Literal["Undervalued", "Fairly Valued", "Overvalued"]] = Field(
+        None, description="Stance from the +/-10% margin-of-safety band; None without a valuation or market price"
     )
 
     # Core Institutional Narrative

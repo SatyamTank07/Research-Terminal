@@ -192,363 +192,229 @@ def _mock_llm(payload: ResearchSynthesisPayload) -> MagicMock:
     return mock_llm
 
 
+def _failing_llm() -> MagicMock:
+    mock_llm = MagicMock()
+    mock_llm.with_structured_output.return_value.invoke.side_effect = RuntimeError("API down")
+    mock_llm.invoke.side_effect = RuntimeError("API down")
+    return mock_llm
+
+
+FULL_PROSE = ResearchSynthesisPayload(
+    executive_summary="Apple pairs a wide switching-cost moat with net cash of $33.8 billion, but the base case sits below the market price.",
+    bottom_line="Overvalued on the base case; a sustained services mix shift would change the view.",
+    pillar_1_business_moat="An installed base of 2.2B+ active devices anchors switching costs across the ecosystem.",
+    pillar_2_financial_durability="Operating margin reached 31.97% in FY2025 while free cash flow was $98,767M.",
+    pillar_3_valuation_asymmetry="The base-case value of $122.69 per share trails the $235.00 price.",
+    business_commentary="Services deepen the lock-in that hardware creates.",
+    earnings_quality_commentary="Net income rose while operating cash flow declined, the one high-severity finding.",
+    forecast_commentary="Growth fades toward terminal growth with a stable margin.",
+    valuation_commentary="Terminal value is 69.6% of enterprise value and the RONIC clamp is the key caveat.",
+    risk_commentary="Antitrust action on the App Store is the primary existential threat.",
+    bear_case_commentary="A bear case should stress services revenue and gross margin.",
+)
+
+
 class TestAgentLeadSynthesizer(unittest.TestCase):
-    """Test suite for Milestone 6: Lead Synthesizer Agent."""
+    """Code-assembled reports with LLM-written, code-verified prose."""
 
     def setUp(self):
         self.synthesizer = LeadSynthesizerAgent()
 
+    def _synth(self, llm, **kwargs):
+        defaults = dict(ticker="aapl", company_name="Apple Inc.", fiscal_year=2025)
+        with patch.object(self.synthesizer, "_get_llm", return_value=llm):
+            return self.synthesizer.synthesize(**{**defaults, **kwargs})
+
+    def _full(self, llm, **kwargs):
+        return self._synth(
+            llm,
+            business_moat=_create_mock_moat(), financial_audit=_create_mock_audit(), forecast=_create_mock_forecast(),
+            dcf_valuation=_create_mock_dcf(), risk_audit=_create_mock_risk(), **kwargs,
+        )
+
     def test_01_initialization_and_registry(self):
-        """Verify agent registration and prompt template rendering."""
-        agent = AgentRegistry.get("lead_synthesizer")
-        self.assertIsInstance(agent, LeadSynthesizerAgent)
-
-        # Verify prompt renders with generic template directives
-        prompt = render_prompt("lead_synthesizer", ticker="AAPL", fiscal_year=2025)
+        self.assertIsInstance(AgentRegistry.get("lead_synthesizer"), LeadSynthesizerAgent)
+        prompt = render_prompt("lead_synthesizer", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025)
         self.assertIn("Managing Director of Global Equity Research", prompt)
-        self.assertIn("3-Pillar Investment Thesis", prompt)
-        self.assertIn("Final10KResearchReport", prompt)
+        self.assertIn("ResearchSynthesisPayload", prompt)
+        self.assertIn("Prose only", prompt)
 
-    def test_02_full_synthesis_end_to_end(self):
-        """Verify full synthesis with all 5 agent inputs producing complete Final10KResearchReport."""
-        audit = _create_mock_audit()
-        moat = _create_mock_moat()
-        forecast = _create_mock_forecast()
-        dcf = _create_mock_dcf()
-        risk = _create_mock_risk()
+    def test_02_full_report_is_code_assembled_with_verbatim_tables(self):
+        dcf, risk, forecast = _create_mock_dcf(), _create_mock_risk(), _create_mock_forecast()
+        report = self._full(_mock_llm(FULL_PROSE))
+        md = report.full_markdown_report
 
-        mock_payload = ResearchSynthesisPayload(
-            full_markdown_report=(
-                "# Institutional Equity Research Report: Apple Inc. (AAPL)\n\n"
-                "## Executive Valuation Dashboard\n"
-                "- Implied Fair Value: **$245.50**\n"
-                "- Current Market Price: $230.00\n"
-                "- Projected Upside: +6.7%\n\n"
-                "## 1. Executive Summary\n"
-                "Apple Inc. demonstrates outstanding capital return resilience, vast installed base scale, "
-                "and an expanding high-margin Services mix sustaining long-term intrinsic value creation.\n\n"
-                "## 2. Institutional 3-Pillar Investment Thesis\n"
-                "Institutional synthesis establishes defensibility across business moat, financial durability, and asymmetric valuation upside.\n\n"
-                "## 3. Business Operations & Economic Moat Analysis\n"
-                "Proprietary integrated ecosystem creates immense consumer lock-in across active devices.\n\n"
-                "## 4. Audited Financial Statements & Ratio Performance\n"
-                "| Line Item | FY2023 | FY2024 | FY2025 |\n"
-                "| :--- | :---: | :---: | :---: |\n"
-                "| Total net sales | $383,285 | $391,035 | $416,161 |\n\n"
-                "## 5. 5-Year Financial Forecast & Cash Flow Schedule\n"
-                "Forecast models steady 5% CAGR underpinned by Services expansion and Apple Intelligence upgrade cycle.\n\n"
-                "## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n"
-                "| Component | Weight | Rate | Weighted |\n"
-                "| :--- | :---: | :---: | :---: |\n"
-                "| **Blended WACC** | **100.0%** | - | **9.53%** |\n\n"
-                "DCF sensitivity benchmark yields implied fair value of **$245.50**.\n\n"
-                "## 7. Material Risk Factors & Existential Overhangs\n"
-                "Primary risks center around antitrust regulatory probes into App Store commissions and Asian supply chain concentration.\n\n"
-                "## 8. Regulatory Disclaimers & Audit Breadcrumbs\n"
-                "This report is for institutional research purposes only and incorporates audited SEC filings."
-            ),
-            executive_summary=(
-                "Apple Inc. demonstrates outstanding capital return resilience, vast installed base scale, "
-                "and an expanding high-margin Services mix sustaining long-term intrinsic value creation."
-            ),
-            valuation_stance="Fairly Valued",
-            pillar_1_business_moat=(
-                "Proprietary integrated hardware-software ecosystem creates insurmountable consumer lock-in and high switching costs across 2.2B+ devices."
-            ),
-            pillar_2_financial_durability=(
-                "Pristine balance sheet structure, world-class ROIC, and disciplined capital allocation driving over $100B in annual operating cash flow."
-            ),
-            pillar_3_valuation_asymmetry=(
-                "DCF valuation yields $245.50 fair value, establishing favorable risk-reward asymmetry and downside margin of safety."
-            ),
-        )
-
-        mock_llm = MagicMock()
-        mock_structured_llm = MagicMock()
-        mock_structured_llm.invoke.return_value = mock_payload
-        mock_llm.with_structured_output.return_value = mock_structured_llm
-
-        with patch.object(self.synthesizer, "_get_llm", return_value=mock_llm):
-            report = self.synthesizer.synthesize(
-                ticker="AAPL",
-                company_name="Apple Inc.",
-                fiscal_year=2025,
-                business_moat=moat,
-                financial_audit=audit,
-                forecast=forecast,
-                dcf_valuation=dcf,
-                risk_audit=risk,
-                year_substituted=False,
-            )
-
-        self.assertIsInstance(report, Final10KResearchReport)
         self.assertEqual(report.ticker, "AAPL")
-        self.assertEqual(report.company_name, "Apple Inc.")
-        self.assertEqual(report.fiscal_year, 2025)
-        self.assertEqual(report.year_substituted, False)
-
-        # Provenance must be tagged
-        self.assertIn(report.synthesis_provenance, ["llm_structured", "llm_json_fallback", "template_default"])
-
-        # Valuation numbers must match DCF output exactly (Zero Hallucination)
+        self.assertEqual(report.synthesis_provenance, "llm_structured")
         self.assertEqual(report.implied_fair_value_per_share, dcf.implied_fair_value_per_share)
-        self.assertEqual(report.current_share_price, dcf.current_share_price)
-        self.assertEqual(report.upside_downside_pct, dcf.upside_downside_pct)
         self.assertEqual(report.valuation_stance, dcf.valuation_stance)
+        self.assertIsInstance(report.three_pillar_thesis, ThreePillarThesis)
+        self.assertIn("2.2B+ active devices", report.three_pillar_thesis.pillar_1_business_moat)
 
-        # Verify 3-Pillar Thesis components
-        thesis = report.three_pillar_thesis
-        self.assertIsInstance(thesis, ThreePillarThesis)
-        self.assertTrue(len(thesis.pillar_1_business_moat) > 20)
-        self.assertTrue(len(thesis.pillar_2_financial_durability) > 20)
-        self.assertTrue(len(thesis.pillar_3_valuation_asymmetry) > 20)
-
-        # Verify Executive Summary
-        self.assertTrue(len(report.executive_summary) > 50)
-
-        # Verify publication Markdown report sections
-        md = report.full_markdown_report
-        self.assertIn("# Institutional Equity Research Report: Apple Inc. (AAPL)", md)
-        self.assertIn("## Executive Valuation Dashboard", md)
-        self.assertIn("$245.50", md)
-        self.assertIn("## 1. Executive Summary", md)
-        self.assertIn("## 2. Institutional 3-Pillar Investment Thesis", md)
-        self.assertIn("## 3. Business Operations & Economic Moat Analysis", md)
-        self.assertIn("## 4. Audited Financial Statements & Ratio Performance", md)
-        self.assertIn("## 5. 5-Year Financial Forecast & Cash Flow Schedule", md)
-        self.assertIn("## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity", md)
-        self.assertIn("## 7. Material Risk Factors & Existential Overhangs", md)
-        self.assertIn("## 8. Regulatory Disclaimers & Audit Breadcrumbs", md)
-        self.assertIn("Synthesis Provenance:", md)
-
-        # Verify raw tables preserved verbatim
-        self.assertIn("| Total net sales | $383,285 | $391,035 | $416,161 |", md)
-        self.assertIn("| **Blended WACC** | **100.0%** | - | **9.53%** |", md)
-        self.assertIn("**$245.50**", md)
-
-        # Verify citation consolidation & deduplication
-        self.assertEqual(len(report.all_citations), 4)
-        chunk_ids = [c["chunk_id"] for c in report.all_citations]
-        self.assertIn("table-chunk-item8-01", chunk_ids)
-        self.assertIn("narrative-chunk-item1-01", chunk_ids)
-        self.assertIn("narrative-chunk-item7-01", chunk_ids)
-        self.assertIn("narrative-chunk-item1a-01", chunk_ids)
-
-    def test_03_partial_synthesis_with_year_substitution(self):
-        """Verify synthesis in Fast-Path DCF mode with year substitution flag."""
-        audit = _create_mock_audit()
-        forecast = _create_mock_forecast()
-        dcf = _create_mock_dcf()
-
-        mock_partial_payload = ResearchSynthesisPayload(
-            full_markdown_report=(
-                "# Institutional Equity Research Report: Apple Inc. (AAPL)\n\n"
-                "## Executive Valuation Dashboard\n"
-                "- Implied Fair Value: **$245.50**\n\n"
-                "## 4. Audited Financial Statements & Ratio Performance\n"
-                "| Line Item | FY2023 | FY2024 | FY2025 |\n"
-                "| :--- | :---: | :---: | :---: |\n"
-                "| Total net sales | $383,285 | $391,035 | $416,161 |\n\n"
-                "## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n"
-                "DCF valuation yields $245.50 fair value."
-            ),
-            executive_summary="Fast-path DCF valuation report for Apple Inc. evaluating audited financial trends.",
-            valuation_stance="Fairly Valued",
-            pillar_1_business_moat=None,
-            pillar_2_financial_durability="Strong balance sheet with robust cash reserves and positive free cash flows.",
-            pillar_3_valuation_asymmetry="Intrinsic DCF fair value provides valuation perspective against market price.",
-        )
-
-        mock_llm = MagicMock()
-        mock_structured_llm = MagicMock()
-        mock_structured_llm.invoke.return_value = mock_partial_payload
-        mock_llm.with_structured_output.return_value = mock_structured_llm
-
-        with patch.object(self.synthesizer, "_get_llm", return_value=mock_llm):
-            report = self.synthesizer.synthesize(
-                ticker="AAPL",
-                company_name="Apple Inc.",
-                fiscal_year=2025,
-                financial_audit=audit,
-                forecast=forecast,
-                dcf_valuation=dcf,
-                year_substituted=True,
-            )
-
-        self.assertIsInstance(report, Final10KResearchReport)
-        self.assertEqual(report.implied_fair_value_per_share, dcf.implied_fair_value_per_share)
-        self.assertEqual(report.year_substituted, True)
-        self.assertIn("Filing Provenance Note", report.full_markdown_report)
-        self.assertIn("## Executive Valuation Dashboard", report.full_markdown_report)
-        self.assertIn("## 4. Audited Financial Statements & Ratio Performance", report.full_markdown_report)
-        self.assertIn("## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity", report.full_markdown_report)
-
-    def test_04_exhaustive_none_guard_resilience(self):
-        """Verify _fmt helper gracefully handles None, NaN, and Inf without TypeError exceptions."""
-        fmt = LeadSynthesizerAgent._fmt
-        self.assertEqual(fmt(None, ".1f"), "N/A")
-        self.assertEqual(fmt(float("nan"), ".1f"), "N/A")
-        self.assertEqual(fmt(float("inf"), ".1f"), "N/A")
-        self.assertEqual(fmt(12.345, ".1f", suffix="%"), "12.3%")
-        self.assertEqual(fmt(1234.56, ",.1f", prefix="$", suffix="M"), "$1,234.6M")
-
-    def test_06_risk_factors_prompt_embeds_verified_context(self):
-        """Verify the risk-only route renders the section template and the verified risk artifacts."""
-        risk = _create_mock_risk()
-        prompt = render_prompt(
-            "lead_synthesizer", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025,
-            risk_audit=risk, query_type="risk_factors_only", user_query="What are Apple's key risks?",
-        )
-        self.assertIn("VERIFIED RISK MATRIX (embed verbatim):", prompt)
-        self.assertIn(risk.risk_matrix_markdown, prompt)
-        self.assertIn(risk.evidence_table_markdown, prompt)
-        self.assertIn("# Material Risk Factors & Existential Overhangs: Apple Inc. (AAPL)", prompt)
-        self.assertIn("**Overall Risk Profile**: **High** | **Severe Risks**: 2 of 3 | **Disclosure Baseline**: vs FY2024", prompt)
-        self.assertIn("## 4. Primary Existential Threat & Bear-Case Linkage", prompt)
-        self.assertIn("Primary Existential Threat: R1", prompt)
-        self.assertIn('Evidence [narrative-chunk-item1a-01 | Item 1A]: "The Company is subject to complex', prompt)
-        self.assertIn("YEAR-OVER-YEAR DISCLOSURE CHANGES (FY2025 vs FY2024)", prompt)
-        self.assertIn("Do NOT state an analysis date", prompt)
-
-        instruction = render_prompt(
-            "prompt_synthesizer_instruction.j2", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025,
-            query_type="risk_factors_only",
-        )
-        self.assertIn("6 sections", instruction)
-        self.assertIn("VERIFIED RISK MATRIX", instruction)
-
-    def test_07_risk_report_guards_insert_matrix_and_strip_dates(self):
-        """Verify the deterministic guards: matrix inserted when missing, invented dates removed."""
-        risk = _create_mock_risk()
-        payload = ResearchSynthesisPayload(
-            full_markdown_report=(
-                "# Material Risk Factors & Existential Overhangs: Apple Inc. (AAPL)\n\n"
-                "> **Filing Source**: SEC Form 10-K (FY2025) | **Analysis Date**: October 2023 | **Overall Risk Profile**: **High**\n"
-                "> **Report Date**: October 2023\n\n"
-                "## 1. Risk Summary\n- Antitrust intervention is the primary threat.\n\n"
-                "## 2. Verified Risk Matrix\nThe matrix ranks severity as likelihood x impact.\n\n"
-                "## 3. Risk-by-Risk Assessment\n### R1 — Antitrust Scrutiny on App Store\nDetail."
-            ),
-            executive_summary="Antitrust intervention is Apple's primary existential threat; overall risk profile is High.",
-        )
-        with patch.object(self.synthesizer, "_get_llm", return_value=_mock_llm(payload)):
-            report = self.synthesizer.synthesize(
-                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, risk_audit=risk,
-                query_type="risk_factors_only",
-            )
-        md = report.full_markdown_report
-        self.assertNotIn("Analysis Date", md)
-        self.assertNotIn("Report Date", md)
-        self.assertNotIn("October 2023", md)
-        self.assertIn("> **Filing Source**: SEC Form 10-K (FY2025) | **Overall Risk Profile**: **High**", md)
-        self.assertIn(risk.risk_matrix_markdown, md)
-        self.assertLess(md.index("## 2. Verified Risk Matrix"), md.index("| R1 | Antitrust Scrutiny on App Store"))
-        self.assertLess(md.index("| R1 | Antitrust Scrutiny on App Store"), md.index("## 3. Risk-by-Risk Assessment"))
+        for heading in (
+            "# Institutional Equity Research Report: Apple Inc. (AAPL)",
+            "## Executive Valuation Dashboard",
+            "## 1. Executive Summary",
+            "## 2. Institutional 3-Pillar Investment Thesis",
+            "## 3. Business Operations & Economic Moat Analysis",
+            "## 4. Audited Financial Statements & Quality of Earnings",
+            f"## 5. {forecast.forecast_horizon_years}-Year Financial Forecast & Cash Flow Schedule",
+            "## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity",
+            "## 7. Material Risk Factors & Existential Overhangs",
+            "## 8. Regulatory Disclaimers & Audit Breadcrumbs",
+        ):
+            self.assertIn(heading, md)
+        for table in (
+            dcf.wacc_audit.formula_breakdown_markdown, dcf.sensitivity_matrix_markdown, dcf.equity_bridge_markdown,
+            dcf.scenario_table_markdown, forecast.forecast_table_markdown, risk.risk_matrix_markdown,
+            risk.evidence_table_markdown,
+        ):
+            self.assertIn(table.strip(), md)
+        for warning in dcf.data_quality.warnings:
+            self.assertIn(warning, md)
+        self.assertIn(f"**${dcf.implied_fair_value_per_share:,.2f}**", md)
+        self.assertIn("**Bottom line**: Overvalued on the base case", md)
+        self.assertIn("> *Synthesis Provenance: `llm_structured`*", md)
         self.assertEqual(md.count("| R1 | Antitrust Scrutiny on App Store"), 1)
+        self.assertEqual(len(report.all_citations), 4)
 
-    def test_08_risk_matrix_not_duplicated_or_forced_on_other_routes(self):
-        """Verify an embedded matrix is left alone and non-risk routes are untouched."""
-        risk = _create_mock_risk()
-        embedded = (
-            "# Material Risk Factors & Existential Overhangs: Apple Inc. (AAPL)\n\n## 2. Verified Risk Matrix\n"
-            + risk.risk_matrix_markdown.replace(" | ", "  |  ")
+    def test_03_dcf_route_with_year_substitution(self):
+        report = self._synth(
+            _mock_llm(FULL_PROSE), financial_audit=_create_mock_audit(), forecast=_create_mock_forecast(),
+            dcf_valuation=_create_mock_dcf(), year_substituted=True, query_type="dcf_valuation_only",
         )
-        payload = ResearchSynthesisPayload(full_markdown_report=embedded, executive_summary="Risk summary for Apple Inc. FY2025.")
-        with patch.object(self.synthesizer, "_get_llm", return_value=_mock_llm(payload)):
-            report = self.synthesizer.synthesize(
-                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, risk_audit=risk, query_type="risk_factors_only",
-            )
-        self.assertEqual(report.full_markdown_report.count("Antitrust Scrutiny on App Store"), 1)
+        md = report.full_markdown_report
+        self.assertTrue(report.year_substituted)
+        self.assertIn("Filing Provenance Note", md)
+        self.assertIn("# DCF Valuation & Intrinsic Sensitivity: Apple Inc. (AAPL)", md)
+        self.assertIn("## 4. Equity Bridge & Scenario Valuation", md)
+        self.assertNotIn("Business Operations", md)
 
-        moat_payload = ResearchSynthesisPayload(full_markdown_report="# Moat\nBody", executive_summary="Moat summary for Apple Inc.")
-        with patch.object(self.synthesizer, "_get_llm", return_value=_mock_llm(moat_payload)):
-            report = self.synthesizer.synthesize(
-                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, risk_audit=risk, query_type="business_moat_only",
-            )
-        self.assertNotIn("Verified Risk Matrix", report.full_markdown_report)
+    def test_04_untraceable_figures_and_layout_are_removed_from_prose(self):
+        payload = FULL_PROSE.model_copy(update={
+            "executive_summary": (
+                "Revenue reached $416.2 billion in FY2025. Management will hit $999,999M of revenue by 2030. "
+                "The Analysis Date is October 2023."
+            ),
+            "valuation_commentary": "## Heading the model should not write\n| a | b |\nTerminal value is 69.6% of enterprise value.",
+        })
+        report = self._full(_mock_llm(payload))
+        md = report.full_markdown_report
+        self.assertIn("Revenue reached $416.2 billion in FY2025.", md)
+        self.assertNotIn("999,999", md)
+        self.assertNotIn("October 2023", md)
+        self.assertNotIn("Heading the model should not write", md)
+        self.assertIn("Terminal value is 69.6% of enterprise value.", md)
+        self.assertIn("1 sentence(s) of commentary were removed", md)
 
-    def test_09_yoy_claims_stripped_without_baseline(self):
-        """Verify year-over-year claims are removed from risk sections when no prior-year baseline exists."""
-        risk = _create_mock_risk().model_copy(update={"disclosure_changes": None})
+    def test_05_run_agent_output_interface(self):
+        output = self.synthesizer.run([{"role": "user", "content": "Generate final report for Apple"}])
+        self.assertIn("LeadSynthesizerAgent", output.content)
+
+    def test_06_risk_prompt_embeds_verified_context(self):
+        risk = _create_mock_risk()
         prompt = render_prompt(
             "lead_synthesizer", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025,
             risk_audit=risk, query_type="risk_factors_only",
         )
-        self.assertIn("NO PRIOR-YEAR BASELINE", prompt)
-        self.assertIn("NO BASELINE EXISTS", prompt)
+        self.assertIn("VERIFIED RISK MATRIX (embed verbatim):", prompt)
+        self.assertIn(risk.risk_matrix_markdown, prompt)
+        self.assertIn("Primary Existential Threat: R1", prompt)
+        self.assertIn('Evidence [narrative-chunk-item1a-01 | Item 1A]: "The Company is subject to complex', prompt)
+        self.assertIn("YEAR-OVER-YEAR DISCLOSURE CHANGES (FY2025 vs FY2024)", prompt)
+        self.assertIn("`bear_case_commentary`", prompt)
+        self.assertIn("Do not state an analysis date", prompt)
 
-        payload = ResearchSynthesisPayload(
-            full_markdown_report=(
-                "# Material Risk Factors & Existential Overhangs: Apple Inc. (AAPL)\n"
-                "> **Filing Source**: SEC Form 10-K (FY2025) | **Disclosure Baseline**: not assessed\n\n"
-                "## 1. Risk Summary\n"
-                "- Antitrust intervention is the primary existential threat.\n"
-                "- Overall, the risk profile is High with two Severe risks.\n"
-                "- A significant year-over-year change includes the heightened focus on cybersecurity threats.\n\n"
-                "## 2. Verified Risk Matrix\n" + risk.risk_matrix_markdown + "\n\n"
-                "## 3. Risk-by-Risk Assessment\n"
-                "Supply concentration is unchanged in structure. Compared to the prior year, the language is broader.\n\n"
-                "## 5. Year-over-Year Disclosure Changes\n"
-                "The year-over-year change was not assessed as there is no prior-year baseline.\n"
-            ),
-            executive_summary="Antitrust is the primary threat. The year-over-year disclosures expanded on tariffs.",
+    def test_07_template_default_report_is_complete(self):
+        report = self._full(_failing_llm())
+        md = report.full_markdown_report
+        self.assertEqual(report.synthesis_provenance, "template_default")
+        self.assertIn("## 8. Regulatory Disclaimers & Audit Breadcrumbs", md)
+        self.assertIn(_create_mock_dcf().sensitivity_matrix_markdown.strip(), md)
+        self.assertIn("Primary moat: High Switching Costs", report.three_pillar_thesis.pillar_1_business_moat)
+        self.assertIn("$122.69", report.executive_summary)
+
+    def test_08_risk_route_renders_matrix_once_and_details_in_code(self):
+        risk = _create_mock_risk()
+        report = self._synth(_mock_llm(FULL_PROSE), risk_audit=risk, query_type="risk_factors_only")
+        md = report.full_markdown_report
+        self.assertIn("# Material Risk Factors & Existential Overhangs: Apple Inc. (AAPL)", md)
+        self.assertIn("**Overall Risk Profile**: **High** | **Severe Risks**: 2 of 3 | **Disclosure Baseline**: vs FY2024", md)
+        self.assertEqual(md.count("| R1 | Antitrust Scrutiny on App Store"), 1)
+        self.assertIn("### R1 — Antitrust Scrutiny on App Store", md)
+        self.assertLess(md.index("## 2. Verified Risk Matrix"), md.index("| R1 | Antitrust Scrutiny"))
+
+        moat_report = self._synth(
+            _mock_llm(FULL_PROSE), business_moat=_create_mock_moat(), risk_audit=risk, query_type="business_moat_only",
         )
-        with patch.object(self.synthesizer, "_get_llm", return_value=_mock_llm(payload)):
-            report = self.synthesizer.synthesize(
-                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, risk_audit=risk, query_type="risk_factors_only",
-            )
+        self.assertNotIn("Verified Risk Matrix", moat_report.full_markdown_report)
+        self.assertIn("## 2. Segments & Disaggregated Revenue Architecture", moat_report.full_markdown_report)
+
+    def test_09_yoy_claims_stripped_without_baseline(self):
+        payload = FULL_PROSE.model_copy(update={
+            "risk_commentary": (
+                "- Antitrust intervention is the primary existential threat.\n"
+                "- A significant year-over-year change is the heightened focus on cybersecurity threats.\n"
+                "- Supply concentration is unchanged in structure. Compared to the prior year, the language is broader."
+            ),
+            "executive_summary": "Antitrust is the primary threat. The year-over-year disclosures expanded on tariffs.",
+        })
+        no_baseline = _create_mock_risk().model_copy(update={"disclosure_changes": None})
+        report = self._synth(_mock_llm(payload), risk_audit=no_baseline, query_type="risk_factors_only")
         md = report.full_markdown_report
         self.assertNotIn("heightened focus on cybersecurity", md)
         self.assertNotIn("Compared to the prior year", md)
-        self.assertIn("Supply concentration is unchanged in structure.", md)
-        self.assertIn("- Overall, the risk profile is High with two Severe risks.", md)
-        self.assertIn("The year-over-year change was not assessed as there is no prior-year baseline.", md)
-        self.assertIn("vs prior year |", md)  # matrix header untouched
+        self.assertIn("- Supply concentration is unchanged in structure.", md)
         self.assertEqual(report.executive_summary, "Antitrust is the primary threat.")
+        self.assertIn("year-over-year disclosure changes were not assessed", md)
 
-        with_baseline = _create_mock_risk()
-        with patch.object(self.synthesizer, "_get_llm", return_value=_mock_llm(payload)):
-            report = self.synthesizer.synthesize(
-                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, risk_audit=with_baseline, query_type="risk_factors_only",
-            )
+        report = self._synth(_mock_llm(payload), risk_audit=_create_mock_risk(), query_type="risk_factors_only")
         self.assertIn("heightened focus on cybersecurity", report.full_markdown_report)
 
     def test_10_risk_audit_trail_rendered_in_code(self):
-        """Verify data-quality notes and uncited quantified disclosures reach section 6 even if the model omits them."""
         base = _create_mock_risk()
         risk = base.model_copy(update={"data_quality": base.data_quality.model_copy(update={
             "notes": ["1 of 3 quantified Item 1A disclosures are not cited by any verified risk."],
             "quantified_uncovered": ["Sales to one direct customer represented 22% of total revenue."],
         })})
-        payload = ResearchSynthesisPayload(
-            full_markdown_report=(
-                "# Material Risk Factors & Existential Overhangs: Apple Inc. (AAPL)\n\n"
-                "## 2. Verified Risk Matrix\n" + risk.risk_matrix_markdown + "\n\n"
-                "## 6. Filing Evidence & Audit Trail\n" + risk.evidence_table_markdown + "\n\n"
-                "> *Synthesis Provenance: `llm_structured`*"
-            ),
-            executive_summary="Antitrust intervention is the primary threat for Apple Inc.",
-        )
-        with patch.object(self.synthesizer, "_get_llm", return_value=_mock_llm(payload)):
-            report = self.synthesizer.synthesize(
-                ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, risk_audit=risk, query_type="risk_factors_only",
-            )
-        md = report.full_markdown_report
+        md = self._synth(_mock_llm(FULL_PROSE), risk_audit=risk, query_type="risk_factors_only").full_markdown_report
         self.assertIn("**Risk analysis data-quality notes**\n- 1 of 3 quantified Item 1A disclosures", md)
         self.assertIn('- "Sales to one direct customer represented 22% of total revenue."', md)
         self.assertLess(md.index("## 6. Filing Evidence & Audit Trail"), md.index("**Risk analysis data-quality notes**"))
-        self.assertLess(md.index("**Quantified Item 1A disclosures"), md.index("> *Synthesis Provenance"))
         self.assertEqual(md.count("Synthesis Provenance"), 1)
 
-        # Already rendered by the model -> not duplicated.
-        self.assertEqual(LeadSynthesizerAgent._ensure_risk_audit_trail(md, risk), md)
+    def test_11_missing_sections_are_disclosed_with_pipeline_notes(self):
+        note = "Risk Analyst failed (TimeoutError: read timed out); its section is omitted from this report."
+        report = self._synth(
+            _mock_llm(FULL_PROSE), business_moat=_create_mock_moat(), financial_audit=_create_mock_audit(),
+            forecast=_create_mock_forecast(), dcf_valuation=_create_mock_dcf(), pipeline_notes=[note, note],
+        )
+        md = report.full_markdown_report
+        self.assertIn("_The risk factor analysis is unavailable for this report.", md)
+        self.assertEqual(md.count("- " + note), 1)
 
-    def test_05_run_agent_output_interface(self):
-        """Verify BaseAgent.run() interface compatibility for LeadSynthesizer."""
-        output = self.synthesizer.run([
-            {"role": "user", "content": "Generate final report for Apple"}
-        ])
-        self.assertIn("LeadSynthesizerAgent", output.content)
+    def test_12_single_topic_route_without_its_artifact_uses_full_layout(self):
+        report = self._synth(
+            _failing_llm(), financial_audit=_create_mock_audit(), query_type="risk_factors_only",
+            pipeline_notes=["Risk Analyst failed (ValueError: bad output); its section is omitted from this report."],
+        )
+        md = report.full_markdown_report
+        self.assertIn("# Institutional Equity Research Report: Apple Inc. (AAPL)", md)
+        self.assertIn("_The risk factor analysis is unavailable", md)
+        self.assertIsNone(report.implied_fair_value_per_share)
+        self.assertIsNone(report.valuation_stance)
+
+    def test_13_financial_audit_route_embeds_statements(self):
+        md = self._synth(
+            _mock_llm(FULL_PROSE), financial_audit=_create_mock_audit(), query_type="financial_audit_only",
+        ).full_markdown_report
+        self.assertIn("# Financial Statement Audit & Quality of Earnings: Apple Inc. (AAPL)", md)
+        self.assertIn("| Total net sales | $383,285 | $391,035 | $416,161 |", md)
+        self.assertIn("## 9. Audited Statements", md)
+
+    def test_14_none_guard_formatting(self):
+        md = self._synth(_failing_llm(), financial_audit=_create_mock_audit(), query_type="financial_audit_only").full_markdown_report
+        self.assertIn("| Stock-based comp. | N/A | N/A | N/A |", md)
 
 
 if __name__ == "__main__":
