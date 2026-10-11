@@ -3,6 +3,8 @@ from app.agents.specialized.business_strategist.state_business_strategist import
     BusinessMoatOutput,
     SegmentDetail,
     SegmentMoat,
+    StrategistDataQuality,
+    StrategyEvidence,
 )
 
 __all__ = [
@@ -10,4 +12,6 @@ __all__ = [
     "BusinessMoatOutput",
     "SegmentDetail",
     "SegmentMoat",
+    "StrategistDataQuality",
+    "StrategyEvidence",
 ]
