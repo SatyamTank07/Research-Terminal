@@ -1,42 +1,27 @@
-Perform an institutional 2-stage DCF valuation for {{ ticker | upper }} for fiscal year {{ fiscal_year }}.
-1. Audited Balance Sheet Inputs (from Financial Auditor):
-   - Total Debt: ${{ "{:,.2f}".format(total_debt) }}M
-   - Net Debt: ${{ "{:,.2f}".format(net_debt) }}M ({% if net_debt < 0 %}Net Cash Surplus{% else %}Net Indebtedness{% endif %})
-   - Diluted Shares: {{ "{:,.2f}".format(diluted_shares) }} Million shares (pass diluted_shares={{ "{:.2f}".format(diluted_shares) }} EXACTLY, do NOT divide by 1000)
-   - Effective Tax Rate: {{ "{:.2f}%".format(tax_rate * 100) }}
-{% if latest_operating_income is not none %}
-   - Base Year Operating Income (EBIT): ${{ "{:,.2f}".format(latest_operating_income) }}M
+{% set w = v.wacc_audit %}
+Write the valuation commentary for {{ v.ticker }} (FY{{ v.fiscal_year }} 10-K, valued as of {{ v.valuation_date }}).
+
+FACTS ($ millions unless stated)
+- Bridge: PV explicit UFCF {{ "{:,.0f}".format(v.pv_explicit_fcfs) }} ({{ v.projected_fcfs | length }} yrs, {{ v.discounting_convention }}); PV terminal value {{ "{:,.0f}".format(v.pv_terminal_value) }} = {{ v.terminal_value_pct_of_ev }}% of EV; EV {{ "{:,.0f}".format(v.enterprise_value) }}
+- Terminal: {{ v.terminal_method }}, growth {{ "%.2f" | format(v.terminal_growth_rate * 100) }}%{% if v.ronic_used_pct is not none %}, RONIC {{ v.ronic_used_pct }}%{% endif %}{% if v.implied_terminal_ev_ebitda is not none %}, implied terminal EV/EBITDA {{ v.implied_terminal_ev_ebitda }}x{% endif %}
+
+- Equity: net debt {{ "{:,.0f}".format(v.net_debt) }} (negative = net cash); NCI {{ "{:,.0f}".format(v.noncontrolling_interests) }}; roll-forward {{ "%.2f" | format(v.roll_forward_years) }} yrs from {{ v.balance_sheet_date or "fiscal year-end (date unknown)" }}; equity value {{ "{:,.0f}".format(v.equity_value) }}; diluted shares {{ "{:,.1f}".format(v.diluted_shares) }}M
+- Base-case fair value: ${{ "%.2f" | format(v.implied_fair_value_per_share) }}/share{% if v.implied_ev_ebitda is not none %}; EV / base-year EBITDA {{ v.implied_ev_ebitda }}x{% endif %}
+
+- Discount rate: {{ w.wacc_pct }}% ({{ w.wacc_source }}); CAPM WACC {{ w.capm_wacc_pct }}%; Ke {{ w.cost_of_equity_pct }}% = Rf {{ w.risk_free_rate_pct }}% ({{ w.risk_free_rate_source }}) + beta {{ w.beta }} ({{ w.beta_source }}) x ERP {{ w.equity_risk_premium_pct }}% ({{ w.equity_risk_premium_source }}); Kd pre-tax {{ w.cost_of_debt_pre_tax_pct }}% ({{ w.cost_of_debt_source }}), after-tax {{ w.cost_of_debt_after_tax_pct }}%; weights E {{ w.equity_weight_pct }}% / D {{ w.debt_weight_pct }}% ({{ w.capital_structure_source }})
+{% if v.scenario_valuations %}
+- Scenarios (per share): {% for s in v.scenario_valuations %}{{ s.name }} ${{ "%.2f" | format(s.fair_value_per_share) }} (p={{ s.probability }}){% if not loop.last %}, {% endif %}{% endfor %}; probability-weighted ${{ "%.2f" | format(v.probability_weighted_fair_value) if v.probability_weighted_fair_value is not none else "n/a" }}
 {% endif %}
-{% if base_year_ebitda is not none %}
-   - Base Year EBITDA (Operating Income + D&A): ${{ "{:,.2f}".format(base_year_ebitda) }}M
+- Sensitivity grid (fair value per share, WACC rows x growth columns):
+{{ v.sensitivity_matrix_markdown }}
+{% if v.current_share_price is not none %}
+- Market: share price ${{ "%.2f" | format(v.current_share_price) }}; base-case upside {{ "%+.1f" | format(v.upside_downside_pct) }}%; stance {{ v.valuation_stance }}
 {% else %}
-   - Base Year EBITDA: Not available (D&A omitted in 10-K extraction)
+- Market: no share price available; no stance
 {% endif %}
-2. Market & Macro Inputs:
-   - Equity Beta: {{ "{:.2f}".format(beta) }}
-{% if share_price is not none %}
-   - Current Share Price: ${{ "{:.2f}".format(share_price) }}
-{% endif %}
-{% if market_cap is not none %}
-   - Market Capitalization: ${{ "{:,.2f}".format(market_cap) }}M
-{% endif %}
-   - Risk-Free Rate (Rf): {{ "{:.2f}%".format(risk_free_rate * 100) }}
-   - Equity Risk Premium (ERP): {{ "{:.2f}%".format(equity_risk_premium * 100) }}
-{% if cost_of_debt is not none %}
-   - Explicit Pre-Tax Cost of Debt: {{ "{:.2f}%".format(cost_of_debt * 100) }}
-{% endif %}
-{% if wacc_override is not none %}
-   - Explicit User-Specified WACC Hurdle Rate: {{ "{:.2f}%".format(wacc_override * 100) }}
-{% endif %}
-3. Explicit Forecast UFCFs ({{ projected_fcfs | length }} years, $ Millions; pass ALL of them to calculate_dcf_tool): {{ projected_fcfs }}
-4. Perpetual Terminal Growth Rate: {{ "{:.2f}%".format(terminal_growth_rate * 100) }}
-5. Execution Sequence:
-{% if wacc_override is not none %}
-   Step 1: User explicitly specified WACC hurdle rate override: {{ "{:.4f}".format(wacc_override) }} ({{ "{:.2f}%".format(wacc_override * 100) }}). Use this WACC directly without calling calculate_wacc_tool.
-   Step 2: Call calculate_dcf_tool EXACTLY ONCE with projected_fcfs={{ projected_fcfs }}, wacc={{ "{:.4f}".format(wacc_override) }}, terminal_growth_rate={{ "{:.4f}".format(terminal_growth_rate) }}, net_debt={{ "{:.2f}".format(net_debt) }}, diluted_shares={{ "{:.2f}".format(diluted_shares) }}.
-   Step 3: Stop calling tools and emit the complete DCFValuationOutput artifact as valid JSON.
-{% else %}
-   Step 1: Call calculate_wacc_tool EXACTLY ONCE to derive WACC (pass beta={{ "{:.2f}".format(beta) }}, total_debt={{ "{:.2f}".format(total_debt) }}{% if share_price is not none %}, share_price={{ "{:.2f}".format(share_price) }}{% endif %}{% if market_cap is not none %}, market_cap={{ "{:.2f}".format(market_cap) }}{% endif %}, diluted_shares={{ "{:.2f}".format(diluted_shares) }}, tax_rate={{ "{:.4f}".format(tax_rate) }}{% if cost_of_debt is not none %}, cost_of_debt={{ "{:.4f}".format(cost_of_debt) }}{% endif %}, risk_free_rate={{ "{:.4f}".format(risk_free_rate) }}, equity_risk_premium={{ "{:.4f}".format(equity_risk_premium) }}).
-   Step 2: Call calculate_dcf_tool EXACTLY ONCE with projected_fcfs={{ projected_fcfs }}, wacc from Step 1, terminal_growth_rate={{ "{:.4f}".format(terminal_growth_rate) }}, net_debt={{ "{:.2f}".format(net_debt) }}, diluted_shares={{ "{:.2f}".format(diluted_shares) }}.
-   Step 3: Stop calling tools and emit the complete DCFValuationOutput artifact as valid JSON.
+{% if v.data_quality.warnings %}
+- Data-quality warnings:
+{% for warning in v.data_quality.warnings %}
+  * {{ warning }}
+{% endfor %}
 {% endif %}

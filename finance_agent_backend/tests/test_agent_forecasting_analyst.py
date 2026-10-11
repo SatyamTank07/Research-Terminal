@@ -19,12 +19,10 @@ from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import
 )
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.valuation_specialist import ValuationSpecialistAgent
-from app.agents.state import DCFValuationOutput, WACCAudit
-from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
+from app.agents.state import DCFValuationOutput
 from app.agents.tools.forecast_baseline import build_forecast_baseline
 from app.agents.tools.forecast_drivers import DEFAULT_TERMINAL_GROWTH
 from app.agents.tools.mdna_guidance import assess_mdna_guidance
-from app.agents.tools.wacc_tools import calculate_wacc
 from tests.forecast_fixtures import (
     BOILERPLATE_CHUNK,
     GUIDANCE_CHUNK,
@@ -33,6 +31,7 @@ from tests.forecast_fixtures import (
     make_chunk,
     make_forecast_output,
 )
+from tests.valuation_fixtures import make_market
 
 RETRIEVE = "app.agents.specialized.forecasting_analyst.agent_forecasting_analyst.retrieve_10k_narrative"
 INFORMATIVE = [make_chunk("c1", GUIDANCE_CHUNK), make_chunk("c2", HISTORY_CHUNK)]
@@ -66,34 +65,6 @@ def _mock_llm(forecaster: ForecastingAnalystAgent, proposals: List[Dict[str, Any
 
     agent = MagicMock()
     agent.invoke.side_effect = invoke
-    return agent
-
-
-def _create_mock_valuation_agent(projected_fcfs: List[float]) -> MagicMock:
-    wacc_res = calculate_wacc(
-        beta=1.24, total_debt=98657.0, market_cap=230.0 * 15004.7,
-        risk_free_rate=0.042, equity_risk_premium=0.05, tax_rate=0.1561,
-    )
-    dcf_res = calculate_dcf_with_sensitivity(
-        projected_fcfs=projected_fcfs, wacc=wacc_res["wacc"], terminal_growth_rate=0.025,
-        net_debt=-33763.0, diluted_shares=15004.7, mid_year_convention=True,
-    )
-    mock_output = DCFValuationOutput(
-        ticker="AAPL", fiscal_year=2025, wacc_audit=WACCAudit.model_validate(wacc_res),
-        terminal_growth_rate=0.025, discounting_convention="mid_year", projected_fcfs=projected_fcfs,
-        pv_explicit_fcfs=dcf_res["pv_explicit_fcfs"], pv_terminal_value=dcf_res["pv_terminal_value"],
-        terminal_value_pct_of_ev=dcf_res["terminal_value_pct_of_ev"], enterprise_value=dcf_res["enterprise_value"],
-        net_debt=dcf_res["net_debt"], equity_value=dcf_res["equity_value"], diluted_shares=dcf_res["diluted_shares"],
-        implied_fair_value_per_share=dcf_res["fair_value_per_share"], current_share_price=230.0,
-        upside_downside_pct=round(((dcf_res["fair_value_per_share"] - 230.0) / 230.0) * 100.0, 2),
-        valuation_stance="Fairly Valued", sensitivity_matrix_markdown=dcf_res["sensitivity_matrix_markdown"],
-        valuation_summary="DCF valuation completed for Apple Inc. FY2025 based on explicit projections.",
-    )
-    agent = MagicMock()
-    agent.invoke.return_value = {
-        "messages": [MagicMock(content="Valuation completed", tool_calls=[])],
-        "structured_response": mock_output,
-    }
     return agent
 
 
@@ -221,17 +192,17 @@ class TestForecastingAnalystAgent(unittest.TestCase):
         self.assertLess(risky.scenarios[2].cumulative_fcf, calm.scenarios[2].cumulative_fcf)
         self.assertEqual(risky.projected_fcfs, calm.projected_fcfs)
 
-    @patch.object(ValuationSpecialistAgent, "_get_or_create_agent")
-    def test_forecast_feeds_valuation(self, mock_val_agent):
+    @patch.object(ValuationSpecialistAgent, "_run_commentary_llm", side_effect=RuntimeError("offline"))
+    def test_forecast_feeds_valuation(self, _llm):
         with patch(RETRIEVE, return_value=BOILERPLATE):
             forecast = ForecastingAnalystAgent().forecast(ticker="AAPL", fiscal_year=2025, financial_audit=self.audit)
-        mock_val_agent.return_value = _create_mock_valuation_agent(forecast.projected_fcfs)
         val = ValuationSpecialistAgent().value(
-            ticker="AAPL", fiscal_year=2025, financial_audit=self.audit,
-            projected_fcfs=forecast.projected_fcfs, beta=1.24, share_price=230.0,
+            ticker="AAPL", fiscal_year=2025, financial_audit=self.audit, forecast=forecast,
+            market=make_market(share_price=230.0, beta=1.24), terminal_growth_rate=DEFAULT_TERMINAL_GROWTH,
         )
         self.assertIsInstance(val, DCFValuationOutput)
         self.assertEqual(val.projected_fcfs, forecast.projected_fcfs)
+        self.assertEqual(len(val.scenario_valuations), len(forecast.scenarios))
         self.assertGreater(val.implied_fair_value_per_share, 50.0)
 
 

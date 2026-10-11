@@ -16,7 +16,6 @@ Validates:
 """
 
 import asyncio
-from typing import Any, Dict, List
 import unittest
 from unittest.mock import MagicMock, patch
 from app.agents import AgentRegistry, MultiAgentOrchestrator, build_equity_research_graph
@@ -38,20 +37,18 @@ from app.agents.state import (
     RiskAuditOutput,
     RiskItem,
     ThreePillarThesis,
-    WACCAudit,
 )
-from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
 from app.agents.tools.financial_math_tools import (
     AnnualFinancialInput,
     BalanceSheetInput,
     audit_financial_metrics,
 )
-from app.agents.tools.wacc_tools import calculate_wacc
 from app.database import SessionLocal
 from app.models import ChatMessage, Conversation, User
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.chat_service import process_chat, stream_chat_service
 from tests.forecast_fixtures import make_forecast_output
+from tests.valuation_fixtures import make_valuation_output
 
 
 class TestMilestone6FullPipeline(unittest.TestCase):
@@ -202,47 +199,17 @@ class TestMilestone6FullPipeline(unittest.TestCase):
         return make_forecast_output(ticker, fiscal_year)
 
     @staticmethod
-    def _mock_dcf_value(ticker: str, fiscal_year: int, financial_audit: FinancialAuditOutput, projected_fcfs: List[float], **kwargs) -> DCFValuationOutput:
-        beta = kwargs.get("beta") or 1.10
-        share_price = kwargs.get("share_price") or 230.0
-        terminal_growth = kwargs.get("terminal_growth_rate", 0.025)
-        wacc_res = calculate_wacc(
-            beta=beta,
-            total_debt=financial_audit.balance_sheet.total_debt,
-            market_cap=share_price * financial_audit.balance_sheet.valuation_shares_outstanding,
-            risk_free_rate=0.042,
-            equity_risk_premium=0.050,
-            tax_rate=0.156,
-        )
-        dcf_res = calculate_dcf_with_sensitivity(
-            projected_fcfs=projected_fcfs,
-            wacc=wacc_res["wacc"],
-            terminal_growth_rate=terminal_growth,
-            net_debt=financial_audit.balance_sheet.net_debt,
-            diluted_shares=financial_audit.balance_sheet.valuation_shares_outstanding,
-            mid_year_convention=True,
-        )
-        upside = round(((dcf_res["fair_value_per_share"] - share_price) / share_price) * 100.0, 2)
-        return DCFValuationOutput(
-            ticker=ticker.upper(),
+    def _mock_dcf_value(ticker: str, fiscal_year: int, financial_audit: FinancialAuditOutput, **kwargs) -> DCFValuationOutput:
+        """Real code-built valuation on the node's inputs; only the commentary LLM call is skipped."""
+        return make_valuation_output(
+            ticker=ticker,
             fiscal_year=fiscal_year,
-            wacc_audit=WACCAudit.model_validate(wacc_res),
-            terminal_growth_rate=terminal_growth,
-            discounting_convention="mid_year",
-            projected_fcfs=projected_fcfs,
-            pv_explicit_fcfs=dcf_res["pv_explicit_fcfs"],
-            pv_terminal_value=dcf_res["pv_terminal_value"],
-            terminal_value_pct_of_ev=dcf_res["terminal_value_pct_of_ev"],
-            enterprise_value=dcf_res["enterprise_value"],
-            net_debt=dcf_res["net_debt"],
-            equity_value=dcf_res["equity_value"],
-            diluted_shares=dcf_res["diluted_shares"],
-            implied_fair_value_per_share=dcf_res["fair_value_per_share"],
-            current_share_price=share_price,
-            upside_downside_pct=upside,
-            valuation_stance="Fairly Valued",
-            sensitivity_matrix_markdown=dcf_res["sensitivity_matrix_markdown"],
-            valuation_summary=f"DCF valuation yields ${dcf_res['fair_value_per_share']:.2f} per share.",
+            financial_audit=financial_audit,
+            forecast=kwargs["forecast"],
+            market=kwargs["market"],
+            terminal_growth_rate=kwargs["terminal_growth_rate"],
+            wacc_override=kwargs.get("wacc_override"),
+            balance_sheet_date=kwargs.get("balance_sheet_date"),
         )
 
     @staticmethod
@@ -317,11 +284,15 @@ class TestMilestone6FullPipeline(unittest.TestCase):
             "share_price": 230.0,
             "market_cap": 3450000.0,
             "beta": 1.10,
-            "currency": "USD",
+            "beta_source": "yfinance_raw",
+            "risk_free_rate": 0.044,
+            "risk_free_rate_source": "us_10y_treasury_live",
+            "market_data_source": "yfinance_live",
         }
 
         cls.patches = [
             patch("app.agents.orchestrator.fetch_market_context", return_value=cls.mock_market),
+            patch("app.agents.orchestrator._balance_sheet_date", return_value="2025-12-31"),
             patch("app.agents.tools.rag_narrative_tools._get_embedder", return_value=cls.mock_embedder),
             patch.object(SupervisorAgent, "_extract_with_llm", side_effect=cls._mock_supervisor_extract),
             patch.object(BusinessStrategistAgent, "analyze", side_effect=cls._mock_moat_analyze),

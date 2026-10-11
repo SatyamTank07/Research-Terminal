@@ -193,6 +193,75 @@ class TestDCFTools(unittest.TestCase):
         self.assertIn("sensitivity_matrix_markdown", output)
         self.assertGreater(output["fair_value_per_share"], 0)
 
+    def test_07_mid_year_terminal_value_discounted_at_n_minus_half(self):
+        """Perpetuity TV under mid-year convention is discounted at N - 0.5 (Rosenbaum & Pearl / McKinsey)."""
+        fcfs = [100.0, 110.0, 120.0, 130.0, 140.0]
+        mid = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 0.0, 10.0, mid_year_convention=True)
+        end = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 0.0, 10.0, mid_year_convention=False)
+        # TV = 140 * 1.02 / 0.08 = 1785; PV = 1785 / 1.1^4.5 = 1162.44
+        self.assertAlmostEqual(mid["terminal_value"], 1785.0, places=2)
+        self.assertAlmostEqual(mid["pv_terminal_value"], 1785.0 / 1.1 ** 4.5, places=1)
+        self.assertAlmostEqual(mid["pv_terminal_value"] / end["pv_terminal_value"], 1.1 ** 0.5, places=4)
+        self.assertEqual(mid["terminal_method"], "last_fcf_growth")
+
+    def test_08_value_driver_terminal_cash_flow(self):
+        fcfs = [100.0, 110.0, 120.0, 130.0, 140.0]
+        res = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 0.0, 10.0, terminal_nopat=200.0, ronic=0.20)
+        # NOPAT x (1+g) x (1 - g/RONIC) = 200 x 1.02 x 0.9 = 183.6; TV = 183.6 / 0.08 = 2295
+        self.assertEqual(res["terminal_method"], "value_driver")
+        self.assertAlmostEqual(res["terminal_fcf"], 183.6, places=2)
+        self.assertAlmostEqual(res["terminal_value"], 2295.0, places=1)
+        self.assertEqual(res["ronic"], 0.2)
+
+        # RONIC = WACC makes growth value-neutral: TV = NOPAT_{N+1} / WACC
+        neutral = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 0.0, 10.0, terminal_nopat=200.0, ronic=0.10)
+        self.assertAlmostEqual(neutral["terminal_value"], 200.0 * 1.02 / 0.10, places=1)
+
+        # Non-positive NOPAT falls back to growing the final UFCF, with a warning
+        loss = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 0.0, 10.0, terminal_nopat=-5.0, ronic=0.2)
+        self.assertEqual(loss["terminal_method"], "last_fcf_growth")
+        self.assertTrue(any("NOPAT is not positive" in w for w in loss["warnings"]))
+
+    def test_09_bridge_deducts_nci_and_rolls_forward(self):
+        fcfs = [100.0, 110.0, 120.0, 130.0, 140.0]
+        plain = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 50.0, 10.0)
+        with_nci = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 50.0, 10.0, noncontrolling_interests=30.0)
+        self.assertAlmostEqual(plain["equity_value"] - with_nci["equity_value"], 30.0, places=1)
+        self.assertIn("Less: noncontrolling interests | $30.0M", with_nci["equity_bridge_markdown"])
+        self.assertIn("Less: net debt | $50.0M", with_nci["equity_bridge_markdown"])
+        cash_rich = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, -50.0, 10.0)
+        self.assertIn("Plus: net cash | $50.0M", cash_rich["equity_bridge_markdown"])
+
+        rolled = calculate_dcf_with_sensitivity(
+            fcfs, 0.10, 0.02, 50.0, 10.0, roll_forward_years=0.5, cost_of_equity=0.12,
+        )
+        self.assertEqual(rolled["enterprise_value"], plain["enterprise_value"])
+        self.assertAlmostEqual(rolled["equity_value"], plain["equity_value"] * 1.12 ** 0.5, places=1)
+        self.assertAlmostEqual(rolled["roll_forward_factor"], 1.12 ** 0.5, places=5)
+        self.assertIn("Roll-forward 0.50 yrs @ 12.00%", rolled["equity_bridge_markdown"])
+
+    def test_10_sanity_warnings_do_not_raise(self):
+        concentrated = calculate_dcf_with_sensitivity([10.0, 10.0, 10.0], 0.04, 0.035, 0.0, 1.0, risk_free_rate=0.03)
+        joined = " ".join(concentrated["warnings"])
+        self.assertIn("of enterprise value", joined)
+        self.assertIn("exceeds the risk-free rate", joined)
+
+        negative = calculate_dcf_with_sensitivity([50.0, 20.0, -40.0], 0.09, 0.02, 0.0, 10.0)
+        self.assertLess(negative["terminal_value"], 0)
+        self.assertTrue(any("Terminal value is not positive" in w for w in negative["warnings"]))
+
+        stale = calculate_dcf_with_sensitivity([100.0] * 5, 0.09, 0.02, 0.0, 10.0, roll_forward_years=2.0)
+        self.assertTrue(any("stale" in w for w in stale["warnings"]))
+
+    def test_11_base_cell_equals_headline_and_tv_multiple(self):
+        res = calculate_dcf_with_sensitivity(
+            [100.0, 110.0, 120.0, 130.0, 140.0], 0.0937, 0.025, -20.0, 10.0,
+            terminal_nopat=150.0, ronic=0.25, noncontrolling_interests=5.0, roll_forward_years=0.3,
+            cost_of_equity=0.1, terminal_ebitda=180.0,
+        )
+        self.assertIn(f"**${res['fair_value_per_share']:.2f}**", res["sensitivity_matrix_markdown"])
+        self.assertAlmostEqual(res["implied_terminal_ev_ebitda"], round(res["terminal_value"] / 180.0, 2))
+
     def test_06_real_world_aapl_valuation(self):
         """Verify DCF calculation using real Apple FY2025 audited 10-K figures."""
         # Audited AAPL FY2025: Net cash surplus of ~$33.8B (-$33,763M), Shares ~15,005M

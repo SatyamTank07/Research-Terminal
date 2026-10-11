@@ -248,8 +248,11 @@ class LeadSynthesizerAgent(BaseAgent):
                 f"> **Fiscal Year**: {fiscal_year} | **Valuation Stance**: **{stance.upper()}**\n\n"
                 f"## Executive Summary\n{exec_summary}\n\n"
             )
-            if dcf_valuation and dcf_valuation.sensitivity_matrix_markdown:
-                full_report_md += f"## DCF Valuation & Sensitivity\n{dcf_valuation.sensitivity_matrix_markdown}\n"
+            if dcf_valuation:
+                full_report_md += f"## DCF Valuation\n{dcf_valuation.equity_bridge_markdown}\n\n"
+                if dcf_valuation.scenario_table_markdown:
+                    full_report_md += f"### Scenario Valuation\n{dcf_valuation.scenario_table_markdown}\n\n"
+                full_report_md += f"### Sensitivity\n{dcf_valuation.sensitivity_matrix_markdown}\n"
 
         full_report_md = self._strip_unsupported_dates(full_report_md)
         if risk_audit and query_type in RISK_MATRIX_ROUTES:
