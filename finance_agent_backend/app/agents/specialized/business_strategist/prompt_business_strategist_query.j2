@@ -1,6 +1,27 @@
-Analyze the business model, statutory reportable segments (ASC 280), disaggregated commercial revenue lines (ASC 606), and competitive economic moat for {{ ticker | upper }} from its fiscal year {{ fiscal_year }} SEC 10-K filing.
-1. Query Item 1 narrative for the operating model, monetization architecture, and competitive strengths.
-2. Differentiate statutory reportable segments (ASC 280) from commercial product/service categories (ASC 606); use narrative or Note on Segments tables (Item 8) to capture discrete product families.
-3. Query Item 1 competition disclosures to extract direct competitive threats and industry pressures.
-4. Classify the primary and secondary economic moat types, durability, and trajectory, and extract pricing power and customer concentration disclosures (stating 'Not explicitly disclosed in 10-K' if absent).
-5. Emit the complete BusinessMoatOutput artifact with all citations.
+Assess the business model and economic moat of {{ ticker | upper }} from its fiscal year {{ fiscal_year }} SEC 10-K.
+
+{% if coverage_mode == "rag_fallback" %}
+ITEM 1 could not be located in this filing; the passages below were retrieved by search across the filing and may be incomplete:
+{% else %}
+ITEM 1 — BUSINESS ({{ "complete section" if coverage_mode == "full_section" else "budgeted: leading paragraphs in full, the rest truncated" }}):
+{% endif %}
+<item_1>
+{{ section_context }}
+</item_1>
+
+{% if disclosures %}
+OTHER FILING SENTENCES (customer concentration and pricing, code-selected from MD&A, notes and risk factors):
+{% for d in disclosures %}
+- [chunk:{{ d.chunk_id }}] ({{ d.kind | replace("_", " ") }}) {{ d.text }}
+{% endfor %}
+
+{% endif %}
+CODE-EXTRACTED SEGMENTS ({{ segment_basis | replace("_", " ") }}){% if segment_names %}: {{ segment_names | join(", ") }}{% endif %}
+
+{{ segment_table }}
+
+CODE-EXTRACTED REVENUE LINES{% if line_names %}: {{ line_names | join(", ") }}{% endif %}
+
+{{ revenue_mix }}
+
+Write `segment_details` for each revenue line above (or each segment when no revenue lines were extracted{% if not line_names and not segment_names %}; otherwise use product families named in Item 1{% endif %}), and `segment_moats` for each reportable segment you can ground in a quote. Return only the JSON object.
