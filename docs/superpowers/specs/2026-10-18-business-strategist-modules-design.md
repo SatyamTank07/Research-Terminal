@@ -17,7 +17,8 @@ output block**. Read one module and you understand all of them.
 |---|---|
 | Sub-agents or modules? | **Modules inside one agent.** The orchestrator still sees one `business_strategist` node; no new graph nodes, no tool-calling LLM loops |
 | Who decides what to read | Code. Each module knows which 10-K sections it needs; the LLM only judges what it is given |
-| LLM calls | Grouped by filing input: **2 calls** (Item 1 group, MD&A group) instead of 1 today; each prompt is focused |
+| LLM calls | Grouped by filing input: **2 call groups** (Item 1 group, MD&A group) instead of 1 call today; each prompt is focused |
+| Cost | LLM cost is **not** a design constraint: quality settings (stronger model, more output tokens, full filing text, repair and skeptic passes) are on by default, see §3.8 |
 | Verification | Existing rules kept unchanged (verbatim quotes, mechanism relevance, "Wide" needs 2 quotes, numbers must appear in source) and extended to the new fields |
 | Output compatibility | Existing `BusinessMoatOutput` field names stay; new data is added as new optional fields |
 | Order of work | Phase 1 is a behaviour-preserving restructure; new analysis comes in later phases |
@@ -220,14 +221,62 @@ orchestrator is unchanged in Phase 1.
 - **Prior-year Item 1.** The orchestrator passes `available_fiscal_years` to the strategist (as it
   already does for the auditor and risk analyst).
 
+### 3.8 Quality mode (cost is not a constraint)
+
+Today's limits were set to keep cost low, and several of them reduce quality:
+
+| Limit today | Where | Effect |
+|---|---|---|
+| `gpt-4o-mini` | default in `agents/base.py` | Small model for subtle moat / durability judgement |
+| 2,000 output tokens | `JUDGEMENT_MAX_TOKENS` | Crowded answer; truncated JSON fails to parse and **all** qualitative fields become "Not assessed" |
+| Item 1 cut to 90,000 chars | `ITEM1_CHAR_BUDGET` | Later paragraphs (often competition, IP) are lost on long filings |
+| Single attempt | — | A rejected claim is dropped, never fixed |
+| ≤ 2 quotes per claim, 2 secondary moats, 4 threats | `MAX_*` constants | Less evidence; "Wide" harder to support |
+| Keyword-only relevance check | `claim_relevance.py` | Real but differently worded quotes are dropped |
+
+With cost removed, each call group runs this pipeline (every step still passes the same code checks):
+
+```
+judge (strong model, ~8k out, full text) → verify → repair rejected → verify
+      → skeptic pass (moat only) → verify → final
+```
+
+| Setting | Change | Gain |
+|---|---|---|
+| **Model** | Stronger reasoning model for the judgement calls (configurable per call group) | Better moat, durability and pricing-power judgement |
+| **Output tokens** | 2,000 → ~8,000 | No truncated JSON; room for more quotes, threats and segment details |
+| **Input** | Full Item 1, full MD&A, prior-year Item 1; no char budget | Nothing cut off; trajectory possible |
+| **Evidence limits** | 3–4 quotes per claim, 3 secondary moats, 6 threats | Stronger evidence trail |
+| **Repair pass** | Rejected claims sent back once with the rejection reason; re-verified with the same rules | Claims with one bad quote survive. Same pattern as the Risk Analyst (`_repair_coverage`, `prompt_risk_analyst_repair.j2`) |
+| **Skeptic pass** | One extra call argues against the moat using filing quotes (competition, price pressure, customer losses); verified counter-evidence lowers durability | The analyst's bear-case check; counters over-generous ratings |
+| **Agreement (optional)** | Judgement run 3×; moat type kept only if 2 of 3 agree; durability takes the most cautious value | Stable ratings between runs |
+| **LLM relevance check** | Cheap LLM call judges quote–claim support; keyword check stays as a floor, verbatim check unchanged | Fewer good quotes discarded |
+
+What does **not** change with a higher budget: code verification of every quote and number,
+temperature 0, and numbers coming only from code. More tokens do not prevent hallucination; the checks do.
+
+**Configuration.** All settings live in one `StrategistQualityConfig` (model per call group, max output
+tokens, input budgets, evidence limits, `repair`, `skeptic`, `agreement_runs`), so quality can be tuned
+without touching module code. Defaults are the quality values above; a `lean` preset reproduces today's
+behaviour (used by the Phase 1 equivalence tests).
+
+**Estimated calls per run:**
+
+| Mode | Calls |
+|---|---|
+| Today | 1 |
+| Modules, lean | 2 |
+| Modules, quality (default) | ~5–6 (2 groups × judge + repair, + 1 skeptic, + relevance checks) |
+| Quality + agreement (3×) | ~10–12 |
+
 ## 4. Phases
 
 | Phase | Scope | Done when |
 |---|---|---|
-| **1. Restructure** | Shared layer + M1, M3, M5 from existing code; one `item1` call with sectioned prompt; no new fields | All existing strategist tests pass unchanged in assertions; output identical on fixtures; agent file ≤ ~150 lines |
-| **2. Trust** | Quote-backed prose for M1; Auditor per-year ROIC; M4 + orchestrator hook | Unsupported prose removed in tests; "Wide" capped when ROIC below hurdle; `not_assessed` without auditor |
+| **1. Restructure** | Shared layer + M1, M3, M5 from existing code; one `item1` call with sectioned prompt; `StrategistQualityConfig` with `lean` preset; no new fields | All existing strategist tests pass unchanged in assertions under `lean`; output identical on fixtures; agent file ≤ ~150 lines |
+| **2. Trust** | Quote-backed prose for M1; Auditor per-year ROIC; M4 + orchestrator hook; quality defaults (model, output tokens, full input, evidence limits) + repair pass | Unsupported prose removed in tests; "Wide" capped when ROIC below hurdle; `not_assessed` without auditor; repaired claims pass the same checks |
 | **3. Drivers** | M2 (`mdna` call), Forecaster link | KPIs / drivers verified against chunks; Forecaster receives segment context |
-| **4. Coverage** | M6; RPO / deferred revenue in M3; prior-year trajectory; M5 suppliers / seasonality / backlog | Each new field has verified evidence or a "not disclosed" value; trajectory rule tested |
+| **4. Coverage** | M6; RPO / deferred revenue in M3; prior-year trajectory; M5 suppliers / seasonality / backlog; skeptic pass; optional agreement runs and LLM relevance check | Each new field has verified evidence or a "not disclosed" value; trajectory rule tested; verified counter-evidence lowers durability |
 
 Each phase is a separate PR.
 
@@ -256,3 +305,5 @@ Each phase is a separate PR.
    after the join, so a fixed hurdle is simpler; WACC is more correct.
 2. **M6 commentary:** keep code-only templates, or add a small LLM comment later?
 3. **Report rendering:** should the new fields get their own report sections, or extend Pillar 1?
+4. **Judgement model:** which stronger model to use for the call groups, and whether agreement runs (3×)
+   are on by default or opt-in.
