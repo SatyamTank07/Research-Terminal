@@ -337,6 +337,11 @@ Behaviour changes decided here (all others are pure restructure or new coverage)
 2. The Risk Analyst and Forecasting Analyst tool loops are removed (code gather + one judge + repair pass).
 3. The Forecasting Analyst gains a write step over the final screened drivers.
 4. Item 7 is read as a located section instead of a 6-chunk keyword search.
+5. The Financial Auditor's tool loop is replaced by one judge batch and a write step over final numbers
+   (§1; omitted from this list in the first version, added 2026-10-28).
+
+The migration plan (`docs/superpowers/plans/2026-10-28-codebase-restructure-migration.md`) also schedules one bug
+fix found while planning: chat turns lose the requested and the session fiscal year (PR 12).
 
 Agent-level judge policy (repair pass on/off per agent, agreement runs, skeptic pass, model choice, token budgets)
 is decided in the migration plan.
