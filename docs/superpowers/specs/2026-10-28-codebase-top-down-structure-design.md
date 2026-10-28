@@ -129,7 +129,7 @@ Example declarations:
 | financial_auditor | `financial_audit` | — | — | — |
 | risk_analyst | `risk_audit` | — | — | — |
 | forecasting_analyst | `forecast` | `financial_audit` | `business_moat`, `risk_audit` | — |
-| valuation_specialist | `dcf_valuation` | `financial_audit` | `forecast` | — |
+| valuation_specialist | `dcf_valuation` | `financial_audit`, `forecast` | — | — |
 | lead_synthesizer | `final_report` | — | all five above | `business_moat`, `financial_audit`, `risk_audit` |
 
 - `run` keeps a finance-verb name (`audit_financial_statements`, `forecast_cash_flows`, `value_equity`).
@@ -143,7 +143,7 @@ Example declarations:
 - **Supervisor** is outside the route table. It runs first and produces the `RunContext`, the route, the session
   update and `parameter` notes. It resolves terminal growth once (user value or house default) so the forecast's
   CapEx fade and the valuation's terminal value use the same g. The default constant and the range checks live in
-  `supervisor/query_parameters.py` (moved from `agents/query_parameters.py`).
+  the Supervisor's `valuation_parameters` module (from `agents/query_parameters.py`).
 
 ### 4.4 Generic node
 
@@ -210,14 +210,15 @@ specialized/<agent>/
   prompt_<name>.j2            role and global rules shared by its judge calls
   context.py                  loads filings / outside data once for all modules
   assemble.py                 merges module results into the output schema
-  write.py, write.j2          the agent-level prose step
+  write.py, write.j2          the agent-level prose step (optional, see rules)
   modules/
     __init__.py               MODULES = [ordered list]
     <analyst_question>/       §6
 ```
 
 Run order: `context` → every module runs gather and calculate → the agent batches all judge sections into 1..N
-LLM calls → each module's verify → re-run calculate once for modules whose judge proposed accepted numbers →
+LLM calls → each module's verify → if any judge proposed numbers that verify accepted, re-run calculate once,
+starting at the earliest such module and continuing down `MODULES` (later modules read its results) →
 `assemble` → `write` → figure check.
 
 Rules:
@@ -226,6 +227,10 @@ Rules:
 - **A module reads only modules listed before it** in `MODULES`. There are no cycles.
 - **An agent never edits another agent's output.** A cross-check between two agents' results belongs to a
   downstream agent. Example: the Strategist spec's check of moat claims against financial numbers moves downstream.
+- **`write` is optional.** An agent needs it when its prose summarises final numbers (the Auditor's summary). An
+  agent whose prose is quote-verified judge output (the Strategist) has no write step.
+- **Code shared by several modules of one agent** lives at the agent level under a finance name (e.g.
+  `business_strategist/claim_relevance.py`). It never goes in a `helpers` file.
 
 ## 6. L2 — Module anatomy (Break 3)
 
@@ -292,9 +297,10 @@ moat mechanism?).
 | `tools/citation_registry.py` | `shared/citations.py` |
 | `tools/figure_verification.py` | `shared/figures.py` |
 | `specialized/prompts.py` | `shared/prompts.py` |
-| `agents/query_parameters.py` | `supervisor/` |
+| `agents/query_parameters.py` | `supervisor/` (parsing → `valuation_parameters`, session binding → `session_continuity`) |
 | `agents/orchestrator.py`, `agents/state.py` | `agents/pipeline/` |
-| `tools/catalog_tools.py`, `tools/tavily_search.py` | imported by nothing except `tools/__init__.py`; removal confirmed in the plan |
+| `tools/catalog_tools.py`, `tools/tavily_search.py` | imported by nothing except `tools/__init__.py`; removed (`catalog_tools` confirmed unused by the Supervisor inventory) |
+| `supervisor/agent_supervisor.py` `AGENT_EXECUTION_PLANS` | removed: `ROUTES` is the only route table |
 
 Within each agent, the moved files are further split into modules during that agent's migration (§13).
 
@@ -341,7 +347,6 @@ Translation of the older per-agent specs into this vocabulary:
 
 ## 13. Next steps
 
-1. **Module inventory:** list the modules for each of the 7 agents. Start from the two older specs, translated
-   with §10.
+1. **Module inventory:** done, see `2026-10-28-module-inventory-design.md` (43 modules across 7 agents).
 2. **Migration plan:** order of work, one agent or pipeline layer at a time, each step mergeable on its own with
    output contracts and SSE shapes unchanged.
