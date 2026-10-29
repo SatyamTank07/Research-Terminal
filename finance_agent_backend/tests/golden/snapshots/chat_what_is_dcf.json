@@ -1,0 +1,45 @@
+{
+ "events": [
+  {
+   "message": "Analyzing research inquiry & context...",
+   "node": "supervisor",
+   "type": "status"
+  },
+  {
+   "response": "A DCF values a business as the present value of its future free cash flows.",
+   "sources": [],
+   "type": "result",
+   "updated_session_state": {}
+  }
+ ],
+ "outputs": {
+  "business_moat": null,
+  "conversational_response": "A DCF values a business as the present value of its future free cash flows.",
+  "dcf_valuation": null,
+  "error_message": null,
+  "final_report": null,
+  "financial_audit": null,
+  "forecast": null,
+  "pipeline_notes": [],
+  "risk_audit": null,
+  "routing_plan": {
+   "active_agents": [],
+   "available_fiscal_years": [],
+   "company_name": null,
+   "conversational_response": "A DCF values a business as the present value of its future free cash flows.",
+   "document_id": null,
+   "fiscal_year": 0,
+   "parameter_notes": [],
+   "query_type": "conversational",
+   "routing_provenance": "llm_inferred",
+   "ticker": "",
+   "updated_session_state": {},
+   "valuation_overrides": {},
+   "year_requested": null,
+   "year_substituted": false
+  },
+  "sources": [],
+  "updated_session_state": {}
+ },
+ "scenario": "chat_what_is_dcf"
+}

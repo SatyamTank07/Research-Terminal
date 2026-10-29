@@ -1,0 +1,701 @@
+{
+ "events": [
+  {
+   "message": "Analyzing research inquiry & context...",
+   "node": "supervisor",
+   "type": "status"
+  },
+  {
+   "details": {
+    "fiscal_year": 2026,
+    "query_type": "business_moat_only",
+    "ticker": "NVDA",
+    "valuation_overrides": {},
+    "year_substituted": false
+   },
+   "message": "Resolved filing: NVDA FY2026 | Route: business_moat_only",
+   "node": "supervisor",
+   "type": "status"
+  },
+  {
+   "message": "Completed economic moat analysis (Moat: None)",
+   "node": "business_strategist",
+   "type": "status"
+  },
+  {
+   "message": "Synthesized 3-Pillar Thesis and compiled final publication report.",
+   "node": "lead_synthesizer",
+   "type": "status"
+  },
+  {
+   "response": "# Business Operations & Economic Moat Analysis: NVIDIA CORP (NVDA)\n> **Filing Source**: SEC Form 10-K (FY2026) | **Primary Moat**: **None** | **Durability**: **Indeterminate** | **Trajectory**: **Indeterminate**\n\n## 1. Executive Summary & Revenue Architecture\n\nThe filing supports a balanced view of the business.\n\n**Revenue architecture (filing-based)**: Revenue mix by product / service line (FY2026, from the 10-K revenue disaggregation): Data Center 89.7%, Gaming 7.4%, Professional Visualization 1.5%, Automotive 1.1%, OEM and Other 0.3%.\n\n## 2. Segments & Disaggregated Revenue Architecture\n\n- **Reportable segments (ASC 280)**: Compute & Networking, Graphics\n- **Revenue lines (ASC 606)**: Data Center, Gaming, Professional Visualization, Automotive, OEM and Other\n\n**Reportable segments (verified from the segment note)**[[1]](#cite-1)\n\n| Segment | FY2026 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Compute & Networking | 193,479 | 89.6% | 66.5% | 130,141 | 67.3% | 93.4% |\n| Graphics | 22,459 | 10.4% | 57.0% | 9,156 | 40.8% | 6.6% |\n\n_Source: 10-K segment note (chunk `26b52a89-af2d-4d60-a78b-9846e216d374`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[2]](#cite-2)\n\n| Revenue line | FY2026 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Data Center | 193,737 | 89.7% | 68.2% |\n| &nbsp;&nbsp;↳ Compute | 162,361 | 75.2% | 58.9% |\n| &nbsp;&nbsp;↳ Networking | 31,376 | 14.5% | 141.5% |\n| Gaming | 16,042 | 7.4% | 41.3% |\n| Professional Visualization | 3,191 | 1.5% | 69.9% |\n| Automotive | 2,349 | 1.1% | 38.7% |\n| OEM and Other | 619 | 0.3% | 59.1% |\n\n_Source: 10-K revenue disaggregation (chunk `40fa96f8-8f71-4703-b3b8-e81ae177bc64`); figures in USD millions as reported._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (not assessed) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n\n**Moat rationale (filing-based)**: Not assessed: the model returned malformed output.\n\n**Business analysis data-quality notes**\n- The model returned no parsable JSON; moat and competitive fields not assessed.\n\n## 3. Economic Moat Deconstruction\n\nSegment disclosure frames the revenue mix.\n\n## 4. Competitive Threats & Counter-Evidence Stress Test\n\n- No specific competitive threats were extracted from Item 1.\n\n## 5. Market Power & Customer Concentration\n\n- **Pricing power**: Not assessed: the model returned malformed output.\n- **Customer concentration**: Filing states: \"Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.\"[[3]](#cite-3)\n\n## 6. Filing Evidence & Audit Trail\n\nEvery numbered marker in this report opens the cited passage of the 10-K; the numbered source list follows the report.\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._ _1 sentence(s) of commentary were removed because they cited figures absent from the verified data._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "sources": [
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+       "chunk_id": "26b52a89-af2d-4d60-a78b-9846e216d374",
+       "chunk_index": 248,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 15",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": "Reported in the segment note (ASC 280)",
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "derived",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+     "n": 1,
+     "provider": null,
+     "quote": null,
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+       "chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64",
+       "chunk_index": 253,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 15",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": "Reported in the revenue disaggregation table (ASC 606)",
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "derived",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+     "n": 2,
+     "provider": null,
+     "quote": null,
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
+       "chunk_id": "f0b359b4-acbd-4784-9d96-e8f55faef355",
+       "chunk_index": 146,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 7",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
+     "n": 3,
+     "provider": null,
+     "quote": "Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
+     "ticker": "NVDA"
+    }
+   ],
+   "type": "result",
+   "updated_session_state": {
+    "active_company": "NVIDIA CORP",
+    "active_fiscal_year": 2026,
+    "active_ticker": "NVDA",
+    "available_fiscal_years": [
+     2026
+    ],
+    "last_query_type": "business_moat_only"
+   }
+  }
+ ],
+ "outputs": {
+  "business_moat": {
+   "business_summary": "Not assessed: the model returned malformed output.",
+   "citations": [
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
+     "chunk_id": "f0b359b4-acbd-4784-9d96-e8f55faef355",
+     "fiscal_year": 2026,
+     "item": "Item 7",
+     "sub_section": "Management's Discussion and Analysis of Financial Condition and Results of Operations",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+     "chunk_id": "26b52a89-af2d-4d60-a78b-9846e216d374",
+     "fiscal_year": 2026,
+     "item": "Item 15",
+     "sub_section": "Exhibits and Financial Statement Schedules",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+     "chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64",
+     "fiscal_year": 2026,
+     "item": "Item 15",
+     "sub_section": "Year Ended",
+     "ticker": "NVDA"
+    }
+   ],
+   "competitive_threats": [],
+   "customer_concentration": "Filing states: \"Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.\"",
+   "data_quality": {
+    "chars_read": 49391,
+    "claims_dropped": 0,
+    "claims_proposed": 0,
+    "claims_verified": 1,
+    "consolidated_revenue": 215938.0,
+    "coverage_mode": "full_section",
+    "item1_chunks": 32,
+    "llm_status": "malformed",
+    "notes": [
+     "The model returned no parsable JSON; moat and competitive fields not assessed."
+    ],
+    "quotes_off_topic": 0,
+    "quotes_rejected": 0,
+    "quotes_verified": 0,
+    "revenue_lines_reconciliation": "income_statement",
+    "revenue_tables_found": 1,
+    "section_located_by": "item_label",
+    "segment_basis": "business",
+    "segment_layout": "segments_as_columns",
+    "segment_reconciliation": "in_table_total",
+    "segment_tables_found": 1,
+    "supplementary_passages": 9,
+    "units": "USD millions"
+   },
+   "economic_moat_type": "None",
+   "evidence": [
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
+     "chunk_id": "f0b359b4-acbd-4784-9d96-e8f55faef355",
+     "claim": "customer_concentration",
+     "item": "Item 7",
+     "quote": "Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
+     "subject": "code_screened"
+    }
+   ],
+   "fiscal_year": 2026,
+   "moat_assessment": "not_assessed",
+   "moat_durability": "Indeterminate",
+   "moat_rationale": "Not assessed: the model returned malformed output.",
+   "moat_trajectory": "Indeterminate",
+   "pricing_power_assessment": "Not assessed: the model returned malformed output.",
+   "primary_product_segments": [
+    "Data Center",
+    "Gaming",
+    "Professional Visualization",
+    "Automotive",
+    "OEM and Other"
+   ],
+   "reportable_segments": [
+    "Compute & Networking",
+    "Graphics"
+   ],
+   "revenue_architecture": "Revenue mix by product / service line (FY2026, from the 10-K revenue disaggregation): Data Center 89.7%, Gaming 7.4%, Professional Visualization 1.5%, Automotive 1.1%, OEM and Other 0.3%.",
+   "revenue_lines": [
+    {
+     "fiscal_year": 2026,
+     "name": "Data Center",
+     "parent": null,
+     "revenue": 193737.0,
+     "revenue_growth_pct": 68.2,
+     "revenue_share_pct": 89.7,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2026,
+     "name": "Compute",
+     "parent": "Data Center",
+     "revenue": 162361.0,
+     "revenue_growth_pct": 58.9,
+     "revenue_share_pct": 75.2,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2026,
+     "name": "Networking",
+     "parent": "Data Center",
+     "revenue": 31376.0,
+     "revenue_growth_pct": 141.5,
+     "revenue_share_pct": 14.5,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2026,
+     "name": "Gaming",
+     "parent": null,
+     "revenue": 16042.0,
+     "revenue_growth_pct": 41.3,
+     "revenue_share_pct": 7.4,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2026,
+     "name": "Professional Visualization",
+     "parent": null,
+     "revenue": 3191.0,
+     "revenue_growth_pct": 69.9,
+     "revenue_share_pct": 1.5,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2026,
+     "name": "Automotive",
+     "parent": null,
+     "revenue": 2349.0,
+     "revenue_growth_pct": 38.7,
+     "revenue_share_pct": 1.1,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2026,
+     "name": "OEM and Other",
+     "parent": null,
+     "revenue": 619.0,
+     "revenue_growth_pct": 59.1,
+     "revenue_share_pct": 0.3,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Data Center",
+     "parent": null,
+     "revenue": 115186.0,
+     "revenue_growth_pct": 142.4,
+     "revenue_share_pct": 88.3,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Compute",
+     "parent": "Data Center",
+     "revenue": 102196.0,
+     "revenue_growth_pct": 162.4,
+     "revenue_share_pct": 78.3,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Networking",
+     "parent": "Data Center",
+     "revenue": 12990.0,
+     "revenue_growth_pct": 51.5,
+     "revenue_share_pct": 10.0,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Gaming",
+     "parent": null,
+     "revenue": 11350.0,
+     "revenue_growth_pct": 8.6,
+     "revenue_share_pct": 8.7,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Professional Visualization",
+     "parent": null,
+     "revenue": 1878.0,
+     "revenue_growth_pct": 20.9,
+     "revenue_share_pct": 1.4,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Automotive",
+     "parent": null,
+     "revenue": 1694.0,
+     "revenue_growth_pct": 55.3,
+     "revenue_share_pct": 1.3,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "OEM and Other",
+     "parent": null,
+     "revenue": 389.0,
+     "revenue_growth_pct": 27.1,
+     "revenue_share_pct": 0.3,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Data Center",
+     "parent": null,
+     "revenue": 47525.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 78.0,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Compute",
+     "parent": "Data Center",
+     "revenue": 38950.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 63.9,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Networking",
+     "parent": "Data Center",
+     "revenue": 8575.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 14.1,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Gaming",
+     "parent": null,
+     "revenue": 10447.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 17.1,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Professional Visualization",
+     "parent": null,
+     "revenue": 1553.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 2.5,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Automotive",
+     "parent": null,
+     "revenue": 1091.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 1.8,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "OEM and Other",
+     "parent": null,
+     "revenue": 306.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 0.5,
+     "source_chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64"
+    }
+   ],
+   "revenue_mix_markdown": "| Revenue line | FY2026 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Data Center | 193,737 | 89.7% | 68.2% |\n| &nbsp;&nbsp;↳ Compute | 162,361 | 75.2% | 58.9% |\n| &nbsp;&nbsp;↳ Networking | 31,376 | 14.5% | 141.5% |\n| Gaming | 16,042 | 7.4% | 41.3% |\n| Professional Visualization | 3,191 | 1.5% | 69.9% |\n| Automotive | 2,349 | 1.1% | 38.7% |\n| OEM and Other | 619 | 0.3% | 59.1% |\n\n_Source: 10-K revenue disaggregation (chunk `40fa96f8-8f71-4703-b3b8-e81ae177bc64`); figures in USD millions as reported._",
+   "secondary_moat_types": [],
+   "segment_details": [
+    {
+     "description": "Data Center: FY2026 revenue $193,737M, 89.7% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Data Center"
+    },
+    {
+     "description": "Gaming: FY2026 revenue $16,042M, 7.4% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Gaming"
+    },
+    {
+     "description": "Professional Visualization: FY2026 revenue $3,191M, 1.5% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Professional Visualization"
+    },
+    {
+     "description": "Automotive: FY2026 revenue $2,349M, 1.1% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Automotive"
+    },
+    {
+     "description": "OEM and Other: FY2026 revenue $619M, 0.3% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "OEM and Other"
+    }
+   ],
+   "segment_financials": [
+    {
+     "fiscal_year": 2026,
+     "profit_margin_pct": 67.3,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 93.4,
+     "reportable": true,
+     "revenue": 193479.0,
+     "revenue_growth_pct": 66.5,
+     "revenue_share_pct": 89.6,
+     "segment_name": "Compute & Networking",
+     "segment_profit": 130141.0,
+     "source_chunk_id": "26b52a89-af2d-4d60-a78b-9846e216d374"
+    },
+    {
+     "fiscal_year": 2026,
+     "profit_margin_pct": 40.8,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 6.6,
+     "reportable": true,
+     "revenue": 22459.0,
+     "revenue_growth_pct": 57.0,
+     "revenue_share_pct": 10.4,
+     "segment_name": "Graphics",
+     "segment_profit": 9156.0,
+     "source_chunk_id": "26b52a89-af2d-4d60-a78b-9846e216d374"
+    },
+    {
+     "fiscal_year": 2025,
+     "profit_margin_pct": 71.3,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 94.2,
+     "reportable": true,
+     "revenue": 116193.0,
+     "revenue_growth_pct": 145.1,
+     "revenue_share_pct": 89.0,
+     "segment_name": "Compute & Networking",
+     "segment_profit": 82875.0,
+     "source_chunk_id": "26b52a89-af2d-4d60-a78b-9846e216d374"
+    },
+    {
+     "fiscal_year": 2025,
+     "profit_margin_pct": 35.5,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 5.8,
+     "reportable": true,
+     "revenue": 14304.0,
+     "revenue_growth_pct": 5.8,
+     "revenue_share_pct": 11.0,
+     "segment_name": "Graphics",
+     "segment_profit": 5085.0,
+     "source_chunk_id": "26b52a89-af2d-4d60-a78b-9846e216d374"
+    },
+    {
+     "fiscal_year": 2024,
+     "profit_margin_pct": 67.5,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 84.6,
+     "reportable": true,
+     "revenue": 47405.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 77.8,
+     "segment_name": "Compute & Networking",
+     "segment_profit": 32016.0,
+     "source_chunk_id": "26b52a89-af2d-4d60-a78b-9846e216d374"
+    },
+    {
+     "fiscal_year": 2024,
+     "profit_margin_pct": 43.2,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 15.4,
+     "reportable": true,
+     "revenue": 13517.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 22.2,
+     "segment_name": "Graphics",
+     "segment_profit": 5846.0,
+     "source_chunk_id": "26b52a89-af2d-4d60-a78b-9846e216d374"
+    }
+   ],
+   "segment_specific_moats": [],
+   "segment_table_markdown": "| Segment | FY2026 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Compute & Networking | 193,479 | 89.6% | 66.5% | 130,141 | 67.3% | 93.4% |\n| Graphics | 22,459 | 10.4% | 57.0% | 9,156 | 40.8% | 6.6% |\n\n_Source: 10-K segment note (chunk `26b52a89-af2d-4d60-a78b-9846e216d374`); figures in USD millions as reported._",
+   "ticker": "NVDA"
+  },
+  "conversational_response": null,
+  "dcf_valuation": null,
+  "error_message": null,
+  "final_report": {
+   "company_name": "NVIDIA CORP",
+   "current_share_price": null,
+   "executive_summary": "The filing supports a balanced view of the business.",
+   "fiscal_year": 2026,
+   "full_markdown_report": "# Business Operations & Economic Moat Analysis: NVIDIA CORP (NVDA)\n> **Filing Source**: SEC Form 10-K (FY2026) | **Primary Moat**: **None** | **Durability**: **Indeterminate** | **Trajectory**: **Indeterminate**\n\n## 1. Executive Summary & Revenue Architecture\n\nThe filing supports a balanced view of the business.\n\n**Revenue architecture (filing-based)**: Revenue mix by product / service line (FY2026, from the 10-K revenue disaggregation): Data Center 89.7%, Gaming 7.4%, Professional Visualization 1.5%, Automotive 1.1%, OEM and Other 0.3%.\n\n## 2. Segments & Disaggregated Revenue Architecture\n\n- **Reportable segments (ASC 280)**: Compute & Networking, Graphics\n- **Revenue lines (ASC 606)**: Data Center, Gaming, Professional Visualization, Automotive, OEM and Other\n\n**Reportable segments (verified from the segment note)**[[1]](#cite-1)\n\n| Segment | FY2026 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Compute & Networking | 193,479 | 89.6% | 66.5% | 130,141 | 67.3% | 93.4% |\n| Graphics | 22,459 | 10.4% | 57.0% | 9,156 | 40.8% | 6.6% |\n\n_Source: 10-K segment note (chunk `26b52a89-af2d-4d60-a78b-9846e216d374`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[2]](#cite-2)\n\n| Revenue line | FY2026 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Data Center | 193,737 | 89.7% | 68.2% |\n| &nbsp;&nbsp;↳ Compute | 162,361 | 75.2% | 58.9% |\n| &nbsp;&nbsp;↳ Networking | 31,376 | 14.5% | 141.5% |\n| Gaming | 16,042 | 7.4% | 41.3% |\n| Professional Visualization | 3,191 | 1.5% | 69.9% |\n| Automotive | 2,349 | 1.1% | 38.7% |\n| OEM and Other | 619 | 0.3% | 59.1% |\n\n_Source: 10-K revenue disaggregation (chunk `40fa96f8-8f71-4703-b3b8-e81ae177bc64`); figures in USD millions as reported._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (not assessed) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n\n**Moat rationale (filing-based)**: Not assessed: the model returned malformed output.\n\n**Business analysis data-quality notes**\n- The model returned no parsable JSON; moat and competitive fields not assessed.\n\n## 3. Economic Moat Deconstruction\n\nSegment disclosure frames the revenue mix.\n\n## 4. Competitive Threats & Counter-Evidence Stress Test\n\n- No specific competitive threats were extracted from Item 1.\n\n## 5. Market Power & Customer Concentration\n\n- **Pricing power**: Not assessed: the model returned malformed output.\n- **Customer concentration**: Filing states: \"Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.\"[[3]](#cite-3)\n\n## 6. Filing Evidence & Audit Trail\n\nEvery numbered marker in this report opens the cited passage of the 10-K; the numbered source list follows the report.\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._ _1 sentence(s) of commentary were removed because they cited figures absent from the verified data._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "implied_fair_value_per_share": null,
+   "sources": [
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+       "chunk_id": "26b52a89-af2d-4d60-a78b-9846e216d374",
+       "chunk_index": 248,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 15",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": "Reported in the segment note (ASC 280)",
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "derived",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+     "n": 1,
+     "provider": null,
+     "quote": null,
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+       "chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64",
+       "chunk_index": 253,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 15",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": "Reported in the revenue disaggregation table (ASC 606)",
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "derived",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+     "n": 2,
+     "provider": null,
+     "quote": null,
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
+       "chunk_id": "f0b359b4-acbd-4784-9d96-e8f55faef355",
+       "chunk_index": 146,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 7",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
+     "n": 3,
+     "provider": null,
+     "quote": "Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
+     "ticker": "NVDA"
+    }
+   ],
+   "synthesis_provenance": "llm_structured",
+   "three_pillar_thesis": {
+    "pillar_1_business_moat": "The business relies on its installed base and its brand.",
+    "pillar_2_financial_durability": "Cash generation covers reinvestment needs.",
+    "pillar_3_valuation_asymmetry": "The valuation case rests on the base-case cash flows."
+   },
+   "ticker": "NVDA",
+   "upside_downside_pct": null,
+   "valuation_stance": null,
+   "year_substituted": false
+  },
+  "financial_audit": null,
+  "forecast": null,
+  "pipeline_notes": [],
+  "risk_audit": null,
+  "routing_plan": {
+   "active_agents": [
+    "business_strategist"
+   ],
+   "available_fiscal_years": [
+    2026
+   ],
+   "company_name": "NVIDIA CORP",
+   "conversational_response": null,
+   "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+   "fiscal_year": 2026,
+   "parameter_notes": [],
+   "query_type": "business_moat_only",
+   "routing_provenance": "llm_inferred",
+   "ticker": "NVDA",
+   "updated_session_state": {
+    "active_company": "NVIDIA CORP",
+    "active_fiscal_year": 2026,
+    "active_ticker": "NVDA",
+    "available_fiscal_years": [
+     2026
+    ],
+    "last_query_type": "business_moat_only"
+   },
+   "valuation_overrides": {},
+   "year_requested": null,
+   "year_substituted": false
+  },
+  "sources": [
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+      "chunk_id": "26b52a89-af2d-4d60-a78b-9846e216d374",
+      "chunk_index": 248,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 15",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": "Reported in the segment note (ASC 280)",
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "derived",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+    "n": 1,
+    "provider": null,
+    "quote": null,
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+      "chunk_id": "40fa96f8-8f71-4703-b3b8-e81ae177bc64",
+      "chunk_index": 253,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 15",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": "Reported in the revenue disaggregation table (ASC 606)",
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "derived",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART IV > Item 15: Exhibits and Financial Statement Schedules",
+    "n": 2,
+    "provider": null,
+    "quote": null,
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
+      "chunk_id": "f0b359b4-acbd-4784-9d96-e8f55faef355",
+      "chunk_index": 146,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 7",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
+    "n": 3,
+    "provider": null,
+    "quote": "Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
+    "ticker": "NVDA"
+   }
+  ],
+  "updated_session_state": {
+   "active_company": "NVIDIA CORP",
+   "active_fiscal_year": 2026,
+   "active_ticker": "NVDA",
+   "available_fiscal_years": [
+    2026
+   ],
+   "last_query_type": "business_moat_only"
+  }
+ },
+ "scenario": "moat_nvda_2026"
+}

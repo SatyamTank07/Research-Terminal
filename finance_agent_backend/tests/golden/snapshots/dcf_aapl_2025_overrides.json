@@ -1,0 +1,1996 @@
+{
+ "events": [
+  {
+   "message": "Analyzing research inquiry & context...",
+   "node": "supervisor",
+   "type": "status"
+  },
+  {
+   "details": {
+    "fiscal_year": 2025,
+    "query_type": "dcf_valuation_only",
+    "ticker": "AAPL",
+    "valuation_overrides": {
+     "terminal_growth": 0.03,
+     "ticker": "AAPL",
+     "wacc": 0.09
+    },
+    "year_substituted": false
+   },
+   "message": "Resolved filing: AAPL FY2025 | Route: dcf_valuation_only",
+   "node": "supervisor",
+   "type": "status"
+  },
+  {
+   "message": "Audited financial statements & ratios (1 high/medium forensic findings, deterministic extraction)",
+   "node": "financial_auditor",
+   "type": "status"
+  },
+  {
+   "message": "Built 5-year UFCF forecast (historical fade, revenue CAGR 3.6%, 3 scenarios)",
+   "node": "forecasting_analyst",
+   "type": "status"
+  },
+  {
+   "message": "Discounted at 9.00% (user override); base-case DCF fair value $129.25/share (bear $117.33 - bull $139.91)",
+   "node": "valuation_specialist",
+   "type": "status"
+  },
+  {
+   "message": "Synthesized 3-Pillar Thesis and compiled final publication report.",
+   "node": "lead_synthesizer",
+   "type": "status"
+  },
+  {
+   "response": "# DCF Valuation & Intrinsic Sensitivity: Apple Inc. (AAPL)\n> **Filing Source**: SEC Form 10-K (FY2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$129.25** |\n| Bear / Bull Fair Value | $117.33 / $139.91 |\n| Probability-Weighted Fair Value | $128.94 |\n| Current Share Price[[2]](#cite-2) | $230.00 (yfinance_live) |\n| Base-Case Upside / Downside | -43.8% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 18.0% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 9.00% (user override) |\n| Market-Implied Discount Rate (at modeled cash flows) | 6.14% |\n| Terminal Growth | 3.0% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 72.0% |\n| Enterprise Value | $1,734,244.8M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-33,763.0M |\n| Equity Value (as of 2026-10-28) | $1,939,431.3M |\n| Valuation Shares[[6]](#cite-6) | 15,004.7M |\n| Forecast | 5-year explicit horizon, 3.6% revenue CAGR (historical fade) |\n\n## 1. Valuation Executive Summary\n\nThe filing supports a balanced view of the business.\n\n## 2. 5-Year Explicit UFCF Projections\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 31.97%; tax 15.61% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 1 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 4.20% in year 1 to 3.00% in year 5, against 3.00% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 31.97% to 31.97% by year 5.\n- **Reinvestment**: CapEx starts at 2.81% of revenue from the recency-weighted 3-year audited level (latest year 3.06%, simple average 2.78%) and fades to a 5.68% steady state by year 5, where net reinvestment equals 3.00% terminal growth / 30.0% return on new capital (base roic capped) = 10.0% of NOPAT; D&A is held at 2.81% (reported); working capital at -5.86% of incremental revenue (working_capital_days); SBC at 3.09% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $383,285 | $391,035 | $416,161 | $433,640 | $450,552 | $466,772 | $482,175 | $496,640 |\n| Revenue Growth YoY | — | +2.0% | +6.4% | +4.2% | +3.9% | +3.6% | +3.3% | +3.0% |\n| Operating Income (EBIT) | — | — | — | $138,635 | $144,041 | $149,227 | $154,151 | $158,776 |\n| Operating Margin | 29.8% | 31.5% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% |\n| NOPAT (Effective Tax 15.6%) | — | — | — | $116,994 | $121,557 | $125,933 | $130,088 | $133,991 |\n| Capital Expenditures | — | — | — | $12,185 | $15,904 | $19,791 | $23,916 | $28,209 |\n| Depreciation & Amortization | — | — | — | $12,189 | $12,665 | $13,121 | $13,554 | $13,960 |\n| Change in Working Capital (ΔNWC) | — | — | — | $-1,024 | $-990 | $-950 | $-902 | $-847 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $13,403 | $13,926 | $14,427 | $14,903 | $15,351 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$118,021** | **$119,307** | **$120,212** | **$120,628** | **$120,589** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 4.7% | $645,395M |\n| Base | 50% | 3.6% | $598,758M |\n| Bear | 25% | 2.5% | $545,668M |\n\n**Forecast diagnostics**\n- CapEx intensity fades from 2.81% to a 5.68% steady state; the explicit years carry a large reinvestment transition.\n\n## 3. WACC Hurdle Rate Breakdown\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.13 | yfinance_raw (Blume-adjusted from raw 1.20) |\n| **Cost of Equity ($K_e$)** | **9.29%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 5.55% | Rf + 1.25% spread (no interest expense disclosed) |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **4.16%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $3,450,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $98,657.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.15% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.00%** | User-specified override |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n## 4. Equity Bridge & Scenario Valuation\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (5 yrs, mid_year) | $485,841.1M |\n| PV of terminal value (value_driver) | $1,248,403.8M |\n| **Enterprise value** | **$1,734,244.8M** |\n| Plus: net cash | $33,763.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,768,007.8M |\n| Enterprise value rolled forward 1.08 yrs @ WACC 9.00% | $1,904,091.5M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $35,339.8M |\n| **Equity value at valuation date** | **$1,939,431.3M** |\n| Diluted shares | 15,004.70M |\n| **Fair value per share** | **$129.25** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 4.7% | $645,395M | $139.91 | -39.2% |\n| Base | 50% | 3.6% | $598,758M | $129.25 | -43.8% |\n| Bear | 25% | 2.5% | $545,668M | $117.33 | -49.0% |\n| **Probability-weighted** | 100% | | | **$128.94** | -43.9% |\n\n**Reverse DCF**: At $230.00 the market implies 18.0% constant revenue growth for 5 years (then 3.0% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 3.6% modeled revenue CAGR. At modeled growth the price instead needs a +25.4 pp operating-margin shift in every year (final-year margin 57.4% versus 32.0% modeled). Holding the modeled cash flows, the price corresponds to a 6.14% discount rate versus the 9.00% applied.\n\n## 5. Sensitivity Analysis\n\n| WACC \\ Growth | 2.4% | 2.7% | 3.0% | 3.3% | 3.6% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.0%** | $140.97 | $145.92 | $151.45 | $157.68 | $164.75 |\n| **8.5%** | $130.87 | $134.89 | $139.34 | $144.30 | $149.86 |\n| **9.0%** *(Base)* | $122.30 | $125.62 | **$129.25** | $133.27 | $137.73 |\n| **9.5%** | $114.94 | $117.70 | $120.72 | $124.02 | $127.65 |\n| **10.0%** | $108.54 | $110.87 | $113.40 | $116.14 | $119.14 |\n\n| WACC \\ RONIC | 26.0% | 28.0% | 30.0% | 35.0% | 40.0% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.0%** | $149.51 | $150.55 | $151.45 | $153.24 | $154.59 |\n| **8.5%** | $137.61 | $138.54 | $139.34 | $140.95 | $142.16 |\n| **9.0%** *(Base)* | $127.69 | $128.53 | **$129.25** | $130.70 | $131.79 |\n| **9.5%** | $119.30 | $120.06 | $120.72 | $122.03 | $123.02 |\n| **10.0%** | $112.10 | $112.80 | $113.40 | $114.60 | $115.51 |\n\n## 6. Valuation Commentary & Margin of Safety\n\nThe discount rate drives most of the value range.\n\n**Valuation data-quality warnings**\n- Reverse DCF: the share price implies 18.0% annual revenue growth for 5 years versus 3.6% modeled (+14.4 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Regulatory Disclaimers\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._ _1 sentence(s) of commentary were removed because they cited figures absent from the verified data._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "sources": [
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+       "chunk_index": 103,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AAPL"
+      },
+      {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+       "chunk_index": 106,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AAPL"
+      },
+      {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+       "chunk_index": 108,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AAPL"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement, balance sheet and cash flow statement",
+     "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 1,
+     "provider": null,
+     "quote": null,
+     "ticker": "AAPL"
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Share price",
+     "n": 2,
+     "provider": "yfinance_live",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Risk-free rate",
+     "n": 3,
+     "provider": "us_10y_treasury_live",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Equity risk premium",
+     "n": 4,
+     "provider": "damodaran_implied_sp500_2026-07",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Beta",
+     "n": 5,
+     "provider": "yfinance_raw",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+       "chunk_index": 106,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AAPL"
+      }
+     ],
+     "derived_from": "Computed from the audited balance sheet",
+     "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 6,
+     "provider": null,
+     "quote": null,
+     "ticker": "AAPL"
+    }
+   ],
+   "type": "result",
+   "updated_session_state": {
+    "active_company": "Apple Inc.",
+    "active_fiscal_year": 2025,
+    "active_ticker": "AAPL",
+    "available_fiscal_years": [
+     2025,
+     2024
+    ],
+    "last_query_type": "dcf_valuation_only",
+    "valuation_overrides": {
+     "terminal_growth": 0.03,
+     "ticker": "AAPL",
+     "wacc": 0.09
+    }
+   }
+  }
+ ],
+ "outputs": {
+  "business_moat": null,
+  "conversational_response": null,
+  "dcf_valuation": {
+   "balance_sheet_date": "2025-09-27",
+   "bear_fair_value": 117.33,
+   "bull_fair_value": 139.91,
+   "commentary_source": "template",
+   "current_share_price": 230.0,
+   "data_quality": {
+    "forecast_source": "forecasting_analyst",
+    "market_data_source": "yfinance_live",
+    "share_price_source": "yfinance_live",
+    "warnings": [
+     "Reverse DCF: the share price implies 18.0% annual revenue growth for 5 years versus 3.6% modeled (+14.4 pp); the market is pricing materially more growth, or different margins and returns, than the base case."
+    ]
+   },
+   "diluted_shares": 15004.7,
+   "discounting_convention": "mid_year",
+   "enterprise_value": 1734244.83,
+   "equity_bridge_markdown": "| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (5 yrs, mid_year) | $485,841.1M |\n| PV of terminal value (value_driver) | $1,248,403.8M |\n| **Enterprise value** | **$1,734,244.8M** |\n| Plus: net cash | $33,763.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,768,007.8M |\n| Enterprise value rolled forward 1.08 yrs @ WACC 9.00% | $1,904,091.5M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $35,339.8M |\n| **Equity value at valuation date** | **$1,939,431.3M** |\n| Diluted shares | 15,004.70M |\n| **Fair value per share** | **$129.25** |",
+   "equity_value": 1939431.3,
+   "fiscal_year": 2025,
+   "implied_ev_ebitda": 11.98,
+   "implied_fair_value_per_share": 129.25,
+   "implied_terminal_ev_ebitda": 10.65,
+   "implied_terminal_ev_nopat": 15.45,
+   "market_implied_growth_pct": 17.99,
+   "market_implied_margin_shift_pp": 25.41,
+   "market_implied_wacc_pct": 6.14,
+   "modeled_final_margin_pct": 31.97,
+   "modeled_revenue_cagr_pct": 3.6,
+   "net_debt": -33763.0,
+   "noncontrolling_interests": 0.0,
+   "probability_weighted_fair_value": 128.94,
+   "projected_fcfs": [
+    118021.41,
+    119307.16,
+    120211.95,
+    120628.13,
+    120589.16
+   ],
+   "pv_explicit_fcfs": 485841.07,
+   "pv_terminal_value": 1248403.77,
+   "reverse_dcf_horizon_years": 5,
+   "reverse_dcf_status": "solved",
+   "reverse_dcf_summary": "At $230.00 the market implies 18.0% constant revenue growth for 5 years (then 3.0% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 3.6% modeled revenue CAGR. At modeled growth the price instead needs a +25.4 pp operating-margin shift in every year (final-year margin 57.4% versus 32.0% modeled). Holding the modeled cash flows, the price corresponds to a 6.14% discount rate versus the 9.00% applied.",
+   "roll_forward_years": 1.0842,
+   "ronic_sensitivity_matrix_markdown": "| WACC \\ RONIC | 26.0% | 28.0% | 30.0% | 35.0% | 40.0% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.0%** | $149.51 | $150.55 | $151.45 | $153.24 | $154.59 |\n| **8.5%** | $137.61 | $138.54 | $139.34 | $140.95 | $142.16 |\n| **9.0%** *(Base)* | $127.69 | $128.53 | **$129.25** | $130.70 | $131.79 |\n| **9.5%** | $119.30 | $120.06 | $120.72 | $122.03 | $123.02 |\n| **10.0%** | $112.10 | $112.80 | $113.40 | $114.60 | $115.51 |",
+   "ronic_used_pct": 30.0,
+   "scenario_table_markdown": "| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 4.7% | $645,395M | $139.91 | -39.2% |\n| Base | 50% | 3.6% | $598,758M | $129.25 | -43.8% |\n| Bear | 25% | 2.5% | $545,668M | $117.33 | -49.0% |\n| **Probability-weighted** | 100% | | | **$128.94** | -43.9% |",
+   "scenario_valuations": [
+    {
+     "cumulative_fcf": 645395.11,
+     "enterprise_value": 1879924.54,
+     "fair_value_per_share": 139.91,
+     "name": "bull",
+     "probability": 0.25,
+     "revenue_cagr_pct": 4.69,
+     "upside_downside_pct": -39.17
+    },
+    {
+     "cumulative_fcf": 598757.81,
+     "enterprise_value": 1734244.83,
+     "fair_value_per_share": 129.25,
+     "name": "base",
+     "probability": 0.5,
+     "revenue_cagr_pct": 3.6,
+     "upside_downside_pct": -43.8
+    },
+    {
+     "cumulative_fcf": 545668.02,
+     "enterprise_value": 1571306.07,
+     "fair_value_per_share": 117.33,
+     "name": "bear",
+     "probability": 0.25,
+     "revenue_cagr_pct": 2.5,
+     "upside_downside_pct": -48.99
+    }
+   ],
+   "sensitivity_matrix_markdown": "| WACC \\ Growth | 2.4% | 2.7% | 3.0% | 3.3% | 3.6% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.0%** | $140.97 | $145.92 | $151.45 | $157.68 | $164.75 |\n| **8.5%** | $130.87 | $134.89 | $139.34 | $144.30 | $149.86 |\n| **9.0%** *(Base)* | $122.30 | $125.62 | **$129.25** | $133.27 | $137.73 |\n| **9.5%** | $114.94 | $117.70 | $120.72 | $124.02 | $127.65 |\n| **10.0%** | $108.54 | $110.87 | $113.40 | $116.14 | $119.14 |",
+   "terminal_fcf": 110388.94,
+   "terminal_growth_rate": 0.03,
+   "terminal_method": "value_driver",
+   "terminal_tax_rate_pct": 25.0,
+   "terminal_value_pct_of_ev": 72.0,
+   "ticker": "AAPL",
+   "upside_downside_pct": -43.8,
+   "valuation_date": "2026-10-28",
+   "valuation_stance": "Overvalued",
+   "valuation_summary": "Valuation bridge: the base-case DCF implies an enterprise value of $1,734,245M, of which 72.0% comes from the terminal value (value driver, 3.0% perpetual growth). After net debt of $-33,763M and noncontrolling interests of $0M, equity value is $1,939,431M, or $129.25 per share.\n\nHurdle rate: the applied discount rate is 9.00% (user override); CAPM cost of equity is 9.29% (beta 1.13, Rf 4.30%, ERP 4.40%) and after-tax cost of debt is 4.16% at a 2.8% debt weight.\n\nRange: bear $117.33, base $129.25, bull $139.91; probability-weighted $128.94. The WACC x growth and WACC x RONIC grids bracket the base case.\n\nMargin of safety: against a $230.00 share price the base case implies -43.8% (Overvalued). Reverse DCF: At $230.00 the market implies 18.0% constant revenue growth for 5 years (then 3.0% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 3.6% modeled revenue CAGR. At modeled growth the price instead needs a +25.4 pp operating-margin shift in every year (final-year margin 57.4% versus 32.0% modeled). Holding the modeled cash flows, the price corresponds to a 6.14% discount rate versus the 9.00% applied.\n\nCaveats: Reverse DCF: the share price implies 18.0% annual revenue growth for 5 years versus 3.6% modeled (+14.4 pp); the market is pricing materially more growth, or different margins and returns, than the base case.",
+   "wacc_audit": {
+    "beta": 1.134,
+    "beta_raw": 1.2,
+    "beta_source": "yfinance_raw",
+    "capital_structure_source": "market_value",
+    "capm_wacc_pct": 9.15,
+    "cost_of_debt_after_tax": 0.041625,
+    "cost_of_debt_after_tax_pct": 4.16,
+    "cost_of_debt_note": null,
+    "cost_of_debt_pre_tax": 0.0555,
+    "cost_of_debt_pre_tax_pct": 5.55,
+    "cost_of_debt_source": "institutional_credit_spread_fallback",
+    "cost_of_equity": 0.092896,
+    "cost_of_equity_pct": 9.29,
+    "debt_weight_pct": 2.78,
+    "effective_tax_rate": 0.25,
+    "effective_tax_rate_pct": 25.0,
+    "equity_risk_premium_pct": 4.4,
+    "equity_risk_premium_source": "damodaran_implied_sp500_2026-07",
+    "equity_weight_pct": 97.22,
+    "formula_breakdown_markdown": "| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.13 | yfinance_raw (Blume-adjusted from raw 1.20) |\n| **Cost of Equity ($K_e$)** | **9.29%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 5.55% | Rf + 1.25% spread (no interest expense disclosed) |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **4.16%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $3,450,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $98,657.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.15% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.00%** | User-specified override |",
+    "market_cap": 3450000.0,
+    "risk_free_rate_pct": 4.3,
+    "risk_free_rate_source": "us_10y_treasury_live",
+    "total_capital": 3548657.0,
+    "total_debt": 98657.0,
+    "wacc": 0.09,
+    "wacc_pct": 9.0,
+    "wacc_source": "user_override"
+   }
+  },
+  "error_message": null,
+  "final_report": {
+   "company_name": "Apple Inc.",
+   "current_share_price": 230.0,
+   "executive_summary": "The filing supports a balanced view of the business.",
+   "fiscal_year": 2025,
+   "full_markdown_report": "# DCF Valuation & Intrinsic Sensitivity: Apple Inc. (AAPL)\n> **Filing Source**: SEC Form 10-K (FY2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$129.25** |\n| Bear / Bull Fair Value | $117.33 / $139.91 |\n| Probability-Weighted Fair Value | $128.94 |\n| Current Share Price[[2]](#cite-2) | $230.00 (yfinance_live) |\n| Base-Case Upside / Downside | -43.8% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 18.0% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 9.00% (user override) |\n| Market-Implied Discount Rate (at modeled cash flows) | 6.14% |\n| Terminal Growth | 3.0% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 72.0% |\n| Enterprise Value | $1,734,244.8M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-33,763.0M |\n| Equity Value (as of 2026-10-28) | $1,939,431.3M |\n| Valuation Shares[[6]](#cite-6) | 15,004.7M |\n| Forecast | 5-year explicit horizon, 3.6% revenue CAGR (historical fade) |\n\n## 1. Valuation Executive Summary\n\nThe filing supports a balanced view of the business.\n\n## 2. 5-Year Explicit UFCF Projections\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 31.97%; tax 15.61% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 1 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 4.20% in year 1 to 3.00% in year 5, against 3.00% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 31.97% to 31.97% by year 5.\n- **Reinvestment**: CapEx starts at 2.81% of revenue from the recency-weighted 3-year audited level (latest year 3.06%, simple average 2.78%) and fades to a 5.68% steady state by year 5, where net reinvestment equals 3.00% terminal growth / 30.0% return on new capital (base roic capped) = 10.0% of NOPAT; D&A is held at 2.81% (reported); working capital at -5.86% of incremental revenue (working_capital_days); SBC at 3.09% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $383,285 | $391,035 | $416,161 | $433,640 | $450,552 | $466,772 | $482,175 | $496,640 |\n| Revenue Growth YoY | — | +2.0% | +6.4% | +4.2% | +3.9% | +3.6% | +3.3% | +3.0% |\n| Operating Income (EBIT) | — | — | — | $138,635 | $144,041 | $149,227 | $154,151 | $158,776 |\n| Operating Margin | 29.8% | 31.5% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% |\n| NOPAT (Effective Tax 15.6%) | — | — | — | $116,994 | $121,557 | $125,933 | $130,088 | $133,991 |\n| Capital Expenditures | — | — | — | $12,185 | $15,904 | $19,791 | $23,916 | $28,209 |\n| Depreciation & Amortization | — | — | — | $12,189 | $12,665 | $13,121 | $13,554 | $13,960 |\n| Change in Working Capital (ΔNWC) | — | — | — | $-1,024 | $-990 | $-950 | $-902 | $-847 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $13,403 | $13,926 | $14,427 | $14,903 | $15,351 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$118,021** | **$119,307** | **$120,212** | **$120,628** | **$120,589** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 4.7% | $645,395M |\n| Base | 50% | 3.6% | $598,758M |\n| Bear | 25% | 2.5% | $545,668M |\n\n**Forecast diagnostics**\n- CapEx intensity fades from 2.81% to a 5.68% steady state; the explicit years carry a large reinvestment transition.\n\n## 3. WACC Hurdle Rate Breakdown\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.13 | yfinance_raw (Blume-adjusted from raw 1.20) |\n| **Cost of Equity ($K_e$)** | **9.29%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 5.55% | Rf + 1.25% spread (no interest expense disclosed) |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **4.16%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $3,450,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $98,657.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.15% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.00%** | User-specified override |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n## 4. Equity Bridge & Scenario Valuation\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (5 yrs, mid_year) | $485,841.1M |\n| PV of terminal value (value_driver) | $1,248,403.8M |\n| **Enterprise value** | **$1,734,244.8M** |\n| Plus: net cash | $33,763.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,768,007.8M |\n| Enterprise value rolled forward 1.08 yrs @ WACC 9.00% | $1,904,091.5M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $35,339.8M |\n| **Equity value at valuation date** | **$1,939,431.3M** |\n| Diluted shares | 15,004.70M |\n| **Fair value per share** | **$129.25** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 4.7% | $645,395M | $139.91 | -39.2% |\n| Base | 50% | 3.6% | $598,758M | $129.25 | -43.8% |\n| Bear | 25% | 2.5% | $545,668M | $117.33 | -49.0% |\n| **Probability-weighted** | 100% | | | **$128.94** | -43.9% |\n\n**Reverse DCF**: At $230.00 the market implies 18.0% constant revenue growth for 5 years (then 3.0% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 3.6% modeled revenue CAGR. At modeled growth the price instead needs a +25.4 pp operating-margin shift in every year (final-year margin 57.4% versus 32.0% modeled). Holding the modeled cash flows, the price corresponds to a 6.14% discount rate versus the 9.00% applied.\n\n## 5. Sensitivity Analysis\n\n| WACC \\ Growth | 2.4% | 2.7% | 3.0% | 3.3% | 3.6% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.0%** | $140.97 | $145.92 | $151.45 | $157.68 | $164.75 |\n| **8.5%** | $130.87 | $134.89 | $139.34 | $144.30 | $149.86 |\n| **9.0%** *(Base)* | $122.30 | $125.62 | **$129.25** | $133.27 | $137.73 |\n| **9.5%** | $114.94 | $117.70 | $120.72 | $124.02 | $127.65 |\n| **10.0%** | $108.54 | $110.87 | $113.40 | $116.14 | $119.14 |\n\n| WACC \\ RONIC | 26.0% | 28.0% | 30.0% | 35.0% | 40.0% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.0%** | $149.51 | $150.55 | $151.45 | $153.24 | $154.59 |\n| **8.5%** | $137.61 | $138.54 | $139.34 | $140.95 | $142.16 |\n| **9.0%** *(Base)* | $127.69 | $128.53 | **$129.25** | $130.70 | $131.79 |\n| **9.5%** | $119.30 | $120.06 | $120.72 | $122.03 | $123.02 |\n| **10.0%** | $112.10 | $112.80 | $113.40 | $114.60 | $115.51 |\n\n## 6. Valuation Commentary & Margin of Safety\n\nThe discount rate drives most of the value range.\n\n**Valuation data-quality warnings**\n- Reverse DCF: the share price implies 18.0% annual revenue growth for 5 years versus 3.6% modeled (+14.4 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Regulatory Disclaimers\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._ _1 sentence(s) of commentary were removed because they cited figures absent from the verified data._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "implied_fair_value_per_share": 129.25,
+   "sources": [
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+       "chunk_index": 103,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AAPL"
+      },
+      {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+       "chunk_index": 106,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AAPL"
+      },
+      {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+       "chunk_index": 108,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AAPL"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement, balance sheet and cash flow statement",
+     "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 1,
+     "provider": null,
+     "quote": null,
+     "ticker": "AAPL"
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Share price",
+     "n": 2,
+     "provider": "yfinance_live",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Risk-free rate",
+     "n": 3,
+     "provider": "us_10y_treasury_live",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Equity risk premium",
+     "n": 4,
+     "provider": "damodaran_implied_sp500_2026-07",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Beta",
+     "n": 5,
+     "provider": "yfinance_raw",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+       "chunk_index": 106,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AAPL"
+      }
+     ],
+     "derived_from": "Computed from the audited balance sheet",
+     "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 6,
+     "provider": null,
+     "quote": null,
+     "ticker": "AAPL"
+    }
+   ],
+   "synthesis_provenance": "llm_structured",
+   "three_pillar_thesis": {
+    "pillar_1_business_moat": "The business relies on its installed base and its brand.",
+    "pillar_2_financial_durability": "Cash generation covers reinvestment needs.",
+    "pillar_3_valuation_asymmetry": "The valuation case rests on the base-case cash flows."
+   },
+   "ticker": "AAPL",
+   "upside_downside_pct": -43.8,
+   "valuation_stance": "Overvalued",
+   "year_substituted": false
+  },
+  "financial_audit": {
+   "auditor_summary": "Auditor narrative unavailable; refer to the deterministic analytics and findings.",
+   "balance_sheet": {
+    "cash_and_equivalents": 35934.0,
+    "current_assets": 147957.0,
+    "current_liabilities": 165631.0,
+    "fiscal_year": 2025,
+    "long_term_debt": 78328.0,
+    "marketable_securities": 96486.0,
+    "net_cash_position": true,
+    "net_debt": -33763.0,
+    "noncontrolling_interests": null,
+    "period_end_shares_outstanding": 14773.26,
+    "prior_total_debt": 106629.0,
+    "share_count_source": "weighted_average_diluted",
+    "short_term_debt": 20329.0,
+    "stockholders_equity": 73733.0,
+    "total_assets": 359241.0,
+    "total_debt": 98657.0,
+    "total_liquid_cash": 132420.0,
+    "valuation_shares_outstanding": 15004.697,
+    "weighted_diluted_shares": 15004.697
+   },
+   "balance_sheet_markdown_table": "| Line item | FY2025 | FY2024 |\n| :--- | ---: | ---: |\n| **ASSETS:** |  |  |\n| **Current assets:** |  |  |\n| Cash and cash equivalents | 35,934 | 29,943 |\n| Marketable securities | 18,763 | 35,228 |\n| Accounts receivable, net | 39,777 | 33,410 |\n| Vendor non-trade receivables | 33,180 | 32,833 |\n| Inventories | 5,718 | 7,286 |\n| Other current assets | 14,585 | 14,287 |\n| Total current assets | 147,957 | 152,987 |\n| **Non-current assets:** |  |  |\n| Marketable securities | 77,723 | 91,479 |\n| Property, plant and equipment, net | 49,834 | 45,680 |\n| Other non-current assets | 83,727 | 74,834 |\n| Total non-current assets | 211,284 | 211,993 |\n| Total assets | 359,241 | 364,980 |\n| **LIABILITIES AND SHAREHOLDERS’ EQUITY:** |  |  |\n| **Current liabilities:** |  |  |\n| Accounts payable | 69,860 | 68,960 |\n| Other current liabilities | 66,387 | 78,304 |\n| Deferred revenue | 9,055 | 8,249 |\n| Commercial paper | 7,979 | 9,967 |\n| Term debt | 12,350 | 10,912 |\n| Total current liabilities | 165,631 | 176,392 |\n| **Non-current liabilities:** |  |  |\n| Term debt | 78,328 | 85,750 |\n| Other non-current liabilities | 41,549 | 45,888 |\n| Total non-current liabilities | 119,877 | 131,638 |\n| Total liabilities | 285,508 | 308,030 |\n| **Commitments and contingencies** |  |  |\n| **Shareholders’ equity:** |  |  |\n| Common stock and additional paid-in capital, $0.00001 par value: 50,400,000 shares authorized; 14,773,260 and 15,116,786 shares issued and outstanding, respectively | 93,568 | 83,276 |\n| Accumulated deficit | (14,264) | (19,154) |\n| Accumulated other comprehensive loss | (5,571) | (7,172) |\n| Total shareholders’ equity | 73,733 | 56,950 |\n| Total liabilities and shareholders’ equity | 359,241 | 364,980 |",
+   "capital_intensity": [
+    {
+     "capex_change": null,
+     "capex_to_depreciation": 0.95,
+     "capex_to_revenue_pct": 2.86,
+     "fcf_change": null,
+     "fcf_change_from_capex_pct": null,
+     "fiscal_year": 2023,
+     "ocf_change": null
+    },
+    {
+     "capex_change": -1512.0,
+     "capex_to_depreciation": 0.83,
+     "capex_to_revenue_pct": 2.42,
+     "fcf_change": 9223.0,
+     "fcf_change_from_capex_pct": 16.39,
+     "fiscal_year": 2024,
+     "ocf_change": 7711.0
+    },
+    {
+     "capex_change": 3268.0,
+     "capex_to_depreciation": 1.09,
+     "capex_to_revenue_pct": 3.06,
+     "fcf_change": -10040.0,
+     "fcf_change_from_capex_pct": 32.55,
+     "fiscal_year": 2025,
+     "ocf_change": -6772.0
+    }
+   ],
+   "cash_flow_markdown_table": "**Years ended**\n\n| Line item | FY2025 | FY2024 | FY2023 |\n| :--- | ---: | ---: | ---: |\n| Cash, cash equivalents, and restricted cash and cash equivalents, beginning balances | 29,943 | 30,737 | 24,977 |\n| **Operating activities:** |  |  |  |\n| Net income | 112,010 | 93,736 | 96,995 |\n| **Adjustments to reconcile net income to cash generated by operating activities:** |  |  |  |\n| Depreciation and amortization | 11,698 | 11,445 | 11,519 |\n| Share-based compensation expense | 12,863 | 11,688 | 10,833 |\n| Other | (89) | (2,266) | (2,227) |\n| **Changes in operating assets and liabilities:** |  |  |  |\n| Accounts receivable, net | (6,682) | (3,788) | (1,688) |\n| Vendor non-trade receivables | (347) | (1,356) | 1,271 |\n| Inventories | 1,400 | (1,046) | (1,618) |\n| Other current and non-current assets | (9,197) | (11,731) | (5,684) |\n| Accounts payable | 902 | 6,020 | (1,889) |\n| Other current and non-current liabilities | (11,076) | 15,552 | 3,031 |\n| Cash generated by operating activities | 111,482 | 118,254 | 110,543 |\n| **Investing activities:** |  |  |  |\n| Purchases of marketable securities | (24,407) | (48,656) | (29,513) |\n| Proceeds from maturities of marketable securities | 40,907 | 51,211 | 39,686 |\n| Proceeds from sales of marketable securities | 12,890 | 11,135 | 5,828 |\n| Payments for acquisition of property, plant and equipment | (12,715) | (9,447) | (10,959) |\n| Other | (1,480) | (1,308) | (1,337) |\n| Cash generated by investing activities | 15,195 | 2,935 | 3,705 |\n| **Financing activities:** |  |  |  |\n| Payments for taxes related to net share settlement of equity awards | (5,960) | (5,441) | (5,431) |\n| Payments for dividends and dividend equivalents | (15,421) | (15,234) | (15,025) |\n| Repurchases of common stock | (90,711) | (94,949) | (77,550) |\n| Proceeds from issuance of term debt, net | 4,481 | — | 5,228 |\n| Repayments of term debt | (10,932) | (9,958) | (11,151) |\n| Proceeds from/(Repayments of) commercial paper, net | (2,032) | 3,960 | (3,978) |\n| Other | (111) | (361) | (581) |\n| Cash used in financing activities | (120,686) | (121,983) | (108,488) |\n| Increase/(Decrease) in cash, cash equivalents, and restricted cash and cash equivalents | 5,991 | (794) | 5,760 |\n| Cash, cash equivalents, and restricted cash and cash equivalents, ending balances | 35,934 | 29,943 | 30,737 |\n| **Supplemental cash flow disclosure:** |  |  |  |\n| Cash paid for income taxes, net | 43,369 | 26,102 | 18,679 |",
+   "citations": [
+    {
+     "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "statement_type": "income_statement",
+     "sub_section": "Years ended"
+    },
+    {
+     "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "df5fc807-4903-4e3c-9146-821be1992b1f",
+     "fiscal_year": 2024,
+     "item": "Item 8",
+     "statement_type": "income_statement",
+     "sub_section": "Years ended"
+    },
+    {
+     "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "statement_type": "balance_sheet",
+     "sub_section": "Financial Statements and Supplementary Data"
+    },
+    {
+     "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+     "fiscal_year": 2024,
+     "item": "Item 8",
+     "statement_type": "balance_sheet",
+     "sub_section": "Financial Statements and Supplementary Data"
+    },
+    {
+     "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "statement_type": "cash_flow",
+     "sub_section": "Years ended"
+    },
+    {
+     "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "1209dbe4-d0e4-4f8b-82d4-9428bfcf8a08",
+     "fiscal_year": 2024,
+     "item": "Item 8",
+     "statement_type": "cash_flow",
+     "sub_section": "Years ended"
+    }
+   ],
+   "cost_structure": [
+    {
+     "fiscal_year": 2023,
+     "gross_margin_change_bps": null,
+     "operating_expense_growth_pct": null,
+     "operating_expenses": 54847.0,
+     "operating_margin_change_bps": null,
+     "opex_growth_minus_revenue_growth_pp": null,
+     "revenue_growth_pct": null
+    },
+    {
+     "fiscal_year": 2024,
+     "gross_margin_change_bps": 208.0,
+     "operating_expense_growth_pct": 4.78,
+     "operating_expenses": 57467.0,
+     "operating_margin_change_bps": 169.0,
+     "opex_growth_minus_revenue_growth_pp": 2.76,
+     "revenue_growth_pct": 2.02
+    },
+    {
+     "fiscal_year": 2025,
+     "gross_margin_change_bps": 70.0,
+     "operating_expense_growth_pct": 8.15,
+     "operating_expenses": 62151.0,
+     "operating_margin_change_bps": 46.0,
+     "opex_growth_minus_revenue_growth_pp": 1.72,
+     "revenue_growth_pct": 6.43
+    }
+   ],
+   "data_quality": {
+    "completeness_score": 1.0,
+    "cross_filing_differences": [],
+    "extraction_mode": "deterministic",
+    "field_provenance": {
+     "FY2023.accounts_payable": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Accounts payable"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.accounts_receivable": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Accounts receivable, net"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.capital_expenditures": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Payments for acquisition of property, plant and equipment"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.cash_and_equivalents": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Cash and cash equivalents"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.cost_of_revenue": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Total cost of sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.current_assets": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Total current assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.current_liabilities": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Total current liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.depreciation_amortization": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Depreciation and amortization"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.diluted_weighted_shares": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Diluted"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.gross_profit": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Gross margin"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.income_tax_expense": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Provision for income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.inventories": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Inventories"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.long_term_debt": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Term debt"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.marketable_securities": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Marketable securities",
+       "Marketable securities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.net_income_cf": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.net_income_total": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.operating_cash_flow": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Cash generated by operating activities"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.operating_expenses": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Total operating expenses"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.operating_income": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Operating income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.period_end_shares_outstanding": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Common stock and additional paid-in capital, $0.00001 par value: 50,400,000 shares authorized; 15,116,786 and 15,550,061 shares issued and outstanding, respectively"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.pretax_income": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Income before provision for income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.revenue": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Total net sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.short_term_debt": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Commercial paper",
+       "Term debt"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.stock_based_compensation": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Share-based compensation expense"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.stockholders_equity": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Total shareholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.total_assets": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Total assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.total_liabilities": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Total liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.total_liabilities_and_equity": {
+      "chunk_id": "9f67dc43-757b-4787-b600-86567c380184",
+      "filing_year": 2024,
+      "labels": [
+       "Total liabilities and shareholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.accounts_payable": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Accounts payable"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.accounts_receivable": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Accounts receivable, net"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.capital_expenditures": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Payments for acquisition of property, plant and equipment"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.cash_and_equivalents": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Cash and cash equivalents"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.cost_of_revenue": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Total cost of sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.current_assets": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Total current assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.current_liabilities": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Total current liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.depreciation_amortization": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Depreciation and amortization"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.diluted_weighted_shares": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Diluted"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.gross_profit": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Gross margin"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.income_tax_expense": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Provision for income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.inventories": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Inventories"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.long_term_debt": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Term debt"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.marketable_securities": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Marketable securities",
+       "Marketable securities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.net_income_cf": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.net_income_total": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.operating_cash_flow": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Cash generated by operating activities"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.operating_expenses": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Total operating expenses"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.operating_income": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Operating income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.period_end_shares_outstanding": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Common stock and additional paid-in capital, $0.00001 par value: 50,400,000 shares authorized; 14,773,260 and 15,116,786 shares issued and outstanding, respectively"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.pretax_income": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Income before provision for income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.revenue": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Total net sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.short_term_debt": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Commercial paper",
+       "Term debt"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.stock_based_compensation": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Share-based compensation expense"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.stockholders_equity": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Total shareholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.total_assets": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Total assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.total_liabilities": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Total liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.total_liabilities_and_equity": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Total liabilities and shareholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.accounts_payable": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Accounts payable"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.accounts_receivable": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Accounts receivable, net"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.capital_expenditures": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Payments for acquisition of property, plant and equipment"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.cash_and_equivalents": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Cash and cash equivalents"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.cost_of_revenue": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Total cost of sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.current_assets": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Total current assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.current_liabilities": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Total current liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.depreciation_amortization": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Depreciation and amortization"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.diluted_weighted_shares": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Diluted"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.gross_profit": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Gross margin"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.income_tax_expense": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Provision for income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.inventories": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Inventories"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.long_term_debt": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Term debt"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.marketable_securities": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Marketable securities",
+       "Marketable securities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.net_income_cf": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.net_income_total": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.operating_cash_flow": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Cash generated by operating activities"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.operating_expenses": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Total operating expenses"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.operating_income": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Operating income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.period_end_shares_outstanding": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Common stock and additional paid-in capital, $0.00001 par value: 50,400,000 shares authorized; 14,773,260 and 15,116,786 shares issued and outstanding, respectively"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.pretax_income": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Income before provision for income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.revenue": {
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "filing_year": 2025,
+      "labels": [
+       "Total net sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.short_term_debt": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Commercial paper",
+       "Term debt"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.stock_based_compensation": {
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "filing_year": 2025,
+      "labels": [
+       "Share-based compensation expense"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.stockholders_equity": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Total shareholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.total_assets": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Total assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.total_liabilities": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Total liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.total_liabilities_and_equity": {
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "filing_year": 2025,
+      "labels": [
+       "Total liabilities and shareholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     }
+    },
+    "identity_checks": [
+     {
+      "critical": true,
+      "detail": "Validates that the balance sheet grid was parsed with correct period alignment.",
+      "difference_pct": 0.0,
+      "lhs": 359241.0,
+      "name": "FY2025 balance sheet: total assets = total liabilities and equity",
+      "rhs": 359241.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates the stockholders' equity and liabilities rows used for ROE / invested capital.",
+      "difference_pct": 0.0,
+      "lhs": 359241.0,
+      "name": "FY2025 balance sheet: assets = liabilities + mezzanine + equity (incl. NCI)",
+      "rhs": 359241.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates revenue and cost of revenue row selection.",
+      "difference_pct": 0.0,
+      "lhs": 169148.0,
+      "name": "FY2023 gross profit = revenue - cost of revenue",
+      "rhs": 169148.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates that the income statement and cash flow statement describe the same periods.",
+      "difference_pct": 0.0,
+      "lhs": 96995.0,
+      "name": "FY2023 net income: income statement = cash flow statement",
+      "rhs": 96995.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates revenue and cost of revenue row selection.",
+      "difference_pct": 0.0,
+      "lhs": 180683.0,
+      "name": "FY2024 gross profit = revenue - cost of revenue",
+      "rhs": 180683.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates that the income statement and cash flow statement describe the same periods.",
+      "difference_pct": 0.0,
+      "lhs": 93736.0,
+      "name": "FY2024 net income: income statement = cash flow statement",
+      "rhs": 93736.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates revenue and cost of revenue row selection.",
+      "difference_pct": 0.0,
+      "lhs": 195201.0,
+      "name": "FY2025 gross profit = revenue - cost of revenue",
+      "rhs": 195201.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates that the income statement and cash flow statement describe the same periods.",
+      "difference_pct": 0.0,
+      "lhs": 112010.0,
+      "name": "FY2025 net income: income statement = cash flow statement",
+      "rhs": 112010.0,
+      "status": "passed"
+     }
+    ],
+    "missing_fields": [],
+    "reconciliation_log": [
+     "No refinement requested by the auditor; deterministic baseline retained."
+    ],
+    "summary_may_be_stale": false,
+    "warnings": []
+   },
+   "earnings_quality": [
+    {
+     "accruals": -13548.0,
+     "adjustments": [],
+     "adjustments_pct_of_operating_income": null,
+     "deferred_tax_to_net_income_pct": null,
+     "effective_tax_rate_pct": 14.72,
+     "fiscal_year": 2023,
+     "net_income_adjustments_total": 0.0,
+     "non_operating_income": -565.0,
+     "non_operating_to_operating_income_pct": -0.49,
+     "normalized_net_income": 96995.0,
+     "normalized_net_margin_pct": 25.31,
+     "normalized_operating_income": 114301.0,
+     "normalized_operating_margin_pct": 29.82,
+     "operating_income_adjustments_total": 0.0,
+     "sbc_adjusted_fcf": 88751.0,
+     "sbc_to_ocf_pct": 9.8,
+     "sbc_to_operating_income_pct": 9.48,
+     "sloan_accruals_ratio_pct": -3.78,
+     "stock_based_compensation": 10833.0
+    },
+    {
+     "accruals": -24518.0,
+     "adjustments": [],
+     "adjustments_pct_of_operating_income": null,
+     "deferred_tax_to_net_income_pct": null,
+     "effective_tax_rate_pct": 24.09,
+     "fiscal_year": 2024,
+     "net_income_adjustments_total": 0.0,
+     "non_operating_income": 269.0,
+     "non_operating_to_operating_income_pct": 0.22,
+     "normalized_net_income": 93736.0,
+     "normalized_net_margin_pct": 23.97,
+     "normalized_operating_income": 123216.0,
+     "normalized_operating_margin_pct": 31.51,
+     "operating_income_adjustments_total": 0.0,
+     "sbc_adjusted_fcf": 97119.0,
+     "sbc_to_ocf_pct": 9.88,
+     "sbc_to_operating_income_pct": 9.49,
+     "sloan_accruals_ratio_pct": -6.83,
+     "stock_based_compensation": 11688.0
+    },
+    {
+     "accruals": 528.0,
+     "adjustments": [],
+     "adjustments_pct_of_operating_income": null,
+     "deferred_tax_to_net_income_pct": null,
+     "effective_tax_rate_pct": 15.61,
+     "fiscal_year": 2025,
+     "net_income_adjustments_total": 0.0,
+     "non_operating_income": -321.0,
+     "non_operating_to_operating_income_pct": -0.24,
+     "normalized_net_income": 112010.0,
+     "normalized_net_margin_pct": 26.92,
+     "normalized_operating_income": 133050.0,
+     "normalized_operating_margin_pct": 31.97,
+     "operating_income_adjustments_total": 0.0,
+     "sbc_adjusted_fcf": 85904.0,
+     "sbc_to_ocf_pct": 11.54,
+     "sbc_to_operating_income_pct": 9.67,
+     "sloan_accruals_ratio_pct": 0.15,
+     "stock_based_compensation": 12863.0
+    }
+   ],
+   "fiscal_year": 2025,
+   "forensic_findings": [
+    {
+     "code": "EARNINGS_QUALITY_DIVERGENCE",
+     "fiscal_year": 2025,
+     "message": "EARNINGS QUALITY DIVERGENCE (FY2025): Net income increased by +19.50% ($93,736.0M -> $112,010.0M) while operating cash flow declined by -5.73% ($118,254.0M -> $111,482.0M), indicating accrual expansion, non-operating gains, or tax/working-capital cash timing outflows.",
+     "metric": "net_income_vs_ocf_growth_pct",
+     "severity": "high",
+     "threshold": 0.0,
+     "value": 19.5
+    },
+    {
+     "code": "WORKING_CAPITAL_DETERIORATION",
+     "fiscal_year": 2024,
+     "message": "WORKING CAPITAL DETERIORATION (FY2024): DIO lengthened 16.7% to 12.6 days.",
+     "metric": "dio_change_pct",
+     "severity": "low",
+     "threshold": 15.0,
+     "value": 16.67
+    }
+   ],
+   "income_statement_markdown_table": "**Years ended**\n\n| Line item | FY2025 | FY2024 | FY2023 |\n| :--- | ---: | ---: | ---: |\n| **Net sales:** |  |  |  |\n| Products | 307,003 | 294,866 | 298,085 |\n| Services | 109,158 | 96,169 | 85,200 |\n| Total net sales | 416,161 | 391,035 | 383,285 |\n| **Cost of sales:** |  |  |  |\n| Products | 194,116 | 185,233 | 189,282 |\n| Services | 26,844 | 25,119 | 24,855 |\n| Total cost of sales | 220,960 | 210,352 | 214,137 |\n| Gross margin | 195,201 | 180,683 | 169,148 |\n| **Operating expenses:** |  |  |  |\n| Research and development | 34,550 | 31,370 | 29,915 |\n| Selling, general and administrative | 27,601 | 26,097 | 24,932 |\n| Total operating expenses | 62,151 | 57,467 | 54,847 |\n| Operating income | 133,050 | 123,216 | 114,301 |\n| Other income/(expense), net | (321) | 269 | (565) |\n| Income before provision for income taxes | 132,729 | 123,485 | 113,736 |\n| Provision for income taxes | 20,719 | 29,749 | 16,741 |\n| Net income | 112,010 | 93,736 | 96,995 |\n| **Earnings per share:** |  |  |  |\n| Basic | 7.49 | 6.11 | 6.16 |\n| Diluted | 7.46 | 6.08 | 6.13 |\n| **Shares used in computing earnings per share:** |  |  |  |\n| Basic | 14,948,500 | 15,343,783 | 15,744,231 |\n| Diluted | 15,004,697 | 15,408,095 | 15,812,547 |",
+   "multi_year_history": [
+    {
+     "capital_expenditures": 10959.0,
+     "depreciation_amortization": 11519.0,
+     "fcf_conversion_pct": 102.67,
+     "fcf_growth_pct": null,
+     "fiscal_year": 2023,
+     "free_cash_flow": 99584.0,
+     "gross_margin_pct": 44.13,
+     "gross_profit": 169148.0,
+     "interest_expense": null,
+     "net_income": 96995.0,
+     "net_margin_pct": 25.31,
+     "operating_cash_flow": 110543.0,
+     "operating_income": 114301.0,
+     "operating_income_growth_pct": null,
+     "operating_margin_pct": 29.82,
+     "revenue": 383285.0,
+     "revenue_growth_pct": null
+    },
+    {
+     "capital_expenditures": 9447.0,
+     "depreciation_amortization": 11445.0,
+     "fcf_conversion_pct": 116.08,
+     "fcf_growth_pct": 9.26,
+     "fiscal_year": 2024,
+     "free_cash_flow": 108807.0,
+     "gross_margin_pct": 46.21,
+     "gross_profit": 180683.0,
+     "interest_expense": null,
+     "net_income": 93736.0,
+     "net_margin_pct": 23.97,
+     "operating_cash_flow": 118254.0,
+     "operating_income": 123216.0,
+     "operating_income_growth_pct": 7.8,
+     "operating_margin_pct": 31.51,
+     "revenue": 391035.0,
+     "revenue_growth_pct": 2.02
+    },
+    {
+     "capital_expenditures": 12715.0,
+     "depreciation_amortization": 11698.0,
+     "fcf_conversion_pct": 88.18,
+     "fcf_growth_pct": -9.23,
+     "fiscal_year": 2025,
+     "free_cash_flow": 98767.0,
+     "gross_margin_pct": 46.91,
+     "gross_profit": 195201.0,
+     "interest_expense": null,
+     "net_income": 112010.0,
+     "net_margin_pct": 26.92,
+     "operating_cash_flow": 111482.0,
+     "operating_income": 133050.0,
+     "operating_income_growth_pct": 7.98,
+     "operating_margin_pct": 31.97,
+     "revenue": 416161.0,
+     "revenue_growth_pct": 6.43
+    }
+   ],
+   "profitability_and_return_ratios": {
+    "capital_basis": "average",
+    "effective_tax_rate_pct": 15.61,
+    "equity_status": "positive_book_equity",
+    "invested_capital": 23449.5,
+    "latest_gross_margin_pct": 46.91,
+    "latest_net_margin_pct": 26.92,
+    "latest_operating_margin_pct": 31.97,
+    "nopat": 112280.9,
+    "roe_pct": 171.42,
+    "roic_on_gross_capital_pct": 66.84,
+    "roic_pct": 478.82,
+    "tax_rate_source": "derived_from_10k"
+   },
+   "restatement_notes": [
+    "No retrospective restatements identified: overlapping years agree across the FY2025, FY2024 10-K filings for all extracted line items."
+   ],
+   "share_count_history": [
+    {
+     "diluted_share_growth_pct": null,
+     "diluted_weighted_shares": 15812.547,
+     "fiscal_year": 2023,
+     "period_end_share_growth_pct": null,
+     "period_end_shares_outstanding": 15550.061
+    },
+    {
+     "diluted_share_growth_pct": -2.56,
+     "diluted_weighted_shares": 15408.095,
+     "fiscal_year": 2024,
+     "period_end_share_growth_pct": -2.79,
+     "period_end_shares_outstanding": 15116.786
+    },
+    {
+     "diluted_share_growth_pct": -2.62,
+     "diluted_weighted_shares": 15004.697,
+     "fiscal_year": 2025,
+     "period_end_share_growth_pct": -2.27,
+     "period_end_shares_outstanding": 14773.26
+    }
+   ],
+   "solvency_and_liquidity_ratios": {
+    "current_ratio": 0.89,
+    "ebitda": 144748.0,
+    "net_debt_to_ebitda": -0.23,
+    "net_debt_to_ebitda_interpretation": "net_cash_surplus",
+    "total_debt_to_equity": 1.34
+   },
+   "ticker": "AAPL",
+   "working_capital": [
+    {
+     "cash_conversion_cycle_days": -67.8,
+     "dio_change_pct": null,
+     "dio_days": 10.8,
+     "dpo_days": 106.7,
+     "dso_change_pct": null,
+     "dso_days": 28.1,
+     "fiscal_year": 2023
+    },
+    {
+     "cash_conversion_cycle_days": -75.9,
+     "dio_change_pct": 16.67,
+     "dio_days": 12.6,
+     "dpo_days": 119.7,
+     "dso_change_pct": 11.03,
+     "dso_days": 31.2,
+     "fiscal_year": 2024
+    },
+    {
+     "cash_conversion_cycle_days": -71.1,
+     "dio_change_pct": -25.4,
+     "dio_days": 9.4,
+     "dpo_days": 115.4,
+     "dso_change_pct": 11.86,
+     "dso_days": 34.9,
+     "fiscal_year": 2025
+    }
+   ]
+  },
+  "forecast": {
+   "applied_drivers": {
+    "capex_path": [
+     0.0281,
+     0.0353,
+     0.0424,
+     0.0496,
+     0.0568
+    ],
+    "capex_pct_of_revenue": 0.028094910654093388,
+    "da_pct_of_revenue": 0.028109313462818475,
+    "nwc_pct_of_incremental_revenue": -0.058562739726027414,
+    "operating_margin": [
+     0.3197,
+     0.3197,
+     0.3197,
+     0.3197,
+     0.3197
+    ],
+    "reinvestment_method": "value_driver_fade",
+    "revenue_growth": [
+     0.042,
+     0.039,
+     0.036,
+     0.033,
+     0.03
+    ],
+    "sbc_pct_of_revenue": 0.030908710811440764,
+    "steady_state_capex_pct_of_revenue": 0.0568,
+    "tax_rate": 0.1561
+   },
+   "assumptions": {
+    "base_invested_capital": 172390.0,
+    "base_operating_margin": 0.3197,
+    "base_revenue": 416161.0,
+    "base_roic": 0.6513027800198968,
+    "base_year": 2025,
+    "capex_average_pct_of_revenue": 0.027768114245996733,
+    "capex_pct_of_revenue": 0.028094910654093388,
+    "capex_years": 3,
+    "da_pct_of_revenue": 0.028109313462818475,
+    "da_source": "reported",
+    "growth_volatility": 0.02205,
+    "historical_average_margin": 0.311,
+    "historical_cagr": 0.04200493918237114,
+    "historical_rows": [
+     {
+      "fiscal_year": 2023,
+      "operating_margin_pct": 29.82,
+      "revenue": 383285.0,
+      "revenue_growth_pct": null
+     },
+     {
+      "fiscal_year": 2024,
+      "operating_margin_pct": 31.51,
+      "revenue": 391035.0,
+      "revenue_growth_pct": 2.02
+     },
+     {
+      "fiscal_year": 2025,
+      "operating_margin_pct": 31.97,
+      "revenue": 416161.0,
+      "revenue_growth_pct": 6.43
+     }
+    ],
+    "history_years": 3,
+    "latest_capex_pct_of_revenue": 0.030553079216937677,
+    "latest_revenue_growth": 0.0643,
+    "margin_source": "reported",
+    "margin_trend": "expanding",
+    "nwc_pct_of_incremental_revenue": -0.058562739726027414,
+    "nwc_source": "working_capital_days",
+    "sbc_pct_of_revenue": 0.030908710811440764,
+    "sbc_source": "reported",
+    "steady_state_ronic": 0.3,
+    "steady_state_ronic_source": "base_roic_capped",
+    "tax_rate": 0.1561,
+    "tax_source": "median_effective",
+    "warnings": []
+   },
+   "average_annual_fcf": 119751.56,
+   "base_revenue": 416161.0,
+   "citations": [],
+   "cumulative_fcf": 598757.81,
+   "diagnostics": {
+    "base_roic_pct": 65.13,
+    "fade_extended": false,
+    "final_year_growth_pct": 3.0,
+    "final_year_reinvestment_rate_pct": 10.0,
+    "implied_fundamental_growth_pct": 6.51,
+    "ronic_pct": 72.85,
+    "steady_state_ronic_pct": 30.0,
+    "target_reinvestment_rate_pct": 10.0,
+    "terminal_growth_pct": 3.0,
+    "warnings": [
+     "CapEx intensity fades from 2.81% to a 5.68% steady state; the explicit years carry a large reinvestment transition."
+    ]
+   },
+   "driver_adjustments": [],
+   "fiscal_year": 2025,
+   "forecast_horizon_years": 5,
+   "forecast_schedule": [
+    {
+     "projected_capex": 12185.28,
+     "projected_depreciation": 12189.32,
+     "projected_ebit": 138634.63,
+     "projected_ebit_margin_pct": 31.97,
+     "projected_nopat": 116993.77,
+     "projected_nwc_change": -1023.6,
+     "projected_revenue": 433639.76,
+     "projected_revenue_growth_pct": 4.2,
+     "projected_sbc": 13403.25,
+     "projected_unlevered_fcf": 118021.41,
+     "projected_year": 2026
+    },
+    {
+     "projected_capex": 15904.48,
+     "projected_depreciation": 12664.7,
+     "projected_ebit": 144041.38,
+     "projected_ebit_margin_pct": 31.97,
+     "projected_nopat": 121556.52,
+     "projected_nwc_change": -990.41,
+     "projected_revenue": 450551.71,
+     "projected_revenue_growth_pct": 3.9,
+     "projected_sbc": 13925.97,
+     "projected_unlevered_fcf": 119307.16,
+     "projected_year": 2027
+    },
+    {
+     "projected_capex": 19791.11,
+     "projected_depreciation": 13120.63,
+     "projected_ebit": 149226.87,
+     "projected_ebit_margin_pct": 31.97,
+     "projected_nopat": 125932.56,
+     "projected_nwc_change": -949.88,
+     "projected_revenue": 466771.57,
+     "projected_revenue_growth_pct": 3.6,
+     "projected_sbc": 14427.31,
+     "projected_unlevered_fcf": 120211.95,
+     "projected_year": 2028
+    },
+    {
+     "projected_capex": 23915.88,
+     "projected_depreciation": 13553.61,
+     "projected_ebit": 154151.36,
+     "projected_ebit_margin_pct": 31.97,
+     "projected_nopat": 130088.33,
+     "projected_nwc_change": -902.07,
+     "projected_revenue": 482175.04,
+     "projected_revenue_growth_pct": 3.3,
+     "projected_sbc": 14903.41,
+     "projected_unlevered_fcf": 120628.13,
+     "projected_year": 2029
+    },
+    {
+     "projected_capex": 28209.17,
+     "projected_depreciation": 13960.22,
+     "projected_ebit": 158775.9,
+     "projected_ebit_margin_pct": 31.97,
+     "projected_nopat": 133990.98,
+     "projected_nwc_change": -847.12,
+     "projected_revenue": 496640.29,
+     "projected_revenue_growth_pct": 3.0,
+     "projected_sbc": 15350.51,
+     "projected_unlevered_fcf": 120589.16,
+     "projected_year": 2030
+    }
+   ],
+   "forecast_table_markdown": "| Metric ($ Millions) | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $383,285 | $391,035 | $416,161 | $433,640 | $450,552 | $466,772 | $482,175 | $496,640 |\n| Revenue Growth YoY | — | +2.0% | +6.4% | +4.2% | +3.9% | +3.6% | +3.3% | +3.0% |\n| Operating Income (EBIT) | — | — | — | $138,635 | $144,041 | $149,227 | $154,151 | $158,776 |\n| Operating Margin | 29.8% | 31.5% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% |\n| NOPAT (Effective Tax 15.6%) | — | — | — | $116,994 | $121,557 | $125,933 | $130,088 | $133,991 |\n| Capital Expenditures | — | — | — | $12,185 | $15,904 | $19,791 | $23,916 | $28,209 |\n| Depreciation & Amortization | — | — | — | $12,189 | $12,665 | $13,121 | $13,554 | $13,960 |\n| Change in Working Capital (ΔNWC) | — | — | — | $-1,024 | $-990 | $-950 | $-902 | $-847 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $13,403 | $13,926 | $14,427 | $14,903 | $15,351 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$118,021** | **$119,307** | **$120,212** | **$120,628** | **$120,589** |",
+   "growth_rationale": "Item 7 gave 1 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 4.20% in year 1 to 3.00% in year 5, against 3.00% terminal growth.",
+   "guidance_source": "historical_fade",
+   "margin_rationale": "Operating margin moves from the reported base of 31.97% to 31.97% by year 5.",
+   "mdna_assessment": {
+    "chunk_count": 6,
+    "forward_looking_count": 1,
+    "is_informative": false,
+    "quantified_guidance": []
+   },
+   "projected_fcfs": [
+    118021.41,
+    119307.16,
+    120211.95,
+    120628.13,
+    120589.16
+   ],
+   "reinvestment_rationale": "CapEx starts at 2.81% of revenue from the recency-weighted 3-year audited level (latest year 3.06%, simple average 2.78%) and fades to a 5.68% steady state by year 5, where net reinvestment equals 3.00% terminal growth / 30.0% return on new capital (base roic capped) = 10.0% of NOPAT; D&A is held at 2.81% (reported); working capital at -5.86% of incremental revenue (working_capital_days); SBC at 3.09% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.",
+   "revenue_cagr_pct": 3.6,
+   "scenarios": [
+    {
+     "cumulative_fcf": 645395.11,
+     "name": "bull",
+     "operating_margin_pct": [
+      32.97,
+      32.97,
+      32.97,
+      32.97,
+      32.97
+     ],
+     "probability": 0.25,
+     "projected_fcfs": [
+      124764.54,
+      128023.27,
+      130247.79,
+      131269.17,
+      131090.34
+     ],
+     "revenue_cagr_pct": 4.69,
+     "revenue_growth_pct": [
+      6.4,
+      5.55,
+      4.7,
+      3.85,
+      3.0
+     ]
+    },
+    {
+     "cumulative_fcf": 598757.81,
+     "name": "base",
+     "operating_margin_pct": [
+      31.97,
+      31.97,
+      31.97,
+      31.97,
+      31.97
+     ],
+     "probability": 0.5,
+     "projected_fcfs": [
+      118021.41,
+      119307.16,
+      120211.95,
+      120628.13,
+      120589.16
+     ],
+     "revenue_cagr_pct": 3.6,
+     "revenue_growth_pct": [
+      4.2,
+      3.9,
+      3.6,
+      3.3,
+      3.0
+     ]
+    },
+    {
+     "cumulative_fcf": 545668.02,
+     "name": "bear",
+     "operating_margin_pct": [
+      30.47,
+      30.47,
+      30.47,
+      30.47,
+      30.47
+     ],
+     "probability": 0.25,
+     "projected_fcfs": [
+      109641.7,
+      109218.13,
+      108941.01,
+      108892.02,
+      108975.16
+     ],
+     "revenue_cagr_pct": 2.5,
+     "revenue_growth_pct": [
+      2.0,
+      2.25,
+      2.5,
+      2.75,
+      3.0
+     ]
+    }
+   ],
+   "tax_rate_pct": 15.61,
+   "ticker": "AAPL"
+  },
+  "pipeline_notes": [],
+  "risk_audit": null,
+  "routing_plan": {
+   "active_agents": [
+    "financial_auditor",
+    "forecasting_analyst",
+    "valuation_specialist"
+   ],
+   "available_fiscal_years": [
+    2025,
+    2024
+   ],
+   "company_name": "Apple Inc.",
+   "conversational_response": null,
+   "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+   "fiscal_year": 2025,
+   "parameter_notes": [],
+   "query_type": "dcf_valuation_only",
+   "routing_provenance": "llm_inferred",
+   "ticker": "AAPL",
+   "updated_session_state": {
+    "active_company": "Apple Inc.",
+    "active_fiscal_year": 2025,
+    "active_ticker": "AAPL",
+    "available_fiscal_years": [
+     2025,
+     2024
+    ],
+    "last_query_type": "dcf_valuation_only",
+    "valuation_overrides": {
+     "terminal_growth": 0.03,
+     "ticker": "AAPL",
+     "wacc": 0.09
+    }
+   },
+   "valuation_overrides": {
+    "terminal_growth": 0.03,
+    "ticker": "AAPL",
+    "wacc": 0.09
+   },
+   "year_requested": null,
+   "year_substituted": false
+  },
+  "sources": [
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
+      "chunk_index": 103,
+      "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AAPL"
+     },
+     {
+      "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "chunk_index": 106,
+      "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AAPL"
+     },
+     {
+      "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "fbc6ec74-e856-4b6d-83f4-1294cbc87969",
+      "chunk_index": 108,
+      "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AAPL"
+     }
+    ],
+    "derived_from": "Computed from the audited income statement, balance sheet and cash flow statement",
+    "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 1,
+    "provider": null,
+    "quote": null,
+    "ticker": "AAPL"
+   },
+   {
+    "chunks": [],
+    "derived_from": null,
+    "document_id": null,
+    "fiscal_year": null,
+    "kind": "market",
+    "label": "Share price",
+    "n": 2,
+    "provider": "yfinance_live",
+    "quote": null,
+    "ticker": null
+   },
+   {
+    "chunks": [],
+    "derived_from": null,
+    "document_id": null,
+    "fiscal_year": null,
+    "kind": "market",
+    "label": "Risk-free rate",
+    "n": 3,
+    "provider": "us_10y_treasury_live",
+    "quote": null,
+    "ticker": null
+   },
+   {
+    "chunks": [],
+    "derived_from": null,
+    "document_id": null,
+    "fiscal_year": null,
+    "kind": "market",
+    "label": "Equity risk premium",
+    "n": 4,
+    "provider": "damodaran_implied_sp500_2026-07",
+    "quote": null,
+    "ticker": null
+   },
+   {
+    "chunks": [],
+    "derived_from": null,
+    "document_id": null,
+    "fiscal_year": null,
+    "kind": "market",
+    "label": "Beta",
+    "n": 5,
+    "provider": "yfinance_raw",
+    "quote": null,
+    "ticker": null
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "e07dfc8c-c2b8-462d-8f18-5ab39df9fe67",
+      "chunk_index": 106,
+      "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AAPL"
+     }
+    ],
+    "derived_from": "Computed from the audited balance sheet",
+    "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 6,
+    "provider": null,
+    "quote": null,
+    "ticker": "AAPL"
+   }
+  ],
+  "updated_session_state": {
+   "active_company": "Apple Inc.",
+   "active_fiscal_year": 2025,
+   "active_ticker": "AAPL",
+   "available_fiscal_years": [
+    2025,
+    2024
+   ],
+   "last_query_type": "dcf_valuation_only",
+   "valuation_overrides": {
+    "terminal_growth": 0.03,
+    "ticker": "AAPL",
+    "wacc": 0.09
+   }
+  }
+ },
+ "scenario": "dcf_aapl_2025_overrides"
+}
