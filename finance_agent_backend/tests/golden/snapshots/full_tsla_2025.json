@@ -1,0 +1,3088 @@
+{
+ "events": [
+  {
+   "message": "Analyzing research inquiry & context...",
+   "node": "supervisor",
+   "type": "status"
+  },
+  {
+   "details": {
+    "fiscal_year": 2025,
+    "query_type": "full_10k_report",
+    "ticker": "TSLA",
+    "valuation_overrides": {},
+    "year_substituted": false
+   },
+   "message": "Resolved filing: TSLA FY2025 | Route: full_10k_report",
+   "node": "supervisor",
+   "type": "status"
+  },
+  {
+   "message": "Completed economic moat analysis (Moat: None)",
+   "node": "business_strategist",
+   "type": "status"
+  },
+  {
+   "message": "Audited financial statements & ratios (9 high/medium forensic findings, deterministic extraction)",
+   "node": "financial_auditor",
+   "type": "status"
+  },
+  {
+   "message": "Analyzed Item 1A risks & threats (0 verified risks, 0 severe; full-section read; no prior-year baseline)",
+   "node": "risk_analyst",
+   "type": "status"
+  },
+  {
+   "message": "Built 10-year UFCF forecast (historical fade, revenue CAGR 0.7%, 3 scenarios)",
+   "node": "forecasting_analyst",
+   "type": "status"
+  },
+  {
+   "message": "Discounted at 11.56% (CAPM WACC); base-case DCF fair value $14.64/share (bear $11.73 - bull $17.03)",
+   "node": "valuation_specialist",
+   "type": "status"
+  },
+  {
+   "message": "Synthesized 3-Pillar Thesis and compiled final publication report.",
+   "node": "lead_synthesizer",
+   "type": "status"
+  },
+  {
+   "response": "# Institutional Equity Research Report: Tesla, Inc. (TSLA)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$14.64** |\n| Bear / Bull Fair Value | $11.73 / $17.03 |\n| Probability-Weighted Fair Value | $14.51 |\n| Current Share Price[[2]](#cite-2) | $250.00 (yfinance_live) |\n| Base-Case Upside / Downside | -94.1% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 52.6% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 11.56% (CAPM WACC) |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 64.4% |\n| Enterprise Value | $17,112.4M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-35,683.0M |\n| Equity Value (as of 2026-10-28) | $54,915.7M |\n| Valuation Shares[[6]](#cite-6) | 3,751.0M |\n| Forecast | 10-year explicit horizon, 0.7% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business.\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: Automotive, Energy generation and storage\n- **Revenue lines (ASC 606)**: Automotive sales, Automotive regulatory credits, Energy generation and storage sales, Services and other, Automotive leasing, Energy generation and storage leasing\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Gross profit ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Automotive | 82,056 | 86.5% | -6.3% | 13,292 | 16.2% | 77.8% |\n| Energy generation and storage | 12,771 | 13.5% | 26.6% | 3,802 | 29.8% | 22.2% |\n\n_Source: 10-K segment note (chunk `6a9b7449-c5c5-418f-bb78-49dce667b8a5`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Automotive sales | 65,821 | 69.4% | -9.2% |\n| Automotive regulatory credits | 1,993 | 2.1% | -27.9% |\n| Energy generation and storage sales | 12,270 | 12.9% | 28.3% |\n| Services and other | 12,530 | 13.2% | 18.9% |\n| Automotive leasing | 1,712 | 1.8% | -6.3% |\n| Energy generation and storage leasing | 501 | 0.5% | -4.0% |\n\n_Source: 10-K revenue disaggregation (chunk `6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1`); figures in USD millions as reported._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (not assessed) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n\n**Moat rationale (filing-based)**: Not assessed: the model returned malformed output.\n\n**Business analysis data-quality notes**\n- Segment profit is reported as gross profit (operating expenses are not allocated to segments).\n- The model returned no parsable JSON; moat and competitive fields not assessed.\n\n**Competitive threats**\n\n- No specific competitive threats were extracted from Item 1.\n\n- **Pricing power**: Not assessed: the model returned malformed output.\n- **Customer concentration**: Not explicitly disclosed in 10-K for revenue. Receivables: \"As of December 31, 2025 and 2024, no entity represented 10% or more of our total receivables balance.\"[[9]](#cite-9)\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Revenue[[10]](#cite-10) | 96,773.0 | 97,690.0 | 94,827.0 |\n| Revenue growth %[[10]](#cite-10) | N/A | +0.9% | -2.9% |\n| Gross margin %[[10]](#cite-10) | 18.25% | 17.86% | 18.03% |\n| Operating income[[10]](#cite-10) | 8,891.0 | 7,076.0 | 4,355.0 |\n| Operating margin %[[10]](#cite-10) | 9.19% | 7.24% | 4.59% |\n| Net income (attrib.)[[10]](#cite-10) | 14,997.0 | 7,091.0 | 3,794.0 |\n| Net margin %[[10]](#cite-10) | 15.50% | 7.26% | 4.00% |\n| Operating cash flow[[11]](#cite-11) | 13,256.0 | 14,923.0 | 14,747.0 |\n| Capex[[11]](#cite-11) | 8,899.0 | 11,342.0 | 8,527.0 |\n| Free cash flow[[11]](#cite-11) | 4,357.0 | 3,581.0 | 6,220.0 |\n| FCF conversion %[[12]](#cite-12) | 29.1% | 50.5% | 163.9% |\n| Stock-based comp.[[11]](#cite-11) | 1,812.0 | 1,999.0 | 2,825.0 |\n| SBC-adjusted FCF[[11]](#cite-11) | 2,545.0 | 1,582.0 | 3,395.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Normalized operating income[[10]](#cite-10) | 8,891.0 | 7,076.0 | 4,355.0 |\n| Normalized operating margin %[[10]](#cite-10) | 9.19% | 7.24% | 4.59% |\n| Normalized net income[[10]](#cite-10) | 14,997.0 | 7,091.0 | 3,794.0 |\n| Adjustments % of EBIT[[10]](#cite-10) | N/A | N/A | N/A |\n| Non-operating income[[10]](#cite-10) | 1,082.0 | 1,914.0 | 923.0 |\n| Non-operating % of EBIT[[10]](#cite-10) | 12.2% | 27.1% | 21.2% |\n| Effective tax rate %[[10]](#cite-10) | -50.1% | 20.4% | 27.0% |\n| Deferred tax % of NI[[12]](#cite-12) | -42.3% | 6.7% | 3.2% |\n| Accruals (NI - OCF)[[12]](#cite-12) | 1,718.0 | -7,770.0 | -10,892.0 |\n| Sloan accruals ratio %[[1]](#cite-1) | N/A | -6.4% | -8.4% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2025)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $16,513.0M |\n| Marketable securities[[6]](#cite-6) | $27,546.0M |\n| Total liquid cash[[6]](#cite-6) | $44,059.0M |\n| Total debt[[6]](#cite-6) | $8,376.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-35,683.0M |\n| Stockholders' equity[[6]](#cite-6) | $82,137.0M |\n| Valuation share count[[6]](#cite-6) | 3,751.0M (period_end_basic_exceeds_weighted_diluted) |\n| Current ratio[[6]](#cite-6) | 2.16x |\n| EBITDA[[12]](#cite-12) | $10,503.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -3.40x |\n| Debt / equity[[6]](#cite-6) | 0.10x |\n| Effective tax rate[[10]](#cite-10) | 27.0% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[13]](#cite-13) | 7.0% |\n| ROIC (average gross debt + equity)[[13]](#cite-13) | 3.7% |\n| ROE (average equity)[[13]](#cite-13) | 4.9% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| HIGH | SHARE_DILUTION | 2025 | SHARE COUNT EXPANSION (FY2025): Shares outstanding at year end rose 16.64% to 3,751.0M; investigate equity awards, conversions or issuances, and use the period-end count for per-share value. |\n| HIGH | TAX_ANOMALY | 2023 | TAX ANOMALY (FY2023): Reported earnings include a $5,001.0M tax benefit on positive pre-tax income of $9,973.0M; a deferred tax adjustment of $-6,349.0M (-42.3% of net income). Net income and margins for this year are not comparable without normalization (e.g. valuation-allowance release). |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2025 | NON-CORE INCOME DEPENDENCE (FY2025): Non-operating income of $923.0M equals 21.2% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2025 | STOCK-BASED COMPENSATION INTENSITY (FY2025): SBC of $2,825.0M equals 19.2% of operating cash flow and 64.9% of operating income; SBC-adjusted FCF is $3,395.0M. |\n| MEDIUM | CAPEX_DRIVEN_FCF | 2025 | CAPEX-DRIVEN FCF (FY2025): Free cash flow rose $2,639.0M while operating cash flow changed $-176.0M; a $2,815.0M capex reduction explains 106.7% of the improvement, so it reflects lower reinvestment rather than stronger cash generation. |\n| MEDIUM | NEGATIVE_OPERATING_LEVERAGE | 2025 | NEGATIVE OPERATING LEVERAGE (FY2025): Operating expenses grew +22.80% against revenue growth of -2.93% (25.7pp gap). |\n| MEDIUM | MARGIN_COMPRESSION | 2025 | MARGIN COMPRESSION: Operating margin moved from 9.19% (FY2023) to 4.59% (FY2025), -460 bps; worst single year FY2025 (-265 bps). |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2024 | NON-CORE INCOME DEPENDENCE (FY2024): Non-operating income of $1,914.0M equals 27.1% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | NEGATIVE_OPERATING_LEVERAGE | 2024 | NEGATIVE OPERATING LEVERAGE (FY2024): Operating expenses grew +18.30% against revenue growth of +0.95% (17.4pp gap). |\n\n- **Restatement review**: Single filing available; cross-filing restatement review not possible.\n- **Data quality**: extraction mode `deterministic`; 8/8 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 10-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 4.59%; tax 23.70% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: No screened LLM drivers were accepted, so growth fades linearly from the historical trend. Revenue growth runs from -1.01% in year 1 to 2.50% in year 10, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 4.59% to 4.59% by year 10.\n- **Reinvestment**: CapEx starts at 9.90% of revenue from the recency-weighted 3-year audited level (latest year 8.99%, simple average 9.93%) and fades to a 7.49% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 8.0% return on new capital (base roic floored) = 31.2% of NOPAT; D&A is held at 6.48% (reported); working capital at 3.79% of incremental revenue (working_capital_days); SBC at 2.98% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $96,773 | $97,690 | $94,827 | $93,869 | $93,287 | $93,073 | $93,222 | $93,734 | $94,615 | $95,874 | $97,523 | $99,581 | $102,070 |\n| Revenue Growth YoY | — | +0.9% | -2.9% | -1.0% | -0.6% | -0.2% | +0.2% | +0.6% | +0.9% | +1.3% | +1.7% | +2.1% | +2.5% |\n| Operating Income (EBIT) | — | — | — | $4,309 | $4,282 | $4,272 | $4,279 | $4,302 | $4,343 | $4,401 | $4,476 | $4,571 | $4,685 |\n| Operating Margin | 9.2% | 7.2% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% |\n| NOPAT (Effective Tax 23.7%) | — | — | — | $3,288 | $3,267 | $3,260 | $3,265 | $3,283 | $3,314 | $3,358 | $3,416 | $3,488 | $3,575 |\n| Capital Expenditures | — | — | — | $9,293 | $8,984 | $8,712 | $8,483 | $8,277 | $8,099 | $7,948 | $7,831 | $7,727 | $7,645 |\n| Depreciation & Amortization | — | — | — | $6,086 | $6,048 | $6,034 | $6,044 | $6,077 | $6,134 | $6,216 | $6,323 | $6,456 | $6,618 |\n| Change in Working Capital (ΔNWC) | — | — | — | $-36 | $-22 | $-8 | $6 | $19 | $33 | $48 | $62 | $78 | $94 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $2,796 | $2,779 | $2,773 | $2,777 | $2,792 | $2,819 | $2,856 | $2,905 | $2,967 | $3,041 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$117** | **$354** | **$591** | **$820** | **$1,064** | **$1,316** | **$1,578** | **$1,845** | **$2,138** | **$2,453** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 1.7% | $19,681M |\n| Base | 50% | 0.7% | $12,276M |\n| Bear | 25% | -0.3% | $3,003M |\n\n**Forecast diagnostics**\n- The LLM did not submit accepted drivers; growth fades from the historical trend to terminal growth.\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.67 | yfinance_raw (Blume-adjusted from raw 2.00) |\n| **Cost of Equity ($K_e$)** | **11.65%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 4.07% | 10-K interest expense $338.0M / average debt |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **3.06%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $800,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $8,376.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 98.96% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 1.04% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 11.56% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **11.56%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $6,089.8M |\n| PV of terminal value (value_driver) | $11,022.6M |\n| **Enterprise value** | **$17,112.4M** |\n| Plus: net cash | $35,683.0M |\n| Less: noncontrolling interests | $728.0M |\n| Equity value at balance-sheet date | $52,067.4M |\n| Enterprise value rolled forward 0.82 yrs @ WACC 11.56% | $18,726.6M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $36,189.1M |\n| **Equity value at valuation date** | **$54,915.7M** |\n| Diluted shares | 3,751.00M |\n| **Fair value per share** | **$14.64** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 1.7% | $19,681M | $17.03 | -93.2% |\n| Base | 50% | 0.7% | $12,276M | $14.64 | -94.1% |\n| Bear | 25% | -0.3% | $3,003M | $11.73 | -95.3% |\n| **Probability-weighted** | 100% | | | **$14.51** | -94.2% |\n\n**Reverse DCF**: At $250.00 the market implies 52.6% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 0.7% modeled revenue CAGR. No uniform operating-margin shift between -30 and +50 pp reaches the price at modeled growth.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **10.6%** | $15.37 | $15.39 | $15.42 | $15.45 | $15.48 |\n| **11.1%** | $14.97 | $14.99 | $15.01 | $15.02 | $15.04 |\n| **11.6%** *(Base)* | $14.62 | $14.63 | **$14.64** | $14.65 | $14.66 |\n| **12.1%** | $14.31 | $14.31 | $14.31 | $14.32 | $14.32 |\n| **12.6%** | $14.02 | $14.02 | $14.02 | $14.02 | $14.02 |\n\n_Terminal RONIC (11.6%) is at WACC, so growth beyond the horizon creates no value and the growth columns barely move; the WACC x RONIC grid shows what returns on new capital are worth._\n\n| WACC \\ RONIC | 7.6% | 9.6% | 11.6% | 16.6% | 21.6% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **10.6%** | $14.85 | $15.19 | $15.42 | $15.74 | $15.92 |\n| **11.1%** | $14.49 | $14.80 | $15.01 | $15.30 | $15.46 |\n| **11.6%** *(Base)* | $14.17 | $14.45 | **$14.64** | $14.91 | $15.05 |\n| **12.1%** | $13.89 | $14.15 | $14.31 | $14.56 | $14.69 |\n| **12.6%** | $13.63 | $13.87 | $14.02 | $14.25 | $14.37 |\n\n**Valuation data-quality warnings**\n- Terminal RONIC 8.0% clamped to 11.6% (WACC: growth beyond the horizon creates no value). The final explicit year still reinvests at the 8.0% steady-state return, so the explicit period is more conservative than the terminal value.\n- Implied terminal EV/EBITDA of 2.8x is below the 5x-30x plausibility band: the terminal cash flow is small relative to earnings (heavy final-year reinvestment, a low RONIC or a high discount rate), so the terminal value may be understated.\n- Reverse DCF: the share price implies 52.6% annual revenue growth for 10 years versus 0.7% modeled (+51.9 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: not assessed\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "sources": [
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+       "chunk_index": 171,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      },
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+       "chunk_index": 170,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      },
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+       "chunk_index": 174,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement, balance sheet and cash flow statement",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 1,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Share price",
+     "n": 2,
+     "provider": "yfinance_live",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Risk-free rate",
+     "n": 3,
+     "provider": "us_10y_treasury_live",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Equity risk premium",
+     "n": 4,
+     "provider": "damodaran_implied_sp500_2026-07",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Beta",
+     "n": 5,
+     "provider": "yfinance_raw",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+       "chunk_index": 170,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Computed from the audited balance sheet",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 6,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "6a9b7449-c5c5-418f-bb78-49dce667b8a5",
+       "chunk_index": 241,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Reported in the segment note (ASC 280)",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 7,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1",
+       "chunk_index": 177,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Reported in the revenue disaggregation table (ASC 606)",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 8,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "c5f5b7a1-8096-4c28-bbc7-c9d9482f3152",
+       "chunk_index": 188,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 9,
+     "provider": null,
+     "quote": "As of December 31, 2025 and 2024, no entity represented 10% or more of our total receivables balance.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+       "chunk_index": 171,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 10,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+       "chunk_index": 174,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Computed from the audited cash flow statement",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 11,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+       "chunk_index": 174,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      },
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+       "chunk_index": 171,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Computed from the audited cash flow statement and income statement",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 12,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+       "chunk_index": 171,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      },
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+       "chunk_index": 170,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement and balance sheet",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 13,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    }
+   ],
+   "type": "result",
+   "updated_session_state": {
+    "active_company": "Tesla, Inc.",
+    "active_fiscal_year": 2025,
+    "active_ticker": "TSLA",
+    "available_fiscal_years": [
+     2025
+    ],
+    "last_query_type": "full_10k_report"
+   }
+  }
+ ],
+ "outputs": {
+  "business_moat": {
+   "business_summary": "Not assessed: the model returned malformed output.",
+   "citations": [
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "chunk_id": "c5f5b7a1-8096-4c28-bbc7-c9d9482f3152",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "sub_section": "FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "ticker": "TSLA"
+    },
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "chunk_id": "6a9b7449-c5c5-418f-bb78-49dce667b8a5",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "sub_section": "Year Ended December 31,",
+     "ticker": "TSLA"
+    },
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "sub_section": "Year Ended December 31,",
+     "ticker": "TSLA"
+    }
+   ],
+   "competitive_threats": [],
+   "customer_concentration": "Not explicitly disclosed in 10-K for revenue. Receivables: \"As of December 31, 2025 and 2024, no entity represented 10% or more of our total receivables balance.\"",
+   "data_quality": {
+    "chars_read": 46970,
+    "claims_dropped": 0,
+    "claims_proposed": 0,
+    "claims_verified": 1,
+    "consolidated_revenue": 94827.0,
+    "coverage_mode": "full_section",
+    "item1_chunks": 32,
+    "llm_status": "malformed",
+    "notes": [
+     "Segment profit is reported as gross profit (operating expenses are not allocated to segments).",
+     "The model returned no parsable JSON; moat and competitive fields not assessed."
+    ],
+    "quotes_off_topic": 0,
+    "quotes_rejected": 0,
+    "quotes_verified": 0,
+    "revenue_lines_reconciliation": "income_statement",
+    "revenue_tables_found": 2,
+    "section_located_by": "item_label",
+    "segment_basis": "business",
+    "segment_layout": "stacked_by_segment",
+    "segment_reconciliation": "income_statement",
+    "segment_tables_found": 1,
+    "supplementary_passages": 7,
+    "units": "USD millions"
+   },
+   "economic_moat_type": "None",
+   "evidence": [
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "chunk_id": "c5f5b7a1-8096-4c28-bbc7-c9d9482f3152",
+     "claim": "customer_concentration",
+     "item": "Item 8",
+     "quote": "As of December 31, 2025 and 2024, no entity represented 10% or more of our total receivables balance.",
+     "subject": "code_screened"
+    }
+   ],
+   "fiscal_year": 2025,
+   "moat_assessment": "not_assessed",
+   "moat_durability": "Indeterminate",
+   "moat_rationale": "Not assessed: the model returned malformed output.",
+   "moat_trajectory": "Indeterminate",
+   "pricing_power_assessment": "Not assessed: the model returned malformed output.",
+   "primary_product_segments": [
+    "Automotive sales",
+    "Automotive regulatory credits",
+    "Energy generation and storage sales",
+    "Services and other",
+    "Automotive leasing",
+    "Energy generation and storage leasing"
+   ],
+   "reportable_segments": [
+    "Automotive",
+    "Energy generation and storage"
+   ],
+   "revenue_architecture": "Revenue mix by product / service line (FY2025, from the 10-K revenue disaggregation): Automotive sales 69.4%, Automotive regulatory credits 2.1%, Energy generation and storage sales 12.9%, Services and other 13.2%, Automotive leasing 1.8%, Energy generation and storage leasing 0.5%.",
+   "revenue_lines": [
+    {
+     "fiscal_year": 2025,
+     "name": "Automotive sales",
+     "parent": null,
+     "revenue": 65821.0,
+     "revenue_growth_pct": -9.2,
+     "revenue_share_pct": 69.4,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Automotive regulatory credits",
+     "parent": null,
+     "revenue": 1993.0,
+     "revenue_growth_pct": -27.9,
+     "revenue_share_pct": 2.1,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Energy generation and storage sales",
+     "parent": null,
+     "revenue": 12270.0,
+     "revenue_growth_pct": 28.3,
+     "revenue_share_pct": 12.9,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Services and other",
+     "parent": null,
+     "revenue": 12530.0,
+     "revenue_growth_pct": 18.9,
+     "revenue_share_pct": 13.2,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Automotive leasing",
+     "parent": null,
+     "revenue": 1712.0,
+     "revenue_growth_pct": -6.3,
+     "revenue_share_pct": 1.8,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Energy generation and storage leasing",
+     "parent": null,
+     "revenue": 501.0,
+     "revenue_growth_pct": -4.0,
+     "revenue_share_pct": 0.5,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Automotive sales",
+     "parent": null,
+     "revenue": 72480.0,
+     "revenue_growth_pct": -7.7,
+     "revenue_share_pct": 74.2,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Automotive regulatory credits",
+     "parent": null,
+     "revenue": 2763.0,
+     "revenue_growth_pct": 54.4,
+     "revenue_share_pct": 2.8,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Energy generation and storage sales",
+     "parent": null,
+     "revenue": 9564.0,
+     "revenue_growth_pct": 73.4,
+     "revenue_share_pct": 9.8,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Services and other",
+     "parent": null,
+     "revenue": 10534.0,
+     "revenue_growth_pct": 26.6,
+     "revenue_share_pct": 10.8,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Automotive leasing",
+     "parent": null,
+     "revenue": 1827.0,
+     "revenue_growth_pct": -13.8,
+     "revenue_share_pct": 1.9,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Energy generation and storage leasing",
+     "parent": null,
+     "revenue": 522.0,
+     "revenue_growth_pct": 0.4,
+     "revenue_share_pct": 0.5,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "Automotive sales",
+     "parent": null,
+     "revenue": 78509.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 81.1,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "Automotive regulatory credits",
+     "parent": null,
+     "revenue": 1790.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 1.8,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "Energy generation and storage sales",
+     "parent": null,
+     "revenue": 5515.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 5.7,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "Services and other",
+     "parent": null,
+     "revenue": 8319.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 8.6,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "Automotive leasing",
+     "parent": null,
+     "revenue": 2120.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 2.2,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "Energy generation and storage leasing",
+     "parent": null,
+     "revenue": 520.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 0.5,
+     "source_chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1"
+    }
+   ],
+   "revenue_mix_markdown": "| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Automotive sales | 65,821 | 69.4% | -9.2% |\n| Automotive regulatory credits | 1,993 | 2.1% | -27.9% |\n| Energy generation and storage sales | 12,270 | 12.9% | 28.3% |\n| Services and other | 12,530 | 13.2% | 18.9% |\n| Automotive leasing | 1,712 | 1.8% | -6.3% |\n| Energy generation and storage leasing | 501 | 0.5% | -4.0% |\n\n_Source: 10-K revenue disaggregation (chunk `6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1`); figures in USD millions as reported._",
+   "secondary_moat_types": [],
+   "segment_details": [
+    {
+     "description": "Automotive sales: FY2025 revenue $65,821M, 69.4% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Automotive sales"
+    },
+    {
+     "description": "Automotive regulatory credits: FY2025 revenue $1,993M, 2.1% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Automotive regulatory credits"
+    },
+    {
+     "description": "Energy generation and storage sales: FY2025 revenue $12,270M, 12.9% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Energy generation and storage sales"
+    },
+    {
+     "description": "Services and other: FY2025 revenue $12,530M, 13.2% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Services and other"
+    },
+    {
+     "description": "Automotive leasing: FY2025 revenue $1,712M, 1.8% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Automotive leasing"
+    },
+    {
+     "description": "Energy generation and storage leasing: FY2025 revenue $501M, 0.5% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Energy generation and storage leasing"
+    }
+   ],
+   "segment_financials": [
+    {
+     "fiscal_year": 2025,
+     "profit_margin_pct": 16.2,
+     "profit_measure": "Gross profit",
+     "profit_share_pct": 77.8,
+     "reportable": true,
+     "revenue": 82056.0,
+     "revenue_growth_pct": -6.3,
+     "revenue_share_pct": 86.5,
+     "segment_name": "Automotive",
+     "segment_profit": 13292.0,
+     "source_chunk_id": "6a9b7449-c5c5-418f-bb78-49dce667b8a5"
+    },
+    {
+     "fiscal_year": 2025,
+     "profit_margin_pct": 29.8,
+     "profit_measure": "Gross profit",
+     "profit_share_pct": 22.2,
+     "reportable": true,
+     "revenue": 12771.0,
+     "revenue_growth_pct": 26.6,
+     "revenue_share_pct": 13.5,
+     "segment_name": "Energy generation and storage",
+     "segment_profit": 3802.0,
+     "source_chunk_id": "6a9b7449-c5c5-418f-bb78-49dce667b8a5"
+    },
+    {
+     "fiscal_year": 2024,
+     "profit_margin_pct": 16.9,
+     "profit_measure": "Gross profit",
+     "profit_share_pct": 84.9,
+     "reportable": true,
+     "revenue": 87604.0,
+     "revenue_growth_pct": -3.5,
+     "revenue_share_pct": 89.7,
+     "segment_name": "Automotive",
+     "segment_profit": 14810.0,
+     "source_chunk_id": "6a9b7449-c5c5-418f-bb78-49dce667b8a5"
+    },
+    {
+     "fiscal_year": 2024,
+     "profit_margin_pct": 26.2,
+     "profit_measure": "Gross profit",
+     "profit_share_pct": 15.1,
+     "reportable": true,
+     "revenue": 10086.0,
+     "revenue_growth_pct": 67.1,
+     "revenue_share_pct": 10.3,
+     "segment_name": "Energy generation and storage",
+     "segment_profit": 2640.0,
+     "source_chunk_id": "6a9b7449-c5c5-418f-bb78-49dce667b8a5"
+    },
+    {
+     "fiscal_year": 2023,
+     "profit_margin_pct": 18.2,
+     "profit_measure": "Gross profit",
+     "profit_share_pct": 93.5,
+     "reportable": true,
+     "revenue": 90738.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 93.8,
+     "segment_name": "Automotive",
+     "segment_profit": 16519.0,
+     "source_chunk_id": "6a9b7449-c5c5-418f-bb78-49dce667b8a5"
+    },
+    {
+     "fiscal_year": 2023,
+     "profit_margin_pct": 18.9,
+     "profit_measure": "Gross profit",
+     "profit_share_pct": 6.5,
+     "reportable": true,
+     "revenue": 6035.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 6.2,
+     "segment_name": "Energy generation and storage",
+     "segment_profit": 1141.0,
+     "source_chunk_id": "6a9b7449-c5c5-418f-bb78-49dce667b8a5"
+    }
+   ],
+   "segment_specific_moats": [],
+   "segment_table_markdown": "| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Gross profit ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Automotive | 82,056 | 86.5% | -6.3% | 13,292 | 16.2% | 77.8% |\n| Energy generation and storage | 12,771 | 13.5% | 26.6% | 3,802 | 29.8% | 22.2% |\n\n_Source: 10-K segment note (chunk `6a9b7449-c5c5-418f-bb78-49dce667b8a5`); figures in USD millions as reported._",
+   "ticker": "TSLA"
+  },
+  "conversational_response": null,
+  "dcf_valuation": {
+   "balance_sheet_date": "2025-12-31",
+   "bear_fair_value": 11.73,
+   "bull_fair_value": 17.03,
+   "commentary_source": "template",
+   "current_share_price": 250.0,
+   "data_quality": {
+    "forecast_source": "forecasting_analyst",
+    "market_data_source": "yfinance_live",
+    "share_price_source": "yfinance_live",
+    "warnings": [
+     "Terminal RONIC 8.0% clamped to 11.6% (WACC: growth beyond the horizon creates no value). The final explicit year still reinvests at the 8.0% steady-state return, so the explicit period is more conservative than the terminal value.",
+     "Implied terminal EV/EBITDA of 2.8x is below the 5x-30x plausibility band: the terminal cash flow is small relative to earnings (heavy final-year reinvestment, a low RONIC or a high discount rate), so the terminal value may be understated.",
+     "Reverse DCF: the share price implies 52.6% annual revenue growth for 10 years versus 0.7% modeled (+51.9 pp); the market is pricing materially more growth, or different margins and returns, than the base case."
+    ]
+   },
+   "diluted_shares": 3751.0,
+   "discounting_convention": "mid_year",
+   "enterprise_value": 17112.39,
+   "equity_bridge_markdown": "| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $6,089.8M |\n| PV of terminal value (value_driver) | $11,022.6M |\n| **Enterprise value** | **$17,112.4M** |\n| Plus: net cash | $35,683.0M |\n| Less: noncontrolling interests | $728.0M |\n| Equity value at balance-sheet date | $52,067.4M |\n| Enterprise value rolled forward 0.82 yrs @ WACC 11.56% | $18,726.6M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $36,189.1M |\n| **Equity value at valuation date** | **$54,915.7M** |\n| Diluted shares | 3,751.00M |\n| **Fair value per share** | **$14.64** |",
+   "equity_value": 54915.66,
+   "fiscal_year": 2025,
+   "implied_ev_ebitda": 1.63,
+   "implied_fair_value_per_share": 14.64,
+   "implied_terminal_ev_ebitda": 2.76,
+   "implied_terminal_ev_nopat": 8.87,
+   "market_implied_growth_pct": 52.61,
+   "market_implied_margin_shift_pp": null,
+   "market_implied_wacc_pct": null,
+   "modeled_final_margin_pct": 4.59,
+   "modeled_revenue_cagr_pct": 0.74,
+   "net_debt": -35683.0,
+   "noncontrolling_interests": 728.0,
+   "probability_weighted_fair_value": 14.51,
+   "projected_fcfs": [
+    116.81,
+    353.95,
+    590.56,
+    820.1,
+    1063.94,
+    1315.63,
+    1578.14,
+    1844.86,
+    2138.48,
+    2453.13
+   ],
+   "pv_explicit_fcfs": 6089.82,
+   "pv_terminal_value": 11022.58,
+   "reverse_dcf_horizon_years": 10,
+   "reverse_dcf_status": "solved",
+   "reverse_dcf_summary": "At $250.00 the market implies 52.6% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 0.7% modeled revenue CAGR. No uniform operating-margin shift between -30 and +50 pp reaches the price at modeled growth.",
+   "roll_forward_years": 0.8241,
+   "ronic_sensitivity_matrix_markdown": "| WACC \\ RONIC | 7.6% | 9.6% | 11.6% | 16.6% | 21.6% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **10.6%** | $14.85 | $15.19 | $15.42 | $15.74 | $15.92 |\n| **11.1%** | $14.49 | $14.80 | $15.01 | $15.30 | $15.46 |\n| **11.6%** *(Base)* | $14.17 | $14.45 | **$14.64** | $14.91 | $15.05 |\n| **12.1%** | $13.89 | $14.15 | $14.31 | $14.56 | $14.69 |\n| **12.6%** | $13.63 | $13.87 | $14.02 | $14.25 | $14.37 |",
+   "ronic_used_pct": 11.56,
+   "scenario_table_markdown": "| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 1.7% | $19,681M | $17.03 | -93.2% |\n| Base | 50% | 0.7% | $12,276M | $14.64 | -94.1% |\n| Bear | 25% | -0.3% | $3,003M | $11.73 | -95.3% |\n| **Probability-weighted** | 100% | | | **$14.51** | -94.2% |",
+   "scenario_valuations": [
+    {
+     "cumulative_fcf": 19681.16,
+     "enterprise_value": 25292.14,
+     "fair_value_per_share": 17.03,
+     "name": "bull",
+     "probability": 0.25,
+     "revenue_cagr_pct": 1.74,
+     "upside_downside_pct": -93.19
+    },
+    {
+     "cumulative_fcf": 12275.6,
+     "enterprise_value": 17112.39,
+     "fair_value_per_share": 14.64,
+     "name": "base",
+     "probability": 0.5,
+     "revenue_cagr_pct": 0.74,
+     "upside_downside_pct": -94.14
+    },
+    {
+     "cumulative_fcf": 3003.45,
+     "enterprise_value": 7152.24,
+     "fair_value_per_share": 11.73,
+     "name": "bear",
+     "probability": 0.25,
+     "revenue_cagr_pct": -0.27,
+     "upside_downside_pct": -95.31
+    }
+   ],
+   "sensitivity_matrix_markdown": "| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **10.6%** | $15.37 | $15.39 | $15.42 | $15.45 | $15.48 |\n| **11.1%** | $14.97 | $14.99 | $15.01 | $15.02 | $15.04 |\n| **11.6%** *(Base)* | $14.62 | $14.63 | **$14.64** | $14.65 | $14.66 |\n| **12.1%** | $14.31 | $14.31 | $14.31 | $14.32 | $14.32 |\n| **12.6%** | $14.02 | $14.02 | $14.02 | $14.02 | $14.02 |\n\n_Terminal RONIC (11.6%) is at WACC, so growth beyond the horizon creates no value and the growth columns barely move; the WACC x RONIC grid shows what returns on new capital are worth._",
+   "terminal_fcf": 2822.65,
+   "terminal_growth_rate": 0.025,
+   "terminal_method": "value_driver",
+   "terminal_tax_rate_pct": 25.0,
+   "terminal_value_pct_of_ev": 64.4,
+   "ticker": "TSLA",
+   "upside_downside_pct": -94.14,
+   "valuation_date": "2026-10-28",
+   "valuation_stance": "Overvalued",
+   "valuation_summary": "Valuation bridge: the base-case DCF implies an enterprise value of $17,112M, of which 64.4% comes from the terminal value (value driver, 2.5% perpetual growth). After net debt of $-35,683M and noncontrolling interests of $728M, equity value is $54,916M, or $14.64 per share.\n\nHurdle rate: the applied discount rate is 11.56% (capm blended); CAPM cost of equity is 11.65% (beta 1.67, Rf 4.30%, ERP 4.40%) and after-tax cost of debt is 3.06% at a 1.0% debt weight.\n\nRange: bear $11.73, base $14.64, bull $17.03; probability-weighted $14.51. The WACC x growth and WACC x RONIC grids bracket the base case.\n\nMargin of safety: against a $250.00 share price the base case implies -94.1% (Overvalued). Reverse DCF: At $250.00 the market implies 52.6% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 0.7% modeled revenue CAGR. No uniform operating-margin shift between -30 and +50 pp reaches the price at modeled growth.\n\nCaveats: Terminal RONIC 8.0% clamped to 11.6% (WACC: growth beyond the horizon creates no value). The final explicit year still reinvests at the 8.0% steady-state return, so the explicit period is more conservative than the terminal value. Implied terminal EV/EBITDA of 2.8x is below the 5x-30x plausibility band: the terminal cash flow is small relative to earnings (heavy final-year reinvestment, a low RONIC or a high discount rate), so the terminal value may be understated. Reverse DCF: the share price implies 52.6% annual revenue growth for 10 years versus 0.7% modeled (+51.9 pp); the market is pricing materially more growth, or different margins and returns, than the base case.",
+   "wacc_audit": {
+    "beta": 1.67,
+    "beta_raw": 2.0,
+    "beta_source": "yfinance_raw",
+    "capital_structure_source": "market_value",
+    "capm_wacc_pct": 11.56,
+    "cost_of_debt_after_tax": 0.030562,
+    "cost_of_debt_after_tax_pct": 3.06,
+    "cost_of_debt_note": null,
+    "cost_of_debt_pre_tax": 0.04075,
+    "cost_of_debt_pre_tax_pct": 4.07,
+    "cost_of_debt_source": "derived_from_10k_interest_expense",
+    "cost_of_equity": 0.11648,
+    "cost_of_equity_pct": 11.65,
+    "debt_weight_pct": 1.04,
+    "effective_tax_rate": 0.25,
+    "effective_tax_rate_pct": 25.0,
+    "equity_risk_premium_pct": 4.4,
+    "equity_risk_premium_source": "damodaran_implied_sp500_2026-07",
+    "equity_weight_pct": 98.96,
+    "formula_breakdown_markdown": "| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.67 | yfinance_raw (Blume-adjusted from raw 2.00) |\n| **Cost of Equity ($K_e$)** | **11.65%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 4.07% | 10-K interest expense $338.0M / average debt |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **3.06%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $800,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $8,376.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 98.96% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 1.04% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 11.56% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **11.56%** | CAPM blended WACC |",
+    "market_cap": 800000.0,
+    "risk_free_rate_pct": 4.3,
+    "risk_free_rate_source": "us_10y_treasury_live",
+    "total_capital": 808376.0,
+    "total_debt": 8376.0,
+    "wacc": 0.11559,
+    "wacc_pct": 11.56,
+    "wacc_source": "capm_blended"
+   }
+  },
+  "error_message": null,
+  "final_report": {
+   "company_name": "Tesla, Inc.",
+   "current_share_price": 250.0,
+   "executive_summary": "The filing supports a balanced view of the business.",
+   "fiscal_year": 2025,
+   "full_markdown_report": "# Institutional Equity Research Report: Tesla, Inc. (TSLA)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$14.64** |\n| Bear / Bull Fair Value | $11.73 / $17.03 |\n| Probability-Weighted Fair Value | $14.51 |\n| Current Share Price[[2]](#cite-2) | $250.00 (yfinance_live) |\n| Base-Case Upside / Downside | -94.1% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 52.6% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 11.56% (CAPM WACC) |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 64.4% |\n| Enterprise Value | $17,112.4M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-35,683.0M |\n| Equity Value (as of 2026-10-28) | $54,915.7M |\n| Valuation Shares[[6]](#cite-6) | 3,751.0M |\n| Forecast | 10-year explicit horizon, 0.7% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business.\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: Automotive, Energy generation and storage\n- **Revenue lines (ASC 606)**: Automotive sales, Automotive regulatory credits, Energy generation and storage sales, Services and other, Automotive leasing, Energy generation and storage leasing\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Gross profit ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Automotive | 82,056 | 86.5% | -6.3% | 13,292 | 16.2% | 77.8% |\n| Energy generation and storage | 12,771 | 13.5% | 26.6% | 3,802 | 29.8% | 22.2% |\n\n_Source: 10-K segment note (chunk `6a9b7449-c5c5-418f-bb78-49dce667b8a5`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Automotive sales | 65,821 | 69.4% | -9.2% |\n| Automotive regulatory credits | 1,993 | 2.1% | -27.9% |\n| Energy generation and storage sales | 12,270 | 12.9% | 28.3% |\n| Services and other | 12,530 | 13.2% | 18.9% |\n| Automotive leasing | 1,712 | 1.8% | -6.3% |\n| Energy generation and storage leasing | 501 | 0.5% | -4.0% |\n\n_Source: 10-K revenue disaggregation (chunk `6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1`); figures in USD millions as reported._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (not assessed) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n\n**Moat rationale (filing-based)**: Not assessed: the model returned malformed output.\n\n**Business analysis data-quality notes**\n- Segment profit is reported as gross profit (operating expenses are not allocated to segments).\n- The model returned no parsable JSON; moat and competitive fields not assessed.\n\n**Competitive threats**\n\n- No specific competitive threats were extracted from Item 1.\n\n- **Pricing power**: Not assessed: the model returned malformed output.\n- **Customer concentration**: Not explicitly disclosed in 10-K for revenue. Receivables: \"As of December 31, 2025 and 2024, no entity represented 10% or more of our total receivables balance.\"[[9]](#cite-9)\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Revenue[[10]](#cite-10) | 96,773.0 | 97,690.0 | 94,827.0 |\n| Revenue growth %[[10]](#cite-10) | N/A | +0.9% | -2.9% |\n| Gross margin %[[10]](#cite-10) | 18.25% | 17.86% | 18.03% |\n| Operating income[[10]](#cite-10) | 8,891.0 | 7,076.0 | 4,355.0 |\n| Operating margin %[[10]](#cite-10) | 9.19% | 7.24% | 4.59% |\n| Net income (attrib.)[[10]](#cite-10) | 14,997.0 | 7,091.0 | 3,794.0 |\n| Net margin %[[10]](#cite-10) | 15.50% | 7.26% | 4.00% |\n| Operating cash flow[[11]](#cite-11) | 13,256.0 | 14,923.0 | 14,747.0 |\n| Capex[[11]](#cite-11) | 8,899.0 | 11,342.0 | 8,527.0 |\n| Free cash flow[[11]](#cite-11) | 4,357.0 | 3,581.0 | 6,220.0 |\n| FCF conversion %[[12]](#cite-12) | 29.1% | 50.5% | 163.9% |\n| Stock-based comp.[[11]](#cite-11) | 1,812.0 | 1,999.0 | 2,825.0 |\n| SBC-adjusted FCF[[11]](#cite-11) | 2,545.0 | 1,582.0 | 3,395.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Normalized operating income[[10]](#cite-10) | 8,891.0 | 7,076.0 | 4,355.0 |\n| Normalized operating margin %[[10]](#cite-10) | 9.19% | 7.24% | 4.59% |\n| Normalized net income[[10]](#cite-10) | 14,997.0 | 7,091.0 | 3,794.0 |\n| Adjustments % of EBIT[[10]](#cite-10) | N/A | N/A | N/A |\n| Non-operating income[[10]](#cite-10) | 1,082.0 | 1,914.0 | 923.0 |\n| Non-operating % of EBIT[[10]](#cite-10) | 12.2% | 27.1% | 21.2% |\n| Effective tax rate %[[10]](#cite-10) | -50.1% | 20.4% | 27.0% |\n| Deferred tax % of NI[[12]](#cite-12) | -42.3% | 6.7% | 3.2% |\n| Accruals (NI - OCF)[[12]](#cite-12) | 1,718.0 | -7,770.0 | -10,892.0 |\n| Sloan accruals ratio %[[1]](#cite-1) | N/A | -6.4% | -8.4% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2025)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $16,513.0M |\n| Marketable securities[[6]](#cite-6) | $27,546.0M |\n| Total liquid cash[[6]](#cite-6) | $44,059.0M |\n| Total debt[[6]](#cite-6) | $8,376.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-35,683.0M |\n| Stockholders' equity[[6]](#cite-6) | $82,137.0M |\n| Valuation share count[[6]](#cite-6) | 3,751.0M (period_end_basic_exceeds_weighted_diluted) |\n| Current ratio[[6]](#cite-6) | 2.16x |\n| EBITDA[[12]](#cite-12) | $10,503.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -3.40x |\n| Debt / equity[[6]](#cite-6) | 0.10x |\n| Effective tax rate[[10]](#cite-10) | 27.0% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[13]](#cite-13) | 7.0% |\n| ROIC (average gross debt + equity)[[13]](#cite-13) | 3.7% |\n| ROE (average equity)[[13]](#cite-13) | 4.9% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| HIGH | SHARE_DILUTION | 2025 | SHARE COUNT EXPANSION (FY2025): Shares outstanding at year end rose 16.64% to 3,751.0M; investigate equity awards, conversions or issuances, and use the period-end count for per-share value. |\n| HIGH | TAX_ANOMALY | 2023 | TAX ANOMALY (FY2023): Reported earnings include a $5,001.0M tax benefit on positive pre-tax income of $9,973.0M; a deferred tax adjustment of $-6,349.0M (-42.3% of net income). Net income and margins for this year are not comparable without normalization (e.g. valuation-allowance release). |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2025 | NON-CORE INCOME DEPENDENCE (FY2025): Non-operating income of $923.0M equals 21.2% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2025 | STOCK-BASED COMPENSATION INTENSITY (FY2025): SBC of $2,825.0M equals 19.2% of operating cash flow and 64.9% of operating income; SBC-adjusted FCF is $3,395.0M. |\n| MEDIUM | CAPEX_DRIVEN_FCF | 2025 | CAPEX-DRIVEN FCF (FY2025): Free cash flow rose $2,639.0M while operating cash flow changed $-176.0M; a $2,815.0M capex reduction explains 106.7% of the improvement, so it reflects lower reinvestment rather than stronger cash generation. |\n| MEDIUM | NEGATIVE_OPERATING_LEVERAGE | 2025 | NEGATIVE OPERATING LEVERAGE (FY2025): Operating expenses grew +22.80% against revenue growth of -2.93% (25.7pp gap). |\n| MEDIUM | MARGIN_COMPRESSION | 2025 | MARGIN COMPRESSION: Operating margin moved from 9.19% (FY2023) to 4.59% (FY2025), -460 bps; worst single year FY2025 (-265 bps). |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2024 | NON-CORE INCOME DEPENDENCE (FY2024): Non-operating income of $1,914.0M equals 27.1% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | NEGATIVE_OPERATING_LEVERAGE | 2024 | NEGATIVE OPERATING LEVERAGE (FY2024): Operating expenses grew +18.30% against revenue growth of +0.95% (17.4pp gap). |\n\n- **Restatement review**: Single filing available; cross-filing restatement review not possible.\n- **Data quality**: extraction mode `deterministic`; 8/8 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 10-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 4.59%; tax 23.70% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: No screened LLM drivers were accepted, so growth fades linearly from the historical trend. Revenue growth runs from -1.01% in year 1 to 2.50% in year 10, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 4.59% to 4.59% by year 10.\n- **Reinvestment**: CapEx starts at 9.90% of revenue from the recency-weighted 3-year audited level (latest year 8.99%, simple average 9.93%) and fades to a 7.49% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 8.0% return on new capital (base roic floored) = 31.2% of NOPAT; D&A is held at 6.48% (reported); working capital at 3.79% of incremental revenue (working_capital_days); SBC at 2.98% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $96,773 | $97,690 | $94,827 | $93,869 | $93,287 | $93,073 | $93,222 | $93,734 | $94,615 | $95,874 | $97,523 | $99,581 | $102,070 |\n| Revenue Growth YoY | — | +0.9% | -2.9% | -1.0% | -0.6% | -0.2% | +0.2% | +0.6% | +0.9% | +1.3% | +1.7% | +2.1% | +2.5% |\n| Operating Income (EBIT) | — | — | — | $4,309 | $4,282 | $4,272 | $4,279 | $4,302 | $4,343 | $4,401 | $4,476 | $4,571 | $4,685 |\n| Operating Margin | 9.2% | 7.2% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% |\n| NOPAT (Effective Tax 23.7%) | — | — | — | $3,288 | $3,267 | $3,260 | $3,265 | $3,283 | $3,314 | $3,358 | $3,416 | $3,488 | $3,575 |\n| Capital Expenditures | — | — | — | $9,293 | $8,984 | $8,712 | $8,483 | $8,277 | $8,099 | $7,948 | $7,831 | $7,727 | $7,645 |\n| Depreciation & Amortization | — | — | — | $6,086 | $6,048 | $6,034 | $6,044 | $6,077 | $6,134 | $6,216 | $6,323 | $6,456 | $6,618 |\n| Change in Working Capital (ΔNWC) | — | — | — | $-36 | $-22 | $-8 | $6 | $19 | $33 | $48 | $62 | $78 | $94 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $2,796 | $2,779 | $2,773 | $2,777 | $2,792 | $2,819 | $2,856 | $2,905 | $2,967 | $3,041 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$117** | **$354** | **$591** | **$820** | **$1,064** | **$1,316** | **$1,578** | **$1,845** | **$2,138** | **$2,453** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 1.7% | $19,681M |\n| Base | 50% | 0.7% | $12,276M |\n| Bear | 25% | -0.3% | $3,003M |\n\n**Forecast diagnostics**\n- The LLM did not submit accepted drivers; growth fades from the historical trend to terminal growth.\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.67 | yfinance_raw (Blume-adjusted from raw 2.00) |\n| **Cost of Equity ($K_e$)** | **11.65%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 4.07% | 10-K interest expense $338.0M / average debt |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **3.06%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $800,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $8,376.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 98.96% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 1.04% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 11.56% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **11.56%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $6,089.8M |\n| PV of terminal value (value_driver) | $11,022.6M |\n| **Enterprise value** | **$17,112.4M** |\n| Plus: net cash | $35,683.0M |\n| Less: noncontrolling interests | $728.0M |\n| Equity value at balance-sheet date | $52,067.4M |\n| Enterprise value rolled forward 0.82 yrs @ WACC 11.56% | $18,726.6M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $36,189.1M |\n| **Equity value at valuation date** | **$54,915.7M** |\n| Diluted shares | 3,751.00M |\n| **Fair value per share** | **$14.64** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 1.7% | $19,681M | $17.03 | -93.2% |\n| Base | 50% | 0.7% | $12,276M | $14.64 | -94.1% |\n| Bear | 25% | -0.3% | $3,003M | $11.73 | -95.3% |\n| **Probability-weighted** | 100% | | | **$14.51** | -94.2% |\n\n**Reverse DCF**: At $250.00 the market implies 52.6% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 0.7% modeled revenue CAGR. No uniform operating-margin shift between -30 and +50 pp reaches the price at modeled growth.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **10.6%** | $15.37 | $15.39 | $15.42 | $15.45 | $15.48 |\n| **11.1%** | $14.97 | $14.99 | $15.01 | $15.02 | $15.04 |\n| **11.6%** *(Base)* | $14.62 | $14.63 | **$14.64** | $14.65 | $14.66 |\n| **12.1%** | $14.31 | $14.31 | $14.31 | $14.32 | $14.32 |\n| **12.6%** | $14.02 | $14.02 | $14.02 | $14.02 | $14.02 |\n\n_Terminal RONIC (11.6%) is at WACC, so growth beyond the horizon creates no value and the growth columns barely move; the WACC x RONIC grid shows what returns on new capital are worth._\n\n| WACC \\ RONIC | 7.6% | 9.6% | 11.6% | 16.6% | 21.6% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **10.6%** | $14.85 | $15.19 | $15.42 | $15.74 | $15.92 |\n| **11.1%** | $14.49 | $14.80 | $15.01 | $15.30 | $15.46 |\n| **11.6%** *(Base)* | $14.17 | $14.45 | **$14.64** | $14.91 | $15.05 |\n| **12.1%** | $13.89 | $14.15 | $14.31 | $14.56 | $14.69 |\n| **12.6%** | $13.63 | $13.87 | $14.02 | $14.25 | $14.37 |\n\n**Valuation data-quality warnings**\n- Terminal RONIC 8.0% clamped to 11.6% (WACC: growth beyond the horizon creates no value). The final explicit year still reinvests at the 8.0% steady-state return, so the explicit period is more conservative than the terminal value.\n- Implied terminal EV/EBITDA of 2.8x is below the 5x-30x plausibility band: the terminal cash flow is small relative to earnings (heavy final-year reinvestment, a low RONIC or a high discount rate), so the terminal value may be understated.\n- Reverse DCF: the share price implies 52.6% annual revenue growth for 10 years versus 0.7% modeled (+51.9 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: not assessed\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "implied_fair_value_per_share": 14.64,
+   "sources": [
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+       "chunk_index": 171,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      },
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+       "chunk_index": 170,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      },
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+       "chunk_index": 174,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement, balance sheet and cash flow statement",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 1,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Share price",
+     "n": 2,
+     "provider": "yfinance_live",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Risk-free rate",
+     "n": 3,
+     "provider": "us_10y_treasury_live",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Equity risk premium",
+     "n": 4,
+     "provider": "damodaran_implied_sp500_2026-07",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Beta",
+     "n": 5,
+     "provider": "yfinance_raw",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+       "chunk_index": 170,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Computed from the audited balance sheet",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 6,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "6a9b7449-c5c5-418f-bb78-49dce667b8a5",
+       "chunk_index": 241,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Reported in the segment note (ASC 280)",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 7,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1",
+       "chunk_index": 177,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Reported in the revenue disaggregation table (ASC 606)",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 8,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "c5f5b7a1-8096-4c28-bbc7-c9d9482f3152",
+       "chunk_index": 188,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 9,
+     "provider": null,
+     "quote": "As of December 31, 2025 and 2024, no entity represented 10% or more of our total receivables balance.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+       "chunk_index": 171,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 10,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+       "chunk_index": 174,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Computed from the audited cash flow statement",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 11,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+       "chunk_index": 174,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      },
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+       "chunk_index": 171,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Computed from the audited cash flow statement and income statement",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 12,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+       "chunk_index": 171,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      },
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+       "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+       "chunk_index": 170,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement and balance sheet",
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "n": 13,
+     "provider": null,
+     "quote": null,
+     "ticker": "TSLA"
+    }
+   ],
+   "synthesis_provenance": "llm_structured",
+   "three_pillar_thesis": {
+    "pillar_1_business_moat": "The business relies on its installed base and its brand.",
+    "pillar_2_financial_durability": "Cash generation covers reinvestment needs.",
+    "pillar_3_valuation_asymmetry": "The valuation case rests on the base-case cash flows."
+   },
+   "ticker": "TSLA",
+   "upside_downside_pct": -94.14,
+   "valuation_stance": "Overvalued",
+   "year_substituted": false
+  },
+  "financial_audit": {
+   "auditor_summary": "Auditor narrative unavailable; refer to the deterministic analytics and findings.",
+   "balance_sheet": {
+    "cash_and_equivalents": 16513.0,
+    "current_assets": 68642.0,
+    "current_liabilities": 31714.0,
+    "fiscal_year": 2025,
+    "long_term_debt": 6736.0,
+    "marketable_securities": 27546.0,
+    "net_cash_position": true,
+    "net_debt": -35683.0,
+    "noncontrolling_interests": 728.0,
+    "period_end_shares_outstanding": 3751.0,
+    "prior_total_debt": 8213.0,
+    "share_count_source": "period_end_basic_exceeds_weighted_diluted",
+    "short_term_debt": 1640.0,
+    "stockholders_equity": 82137.0,
+    "total_assets": 137806.0,
+    "total_debt": 8376.0,
+    "total_liquid_cash": 44059.0,
+    "valuation_shares_outstanding": 3751.0,
+    "weighted_diluted_shares": 3528.0
+   },
+   "balance_sheet_markdown_table": "| Line item | FY2025 | FY2024 |\n| :--- | ---: | ---: |\n| **Assets** |  |  |\n| **Current assets** |  |  |\n| Cash and cash equivalents | 16,513 | 16,139 |\n| Short-term investments | 27,546 | 20,424 |\n| Accounts receivable, net | 4,576 | 4,418 |\n| Inventory | 12,392 | 12,017 |\n| Prepaid expenses and other current assets | 7,615 | 5,362 |\n| Total current assets | 68,642 | 58,360 |\n| Operating lease vehicles, net | 4,912 | 5,581 |\n| Energy generation and storage systems, net | 4,604 | 4,924 |\n| Property, plant and equipment, net | 40,643 | 35,836 |\n| Operating lease right-of-use assets | 6,027 | 5,160 |\n| Digital assets | 1,008 | 1,076 |\n| Deferred tax assets | 6,925 | 6,524 |\n| Other non-current assets | 5,045 | 4,609 |\n| Total assets | 137,806 | 122,070 |\n| **Liabilities** |  |  |\n| **Current liabilities** |  |  |\n| Accounts payable | 13,371 | 12,474 |\n| Accrued liabilities and other | 13,279 | 10,723 |\n| Deferred revenue | 3,424 | 3,168 |\n| Current portion of debt and finance leases | 1,640 | 2,456 |\n| Total current liabilities | 31,714 | 28,821 |\n| Debt and finance leases, net of current portion | 6,736 | 5,757 |\n| Deferred revenue, net of current portion | 3,631 | 3,317 |\n| Other long-term liabilities | 12,860 | 10,495 |\n| Total liabilities | 54,941 | 48,390 |\n| **Commitments and contingencies (Note 13)** |  |  |\n| Redeemable noncontrolling interests in subsidiaries | 58 | 63 |\n| **Equity** |  |  |\n| **Stockholders’ equity** |  |  |\n| Preferred stock; $0.001 par value; 100 shares authorized; no shares issued and outstanding | — | — |\n| Common stock; $0.001 par value; 6,000 shares authorized; 3,751 and 3,216 shares issued and outstanding as of December 31, 2025 and 2024, respectively | 3 | 3 |\n| Additional paid-in capital | 42,770 | 38,371 |\n| Accumulated other comprehensive income (loss) | 361 | (670) |\n| Retained earnings | 39,003 | 35,209 |\n| Total stockholders’ equity | 82,137 | 72,913 |\n| Noncontrolling interests in subsidiaries | 670 | 704 |\n| Total liabilities and equity | 137,806 | 122,070 |",
+   "capital_intensity": [
+    {
+     "capex_change": null,
+     "capex_to_depreciation": 1.91,
+     "capex_to_revenue_pct": 9.2,
+     "fcf_change": null,
+     "fcf_change_from_capex_pct": null,
+     "fiscal_year": 2023,
+     "ocf_change": null
+    },
+    {
+     "capex_change": 2443.0,
+     "capex_to_depreciation": 2.11,
+     "capex_to_revenue_pct": 11.61,
+     "fcf_change": -776.0,
+     "fcf_change_from_capex_pct": 314.82,
+     "fiscal_year": 2024,
+     "ocf_change": 1667.0
+    },
+    {
+     "capex_change": -2815.0,
+     "capex_to_depreciation": 1.39,
+     "capex_to_revenue_pct": 8.99,
+     "fcf_change": 2639.0,
+     "fcf_change_from_capex_pct": 106.67,
+     "fiscal_year": 2025,
+     "ocf_change": -176.0
+    }
+   ],
+   "cash_flow_markdown_table": "**Year Ended December 31,**\n\n| Line item | FY2025 | FY2024 | FY2023 |\n| :--- | ---: | ---: | ---: |\n| **Cash Flows from Operating Activities** |  |  |  |\n| Net income | 3,855 | 7,153 | 14,974 |\n| **Adjustments to reconcile net income to net cash provided by operating activities:** |  |  |  |\n| Depreciation, amortization and impairment | 6,148 | 5,368 | 4,667 |\n| Stock-based compensation | 2,825 | 1,999 | 1,812 |\n| Inventory and purchase commitments write-downs | 362 | 335 | 463 |\n| Foreign currency transaction net unrealized loss (gain) | 452 | (73) | (144) |\n| Deferred income taxes | 123 | 477 | (6,349) |\n| Non-cash interest and other operating activities | 272 | 172 | 81 |\n| Digital assets loss (gain), net | 68 | (589) | — |\n| **Changes in operating assets and liabilities:** |  |  |  |\n| Accounts receivable | (261) | (1,083) | (586) |\n| Inventory | (630) | 937 | (1,195) |\n| Operating lease vehicles | (25) | (590) | (1,952) |\n| Prepaid expenses and other assets | (3,181) | (3,273) | (2,652) |\n| Accounts payable, accrued and other liabilities | 4,376 | 3,588 | 2,605 |\n| Deferred revenue | 363 | 502 | 1,532 |\n| Net cash provided by operating activities | 14,747 | 14,923 | 13,256 |\n| **Cash Flows from Investing Activities** |  |  |  |\n| Purchases of property and equipment excluding finance leases, net of sales | (8,527) | (11,342) | (8,899) |\n| Purchases of investments | (37,109) | (35,955) | (19,112) |\n| Proceeds from maturities of investments | 30,158 | 28,310 | 12,353 |\n| Proceeds from sales of investments | — | 200 | 138 |\n| Business combinations, net of cash acquired | — | — | (64) |\n| Net cash used in investing activities | (15,478) | (18,787) | (15,584) |\n| **Cash Flows from Financing Activities** |  |  |  |\n| Proceeds from issuances of debt | 5,586 | 5,744 | 3,931 |\n| Repayments of debt | (5,546) | (2,500) | (1,351) |\n| Proceeds from exercises of stock options and other stock issuances, net of issuance costs | 1,186 | 1,241 | 700 |\n| Principal payments on finance leases | (104) | (381) | (464) |\n| Proceeds received from directors in shareholder settlement | 277 | — | — |\n| Payment of legal fees associated with shareholder settlement | (176) | — | — |\n| Debt issuance costs | (6) | (14) | (29) |\n| Distributions paid to noncontrolling interests in subsidiaries | (78) | (104) | (144) |\n| Payments for buy-outs of noncontrolling interests in subsidiaries | — | (133) | (54) |\n| Net cash provided by financing activities | 1,139 | 3,853 | 2,589 |\n| Effect of exchange rate changes on cash and cash equivalents and restricted cash | 171 | (141) | 4 |\n| Net increase (decrease) in cash and cash equivalents and restricted cash | 579 | (152) | 265 |\n| Cash and cash equivalents and restricted cash, beginning of period | 17,037 | 17,189 | 16,924 |\n| Cash and cash equivalents and restricted cash, end of period | 17,616 | 17,037 | 17,189 |\n| **Supplemental Non-Cash Investing and Financing Activities** |  |  |  |\n| Acquisitions of property and equipment included in liabilities | 1,913 | 1,410 | 2,272 |\n| **Supplemental Disclosures** |  |  |  |\n| Cash paid during the period for interest | 292 | 277 | 126 |",
+   "citations": [
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "statement_type": "income_statement",
+     "sub_section": "Year Ended December 31,"
+    },
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "statement_type": "balance_sheet",
+     "sub_section": "FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA"
+    },
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+     "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "statement_type": "cash_flow",
+     "sub_section": "Year Ended December 31,"
+    }
+   ],
+   "cost_structure": [
+    {
+     "fiscal_year": 2023,
+     "gross_margin_change_bps": null,
+     "operating_expense_growth_pct": null,
+     "operating_expenses": 8769.0,
+     "operating_margin_change_bps": null,
+     "opex_growth_minus_revenue_growth_pp": null,
+     "revenue_growth_pct": null
+    },
+    {
+     "fiscal_year": 2024,
+     "gross_margin_change_bps": -39.0,
+     "operating_expense_growth_pct": 18.3,
+     "operating_expenses": 10374.0,
+     "operating_margin_change_bps": -195.0,
+     "opex_growth_minus_revenue_growth_pp": 17.35,
+     "revenue_growth_pct": 0.95
+    },
+    {
+     "fiscal_year": 2025,
+     "gross_margin_change_bps": 17.0,
+     "operating_expense_growth_pct": 22.8,
+     "operating_expenses": 12739.0,
+     "operating_margin_change_bps": -265.0,
+     "opex_growth_minus_revenue_growth_pp": 25.73,
+     "revenue_growth_pct": -2.93
+    }
+   ],
+   "data_quality": {
+    "completeness_score": 1.0,
+    "cross_filing_differences": [],
+    "extraction_mode": "deterministic",
+    "field_provenance": {
+     "FY2023.capital_expenditures": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Purchases of property and equipment excluding finance leases, net of sales"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.cost_of_revenue": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Total cost of revenues"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.deferred_income_taxes": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Deferred income taxes"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.depreciation_amortization": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Depreciation, amortization and impairment"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.diluted_weighted_shares": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Diluted"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.gross_profit": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Gross profit"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.income_tax_expense": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Provision for (benefit from) income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.interest_expense": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Interest expense"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.interest_income": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Interest income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.net_income_attributable": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Net income attributable to common stockholders"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.net_income_cf": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.net_income_total": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.operating_cash_flow": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Net cash provided by operating activities"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.operating_expenses": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Total operating expenses"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.operating_income": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Income from operations"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.pretax_income": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Income before income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.revenue": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Total revenues"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.stock_based_compensation": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Stock-based compensation"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.accounts_payable": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Accounts payable"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.accounts_receivable": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Accounts receivable, net"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.capital_expenditures": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Purchases of property and equipment excluding finance leases, net of sales"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.cash_and_equivalents": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Cash and cash equivalents"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.cost_of_revenue": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Total cost of revenues"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.current_assets": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Total current assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.current_liabilities": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Total current liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.deferred_income_taxes": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Deferred income taxes"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.depreciation_amortization": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Depreciation, amortization and impairment"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.diluted_weighted_shares": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Diluted"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.gross_profit": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Gross profit"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.income_tax_expense": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Provision for (benefit from) income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.interest_expense": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Interest expense"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.interest_income": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Interest income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.inventories": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Inventory"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.long_term_debt": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Debt and finance leases, net of current portion"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.marketable_securities": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Short-term investments"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.net_income_attributable": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Net income attributable to common stockholders"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.net_income_cf": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.net_income_total": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.noncontrolling_interests": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Noncontrolling interests in subsidiaries"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.operating_cash_flow": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Net cash provided by operating activities"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.operating_expenses": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Total operating expenses"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.operating_income": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Income from operations"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.period_end_shares_outstanding": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Common stock; $0.001 par value; 6,000 shares authorized; 3,751 and 3,216 shares issued and outstanding as of December 31, 2025 and 2024, respectively"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.pretax_income": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Income before income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.redeemable_noncontrolling_interests": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Redeemable noncontrolling interests in subsidiaries"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.revenue": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Total revenues"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.short_term_debt": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Current portion of debt and finance leases"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.stock_based_compensation": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Stock-based compensation"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.stockholders_equity": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Total stockholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.total_assets": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Total assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.total_liabilities": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Total liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.total_liabilities_and_equity": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Total liabilities and equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.accounts_payable": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Accounts payable"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.accounts_receivable": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Accounts receivable, net"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.capital_expenditures": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Purchases of property and equipment excluding finance leases, net of sales"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.cash_and_equivalents": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Cash and cash equivalents"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.cost_of_revenue": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Total cost of revenues"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.current_assets": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Total current assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.current_liabilities": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Total current liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.deferred_income_taxes": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Deferred income taxes"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.depreciation_amortization": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Depreciation, amortization and impairment"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.diluted_weighted_shares": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Diluted"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.gross_profit": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Gross profit"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.income_tax_expense": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Provision for (benefit from) income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.interest_expense": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Interest expense"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.interest_income": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Interest income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.inventories": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Inventory"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.long_term_debt": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Debt and finance leases, net of current portion"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.marketable_securities": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Short-term investments"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.net_income_attributable": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Net income attributable to common stockholders"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.net_income_cf": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.net_income_total": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.noncontrolling_interests": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Noncontrolling interests in subsidiaries"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.operating_cash_flow": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Net cash provided by operating activities"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.operating_expenses": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Total operating expenses"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.operating_income": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Income from operations"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.period_end_shares_outstanding": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Common stock; $0.001 par value; 6,000 shares authorized; 3,751 and 3,216 shares issued and outstanding as of December 31, 2025 and 2024, respectively"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.pretax_income": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Income before income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.redeemable_noncontrolling_interests": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Redeemable noncontrolling interests in subsidiaries"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.revenue": {
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "filing_year": 2025,
+      "labels": [
+       "Total revenues"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.short_term_debt": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Current portion of debt and finance leases"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.stock_based_compensation": {
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "filing_year": 2025,
+      "labels": [
+       "Stock-based compensation"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.stockholders_equity": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Total stockholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.total_assets": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Total assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.total_liabilities": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Total liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.total_liabilities_and_equity": {
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "filing_year": 2025,
+      "labels": [
+       "Total liabilities and equity"
+      ],
+      "statement": "balance_sheet"
+     }
+    },
+    "identity_checks": [
+     {
+      "critical": true,
+      "detail": "Validates that the balance sheet grid was parsed with correct period alignment.",
+      "difference_pct": 0.0,
+      "lhs": 137806.0,
+      "name": "FY2025 balance sheet: total assets = total liabilities and equity",
+      "rhs": 137806.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates the stockholders' equity and liabilities rows used for ROE / invested capital.",
+      "difference_pct": 0.0,
+      "lhs": 137806.0,
+      "name": "FY2025 balance sheet: assets = liabilities + mezzanine + equity (incl. NCI)",
+      "rhs": 137806.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates revenue and cost of revenue row selection.",
+      "difference_pct": 0.0,
+      "lhs": 17660.0,
+      "name": "FY2023 gross profit = revenue - cost of revenue",
+      "rhs": 17660.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates that the income statement and cash flow statement describe the same periods.",
+      "difference_pct": 0.0,
+      "lhs": 14974.0,
+      "name": "FY2023 net income: income statement = cash flow statement",
+      "rhs": 14974.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates revenue and cost of revenue row selection.",
+      "difference_pct": 0.0,
+      "lhs": 17450.0,
+      "name": "FY2024 gross profit = revenue - cost of revenue",
+      "rhs": 17450.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates that the income statement and cash flow statement describe the same periods.",
+      "difference_pct": 0.0,
+      "lhs": 7153.0,
+      "name": "FY2024 net income: income statement = cash flow statement",
+      "rhs": 7153.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates revenue and cost of revenue row selection.",
+      "difference_pct": 0.0,
+      "lhs": 17094.0,
+      "name": "FY2025 gross profit = revenue - cost of revenue",
+      "rhs": 17094.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates that the income statement and cash flow statement describe the same periods.",
+      "difference_pct": 0.0,
+      "lhs": 3855.0,
+      "name": "FY2025 net income: income statement = cash flow statement",
+      "rhs": 3855.0,
+      "status": "passed"
+     }
+    ],
+    "missing_fields": [],
+    "reconciliation_log": [
+     "No refinement requested by the auditor; deterministic baseline retained."
+    ],
+    "summary_may_be_stale": false,
+    "warnings": []
+   },
+   "earnings_quality": [
+    {
+     "accruals": 1718.0,
+     "adjustments": [],
+     "adjustments_pct_of_operating_income": null,
+     "deferred_tax_to_net_income_pct": -42.34,
+     "effective_tax_rate_pct": -50.15,
+     "fiscal_year": 2023,
+     "net_income_adjustments_total": 0.0,
+     "non_operating_income": 1082.0,
+     "non_operating_to_operating_income_pct": 12.17,
+     "normalized_net_income": 14997.0,
+     "normalized_net_margin_pct": 15.5,
+     "normalized_operating_income": 8891.0,
+     "normalized_operating_margin_pct": 9.19,
+     "operating_income_adjustments_total": 0.0,
+     "sbc_adjusted_fcf": 2545.0,
+     "sbc_to_ocf_pct": 13.67,
+     "sbc_to_operating_income_pct": 20.38,
+     "sloan_accruals_ratio_pct": null,
+     "stock_based_compensation": 1812.0
+    },
+    {
+     "accruals": -7770.0,
+     "adjustments": [],
+     "adjustments_pct_of_operating_income": null,
+     "deferred_tax_to_net_income_pct": 6.73,
+     "effective_tax_rate_pct": 20.43,
+     "fiscal_year": 2024,
+     "net_income_adjustments_total": 0.0,
+     "non_operating_income": 1914.0,
+     "non_operating_to_operating_income_pct": 27.05,
+     "normalized_net_income": 7091.0,
+     "normalized_net_margin_pct": 7.26,
+     "normalized_operating_income": 7076.0,
+     "normalized_operating_margin_pct": 7.24,
+     "operating_income_adjustments_total": 0.0,
+     "sbc_adjusted_fcf": 1582.0,
+     "sbc_to_ocf_pct": 13.4,
+     "sbc_to_operating_income_pct": 28.25,
+     "sloan_accruals_ratio_pct": -6.37,
+     "stock_based_compensation": 1999.0
+    },
+    {
+     "accruals": -10892.0,
+     "adjustments": [],
+     "adjustments_pct_of_operating_income": null,
+     "deferred_tax_to_net_income_pct": 3.24,
+     "effective_tax_rate_pct": 26.96,
+     "fiscal_year": 2025,
+     "net_income_adjustments_total": 0.0,
+     "non_operating_income": 923.0,
+     "non_operating_to_operating_income_pct": 21.19,
+     "normalized_net_income": 3794.0,
+     "normalized_net_margin_pct": 4.0,
+     "normalized_operating_income": 4355.0,
+     "normalized_operating_margin_pct": 4.59,
+     "operating_income_adjustments_total": 0.0,
+     "sbc_adjusted_fcf": 3395.0,
+     "sbc_to_ocf_pct": 19.16,
+     "sbc_to_operating_income_pct": 64.87,
+     "sloan_accruals_ratio_pct": -8.38,
+     "stock_based_compensation": 2825.0
+    }
+   ],
+   "fiscal_year": 2025,
+   "forensic_findings": [
+    {
+     "code": "SHARE_DILUTION",
+     "fiscal_year": 2025,
+     "message": "SHARE COUNT EXPANSION (FY2025): Shares outstanding at year end rose 16.64% to 3,751.0M; investigate equity awards, conversions or issuances, and use the period-end count for per-share value.",
+     "metric": "period_end_share_growth_pct",
+     "severity": "high",
+     "threshold": 5.0,
+     "value": 16.64
+    },
+    {
+     "code": "TAX_ANOMALY",
+     "fiscal_year": 2023,
+     "message": "TAX ANOMALY (FY2023): Reported earnings include a $5,001.0M tax benefit on positive pre-tax income of $9,973.0M; a deferred tax adjustment of $-6,349.0M (-42.3% of net income). Net income and margins for this year are not comparable without normalization (e.g. valuation-allowance release).",
+     "metric": "effective_tax_rate_pct",
+     "severity": "high",
+     "threshold": null,
+     "value": -50.15
+    },
+    {
+     "code": "NON_CORE_INCOME_DEPENDENCE",
+     "fiscal_year": 2025,
+     "message": "NON-CORE INCOME DEPENDENCE (FY2025): Non-operating income of $923.0M equals 21.2% of operating income; pre-tax earnings lean on interest and other income rather than the core business.",
+     "metric": "non_operating_to_operating_income_pct",
+     "severity": "medium",
+     "threshold": 20.0,
+     "value": 21.19
+    },
+    {
+     "code": "SBC_INTENSITY",
+     "fiscal_year": 2025,
+     "message": "STOCK-BASED COMPENSATION INTENSITY (FY2025): SBC of $2,825.0M equals 19.2% of operating cash flow and 64.9% of operating income; SBC-adjusted FCF is $3,395.0M.",
+     "metric": "sbc_to_ocf_pct",
+     "severity": "medium",
+     "threshold": 15.0,
+     "value": 19.16
+    },
+    {
+     "code": "CAPEX_DRIVEN_FCF",
+     "fiscal_year": 2025,
+     "message": "CAPEX-DRIVEN FCF (FY2025): Free cash flow rose $2,639.0M while operating cash flow changed $-176.0M; a $2,815.0M capex reduction explains 106.7% of the improvement, so it reflects lower reinvestment rather than stronger cash generation.",
+     "metric": "fcf_change_from_capex_pct",
+     "severity": "medium",
+     "threshold": 75.0,
+     "value": 106.67
+    },
+    {
+     "code": "NEGATIVE_OPERATING_LEVERAGE",
+     "fiscal_year": 2025,
+     "message": "NEGATIVE OPERATING LEVERAGE (FY2025): Operating expenses grew +22.80% against revenue growth of -2.93% (25.7pp gap).",
+     "metric": "opex_growth_minus_revenue_growth_pp",
+     "severity": "medium",
+     "threshold": 10.0,
+     "value": 25.73
+    },
+    {
+     "code": "MARGIN_COMPRESSION",
+     "fiscal_year": 2025,
+     "message": "MARGIN COMPRESSION: Operating margin moved from 9.19% (FY2023) to 4.59% (FY2025), -460 bps; worst single year FY2025 (-265 bps).",
+     "metric": "operating_margin_change_bps",
+     "severity": "medium",
+     "threshold": -300.0,
+     "value": -460.0
+    },
+    {
+     "code": "NON_CORE_INCOME_DEPENDENCE",
+     "fiscal_year": 2024,
+     "message": "NON-CORE INCOME DEPENDENCE (FY2024): Non-operating income of $1,914.0M equals 27.1% of operating income; pre-tax earnings lean on interest and other income rather than the core business.",
+     "metric": "non_operating_to_operating_income_pct",
+     "severity": "medium",
+     "threshold": 20.0,
+     "value": 27.05
+    },
+    {
+     "code": "NEGATIVE_OPERATING_LEVERAGE",
+     "fiscal_year": 2024,
+     "message": "NEGATIVE OPERATING LEVERAGE (FY2024): Operating expenses grew +18.30% against revenue growth of +0.95% (17.4pp gap).",
+     "metric": "opex_growth_minus_revenue_growth_pp",
+     "severity": "medium",
+     "threshold": 10.0,
+     "value": 17.35
+    }
+   ],
+   "income_statement_markdown_table": "**Year Ended December 31,**\n\n| Line item | FY2025 | FY2024 | FY2023 |\n| :--- | ---: | ---: | ---: |\n| **Revenues** |  |  |  |\n| Automotive sales | 65,821 | 72,480 | 78,509 |\n| Automotive regulatory credits | 1,993 | 2,763 | 1,790 |\n| Automotive leasing | 1,712 | 1,827 | 2,120 |\n| Total automotive revenues | 69,526 | 77,070 | 82,419 |\n| Energy generation and storage | 12,771 | 10,086 | 6,035 |\n| Services and other | 12,530 | 10,534 | 8,319 |\n| Total revenues | 94,827 | 97,690 | 96,773 |\n| **Cost of revenues** |  |  |  |\n| Automotive sales | 56,267 | 61,870 | 65,121 |\n| Automotive leasing | 898 | 1,003 | 1,268 |\n| Total automotive cost of revenues | 57,165 | 62,873 | 66,389 |\n| Energy generation and storage | 8,969 | 7,446 | 4,894 |\n| Services and other | 11,599 | 9,921 | 7,830 |\n| Total cost of revenues | 77,733 | 80,240 | 79,113 |\n| Gross profit | 17,094 | 17,450 | 17,660 |\n| **Operating expenses** |  |  |  |\n| Research and development | 6,411 | 4,540 | 3,969 |\n| Selling, general and administrative | 5,834 | 5,150 | 4,800 |\n| Restructuring and other | 494 | 684 | — |\n| Total operating expenses | 12,739 | 10,374 | 8,769 |\n| Income from operations | 4,355 | 7,076 | 8,891 |\n| Interest income | 1,680 | 1,569 | 1,066 |\n| Interest expense | (338) | (350) | (156) |\n| Other (expense) income, net | (419) | 695 | 172 |\n| Income before income taxes | 5,278 | 8,990 | 9,973 |\n| Provision for (benefit from) income taxes | 1,423 | 1,837 | (5,001) |\n| Net income | 3,855 | 7,153 | 14,974 |\n| Net income (loss) attributable to noncontrolling interests and redeemable noncontrolling interests in subsidiaries | 61 | 62 | (23) |\n| Net income attributable to common stockholders | 3,794 | 7,091 | 14,997 |\n| **Net income per share of common stock attributable to common stockholders** |  |  |  |\n| Basic | 1.18 | 2.23 | 4.73 |\n| Diluted | 1.08 | 2.04 | 4.30 |\n| **Weighted average shares used in computing net income per share of common stock** |  |  |  |\n| Basic | 3,225 | 3,197 | 3,174 |\n| Diluted | 3,528 | 3,498 | 3,485 |",
+   "multi_year_history": [
+    {
+     "capital_expenditures": 8899.0,
+     "depreciation_amortization": 4667.0,
+     "fcf_conversion_pct": 29.05,
+     "fcf_growth_pct": null,
+     "fiscal_year": 2023,
+     "free_cash_flow": 4357.0,
+     "gross_margin_pct": 18.25,
+     "gross_profit": 17660.0,
+     "interest_expense": 156.0,
+     "net_income": 14997.0,
+     "net_margin_pct": 15.5,
+     "operating_cash_flow": 13256.0,
+     "operating_income": 8891.0,
+     "operating_income_growth_pct": null,
+     "operating_margin_pct": 9.19,
+     "revenue": 96773.0,
+     "revenue_growth_pct": null
+    },
+    {
+     "capital_expenditures": 11342.0,
+     "depreciation_amortization": 5368.0,
+     "fcf_conversion_pct": 50.5,
+     "fcf_growth_pct": -17.81,
+     "fiscal_year": 2024,
+     "free_cash_flow": 3581.0,
+     "gross_margin_pct": 17.86,
+     "gross_profit": 17450.0,
+     "interest_expense": 350.0,
+     "net_income": 7091.0,
+     "net_margin_pct": 7.26,
+     "operating_cash_flow": 14923.0,
+     "operating_income": 7076.0,
+     "operating_income_growth_pct": -20.41,
+     "operating_margin_pct": 7.24,
+     "revenue": 97690.0,
+     "revenue_growth_pct": 0.95
+    },
+    {
+     "capital_expenditures": 8527.0,
+     "depreciation_amortization": 6148.0,
+     "fcf_conversion_pct": 163.94,
+     "fcf_growth_pct": 73.69,
+     "fiscal_year": 2025,
+     "free_cash_flow": 6220.0,
+     "gross_margin_pct": 18.03,
+     "gross_profit": 17094.0,
+     "interest_expense": 338.0,
+     "net_income": 3794.0,
+     "net_margin_pct": 4.0,
+     "operating_cash_flow": 14747.0,
+     "operating_income": 4355.0,
+     "operating_income_growth_pct": -38.45,
+     "operating_margin_pct": 4.59,
+     "revenue": 94827.0,
+     "revenue_growth_pct": -2.93
+    }
+   ],
+   "profitability_and_return_ratios": {
+    "capital_basis": "average",
+    "effective_tax_rate_pct": 26.96,
+    "equity_status": "positive_book_equity",
+    "invested_capital": 45508.5,
+    "latest_gross_margin_pct": 18.03,
+    "latest_net_margin_pct": 4.0,
+    "latest_operating_margin_pct": 4.59,
+    "nopat": 3180.89,
+    "roe_pct": 4.89,
+    "roic_on_gross_capital_pct": 3.71,
+    "roic_pct": 6.99,
+    "tax_rate_source": "derived_from_10k"
+   },
+   "restatement_notes": [
+    "Single filing available; cross-filing restatement review not possible."
+   ],
+   "share_count_history": [
+    {
+     "diluted_share_growth_pct": null,
+     "diluted_weighted_shares": 3485.0,
+     "fiscal_year": 2023,
+     "period_end_share_growth_pct": null,
+     "period_end_shares_outstanding": null
+    },
+    {
+     "diluted_share_growth_pct": 0.37,
+     "diluted_weighted_shares": 3498.0,
+     "fiscal_year": 2024,
+     "period_end_share_growth_pct": null,
+     "period_end_shares_outstanding": 3216.0
+    },
+    {
+     "diluted_share_growth_pct": 0.86,
+     "diluted_weighted_shares": 3528.0,
+     "fiscal_year": 2025,
+     "period_end_share_growth_pct": 16.64,
+     "period_end_shares_outstanding": 3751.0
+    }
+   ],
+   "solvency_and_liquidity_ratios": {
+    "current_ratio": 2.16,
+    "ebitda": 10503.0,
+    "net_debt_to_ebitda": -3.4,
+    "net_debt_to_ebitda_interpretation": "net_cash_surplus",
+    "total_debt_to_equity": 0.1
+   },
+   "ticker": "TSLA",
+   "working_capital": [
+    {
+     "cash_conversion_cycle_days": null,
+     "dio_change_pct": null,
+     "dio_days": null,
+     "dpo_days": null,
+     "dso_change_pct": null,
+     "dso_days": null,
+     "fiscal_year": 2023
+    },
+    {
+     "cash_conversion_cycle_days": 14.5,
+     "dio_change_pct": null,
+     "dio_days": 54.7,
+     "dpo_days": 56.7,
+     "dso_change_pct": null,
+     "dso_days": 16.5,
+     "fiscal_year": 2024
+    },
+    {
+     "cash_conversion_cycle_days": 13.0,
+     "dio_change_pct": 6.4,
+     "dio_days": 58.2,
+     "dpo_days": 62.8,
+     "dso_change_pct": 6.67,
+     "dso_days": 17.6,
+     "fiscal_year": 2025
+    }
+   ]
+  },
+  "forecast": {
+   "applied_drivers": {
+    "capex_path": [
+     0.099,
+     0.0963,
+     0.0936,
+     0.091,
+     0.0883,
+     0.0856,
+     0.0829,
+     0.0803,
+     0.0776,
+     0.0749
+    ],
+    "capex_pct_of_revenue": 0.09898771969485143,
+    "da_pct_of_revenue": 0.06483385533656026,
+    "nwc_pct_of_incremental_revenue": 0.037888712328767137,
+    "operating_margin": [
+     0.0459,
+     0.0459,
+     0.0459,
+     0.0459,
+     0.0459,
+     0.0459,
+     0.0459,
+     0.0459,
+     0.0459,
+     0.0459
+    ],
+    "reinvestment_method": "value_driver_fade",
+    "revenue_growth": [
+     -0.0101,
+     -0.0062,
+     -0.0023,
+     0.0016,
+     0.0055,
+     0.0094,
+     0.0133,
+     0.0172,
+     0.0211,
+     0.025
+    ],
+    "sbc_pct_of_revenue": 0.029791093254031027,
+    "steady_state_capex_pct_of_revenue": 0.0749,
+    "tax_rate": 0.23695
+   },
+   "assumptions": {
+    "base_invested_capital": 90513.0,
+    "base_operating_margin": 0.045899999999999996,
+    "base_revenue": 94827.0,
+    "base_roic": 0.0366932968067018,
+    "base_year": 2025,
+    "capex_average_pct_of_revenue": 0.09932702314269647,
+    "capex_pct_of_revenue": 0.09898771969485143,
+    "capex_years": 3,
+    "da_pct_of_revenue": 0.06483385533656026,
+    "da_source": "reported",
+    "growth_volatility": 0.0194,
+    "historical_average_margin": 0.07006666666666667,
+    "historical_cagr": -0.010105518086202414,
+    "historical_rows": [
+     {
+      "fiscal_year": 2023,
+      "operating_margin_pct": 9.19,
+      "revenue": 96773.0,
+      "revenue_growth_pct": null
+     },
+     {
+      "fiscal_year": 2024,
+      "operating_margin_pct": 7.24,
+      "revenue": 97690.0,
+      "revenue_growth_pct": 0.95
+     },
+     {
+      "fiscal_year": 2025,
+      "operating_margin_pct": 4.59,
+      "revenue": 94827.0,
+      "revenue_growth_pct": -2.93
+     }
+    ],
+    "history_years": 3,
+    "latest_capex_pct_of_revenue": 0.08992164678836197,
+    "latest_revenue_growth": -0.029300000000000003,
+    "margin_source": "reported",
+    "margin_trend": "contracting",
+    "nwc_pct_of_incremental_revenue": 0.037888712328767137,
+    "nwc_source": "working_capital_days",
+    "sbc_pct_of_revenue": 0.029791093254031027,
+    "sbc_source": "reported",
+    "steady_state_ronic": 0.08,
+    "steady_state_ronic_source": "base_roic_floored",
+    "tax_rate": 0.23695,
+    "tax_source": "median_effective",
+    "warnings": []
+   },
+   "average_annual_fcf": 1227.56,
+   "base_revenue": 94827.0,
+   "citations": [],
+   "cumulative_fcf": 12275.6,
+   "diagnostics": {
+    "base_roic_pct": 3.67,
+    "fade_extended": false,
+    "final_year_growth_pct": 2.5,
+    "final_year_reinvestment_rate_pct": 31.38,
+    "implied_fundamental_growth_pct": 1.15,
+    "ronic_pct": 1.19,
+    "steady_state_ronic_pct": 8.0,
+    "target_reinvestment_rate_pct": 31.25,
+    "terminal_growth_pct": 2.5,
+    "warnings": [
+     "The LLM did not submit accepted drivers; growth fades from the historical trend to terminal growth."
+    ]
+   },
+   "driver_adjustments": [],
+   "fiscal_year": 2025,
+   "forecast_horizon_years": 10,
+   "forecast_schedule": [
+    {
+     "projected_capex": 9293.06,
+     "projected_depreciation": 6085.91,
+     "projected_ebit": 4308.6,
+     "projected_ebit_margin_pct": 4.59,
+     "projected_nopat": 3287.68,
+     "projected_nwc_change": -36.29,
+     "projected_revenue": 93869.25,
+     "projected_revenue_growth_pct": -1.01,
+     "projected_sbc": 2796.47,
+     "projected_unlevered_fcf": 116.81,
+     "projected_year": 2026
+    },
+    {
+     "projected_capex": 8983.56,
+     "projected_depreciation": 6048.17,
+     "projected_ebit": 4281.89,
+     "projected_ebit_margin_pct": 4.59,
+     "projected_nopat": 3267.29,
+     "projected_nwc_change": -22.05,
+     "projected_revenue": 93287.26,
+     "projected_revenue_growth_pct": -0.62,
+     "projected_sbc": 2779.13,
+     "projected_unlevered_fcf": 353.95,
+     "projected_year": 2027
+    },
+    {
+     "projected_capex": 8711.6,
+     "projected_depreciation": 6034.26,
+     "projected_ebit": 4272.04,
+     "projected_ebit_margin_pct": 4.59,
+     "projected_nopat": 3259.78,
+     "projected_nwc_change": -8.13,
+     "projected_revenue": 93072.7,
+     "projected_revenue_growth_pct": -0.23,
+     "projected_sbc": 2772.74,
+     "projected_unlevered_fcf": 590.56,
+     "projected_year": 2028
+    },
+    {
+     "projected_capex": 8483.17,
+     "projected_depreciation": 6043.92,
+     "projected_ebit": 4278.87,
+     "projected_ebit_margin_pct": 4.59,
+     "projected_nopat": 3264.99,
+     "projected_nwc_change": 5.64,
+     "projected_revenue": 93221.61,
+     "projected_revenue_growth_pct": 0.16,
+     "projected_sbc": 2777.17,
+     "projected_unlevered_fcf": 820.1,
+     "projected_year": 2029
+    },
+    {
+     "projected_capex": 8276.74,
+     "projected_depreciation": 6077.16,
+     "projected_ebit": 4302.41,
+     "projected_ebit_margin_pct": 4.59,
+     "projected_nopat": 3282.95,
+     "projected_nwc_change": 19.43,
+     "projected_revenue": 93734.33,
+     "projected_revenue_growth_pct": 0.55,
+     "projected_sbc": 2792.45,
+     "projected_unlevered_fcf": 1063.94,
+     "projected_year": 2030
+    },
+    {
+     "projected_capex": 8099.08,
+     "projected_depreciation": 6134.28,
+     "projected_ebit": 4342.85,
+     "projected_ebit_margin_pct": 4.59,
+     "projected_nopat": 3313.81,
+     "projected_nwc_change": 33.38,
+     "projected_revenue": 94615.44,
+     "projected_revenue_growth_pct": 0.94,
+     "projected_sbc": 2818.7,
+     "projected_unlevered_fcf": 1315.63,
+     "projected_year": 2031
+    },
+    {
+     "projected_capex": 7947.94,
+     "projected_depreciation": 6215.87,
+     "projected_ebit": 4400.61,
+     "projected_ebit_margin_pct": 4.59,
+     "projected_nopat": 3357.88,
+     "projected_nwc_change": 47.68,
+     "projected_revenue": 95873.82,
+     "projected_revenue_growth_pct": 1.33,
+     "projected_sbc": 2856.19,
+     "projected_unlevered_fcf": 1578.14,
+     "projected_year": 2032
+    },
+    {
+     "projected_capex": 7831.08,
+     "projected_depreciation": 6322.78,
+     "projected_ebit": 4476.3,
+     "projected_ebit_margin_pct": 4.59,
+     "projected_nopat": 3415.64,
+     "projected_nwc_change": 62.48,
+     "projected_revenue": 97522.85,
+     "projected_revenue_growth_pct": 1.72,
+     "projected_sbc": 2905.31,
+     "projected_unlevered_fcf": 1844.86,
+     "projected_year": 2033
+    },
+    {
+     "projected_capex": 7727.45,
+     "projected_depreciation": 6456.19,
+     "projected_ebit": 4570.75,
+     "projected_ebit_margin_pct": 4.59,
+     "projected_nopat": 3487.71,
+     "projected_nwc_change": 77.96,
+     "projected_revenue": 99580.58,
+     "projected_revenue_growth_pct": 2.11,
+     "projected_sbc": 2966.61,
+     "projected_unlevered_fcf": 2138.48,
+     "projected_year": 2034
+    },
+    {
+     "projected_capex": 7645.05,
+     "projected_depreciation": 6617.6,
+     "projected_ebit": 4685.02,
+     "projected_ebit_margin_pct": 4.59,
+     "projected_nopat": 3574.9,
+     "projected_nwc_change": 94.32,
+     "projected_revenue": 102070.1,
+     "projected_revenue_growth_pct": 2.5,
+     "projected_sbc": 3040.78,
+     "projected_unlevered_fcf": 2453.13,
+     "projected_year": 2035
+    }
+   ],
+   "forecast_table_markdown": "| Metric ($ Millions) | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $96,773 | $97,690 | $94,827 | $93,869 | $93,287 | $93,073 | $93,222 | $93,734 | $94,615 | $95,874 | $97,523 | $99,581 | $102,070 |\n| Revenue Growth YoY | — | +0.9% | -2.9% | -1.0% | -0.6% | -0.2% | +0.2% | +0.6% | +0.9% | +1.3% | +1.7% | +2.1% | +2.5% |\n| Operating Income (EBIT) | — | — | — | $4,309 | $4,282 | $4,272 | $4,279 | $4,302 | $4,343 | $4,401 | $4,476 | $4,571 | $4,685 |\n| Operating Margin | 9.2% | 7.2% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% | 4.6% |\n| NOPAT (Effective Tax 23.7%) | — | — | — | $3,288 | $3,267 | $3,260 | $3,265 | $3,283 | $3,314 | $3,358 | $3,416 | $3,488 | $3,575 |\n| Capital Expenditures | — | — | — | $9,293 | $8,984 | $8,712 | $8,483 | $8,277 | $8,099 | $7,948 | $7,831 | $7,727 | $7,645 |\n| Depreciation & Amortization | — | — | — | $6,086 | $6,048 | $6,034 | $6,044 | $6,077 | $6,134 | $6,216 | $6,323 | $6,456 | $6,618 |\n| Change in Working Capital (ΔNWC) | — | — | — | $-36 | $-22 | $-8 | $6 | $19 | $33 | $48 | $62 | $78 | $94 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $2,796 | $2,779 | $2,773 | $2,777 | $2,792 | $2,819 | $2,856 | $2,905 | $2,967 | $3,041 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$117** | **$354** | **$591** | **$820** | **$1,064** | **$1,316** | **$1,578** | **$1,845** | **$2,138** | **$2,453** |",
+   "growth_rationale": "No screened LLM drivers were accepted, so growth fades linearly from the historical trend. Revenue growth runs from -1.01% in year 1 to 2.50% in year 10, against 2.50% terminal growth.",
+   "guidance_source": "historical_fade",
+   "margin_rationale": "Operating margin moves from the reported base of 4.59% to 4.59% by year 10.",
+   "mdna_assessment": {
+    "chunk_count": 6,
+    "forward_looking_count": 6,
+    "is_informative": true,
+    "quantified_guidance": [
+     {
+      "chunk_id": "7a532a01-ef0f-4161-9766-0bdc527181b7",
+      "sentence": "We currently expect our capital expenditures to be in excess of $20 billion in 2026, driven by our AI initiatives, including investments in compute infrastructure and data centers, the expansion and ramp of our manufacturing and R&D production lines and facilities, and growth in our fleet of company-operated AI-enabled assets and our retail, service and charging footprint."
+     },
+     {
+      "chunk_id": "c0e29a50-21b1-46d3-ba22-c7a35b2e9269",
+      "sentence": "As discussed in and subject to the considerations referenced in Part II, Item 7, Management's Discussion and Analysis of Financial Condition and Results of Operations—Management Opportunities, Challenges and Uncertainties and 2026 Outlook—Cash Flow and Capital Expenditure Trends in this Annual Report on Form 10-K, we currently expect our capital expenditures to exceed $20 billion in 2026 driven by"
+     }
+    ]
+   },
+   "projected_fcfs": [
+    116.81,
+    353.95,
+    590.56,
+    820.1,
+    1063.94,
+    1315.63,
+    1578.14,
+    1844.86,
+    2138.48,
+    2453.13
+   ],
+   "reinvestment_rationale": "CapEx starts at 9.90% of revenue from the recency-weighted 3-year audited level (latest year 8.99%, simple average 9.93%) and fades to a 7.49% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 8.0% return on new capital (base roic floored) = 31.2% of NOPAT; D&A is held at 6.48% (reported); working capital at 3.79% of incremental revenue (working_capital_days); SBC at 2.98% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.",
+   "revenue_cagr_pct": 0.74,
+   "scenarios": [
+    {
+     "cumulative_fcf": 19681.16,
+     "name": "bull",
+     "operating_margin_pct": [
+      5.59,
+      5.59,
+      5.59,
+      5.59,
+      5.59,
+      5.59,
+      5.59,
+      5.59,
+      5.59,
+      5.59
+     ],
+     "probability": 0.25,
+     "projected_fcfs": [
+      777.32,
+      1012.74,
+      1265.45,
+      1517.54,
+      1779.48,
+      2053.16,
+      2340.17,
+      2653.14,
+      2972.12,
+      3310.04
+     ],
+     "revenue_cagr_pct": 1.74,
+     "revenue_growth_pct": [
+      0.99,
+      1.16,
+      1.33,
+      1.49,
+      1.66,
+      1.83,
+      2.0,
+      2.16,
+      2.33,
+      2.5
+     ]
+    },
+    {
+     "cumulative_fcf": 12275.6,
+     "name": "base",
+     "operating_margin_pct": [
+      4.59,
+      4.59,
+      4.59,
+      4.59,
+      4.59,
+      4.59,
+      4.59,
+      4.59,
+      4.59,
+      4.59
+     ],
+     "probability": 0.5,
+     "projected_fcfs": [
+      116.81,
+      353.95,
+      590.56,
+      820.1,
+      1063.94,
+      1315.63,
+      1578.14,
+      1844.86,
+      2138.48,
+      2453.13
+     ],
+     "revenue_cagr_pct": 0.74,
+     "revenue_growth_pct": [
+      -1.01,
+      -0.62,
+      -0.23,
+      0.16,
+      0.55,
+      0.94,
+      1.33,
+      1.72,
+      2.11,
+      2.5
+     ]
+    },
+    {
+     "cumulative_fcf": 3003.45,
+     "name": "bear",
+     "operating_margin_pct": [
+      3.09,
+      3.09,
+      3.09,
+      3.09,
+      3.09,
+      3.09,
+      3.09,
+      3.09,
+      3.09,
+      3.09
+     ],
+     "probability": 0.25,
+     "projected_fcfs": [
+      -865.65,
+      -588.52,
+      -325.95,
+      -81.84,
+      166.82,
+      415.48,
+      668.69,
+      922.0,
+      1198.39,
+      1494.03
+     ],
+     "revenue_cagr_pct": -0.27,
+     "revenue_growth_pct": [
+      -3.01,
+      -2.4,
+      -1.79,
+      -1.17,
+      -0.56,
+      0.05,
+      0.66,
+      1.28,
+      1.89,
+      2.5
+     ]
+    }
+   ],
+   "tax_rate_pct": 23.7,
+   "ticker": "TSLA"
+  },
+  "pipeline_notes": [],
+  "risk_audit": {
+   "citations": [],
+   "data_quality": {
+    "chars_read": 86213,
+    "coverage_mode": "full_section",
+    "item1a_chunks": 58,
+    "notes": [
+     "llm_output_missing: the model returned no parsable risk inventory.",
+     "Only 0 risks survived evidence verification (target 5-8)."
+    ],
+    "prior_fiscal_year": null,
+    "quantified_disclosures": 0,
+    "quantified_uncovered": [],
+    "quotes_rejected": 0,
+    "risks_dropped_unverified": 0,
+    "risks_merged": 0,
+    "risks_proposed": 0,
+    "section_located_by": "item_label"
+   },
+   "disclosure_changes": null,
+   "evidence_table_markdown": "_No verified filing evidence._",
+   "fiscal_year": 2025,
+   "identified_risks": [],
+   "overall_risk_profile": "Not Assessed",
+   "primary_existential_threat": "",
+   "primary_threat_risk_id": null,
+   "risk_matrix_markdown": "_No risks survived evidence verification against the filing._",
+   "ticker": "TSLA"
+  },
+  "routing_plan": {
+   "active_agents": [
+    "business_strategist",
+    "financial_auditor",
+    "risk_analyst",
+    "forecasting_analyst",
+    "valuation_specialist",
+    "lead_synthesizer"
+   ],
+   "available_fiscal_years": [
+    2025
+   ],
+   "company_name": "Tesla, Inc.",
+   "conversational_response": null,
+   "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+   "fiscal_year": 2025,
+   "parameter_notes": [],
+   "query_type": "full_10k_report",
+   "routing_provenance": "llm_inferred",
+   "ticker": "TSLA",
+   "updated_session_state": {
+    "active_company": "Tesla, Inc.",
+    "active_fiscal_year": 2025,
+    "active_ticker": "TSLA",
+    "available_fiscal_years": [
+     2025
+    ],
+    "last_query_type": "full_10k_report"
+   },
+   "valuation_overrides": {},
+   "year_requested": 2025,
+   "year_substituted": false
+  },
+  "sources": [
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "chunk_index": 171,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     },
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "chunk_index": 170,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     },
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "chunk_index": 174,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": "Computed from the audited income statement, balance sheet and cash flow statement",
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+    "n": 1,
+    "provider": null,
+    "quote": null,
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [],
+    "derived_from": null,
+    "document_id": null,
+    "fiscal_year": null,
+    "kind": "market",
+    "label": "Share price",
+    "n": 2,
+    "provider": "yfinance_live",
+    "quote": null,
+    "ticker": null
+   },
+   {
+    "chunks": [],
+    "derived_from": null,
+    "document_id": null,
+    "fiscal_year": null,
+    "kind": "market",
+    "label": "Risk-free rate",
+    "n": 3,
+    "provider": "us_10y_treasury_live",
+    "quote": null,
+    "ticker": null
+   },
+   {
+    "chunks": [],
+    "derived_from": null,
+    "document_id": null,
+    "fiscal_year": null,
+    "kind": "market",
+    "label": "Equity risk premium",
+    "n": 4,
+    "provider": "damodaran_implied_sp500_2026-07",
+    "quote": null,
+    "ticker": null
+   },
+   {
+    "chunks": [],
+    "derived_from": null,
+    "document_id": null,
+    "fiscal_year": null,
+    "kind": "market",
+    "label": "Beta",
+    "n": 5,
+    "provider": "yfinance_raw",
+    "quote": null,
+    "ticker": null
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "chunk_index": 170,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": "Computed from the audited balance sheet",
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+    "n": 6,
+    "provider": null,
+    "quote": null,
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "6a9b7449-c5c5-418f-bb78-49dce667b8a5",
+      "chunk_index": 241,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": "Reported in the segment note (ASC 280)",
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+    "n": 7,
+    "provider": null,
+    "quote": null,
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "6be59c6e-cc3c-4f9a-81f7-6d1b9a704ce1",
+      "chunk_index": 177,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": "Reported in the revenue disaggregation table (ASC 606)",
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+    "n": 8,
+    "provider": null,
+    "quote": null,
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "c5f5b7a1-8096-4c28-bbc7-c9d9482f3152",
+      "chunk_index": 188,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+    "n": 9,
+    "provider": null,
+    "quote": "As of December 31, 2025 and 2024, no entity represented 10% or more of our total receivables balance.",
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "chunk_index": 171,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": "Computed from the audited income statement",
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+    "n": 10,
+    "provider": null,
+    "quote": null,
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "chunk_index": 174,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": "Computed from the audited cash flow statement",
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+    "n": 11,
+    "provider": null,
+    "quote": null,
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "d5abacaf-4b41-469d-9014-000406212263",
+      "chunk_index": 174,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     },
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "chunk_index": 171,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": "Computed from the audited cash flow statement and income statement",
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+    "n": 12,
+    "provider": null,
+    "quote": null,
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "02244951-6838-48f7-b148-a35a7a8e2853",
+      "chunk_index": 171,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     },
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+      "chunk_id": "8a2e8d6b-e1ad-476c-a017-3fd93056f00e",
+      "chunk_index": 170,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": "Computed from the audited income statement and balance sheet",
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART II > Item 8: FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA",
+    "n": 13,
+    "provider": null,
+    "quote": null,
+    "ticker": "TSLA"
+   }
+  ],
+  "updated_session_state": {
+   "active_company": "Tesla, Inc.",
+   "active_fiscal_year": 2025,
+   "active_ticker": "TSLA",
+   "available_fiscal_years": [
+    2025
+   ],
+   "last_query_type": "full_10k_report"
+  }
+ },
+ "scenario": "full_tsla_2025"
+}

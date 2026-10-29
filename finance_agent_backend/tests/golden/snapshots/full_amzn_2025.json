@@ -1,0 +1,4338 @@
+{
+ "events": [
+  {
+   "message": "Analyzing research inquiry & context...",
+   "node": "supervisor",
+   "type": "status"
+  },
+  {
+   "details": {
+    "fiscal_year": 2025,
+    "query_type": "full_10k_report",
+    "ticker": "AMZN",
+    "valuation_overrides": {},
+    "year_substituted": false
+   },
+   "message": "Resolved filing: AMZN FY2025 | Route: full_10k_report",
+   "node": "supervisor",
+   "type": "status"
+  },
+  {
+   "message": "Completed economic moat analysis (Moat: None)",
+   "node": "business_strategist",
+   "type": "status"
+  },
+  {
+   "message": "Audited financial statements & ratios (7 high/medium forensic findings, deterministic extraction)",
+   "node": "financial_auditor",
+   "type": "status"
+  },
+  {
+   "message": "Analyzed Item 1A risks & threats (0 verified risks, 0 severe; full-section read; 0 new/expanded vs FY2024)",
+   "node": "risk_analyst",
+   "type": "status"
+  },
+  {
+   "message": "Built 10-year UFCF forecast (historical fade, revenue CAGR 6.8%, 3 scenarios)",
+   "node": "forecasting_analyst",
+   "type": "status"
+  },
+  {
+   "message": "Discounted at 9.40% (CAPM WACC); base-case DCF fair value $104.77/share (bear $81.70 - bull $125.19)",
+   "node": "valuation_specialist",
+   "type": "status"
+  },
+  {
+   "message": "Synthesized 3-Pillar Thesis and compiled final publication report.",
+   "node": "lead_synthesizer",
+   "type": "status"
+  },
+  {
+   "response": "# Institutional Equity Research Report: AMAZON.COM, INC. (AMZN)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$104.77** |\n| Bear / Bull Fair Value | $81.70 / $125.19 |\n| Probability-Weighted Fair Value | $104.11 |\n| Current Share Price[[2]](#cite-2) | $220.00 (yfinance_live) |\n| Base-Case Upside / Downside | -52.4% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 17.0% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 9.40% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 5.78% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 60.3% |\n| Enterprise Value | $998,280.3M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-57,381.0M |\n| Equity Value (as of 2026-10-28) | $1,134,389.6M |\n| Valuation Shares[[6]](#cite-6) | 10,827.0M |\n| Forecast | 10-year explicit horizon, 6.8% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business. Revenue reached $999,999 million last year[[1]](#cite-1).\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: North America, International, AWS\n- **Revenue lines (ASC 606)**: Online stores, Physical stores, Third-party seller services, Advertising services, Subscription services, AWS, Other\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| North America | 426,305 | 59.5% | 10.0% | 29,619 | 6.9% | 37.0% |\n| International | 161,894 | 22.6% | 13.3% | 4,750 | 2.9% | 5.9% |\n| AWS | 128,725 | 18.0% | 19.7% | 45,606 | 35.4% | 57.0% |\n\n_Source: 10-K segment note (chunk `a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Online stores | 269,287 | 37.6% | 9.0% |\n| Physical stores | 22,561 | 3.1% | 6.3% |\n| Third-party seller services | 172,162 | 24.0% | 10.3% |\n| Advertising services | 68,635 | 9.6% | 22.1% |\n| Subscription services | 49,619 | 6.9% | 11.8% |\n| AWS | 128,725 | 18.0% | 19.7% |\n| Other | 5,935 | 0.8% | 9.4% |\n\n_Source: 10-K revenue disaggregation (chunk `0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e`); figures in USD millions as reported._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (not assessed) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n\n**Moat rationale (filing-based)**: Not assessed: the model returned malformed output.\n\n**Business analysis data-quality notes**\n- The model returned no parsable JSON; moat and competitive fields not assessed.\n\n**Competitive threats**\n\n- No specific competitive threats were extracted from Item 1.\n\n- **Pricing power**: Not assessed: the model returned malformed output.\n- **Customer concentration**: Not assessed: the model returned malformed output.\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: | ---: | ---: |\n| Revenue[[9]](#cite-9) | 469,822.0 | 513,983.0 | 574,785.0 | 637,959.0 | 716,924.0 |\n| Revenue growth %[[9]](#cite-9) | N/A | +9.4% | +11.8% | +11.0% | +12.4% |\n| Gross margin %[[9]](#cite-9) | 42.03% | 43.81% | 46.98% | 48.85% | 50.29% |\n| Operating income[[9]](#cite-9) | 24,879.0 | 12,248.0 | 36,852.0 | 68,593.0 | 79,975.0 |\n| Operating margin %[[9]](#cite-9) | 5.30% | 2.38% | 6.41% | 10.75% | 11.16% |\n| Net income (attrib.)[[9]](#cite-9) | 33,364.0 | -2,722.0 | 30,425.0 | 59,248.0 | 77,670.0 |\n| Net margin %[[9]](#cite-9) | 7.10% | -0.53% | 5.29% | 9.29% | 10.83% |\n| Operating cash flow[[10]](#cite-10) | 46,327.0 | 46,752.0 | 84,946.0 | 115,877.0 | 139,514.0 |\n| Capex[[10]](#cite-10) | 61,053.0 | 63,645.0 | 52,729.0 | 82,999.0 | 131,819.0 |\n| Free cash flow[[10]](#cite-10) | -14,726.0 | -16,893.0 | 32,217.0 | 32,878.0 | 7,695.0 |\n| FCF conversion %[[11]](#cite-11) | -44.1% | 620.6% | 105.9% | 55.5% | 9.9% |\n| Stock-based comp.[[10]](#cite-10) | 12,757.0 | 19,621.0 | 24,023.0 | 22,011.0 | 19,467.0 |\n| SBC-adjusted FCF[[10]](#cite-10) | -27,483.0 | -36,514.0 | 8,194.0 | 10,867.0 | -11,772.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: | ---: | ---: |\n| Normalized operating income[[9]](#cite-9) | 24,879.0 | 12,248.0 | 36,852.0 | 68,593.0 | 79,975.0 |\n| Normalized operating margin %[[9]](#cite-9) | 5.30% | 2.38% | 6.41% | 10.75% | 11.16% |\n| Normalized net income[[9]](#cite-9) | 33,364.0 | -2,722.0 | 30,425.0 | 59,248.0 | 77,670.0 |\n| Adjustments % of EBIT[[9]](#cite-9) | N/A | N/A | N/A | N/A | N/A |\n| Non-operating income[[9]](#cite-9) | 13,272.0 | -18,184.0 | 705.0 | 21.0 | 17,336.0 |\n| Non-operating % of EBIT[[9]](#cite-9) | 53.4% | -148.5% | 1.9% | 0.0% | 21.7% |\n| Effective tax rate %[[9]](#cite-9) | 12.6% | 54.2% | 19.0% | 13.5% | 19.6% |\n| Deferred tax % of NI[[11]](#cite-11) | -0.9% | -299.3% | -19.3% | -7.8% | 14.8% |\n| Accruals (NI - OCF)[[11]](#cite-11) | -12,963.0 | -49,474.0 | -54,521.0 | -56,629.0 | -61,844.0 |\n| Sloan accruals ratio %[[12]](#cite-12) | N/A | -10.7% | -11.0% | -9.8% | -8.6% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2025)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $86,810.0M |\n| Marketable securities[[6]](#cite-6) | $36,219.0M |\n| Total liquid cash[[6]](#cite-6) | $123,029.0M |\n| Total debt[[6]](#cite-6) | $65,648.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-57,381.0M |\n| Stockholders' equity[[6]](#cite-6) | $411,065.0M |\n| Valuation share count[[6]](#cite-6) | 10,827.0M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 1.05x |\n| EBITDA[[13]](#cite-13) | $145,731.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.39x |\n| Debt / equity[[6]](#cite-6) | 0.16x |\n| Effective tax rate[[14]](#cite-14) | 19.6% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[15]](#cite-15) | 21.8% |\n| ROIC (average gross debt + equity)[[15]](#cite-15) | 15.8% |\n| ROE (average equity)[[15]](#cite-15) | 22.3% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2025 | NON-CORE INCOME DEPENDENCE (FY2025): Non-operating income of $17,336.0M equals 21.7% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2024 | STOCK-BASED COMPENSATION INTENSITY (FY2024): SBC of $22,011.0M equals 19.0% of operating cash flow and 32.1% of operating income; SBC-adjusted FCF is $10,867.0M. |\n| MEDIUM | SBC_INTENSITY | 2023 | STOCK-BASED COMPENSATION INTENSITY (FY2023): SBC of $24,023.0M equals 28.3% of operating cash flow and 65.2% of operating income; SBC-adjusted FCF is $8,194.0M. |\n| MEDIUM | TAX_ANOMALY | 2022 | TAX ANOMALY (FY2022): Reported earnings include a deferred tax adjustment of $-8,148.0M (-299.3% of net income). Net income and margins for this year are not comparable without normalization (e.g. valuation-allowance release). |\n| MEDIUM | SBC_INTENSITY | 2022 | STOCK-BASED COMPENSATION INTENSITY (FY2022): SBC of $19,621.0M equals 42.0% of operating cash flow and 160.2% of operating income; SBC-adjusted FCF is $-36,514.0M. |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2021 | NON-CORE INCOME DEPENDENCE (FY2021): Non-operating income of $13,272.0M equals 53.4% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2021 | STOCK-BASED COMPENSATION INTENSITY (FY2021): SBC of $12,757.0M equals 27.5% of operating cash flow and 51.3% of operating income; SBC-adjusted FCF is $-27,483.0M. |\n\n- **Restatement review**: No retrospective restatements identified: overlapping years agree across the FY2025, FY2024, FY2023 10-K filings for all extracted line items.\n- **Data quality**: extraction mode `deterministic`; 6/6 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 10-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 11.16%; tax 16.23% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 3 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 11.14% in year 1 to 2.50% in year 10, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 11.16% to 11.16% by year 10.\n- **Reinvestment**: CapEx starts at 15.06% of revenue from the recency-weighted 3-year audited level (latest year 18.39%, simple average 13.52%) and fades to a 10.89% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 14.1% return on new capital (base roic) = 17.8% of NOPAT; D&A is held at 9.17% (reported); working capital at -2.21% of incremental revenue (working_capital_days); SBC at 2.72% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2021A | FY2022A | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $469,822 | $513,983 | $574,785 | $637,959 | $716,924 | $796,789 | $877,902 | $958,845 | $1,038,046 | $1,113,823 | $1,184,439 | $1,248,162 | $1,303,331 | $1,348,426 | $1,382,137 |\n| Revenue Growth YoY | — | +9.4% | +11.8% | +11.0% | +12.4% | +11.1% | +10.2% | +9.2% | +8.3% | +7.3% | +6.3% | +5.4% | +4.4% | +3.5% | +2.5% |\n| Operating Income (EBIT) | — | — | — | — | — | $88,922 | $97,974 | $107,007 | $115,846 | $124,303 | $132,183 | $139,295 | $145,452 | $150,484 | $154,246 |\n| Operating Margin | 5.3% | 2.4% | 6.4% | 10.8% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% |\n| NOPAT (Effective Tax 16.2%) | — | — | — | — | — | $74,490 | $82,073 | $89,640 | $97,044 | $104,128 | $110,730 | $116,687 | $121,845 | $126,061 | $129,212 |\n| Capital Expenditures | — | — | — | — | — | $119,996 | $128,174 | $135,485 | $141,901 | $147,136 | $150,898 | $153,274 | $154,054 | $153,046 | $150,515 |\n| Depreciation & Amortization | — | — | — | — | — | $73,081 | $80,521 | $87,945 | $95,209 | $102,159 | $108,636 | $114,481 | $119,541 | $123,677 | $126,769 |\n| Change in Working Capital (ΔNWC) | — | — | — | — | — | $-1,762 | $-1,789 | $-1,786 | $-1,747 | $-1,672 | $-1,558 | $-1,406 | $-1,217 | $-995 | $-744 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | — | — | $21,636 | $23,838 | $26,036 | $28,187 | $30,244 | $32,162 | $33,892 | $35,390 | $36,614 | $37,530 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | — | — | **$29,336** | **$36,209** | **$43,886** | **$52,100** | **$60,823** | **$70,027** | **$79,300** | **$88,549** | **$97,686** | **$106,210** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 7.8% | $809,376M |\n| Base | 50% | 6.8% | $664,126M |\n| Bear | 25% | 5.8% | $495,048M |\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.20 | yfinance_raw (Blume-adjusted from raw 1.30) |\n| **Cost of Equity ($K_e$)** | **9.58%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 3.85% | 10-K interest expense $2,274.0M / average debt |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **2.88%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $2,300,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $65,648.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.40% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.40%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $396,261.3M |\n| PV of terminal value (value_driver) | $602,019.1M |\n| **Enterprise value** | **$998,280.4M** |\n| Plus: net cash | $57,381.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,055,661.4M |\n| Enterprise value rolled forward 0.82 yrs @ WACC 9.40% | $1,074,982.8M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $59,406.8M |\n| **Equity value at valuation date** | **$1,134,389.6M** |\n| Diluted shares | 10,827.00M |\n| **Fair value per share** | **$104.77** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 7.8% | $809,376M | $125.19 | -43.1% |\n| Base | 50% | 6.8% | $664,126M | $104.77 | -52.4% |\n| Bear | 25% | 5.8% | $495,048M | $81.70 | -62.9% |\n| **Probability-weighted** | 100% | | | **$104.11** | -52.7% |\n\n**Reverse DCF**: At $220.00 the market implies 17.0% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 6.8% modeled revenue CAGR. At modeled growth the price instead needs a +10.7 pp operating-margin shift in every year (final-year margin 21.8% versus 11.2% modeled). Holding the modeled cash flows, the price corresponds to a 5.78% discount rate versus the 9.40% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $118.56 | $120.40 | $122.41 | $124.63 | $127.08 |\n| **8.9%** | $109.94 | $111.35 | $112.88 | $114.56 | $116.40 |\n| **9.4%** *(Base)* | $102.48 | $103.57 | **$104.77** | $106.03 | $107.41 |\n| **9.9%** | $95.98 | $96.82 | $97.73 | $98.71 | $99.76 |\n| **10.4%** | $90.25 | $90.91 | $91.61 | $92.36 | $93.16 |\n\n| WACC \\ RONIC | 10.1% | 12.1% | 14.1% | 19.1% | 24.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $115.89 | $119.69 | $122.41 | $126.71 | $129.22 |\n| **8.9%** | $107.11 | $110.48 | $112.88 | $116.69 | $118.92 |\n| **9.4%** *(Base)* | $99.60 | $102.60 | **$104.77** | $108.15 | $110.13 |\n| **9.9%** | $93.12 | $95.81 | $97.73 | $100.77 | $102.55 |\n| **10.4%** | $87.45 | $89.88 | $91.61 | $94.35 | $95.95 |\n\n**Valuation data-quality warnings**\n- Reverse DCF: the share price implies 17.0% annual revenue growth for 10 years versus 6.8% modeled (+10.2 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: vs FY2024\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "sources": [
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+       "chunk_index": 132,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+       "chunk_index": 129,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement, balance sheet and cash flow statement",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 1,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Share price",
+     "n": 2,
+     "provider": "yfinance_live",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Risk-free rate",
+     "n": 3,
+     "provider": "us_10y_treasury_live",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Equity risk premium",
+     "n": 4,
+     "provider": "damodaran_implied_sp500_2026-07",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Beta",
+     "n": 5,
+     "provider": "yfinance_raw",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+       "chunk_index": 132,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited balance sheet",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 6,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6",
+       "chunk_index": 203,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Reported in the segment note (ASC 280)",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 7,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e",
+       "chunk_index": 204,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Reported in the revenue disaggregation table (ASC 606)",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 8,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+       "chunk_index": 130,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+       "chunk_index": 131,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement",
+     "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+     "fiscal_year": 2023,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 9,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+       "chunk_index": 129,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+       "chunk_index": 130,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+       "chunk_index": 129,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited cash flow statement",
+     "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+     "fiscal_year": 2023,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 10,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+       "chunk_index": 129,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+       "chunk_index": 130,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+       "chunk_index": 129,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+       "chunk_index": 130,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+       "chunk_index": 131,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited cash flow statement and income statement",
+     "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+     "fiscal_year": 2023,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 11,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+       "chunk_index": 130,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+       "chunk_index": 131,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+       "chunk_index": 129,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+       "chunk_index": 130,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+       "chunk_index": 129,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+       "chunk_index": 132,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+       "chunk_index": 133,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+       "chunk_index": 132,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement, cash flow statement and balance sheet",
+     "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+     "fiscal_year": 2023,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 12,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+       "chunk_index": 129,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement and cash flow statement",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 13,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 14,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+       "chunk_index": 132,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement and balance sheet",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 15,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    }
+   ],
+   "type": "result",
+   "updated_session_state": {
+    "active_company": "AMAZON.COM, INC.",
+    "active_fiscal_year": 2025,
+    "active_ticker": "AMZN",
+    "available_fiscal_years": [
+     2025,
+     2024,
+     2023,
+     2022,
+     2021
+    ],
+    "last_query_type": "full_10k_report"
+   }
+  }
+ ],
+ "outputs": {
+  "business_moat": {
+   "business_summary": "Not assessed: the model returned malformed output.",
+   "citations": [
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "sub_section": "Year Ended December 31,",
+     "ticker": "AMZN"
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "sub_section": "Year Ended December 31,",
+     "ticker": "AMZN"
+    }
+   ],
+   "competitive_threats": [],
+   "customer_concentration": "Not assessed: the model returned malformed output.",
+   "data_quality": {
+    "chars_read": 12668,
+    "claims_dropped": 0,
+    "claims_proposed": 0,
+    "claims_verified": 0,
+    "consolidated_revenue": 716924.0,
+    "coverage_mode": "full_section",
+    "item1_chunks": 8,
+    "llm_status": "malformed",
+    "notes": [
+     "The model returned no parsable JSON; moat and competitive fields not assessed."
+    ],
+    "quotes_off_topic": 0,
+    "quotes_rejected": 0,
+    "quotes_verified": 0,
+    "revenue_lines_reconciliation": "income_statement",
+    "revenue_tables_found": 2,
+    "section_located_by": "item_label",
+    "segment_basis": "mixed",
+    "segment_layout": "stacked_by_segment",
+    "segment_reconciliation": "in_table_total",
+    "segment_tables_found": 1,
+    "supplementary_passages": 6,
+    "units": "USD millions"
+   },
+   "economic_moat_type": "None",
+   "evidence": [],
+   "fiscal_year": 2025,
+   "moat_assessment": "not_assessed",
+   "moat_durability": "Indeterminate",
+   "moat_rationale": "Not assessed: the model returned malformed output.",
+   "moat_trajectory": "Indeterminate",
+   "pricing_power_assessment": "Not assessed: the model returned malformed output.",
+   "primary_product_segments": [
+    "Online stores",
+    "Physical stores",
+    "Third-party seller services",
+    "Advertising services",
+    "Subscription services",
+    "AWS",
+    "Other"
+   ],
+   "reportable_segments": [
+    "North America",
+    "International",
+    "AWS"
+   ],
+   "revenue_architecture": "Revenue mix by product / service line (FY2025, from the 10-K revenue disaggregation): Online stores 37.6%, Physical stores 3.1%, Third-party seller services 24.0%, Advertising services 9.6%, Subscription services 6.9%, AWS 18.0%, Other 0.8%.",
+   "revenue_lines": [
+    {
+     "fiscal_year": 2025,
+     "name": "Online stores",
+     "parent": null,
+     "revenue": 269287.0,
+     "revenue_growth_pct": 9.0,
+     "revenue_share_pct": 37.6,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Physical stores",
+     "parent": null,
+     "revenue": 22561.0,
+     "revenue_growth_pct": 6.3,
+     "revenue_share_pct": 3.1,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Third-party seller services",
+     "parent": null,
+     "revenue": 172162.0,
+     "revenue_growth_pct": 10.3,
+     "revenue_share_pct": 24.0,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Advertising services",
+     "parent": null,
+     "revenue": 68635.0,
+     "revenue_growth_pct": 22.1,
+     "revenue_share_pct": 9.6,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Subscription services",
+     "parent": null,
+     "revenue": 49619.0,
+     "revenue_growth_pct": 11.8,
+     "revenue_share_pct": 6.9,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "AWS",
+     "parent": null,
+     "revenue": 128725.0,
+     "revenue_growth_pct": 19.7,
+     "revenue_share_pct": 18.0,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2025,
+     "name": "Other",
+     "parent": null,
+     "revenue": 5935.0,
+     "revenue_growth_pct": 9.4,
+     "revenue_share_pct": 0.8,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Online stores",
+     "parent": null,
+     "revenue": 247029.0,
+     "revenue_growth_pct": 6.5,
+     "revenue_share_pct": 38.7,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Physical stores",
+     "parent": null,
+     "revenue": 21215.0,
+     "revenue_growth_pct": 5.9,
+     "revenue_share_pct": 3.3,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Third-party seller services",
+     "parent": null,
+     "revenue": 156146.0,
+     "revenue_growth_pct": 11.5,
+     "revenue_share_pct": 24.5,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Advertising services",
+     "parent": null,
+     "revenue": 56214.0,
+     "revenue_growth_pct": 19.8,
+     "revenue_share_pct": 8.8,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Subscription services",
+     "parent": null,
+     "revenue": 44374.0,
+     "revenue_growth_pct": 10.4,
+     "revenue_share_pct": 7.0,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "AWS",
+     "parent": null,
+     "revenue": 107556.0,
+     "revenue_growth_pct": 18.5,
+     "revenue_share_pct": 16.9,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2024,
+     "name": "Other",
+     "parent": null,
+     "revenue": 5425.0,
+     "revenue_growth_pct": 9.4,
+     "revenue_share_pct": 0.9,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "Online stores",
+     "parent": null,
+     "revenue": 231872.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 40.3,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "Physical stores",
+     "parent": null,
+     "revenue": 20030.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 3.5,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "Third-party seller services",
+     "parent": null,
+     "revenue": 140053.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 24.4,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "Advertising services",
+     "parent": null,
+     "revenue": 46906.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 8.2,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "Subscription services",
+     "parent": null,
+     "revenue": 40209.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 7.0,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "AWS",
+     "parent": null,
+     "revenue": 90757.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 15.8,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    },
+    {
+     "fiscal_year": 2023,
+     "name": "Other",
+     "parent": null,
+     "revenue": 4958.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 0.9,
+     "source_chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e"
+    }
+   ],
+   "revenue_mix_markdown": "| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Online stores | 269,287 | 37.6% | 9.0% |\n| Physical stores | 22,561 | 3.1% | 6.3% |\n| Third-party seller services | 172,162 | 24.0% | 10.3% |\n| Advertising services | 68,635 | 9.6% | 22.1% |\n| Subscription services | 49,619 | 6.9% | 11.8% |\n| AWS | 128,725 | 18.0% | 19.7% |\n| Other | 5,935 | 0.8% | 9.4% |\n\n_Source: 10-K revenue disaggregation (chunk `0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e`); figures in USD millions as reported._",
+   "secondary_moat_types": [],
+   "segment_details": [
+    {
+     "description": "Online stores: FY2025 revenue $269,287M, 37.6% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Online stores"
+    },
+    {
+     "description": "Physical stores: FY2025 revenue $22,561M, 3.1% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Physical stores"
+    },
+    {
+     "description": "Third-party seller services: FY2025 revenue $172,162M, 24.0% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Third-party seller services"
+    },
+    {
+     "description": "Advertising services: FY2025 revenue $68,635M, 9.6% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Advertising services"
+    },
+    {
+     "description": "Subscription services: FY2025 revenue $49,619M, 6.9% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Subscription services"
+    },
+    {
+     "description": "AWS: FY2025 revenue $128,725M, 18.0% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "AWS"
+    },
+    {
+     "description": "Other: FY2025 revenue $5,935M, 0.8% of revenue (from the 10-K tables).",
+     "growth_drivers": [],
+     "name": "Other"
+    }
+   ],
+   "segment_financials": [
+    {
+     "fiscal_year": 2025,
+     "profit_margin_pct": 6.9,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 37.0,
+     "reportable": true,
+     "revenue": 426305.0,
+     "revenue_growth_pct": 10.0,
+     "revenue_share_pct": 59.5,
+     "segment_name": "North America",
+     "segment_profit": 29619.0,
+     "source_chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6"
+    },
+    {
+     "fiscal_year": 2025,
+     "profit_margin_pct": 2.9,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 5.9,
+     "reportable": true,
+     "revenue": 161894.0,
+     "revenue_growth_pct": 13.3,
+     "revenue_share_pct": 22.6,
+     "segment_name": "International",
+     "segment_profit": 4750.0,
+     "source_chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6"
+    },
+    {
+     "fiscal_year": 2025,
+     "profit_margin_pct": 35.4,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 57.0,
+     "reportable": true,
+     "revenue": 128725.0,
+     "revenue_growth_pct": 19.7,
+     "revenue_share_pct": 18.0,
+     "segment_name": "AWS",
+     "segment_profit": 45606.0,
+     "source_chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6"
+    },
+    {
+     "fiscal_year": 2024,
+     "profit_margin_pct": 6.4,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 36.4,
+     "reportable": true,
+     "revenue": 387497.0,
+     "revenue_growth_pct": 9.8,
+     "revenue_share_pct": 60.7,
+     "segment_name": "North America",
+     "segment_profit": 24967.0,
+     "source_chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6"
+    },
+    {
+     "fiscal_year": 2024,
+     "profit_margin_pct": 2.7,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 5.5,
+     "reportable": true,
+     "revenue": 142906.0,
+     "revenue_growth_pct": 8.9,
+     "revenue_share_pct": 22.4,
+     "segment_name": "International",
+     "segment_profit": 3792.0,
+     "source_chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6"
+    },
+    {
+     "fiscal_year": 2024,
+     "profit_margin_pct": 37.0,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 58.1,
+     "reportable": true,
+     "revenue": 107556.0,
+     "revenue_growth_pct": 18.5,
+     "revenue_share_pct": 16.9,
+     "segment_name": "AWS",
+     "segment_profit": 39834.0,
+     "source_chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6"
+    },
+    {
+     "fiscal_year": 2023,
+     "profit_margin_pct": 4.2,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 37.7,
+     "reportable": true,
+     "revenue": 352828.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 61.4,
+     "segment_name": "North America",
+     "segment_profit": 14877.0,
+     "source_chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6"
+    },
+    {
+     "fiscal_year": 2023,
+     "profit_margin_pct": -2.0,
+     "profit_measure": "Operating income",
+     "profit_share_pct": -6.7,
+     "reportable": true,
+     "revenue": 131200.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 22.8,
+     "segment_name": "International",
+     "segment_profit": -2656.0,
+     "source_chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6"
+    },
+    {
+     "fiscal_year": 2023,
+     "profit_margin_pct": 27.1,
+     "profit_measure": "Operating income",
+     "profit_share_pct": 62.3,
+     "reportable": true,
+     "revenue": 90757.0,
+     "revenue_growth_pct": null,
+     "revenue_share_pct": 15.8,
+     "segment_name": "AWS",
+     "segment_profit": 24631.0,
+     "source_chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6"
+    }
+   ],
+   "segment_specific_moats": [],
+   "segment_table_markdown": "| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| North America | 426,305 | 59.5% | 10.0% | 29,619 | 6.9% | 37.0% |\n| International | 161,894 | 22.6% | 13.3% | 4,750 | 2.9% | 5.9% |\n| AWS | 128,725 | 18.0% | 19.7% | 45,606 | 35.4% | 57.0% |\n\n_Source: 10-K segment note (chunk `a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6`); figures in USD millions as reported._",
+   "ticker": "AMZN"
+  },
+  "conversational_response": null,
+  "dcf_valuation": {
+   "balance_sheet_date": "2025-12-31",
+   "bear_fair_value": 81.7,
+   "bull_fair_value": 125.19,
+   "commentary_source": "template",
+   "current_share_price": 220.0,
+   "data_quality": {
+    "forecast_source": "forecasting_analyst",
+    "market_data_source": "yfinance_live",
+    "share_price_source": "yfinance_live",
+    "warnings": [
+     "Reverse DCF: the share price implies 17.0% annual revenue growth for 10 years versus 6.8% modeled (+10.2 pp); the market is pricing materially more growth, or different margins and returns, than the base case."
+    ]
+   },
+   "diluted_shares": 10827.0,
+   "discounting_convention": "mid_year",
+   "enterprise_value": 998280.35,
+   "equity_bridge_markdown": "| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $396,261.3M |\n| PV of terminal value (value_driver) | $602,019.1M |\n| **Enterprise value** | **$998,280.4M** |\n| Plus: net cash | $57,381.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,055,661.4M |\n| Enterprise value rolled forward 0.82 yrs @ WACC 9.40% | $1,074,982.8M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $59,406.8M |\n| **Equity value at valuation date** | **$1,134,389.6M** |\n| Diluted shares | 10,827.00M |\n| **Fair value per share** | **$104.77** |",
+   "equity_value": 1134389.61,
+   "fiscal_year": 2025,
+   "implied_ev_ebitda": 6.85,
+   "implied_fair_value_per_share": 104.77,
+   "implied_terminal_ev_ebitda": 5.03,
+   "implied_terminal_ev_nopat": 12.22,
+   "market_implied_growth_pct": 16.97,
+   "market_implied_margin_shift_pp": 10.69,
+   "market_implied_wacc_pct": 5.78,
+   "modeled_final_margin_pct": 11.16,
+   "modeled_revenue_cagr_pct": 6.78,
+   "net_debt": -57381.0,
+   "noncontrolling_interests": 0.0,
+   "probability_weighted_fair_value": 104.11,
+   "projected_fcfs": [
+    29336.24,
+    36209.2,
+    43885.52,
+    52099.56,
+    60823.36,
+    70026.59,
+    79299.69,
+    88549.23,
+    97686.31,
+    106210.29
+   ],
+   "pv_explicit_fcfs": 396261.29,
+   "pv_terminal_value": 602019.07,
+   "reverse_dcf_horizon_years": 10,
+   "reverse_dcf_status": "solved",
+   "reverse_dcf_summary": "At $220.00 the market implies 17.0% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 6.8% modeled revenue CAGR. At modeled growth the price instead needs a +10.7 pp operating-margin shift in every year (final-year margin 21.8% versus 11.2% modeled). Holding the modeled cash flows, the price corresponds to a 5.78% discount rate versus the 9.40% applied.",
+   "roll_forward_years": 0.8241,
+   "ronic_sensitivity_matrix_markdown": "| WACC \\ RONIC | 10.1% | 12.1% | 14.1% | 19.1% | 24.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $115.89 | $119.69 | $122.41 | $126.71 | $129.22 |\n| **8.9%** | $107.11 | $110.48 | $112.88 | $116.69 | $118.92 |\n| **9.4%** *(Base)* | $99.60 | $102.60 | **$104.77** | $108.15 | $110.13 |\n| **9.9%** | $93.12 | $95.81 | $97.73 | $100.77 | $102.55 |\n| **10.4%** | $87.45 | $89.88 | $91.61 | $94.35 | $95.95 |",
+   "ronic_used_pct": 14.06,
+   "scenario_table_markdown": "| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 7.8% | $809,376M | $125.19 | -43.1% |\n| Base | 50% | 6.8% | $664,126M | $104.77 | -52.4% |\n| Bear | 25% | 5.8% | $495,048M | $81.70 | -62.9% |\n| **Probability-weighted** | 100% | | | **$104.11** | -52.7% |",
+   "scenario_valuations": [
+    {
+     "cumulative_fcf": 809375.78,
+     "enterprise_value": 1203569.32,
+     "fair_value_per_share": 125.19,
+     "name": "bull",
+     "probability": 0.25,
+     "revenue_cagr_pct": 7.77,
+     "upside_downside_pct": -43.1
+    },
+    {
+     "cumulative_fcf": 664125.99,
+     "enterprise_value": 998280.35,
+     "fair_value_per_share": 104.77,
+     "name": "base",
+     "probability": 0.5,
+     "revenue_cagr_pct": 6.78,
+     "upside_downside_pct": -52.38
+    },
+    {
+     "cumulative_fcf": 495048.22,
+     "enterprise_value": 766311.96,
+     "fair_value_per_share": 81.7,
+     "name": "bear",
+     "probability": 0.25,
+     "revenue_cagr_pct": 5.8,
+     "upside_downside_pct": -62.86
+    }
+   ],
+   "sensitivity_matrix_markdown": "| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $118.56 | $120.40 | $122.41 | $124.63 | $127.08 |\n| **8.9%** | $109.94 | $111.35 | $112.88 | $114.56 | $116.40 |\n| **9.4%** *(Base)* | $102.48 | $103.57 | **$104.77** | $106.03 | $107.41 |\n| **9.9%** | $95.98 | $96.82 | $97.73 | $98.71 | $99.76 |\n| **10.4%** | $90.25 | $90.91 | $91.61 | $92.36 | $93.16 |",
+   "terminal_fcf": 97492.88,
+   "terminal_growth_rate": 0.025,
+   "terminal_method": "value_driver",
+   "terminal_tax_rate_pct": 25.0,
+   "terminal_value_pct_of_ev": 60.3,
+   "ticker": "AMZN",
+   "upside_downside_pct": -52.38,
+   "valuation_date": "2026-10-28",
+   "valuation_stance": "Overvalued",
+   "valuation_summary": "Valuation bridge: the base-case DCF implies an enterprise value of $998,280M, of which 60.3% comes from the terminal value (value driver, 2.5% perpetual growth). After net debt of $-57,381M and noncontrolling interests of $0M, equity value is $1,134,390M, or $104.77 per share.\n\nHurdle rate: the applied discount rate is 9.40% (capm blended); CAPM cost of equity is 9.58% (beta 1.20, Rf 4.30%, ERP 4.40%) and after-tax cost of debt is 2.88% at a 2.8% debt weight.\n\nRange: bear $81.70, base $104.77, bull $125.19; probability-weighted $104.11. The WACC x growth and WACC x RONIC grids bracket the base case.\n\nMargin of safety: against a $220.00 share price the base case implies -52.4% (Overvalued). Reverse DCF: At $220.00 the market implies 17.0% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 6.8% modeled revenue CAGR. At modeled growth the price instead needs a +10.7 pp operating-margin shift in every year (final-year margin 21.8% versus 11.2% modeled). Holding the modeled cash flows, the price corresponds to a 5.78% discount rate versus the 9.40% applied.\n\nCaveats: Reverse DCF: the share price implies 17.0% annual revenue growth for 10 years versus 6.8% modeled (+10.2 pp); the market is pricing materially more growth, or different margins and returns, than the base case.",
+   "wacc_audit": {
+    "beta": 1.201,
+    "beta_raw": 1.3,
+    "beta_source": "yfinance_raw",
+    "capital_structure_source": "market_value",
+    "capm_wacc_pct": 9.4,
+    "cost_of_debt_after_tax": 0.028841,
+    "cost_of_debt_after_tax_pct": 2.88,
+    "cost_of_debt_note": null,
+    "cost_of_debt_pre_tax": 0.038454,
+    "cost_of_debt_pre_tax_pct": 3.85,
+    "cost_of_debt_source": "derived_from_10k_interest_expense",
+    "cost_of_equity": 0.095844,
+    "cost_of_equity_pct": 9.58,
+    "debt_weight_pct": 2.78,
+    "effective_tax_rate": 0.25,
+    "effective_tax_rate_pct": 25.0,
+    "equity_risk_premium_pct": 4.4,
+    "equity_risk_premium_source": "damodaran_implied_sp500_2026-07",
+    "equity_weight_pct": 97.22,
+    "formula_breakdown_markdown": "| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.20 | yfinance_raw (Blume-adjusted from raw 1.30) |\n| **Cost of Equity ($K_e$)** | **9.58%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 3.85% | 10-K interest expense $2,274.0M / average debt |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **2.88%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $2,300,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $65,648.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.40% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.40%** | CAPM blended WACC |",
+    "market_cap": 2300000.0,
+    "risk_free_rate_pct": 4.3,
+    "risk_free_rate_source": "us_10y_treasury_live",
+    "total_capital": 2365648.0,
+    "total_debt": 65648.0,
+    "wacc": 0.093985,
+    "wacc_pct": 9.4,
+    "wacc_source": "capm_blended"
+   }
+  },
+  "error_message": null,
+  "final_report": {
+   "company_name": "AMAZON.COM, INC.",
+   "current_share_price": 220.0,
+   "executive_summary": "The filing supports a balanced view of the business. Revenue reached $999,999 million last year.",
+   "fiscal_year": 2025,
+   "full_markdown_report": "# Institutional Equity Research Report: AMAZON.COM, INC. (AMZN)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$104.77** |\n| Bear / Bull Fair Value | $81.70 / $125.19 |\n| Probability-Weighted Fair Value | $104.11 |\n| Current Share Price[[2]](#cite-2) | $220.00 (yfinance_live) |\n| Base-Case Upside / Downside | -52.4% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 17.0% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 9.40% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 5.78% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 60.3% |\n| Enterprise Value | $998,280.3M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-57,381.0M |\n| Equity Value (as of 2026-10-28) | $1,134,389.6M |\n| Valuation Shares[[6]](#cite-6) | 10,827.0M |\n| Forecast | 10-year explicit horizon, 6.8% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business. Revenue reached $999,999 million last year[[1]](#cite-1).\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: North America, International, AWS\n- **Revenue lines (ASC 606)**: Online stores, Physical stores, Third-party seller services, Advertising services, Subscription services, AWS, Other\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| North America | 426,305 | 59.5% | 10.0% | 29,619 | 6.9% | 37.0% |\n| International | 161,894 | 22.6% | 13.3% | 4,750 | 2.9% | 5.9% |\n| AWS | 128,725 | 18.0% | 19.7% | 45,606 | 35.4% | 57.0% |\n\n_Source: 10-K segment note (chunk `a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Online stores | 269,287 | 37.6% | 9.0% |\n| Physical stores | 22,561 | 3.1% | 6.3% |\n| Third-party seller services | 172,162 | 24.0% | 10.3% |\n| Advertising services | 68,635 | 9.6% | 22.1% |\n| Subscription services | 49,619 | 6.9% | 11.8% |\n| AWS | 128,725 | 18.0% | 19.7% |\n| Other | 5,935 | 0.8% | 9.4% |\n\n_Source: 10-K revenue disaggregation (chunk `0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e`); figures in USD millions as reported._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (not assessed) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n\n**Moat rationale (filing-based)**: Not assessed: the model returned malformed output.\n\n**Business analysis data-quality notes**\n- The model returned no parsable JSON; moat and competitive fields not assessed.\n\n**Competitive threats**\n\n- No specific competitive threats were extracted from Item 1.\n\n- **Pricing power**: Not assessed: the model returned malformed output.\n- **Customer concentration**: Not assessed: the model returned malformed output.\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: | ---: | ---: |\n| Revenue[[9]](#cite-9) | 469,822.0 | 513,983.0 | 574,785.0 | 637,959.0 | 716,924.0 |\n| Revenue growth %[[9]](#cite-9) | N/A | +9.4% | +11.8% | +11.0% | +12.4% |\n| Gross margin %[[9]](#cite-9) | 42.03% | 43.81% | 46.98% | 48.85% | 50.29% |\n| Operating income[[9]](#cite-9) | 24,879.0 | 12,248.0 | 36,852.0 | 68,593.0 | 79,975.0 |\n| Operating margin %[[9]](#cite-9) | 5.30% | 2.38% | 6.41% | 10.75% | 11.16% |\n| Net income (attrib.)[[9]](#cite-9) | 33,364.0 | -2,722.0 | 30,425.0 | 59,248.0 | 77,670.0 |\n| Net margin %[[9]](#cite-9) | 7.10% | -0.53% | 5.29% | 9.29% | 10.83% |\n| Operating cash flow[[10]](#cite-10) | 46,327.0 | 46,752.0 | 84,946.0 | 115,877.0 | 139,514.0 |\n| Capex[[10]](#cite-10) | 61,053.0 | 63,645.0 | 52,729.0 | 82,999.0 | 131,819.0 |\n| Free cash flow[[10]](#cite-10) | -14,726.0 | -16,893.0 | 32,217.0 | 32,878.0 | 7,695.0 |\n| FCF conversion %[[11]](#cite-11) | -44.1% | 620.6% | 105.9% | 55.5% | 9.9% |\n| Stock-based comp.[[10]](#cite-10) | 12,757.0 | 19,621.0 | 24,023.0 | 22,011.0 | 19,467.0 |\n| SBC-adjusted FCF[[10]](#cite-10) | -27,483.0 | -36,514.0 | 8,194.0 | 10,867.0 | -11,772.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: | ---: | ---: |\n| Normalized operating income[[9]](#cite-9) | 24,879.0 | 12,248.0 | 36,852.0 | 68,593.0 | 79,975.0 |\n| Normalized operating margin %[[9]](#cite-9) | 5.30% | 2.38% | 6.41% | 10.75% | 11.16% |\n| Normalized net income[[9]](#cite-9) | 33,364.0 | -2,722.0 | 30,425.0 | 59,248.0 | 77,670.0 |\n| Adjustments % of EBIT[[9]](#cite-9) | N/A | N/A | N/A | N/A | N/A |\n| Non-operating income[[9]](#cite-9) | 13,272.0 | -18,184.0 | 705.0 | 21.0 | 17,336.0 |\n| Non-operating % of EBIT[[9]](#cite-9) | 53.4% | -148.5% | 1.9% | 0.0% | 21.7% |\n| Effective tax rate %[[9]](#cite-9) | 12.6% | 54.2% | 19.0% | 13.5% | 19.6% |\n| Deferred tax % of NI[[11]](#cite-11) | -0.9% | -299.3% | -19.3% | -7.8% | 14.8% |\n| Accruals (NI - OCF)[[11]](#cite-11) | -12,963.0 | -49,474.0 | -54,521.0 | -56,629.0 | -61,844.0 |\n| Sloan accruals ratio %[[12]](#cite-12) | N/A | -10.7% | -11.0% | -9.8% | -8.6% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2025)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $86,810.0M |\n| Marketable securities[[6]](#cite-6) | $36,219.0M |\n| Total liquid cash[[6]](#cite-6) | $123,029.0M |\n| Total debt[[6]](#cite-6) | $65,648.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-57,381.0M |\n| Stockholders' equity[[6]](#cite-6) | $411,065.0M |\n| Valuation share count[[6]](#cite-6) | 10,827.0M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 1.05x |\n| EBITDA[[13]](#cite-13) | $145,731.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.39x |\n| Debt / equity[[6]](#cite-6) | 0.16x |\n| Effective tax rate[[14]](#cite-14) | 19.6% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[15]](#cite-15) | 21.8% |\n| ROIC (average gross debt + equity)[[15]](#cite-15) | 15.8% |\n| ROE (average equity)[[15]](#cite-15) | 22.3% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2025 | NON-CORE INCOME DEPENDENCE (FY2025): Non-operating income of $17,336.0M equals 21.7% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2024 | STOCK-BASED COMPENSATION INTENSITY (FY2024): SBC of $22,011.0M equals 19.0% of operating cash flow and 32.1% of operating income; SBC-adjusted FCF is $10,867.0M. |\n| MEDIUM | SBC_INTENSITY | 2023 | STOCK-BASED COMPENSATION INTENSITY (FY2023): SBC of $24,023.0M equals 28.3% of operating cash flow and 65.2% of operating income; SBC-adjusted FCF is $8,194.0M. |\n| MEDIUM | TAX_ANOMALY | 2022 | TAX ANOMALY (FY2022): Reported earnings include a deferred tax adjustment of $-8,148.0M (-299.3% of net income). Net income and margins for this year are not comparable without normalization (e.g. valuation-allowance release). |\n| MEDIUM | SBC_INTENSITY | 2022 | STOCK-BASED COMPENSATION INTENSITY (FY2022): SBC of $19,621.0M equals 42.0% of operating cash flow and 160.2% of operating income; SBC-adjusted FCF is $-36,514.0M. |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2021 | NON-CORE INCOME DEPENDENCE (FY2021): Non-operating income of $13,272.0M equals 53.4% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2021 | STOCK-BASED COMPENSATION INTENSITY (FY2021): SBC of $12,757.0M equals 27.5% of operating cash flow and 51.3% of operating income; SBC-adjusted FCF is $-27,483.0M. |\n\n- **Restatement review**: No retrospective restatements identified: overlapping years agree across the FY2025, FY2024, FY2023 10-K filings for all extracted line items.\n- **Data quality**: extraction mode `deterministic`; 6/6 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 10-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 11.16%; tax 16.23% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 3 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 11.14% in year 1 to 2.50% in year 10, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 11.16% to 11.16% by year 10.\n- **Reinvestment**: CapEx starts at 15.06% of revenue from the recency-weighted 3-year audited level (latest year 18.39%, simple average 13.52%) and fades to a 10.89% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 14.1% return on new capital (base roic) = 17.8% of NOPAT; D&A is held at 9.17% (reported); working capital at -2.21% of incremental revenue (working_capital_days); SBC at 2.72% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2021A | FY2022A | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $469,822 | $513,983 | $574,785 | $637,959 | $716,924 | $796,789 | $877,902 | $958,845 | $1,038,046 | $1,113,823 | $1,184,439 | $1,248,162 | $1,303,331 | $1,348,426 | $1,382,137 |\n| Revenue Growth YoY | — | +9.4% | +11.8% | +11.0% | +12.4% | +11.1% | +10.2% | +9.2% | +8.3% | +7.3% | +6.3% | +5.4% | +4.4% | +3.5% | +2.5% |\n| Operating Income (EBIT) | — | — | — | — | — | $88,922 | $97,974 | $107,007 | $115,846 | $124,303 | $132,183 | $139,295 | $145,452 | $150,484 | $154,246 |\n| Operating Margin | 5.3% | 2.4% | 6.4% | 10.8% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% |\n| NOPAT (Effective Tax 16.2%) | — | — | — | — | — | $74,490 | $82,073 | $89,640 | $97,044 | $104,128 | $110,730 | $116,687 | $121,845 | $126,061 | $129,212 |\n| Capital Expenditures | — | — | — | — | — | $119,996 | $128,174 | $135,485 | $141,901 | $147,136 | $150,898 | $153,274 | $154,054 | $153,046 | $150,515 |\n| Depreciation & Amortization | — | — | — | — | — | $73,081 | $80,521 | $87,945 | $95,209 | $102,159 | $108,636 | $114,481 | $119,541 | $123,677 | $126,769 |\n| Change in Working Capital (ΔNWC) | — | — | — | — | — | $-1,762 | $-1,789 | $-1,786 | $-1,747 | $-1,672 | $-1,558 | $-1,406 | $-1,217 | $-995 | $-744 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | — | — | $21,636 | $23,838 | $26,036 | $28,187 | $30,244 | $32,162 | $33,892 | $35,390 | $36,614 | $37,530 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | — | — | **$29,336** | **$36,209** | **$43,886** | **$52,100** | **$60,823** | **$70,027** | **$79,300** | **$88,549** | **$97,686** | **$106,210** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 7.8% | $809,376M |\n| Base | 50% | 6.8% | $664,126M |\n| Bear | 25% | 5.8% | $495,048M |\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.20 | yfinance_raw (Blume-adjusted from raw 1.30) |\n| **Cost of Equity ($K_e$)** | **9.58%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 3.85% | 10-K interest expense $2,274.0M / average debt |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **2.88%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $2,300,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $65,648.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.40% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.40%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $396,261.3M |\n| PV of terminal value (value_driver) | $602,019.1M |\n| **Enterprise value** | **$998,280.4M** |\n| Plus: net cash | $57,381.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,055,661.4M |\n| Enterprise value rolled forward 0.82 yrs @ WACC 9.40% | $1,074,982.8M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $59,406.8M |\n| **Equity value at valuation date** | **$1,134,389.6M** |\n| Diluted shares | 10,827.00M |\n| **Fair value per share** | **$104.77** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 7.8% | $809,376M | $125.19 | -43.1% |\n| Base | 50% | 6.8% | $664,126M | $104.77 | -52.4% |\n| Bear | 25% | 5.8% | $495,048M | $81.70 | -62.9% |\n| **Probability-weighted** | 100% | | | **$104.11** | -52.7% |\n\n**Reverse DCF**: At $220.00 the market implies 17.0% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 6.8% modeled revenue CAGR. At modeled growth the price instead needs a +10.7 pp operating-margin shift in every year (final-year margin 21.8% versus 11.2% modeled). Holding the modeled cash flows, the price corresponds to a 5.78% discount rate versus the 9.40% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $118.56 | $120.40 | $122.41 | $124.63 | $127.08 |\n| **8.9%** | $109.94 | $111.35 | $112.88 | $114.56 | $116.40 |\n| **9.4%** *(Base)* | $102.48 | $103.57 | **$104.77** | $106.03 | $107.41 |\n| **9.9%** | $95.98 | $96.82 | $97.73 | $98.71 | $99.76 |\n| **10.4%** | $90.25 | $90.91 | $91.61 | $92.36 | $93.16 |\n\n| WACC \\ RONIC | 10.1% | 12.1% | 14.1% | 19.1% | 24.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $115.89 | $119.69 | $122.41 | $126.71 | $129.22 |\n| **8.9%** | $107.11 | $110.48 | $112.88 | $116.69 | $118.92 |\n| **9.4%** *(Base)* | $99.60 | $102.60 | **$104.77** | $108.15 | $110.13 |\n| **9.9%** | $93.12 | $95.81 | $97.73 | $100.77 | $102.55 |\n| **10.4%** | $87.45 | $89.88 | $91.61 | $94.35 | $95.95 |\n\n**Valuation data-quality warnings**\n- Reverse DCF: the share price implies 17.0% annual revenue growth for 10 years versus 6.8% modeled (+10.2 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: vs FY2024\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "implied_fair_value_per_share": 104.77,
+   "sources": [
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+       "chunk_index": 132,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+       "chunk_index": 129,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement, balance sheet and cash flow statement",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 1,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Share price",
+     "n": 2,
+     "provider": "yfinance_live",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Risk-free rate",
+     "n": 3,
+     "provider": "us_10y_treasury_live",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Equity risk premium",
+     "n": 4,
+     "provider": "damodaran_implied_sp500_2026-07",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [],
+     "derived_from": null,
+     "document_id": null,
+     "fiscal_year": null,
+     "kind": "market",
+     "label": "Beta",
+     "n": 5,
+     "provider": "yfinance_raw",
+     "quote": null,
+     "ticker": null
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+       "chunk_index": 132,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited balance sheet",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 6,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6",
+       "chunk_index": 203,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Reported in the segment note (ASC 280)",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 7,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e",
+       "chunk_index": 204,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Reported in the revenue disaggregation table (ASC 606)",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 8,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+       "chunk_index": 130,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+       "chunk_index": 131,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement",
+     "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+     "fiscal_year": 2023,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 9,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+       "chunk_index": 129,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+       "chunk_index": 130,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+       "chunk_index": 129,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited cash flow statement",
+     "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+     "fiscal_year": 2023,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 10,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+       "chunk_index": 129,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+       "chunk_index": 130,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+       "chunk_index": 129,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+       "chunk_index": 130,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+       "chunk_index": 131,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited cash flow statement and income statement",
+     "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+     "fiscal_year": 2023,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 11,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+       "chunk_index": 130,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+       "chunk_index": 131,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+       "chunk_index": 129,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+       "chunk_index": 130,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+       "chunk_index": 129,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+       "chunk_index": 132,
+       "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+       "fiscal_year": 2023,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+       "chunk_index": 133,
+       "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+       "fiscal_year": 2024,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+       "chunk_index": 132,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement, cash flow statement and balance sheet",
+     "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+     "fiscal_year": 2023,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 12,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+       "chunk_index": 129,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement and cash flow statement",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 13,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 14,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+       "chunk_index": 130,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      },
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+       "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+       "chunk_index": 132,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 8",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": "Computed from the audited income statement and balance sheet",
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "derived",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "n": 15,
+     "provider": null,
+     "quote": null,
+     "ticker": "AMZN"
+    }
+   ],
+   "synthesis_provenance": "llm_structured",
+   "three_pillar_thesis": {
+    "pillar_1_business_moat": "The business relies on its installed base and its brand.",
+    "pillar_2_financial_durability": "Cash generation covers reinvestment needs.",
+    "pillar_3_valuation_asymmetry": "The valuation case rests on the base-case cash flows."
+   },
+   "ticker": "AMZN",
+   "upside_downside_pct": -52.38,
+   "valuation_stance": "Overvalued",
+   "year_substituted": false
+  },
+  "financial_audit": {
+   "auditor_summary": "Auditor narrative unavailable; refer to the deterministic analytics and findings.",
+   "balance_sheet": {
+    "cash_and_equivalents": 86810.0,
+    "current_assets": 229083.0,
+    "current_liabilities": 218005.0,
+    "fiscal_year": 2025,
+    "long_term_debt": 65648.0,
+    "marketable_securities": 36219.0,
+    "net_cash_position": true,
+    "net_debt": -57381.0,
+    "noncontrolling_interests": null,
+    "period_end_shares_outstanding": 10731.0,
+    "prior_total_debt": 52623.0,
+    "share_count_source": "weighted_average_diluted",
+    "short_term_debt": 0.0,
+    "stockholders_equity": 411065.0,
+    "total_assets": 818042.0,
+    "total_debt": 65648.0,
+    "total_liquid_cash": 123029.0,
+    "valuation_shares_outstanding": 10827.0,
+    "weighted_diluted_shares": 10827.0
+   },
+   "balance_sheet_markdown_table": "**December 31,**\n\n| Line item | FY2024 | FY2025 |\n| :--- | ---: | ---: |\n| **ASSETS** |  |  |\n| **Current assets:** |  |  |\n| Cash and cash equivalents | 78,779 | 86,810 |\n| Marketable securities | 22,423 | 36,219 |\n| Inventories | 34,214 | 38,325 |\n| Accounts receivable, net and other | 55,451 | 67,729 |\n| Total current assets | 190,867 | 229,083 |\n| Property and equipment, net | 252,665 | 357,025 |\n| Operating leases | 76,141 | 86,054 |\n| Goodwill | 23,074 | 23,273 |\n| Other assets | 82,147 | 122,607 |\n| Total assets | 624,894 | 818,042 |\n| **LIABILITIES AND STOCKHOLDERS’ EQUITY** |  |  |\n| **Current liabilities:** |  |  |\n| Accounts payable | 94,363 | 121,909 |\n| Accrued expenses and other | 66,965 | 75,520 |\n| Unearned revenue | 18,103 | 20,576 |\n| Total current liabilities | 179,431 | 218,005 |\n| Long-term lease liabilities | 78,277 | 87,339 |\n| Long-term debt | 52,623 | 65,648 |\n| Other long-term liabilities | 28,593 | 35,985 |\n| **Commitments and contingencies (Note 7)** |  |  |\n| **Stockholders’ equity:** |  |  |\n| Preferred stock ($0.01 par value; 500 shares authorized; no shares issued or outstanding) | — | — |\n| Common stock ($0.01 par value; 100,000 shares authorized; 11,108 and 11,246 shares issued; 10,593 and 10,731 shares outstanding) | 111 | 112 |\n| Treasury stock, at cost | (7,837) | (7,837) |\n| Additional paid-in capital | 120,864 | 140,024 |\n| Accumulated other comprehensive income (loss) | (34) | 28,230 |\n| Retained earnings | 172,866 | 250,536 |\n| Total stockholders’ equity | 285,970 | 411,065 |\n| Total liabilities and stockholders’ equity | 624,894 | 818,042 |",
+   "capital_intensity": [
+    {
+     "capex_change": null,
+     "capex_to_depreciation": 1.77,
+     "capex_to_revenue_pct": 12.99,
+     "fcf_change": null,
+     "fcf_change_from_capex_pct": null,
+     "fiscal_year": 2021,
+     "ocf_change": null
+    },
+    {
+     "capex_change": 2592.0,
+     "capex_to_depreciation": 1.52,
+     "capex_to_revenue_pct": 12.38,
+     "fcf_change": -2167.0,
+     "fcf_change_from_capex_pct": 119.61,
+     "fiscal_year": 2022,
+     "ocf_change": 425.0
+    },
+    {
+     "capex_change": -10916.0,
+     "capex_to_depreciation": 1.08,
+     "capex_to_revenue_pct": 9.17,
+     "fcf_change": 49110.0,
+     "fcf_change_from_capex_pct": 22.23,
+     "fiscal_year": 2023,
+     "ocf_change": 38194.0
+    },
+    {
+     "capex_change": 30270.0,
+     "capex_to_depreciation": 1.57,
+     "capex_to_revenue_pct": 13.01,
+     "fcf_change": 661.0,
+     "fcf_change_from_capex_pct": -4579.43,
+     "fiscal_year": 2024,
+     "ocf_change": 30931.0
+    },
+    {
+     "capex_change": 48820.0,
+     "capex_to_depreciation": 2.0,
+     "capex_to_revenue_pct": 18.39,
+     "fcf_change": -25183.0,
+     "fcf_change_from_capex_pct": 193.86,
+     "fiscal_year": 2025,
+     "ocf_change": 23637.0
+    }
+   ],
+   "cash_flow_markdown_table": "**Year Ended December 31,**\n\n| Line item | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| CASH, CASH EQUIVALENTS, AND RESTRICTED CASH, BEGINNING OF PERIOD | 54,253 | 73,890 | 82,312 |\n| **OPERATING ACTIVITIES:** |  |  |  |\n| Net income | 30,425 | 59,248 | 77,670 |\n| **Adjustments to reconcile net income to net cash from operating activities:** |  |  |  |\n| Depreciation and amortization of property and equipment and capitalized content costs, operating lease assets, and other | 48,663 | 52,795 | 65,756 |\n| Stock-based compensation | 24,023 | 22,011 | 19,467 |\n| Non-operating expense (income), net | (748) | 2,012 | (14,880) |\n| Deferred income taxes | (5,876) | (4,648) | 11,470 |\n| **Changes in operating assets and liabilities:** |  |  |  |\n| Inventories | 1,449 | (1,884) | (3,002) |\n| Accounts receivable, net and other | (8,348) | (3,249) | (7,333) |\n| Other assets | (12,265) | (14,483) | (15,632) |\n| Accounts payable | 5,473 | 2,972 | 11,231 |\n| Accrued expenses and other | (2,428) | (2,904) | (5,019) |\n| Unearned revenue | 4,578 | 4,007 | (214) |\n| Net cash provided by (used in) operating activities | 84,946 | 115,877 | 139,514 |\n| **INVESTING ACTIVITIES:** |  |  |  |\n| Purchases of property and equipment | (52,729) | (82,999) | (131,819) |\n| Proceeds from property and equipment sales and incentives | 4,596 | 5,341 | 3,499 |\n| Acquisitions, net of cash acquired, non-marketable investments, and other, net | (5,839) | (7,082) | (3,841) |\n| Sales and maturities of marketable securities | 5,627 | 16,403 | 44,386 |\n| Purchases of marketable securities | (1,488) | (26,005) | (54,770) |\n| Net cash provided by (used in) investing activities | (49,833) | (94,342) | (142,545) |\n| **FINANCING ACTIVITIES:** |  |  |  |\n| Proceeds from short-term debt, and other | 18,129 | 5,142 | 9,320 |\n| Repayments of short-term debt, and other | (25,677) | (5,060) | (8,426) |\n| Proceeds from long-term debt | — | — | 15,673 |\n| Repayments of long-term debt | (3,676) | (9,182) | (5,021) |\n| Principal repayments of finance leases | (4,384) | (2,043) | (1,557) |\n| Principal repayments of financing obligations | (271) | (669) | (328) |\n| Net cash provided by (used in) financing activities | (15,879) | (11,812) | 9,661 |\n| Foreign currency effect on cash, cash equivalents, and restricted cash | 403 | (1,301) | 1,164 |\n| Net increase (decrease) in cash, cash equivalents, and restricted cash | 19,637 | 8,422 | 7,794 |\n| CASH, CASH EQUIVALENTS, AND RESTRICTED CASH, END OF PERIOD | 73,890 | 82,312 | 90,106 |",
+   "citations": [
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "statement_type": "income_statement",
+     "sub_section": "Year Ended December 31,"
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+     "fiscal_year": 2024,
+     "item": "Item 8",
+     "statement_type": "income_statement",
+     "sub_section": "Year Ended December 31,"
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+     "fiscal_year": 2023,
+     "item": "Item 8",
+     "statement_type": "income_statement",
+     "sub_section": "Year Ended December 31,"
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "statement_type": "balance_sheet",
+     "sub_section": "December 31,"
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+     "fiscal_year": 2024,
+     "item": "Item 8",
+     "statement_type": "balance_sheet",
+     "sub_section": "December 31,"
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+     "fiscal_year": 2023,
+     "item": "Item 8",
+     "statement_type": "balance_sheet",
+     "sub_section": "December 31,"
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+     "fiscal_year": 2025,
+     "item": "Item 8",
+     "statement_type": "cash_flow",
+     "sub_section": "Year Ended December 31,"
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+     "fiscal_year": 2024,
+     "item": "Item 8",
+     "statement_type": "cash_flow",
+     "sub_section": "Year Ended December 31,"
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+     "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+     "fiscal_year": 2023,
+     "item": "Item 8",
+     "statement_type": "cash_flow",
+     "sub_section": "Year Ended December 31,"
+    }
+   ],
+   "cost_structure": [
+    {
+     "fiscal_year": 2021,
+     "gross_margin_change_bps": null,
+     "operating_expense_growth_pct": null,
+     "operating_expenses": 444943.0,
+     "operating_margin_change_bps": null,
+     "opex_growth_minus_revenue_growth_pp": null,
+     "revenue_growth_pct": null
+    },
+    {
+     "fiscal_year": 2022,
+     "gross_margin_change_bps": 178.0,
+     "operating_expense_growth_pct": 12.76,
+     "operating_expenses": 501735.0,
+     "operating_margin_change_bps": -292.0,
+     "opex_growth_minus_revenue_growth_pp": 3.36,
+     "revenue_growth_pct": 9.4
+    },
+    {
+     "fiscal_year": 2023,
+     "gross_margin_change_bps": 317.0,
+     "operating_expense_growth_pct": 7.21,
+     "operating_expenses": 537933.0,
+     "operating_margin_change_bps": 403.0,
+     "opex_growth_minus_revenue_growth_pp": -4.62,
+     "revenue_growth_pct": 11.83
+    },
+    {
+     "fiscal_year": 2024,
+     "gross_margin_change_bps": 187.0,
+     "operating_expense_growth_pct": 5.84,
+     "operating_expenses": 569366.0,
+     "operating_margin_change_bps": 434.0,
+     "opex_growth_minus_revenue_growth_pp": -5.15,
+     "revenue_growth_pct": 10.99
+    },
+    {
+     "fiscal_year": 2025,
+     "gross_margin_change_bps": 144.0,
+     "operating_expense_growth_pct": 11.87,
+     "operating_expenses": 636949.0,
+     "operating_margin_change_bps": 41.0,
+     "opex_growth_minus_revenue_growth_pp": -0.51,
+     "revenue_growth_pct": 12.38
+    }
+   ],
+   "data_quality": {
+    "completeness_score": 1.0,
+    "cross_filing_differences": [],
+    "extraction_mode": "deterministic",
+    "field_provenance": {
+     "FY2021.capital_expenditures": {
+      "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+      "filing_year": 2023,
+      "labels": [
+       "Purchases of property and equipment"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2021.cost_of_revenue": {
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "filing_year": 2023,
+      "labels": [
+       "Cost of sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2021.deferred_income_taxes": {
+      "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+      "filing_year": 2023,
+      "labels": [
+       "Deferred income taxes"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2021.depreciation_amortization": {
+      "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+      "filing_year": 2023,
+      "labels": [
+       "Depreciation and amortization of property and equipment and capitalized content costs, operating lease assets, and other"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2021.diluted_weighted_shares": {
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "filing_year": 2023,
+      "labels": [
+       "Diluted"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2021.income_tax_expense": {
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "filing_year": 2023,
+      "labels": [
+       "Benefit (provision) for income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2021.interest_expense": {
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "filing_year": 2023,
+      "labels": [
+       "Interest expense"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2021.interest_income": {
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "filing_year": 2023,
+      "labels": [
+       "Interest income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2021.net_income_cf": {
+      "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+      "filing_year": 2023,
+      "labels": [
+       "Net income (loss)"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2021.net_income_total": {
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "filing_year": 2023,
+      "labels": [
+       "Net income (loss)"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2021.operating_cash_flow": {
+      "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+      "filing_year": 2023,
+      "labels": [
+       "Net cash provided by (used in) operating activities"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2021.operating_expenses": {
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "filing_year": 2023,
+      "labels": [
+       "Total operating expenses"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2021.operating_income": {
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "filing_year": 2023,
+      "labels": [
+       "Operating income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2021.pretax_income": {
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "filing_year": 2023,
+      "labels": [
+       "Income (loss) before income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2021.revenue": {
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "filing_year": 2023,
+      "labels": [
+       "Total net sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2021.stock_based_compensation": {
+      "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+      "filing_year": 2023,
+      "labels": [
+       "Stock-based compensation"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2022.accounts_payable": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [
+       "Accounts payable"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2022.accounts_receivable": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [
+       "Accounts receivable, net and other"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2022.capital_expenditures": {
+      "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+      "filing_year": 2024,
+      "labels": [
+       "Purchases of property and equipment"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2022.cash_and_equivalents": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [
+       "Cash and cash equivalents"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2022.cost_of_revenue": {
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "filing_year": 2024,
+      "labels": [
+       "Cost of sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2022.current_assets": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [
+       "Total current assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2022.current_liabilities": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [
+       "Total current liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2022.deferred_income_taxes": {
+      "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+      "filing_year": 2024,
+      "labels": [
+       "Deferred income taxes"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2022.depreciation_amortization": {
+      "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+      "filing_year": 2024,
+      "labels": [
+       "Depreciation and amortization of property and equipment and capitalized content costs, operating lease assets, and other"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2022.diluted_weighted_shares": {
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "filing_year": 2024,
+      "labels": [
+       "Diluted"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2022.income_tax_expense": {
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "filing_year": 2024,
+      "labels": [
+       "Benefit (provision) for income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2022.interest_expense": {
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "filing_year": 2024,
+      "labels": [
+       "Interest expense"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2022.interest_income": {
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "filing_year": 2024,
+      "labels": [
+       "Interest income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2022.inventories": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [
+       "Inventories"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2022.long_term_debt": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [
+       "Long-term debt"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2022.marketable_securities": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [
+       "Marketable securities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2022.net_income_cf": {
+      "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+      "filing_year": 2024,
+      "labels": [
+       "Net income (loss)"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2022.net_income_total": {
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "filing_year": 2024,
+      "labels": [
+       "Net income (loss)"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2022.operating_cash_flow": {
+      "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+      "filing_year": 2024,
+      "labels": [
+       "Net cash provided by (used in) operating activities"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2022.operating_expenses": {
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "filing_year": 2024,
+      "labels": [
+       "Total operating expenses"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2022.operating_income": {
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "filing_year": 2024,
+      "labels": [
+       "Operating income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2022.period_end_shares_outstanding": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [
+       "Common stock ($0.01 par value; 100,000 shares authorized; 10,757 and 10,898 shares issued; 10,242 and 10,383 shares outstanding)"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2022.pretax_income": {
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "filing_year": 2024,
+      "labels": [
+       "Income (loss) before income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2022.revenue": {
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "filing_year": 2024,
+      "labels": [
+       "Total net sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2022.short_term_debt": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [],
+      "statement": "balance_sheet"
+     },
+     "FY2022.stock_based_compensation": {
+      "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+      "filing_year": 2024,
+      "labels": [
+       "Stock-based compensation"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2022.stockholders_equity": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [
+       "Total stockholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2022.total_assets": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [
+       "Total assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2022.total_liabilities_and_equity": {
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "filing_year": 2023,
+      "labels": [
+       "Total liabilities and stockholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.accounts_payable": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [
+       "Accounts payable"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.accounts_receivable": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [
+       "Accounts receivable, net and other"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.capital_expenditures": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Purchases of property and equipment"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.cash_and_equivalents": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [
+       "Cash and cash equivalents"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.cost_of_revenue": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Cost of sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.current_assets": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [
+       "Total current assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.current_liabilities": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [
+       "Total current liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.deferred_income_taxes": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Deferred income taxes"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.depreciation_amortization": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Depreciation and amortization of property and equipment and capitalized content costs, operating lease assets, and other"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.diluted_weighted_shares": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Diluted"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.income_tax_expense": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Provision for income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.interest_expense": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Interest expense"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.interest_income": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Interest income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.inventories": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [
+       "Inventories"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.long_term_debt": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [
+       "Long-term debt"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.marketable_securities": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [
+       "Marketable securities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.net_income_cf": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.net_income_total": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.operating_cash_flow": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Net cash provided by (used in) operating activities"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.operating_expenses": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Total operating expenses"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.operating_income": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Operating income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.period_end_shares_outstanding": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [
+       "Common stock ($0.01 par value; 100,000 shares authorized; 10,898 and 11,108 shares issued; 10,383 and 10,593 shares outstanding)"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.pretax_income": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Income before income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.revenue": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Total net sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2023.short_term_debt": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [],
+      "statement": "balance_sheet"
+     },
+     "FY2023.stock_based_compensation": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Stock-based compensation"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2023.stockholders_equity": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [
+       "Total stockholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.total_assets": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [
+       "Total assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2023.total_liabilities_and_equity": {
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "filing_year": 2024,
+      "labels": [
+       "Total liabilities and stockholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.accounts_payable": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Accounts payable"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.accounts_receivable": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Accounts receivable, net and other"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.capital_expenditures": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Purchases of property and equipment"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.cash_and_equivalents": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Cash and cash equivalents"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.cost_of_revenue": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Cost of sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.current_assets": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Total current assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.current_liabilities": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Total current liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.deferred_income_taxes": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Deferred income taxes"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.depreciation_amortization": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Depreciation and amortization of property and equipment and capitalized content costs, operating lease assets, and other"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.diluted_weighted_shares": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Diluted"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.income_tax_expense": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Provision for income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.interest_expense": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Interest expense"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.interest_income": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Interest income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.inventories": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Inventories"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.long_term_debt": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Long-term debt"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.marketable_securities": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Marketable securities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.net_income_cf": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.net_income_total": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.operating_cash_flow": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Net cash provided by (used in) operating activities"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.operating_expenses": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Total operating expenses"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.operating_income": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Operating income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.period_end_shares_outstanding": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Common stock ($0.01 par value; 100,000 shares authorized; 11,108 and 11,246 shares issued; 10,593 and 10,731 shares outstanding)"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.pretax_income": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Income before income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.revenue": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Total net sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2024.short_term_debt": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [],
+      "statement": "balance_sheet"
+     },
+     "FY2024.stock_based_compensation": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Stock-based compensation"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2024.stockholders_equity": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Total stockholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.total_assets": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Total assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2024.total_liabilities_and_equity": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Total liabilities and stockholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.accounts_payable": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Accounts payable"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.accounts_receivable": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Accounts receivable, net and other"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.capital_expenditures": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Purchases of property and equipment"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.cash_and_equivalents": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Cash and cash equivalents"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.cost_of_revenue": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Cost of sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.current_assets": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Total current assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.current_liabilities": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Total current liabilities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.deferred_income_taxes": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Deferred income taxes"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.depreciation_amortization": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Depreciation and amortization of property and equipment and capitalized content costs, operating lease assets, and other"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.diluted_weighted_shares": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Diluted"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.income_tax_expense": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Provision for income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.interest_expense": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Interest expense"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.interest_income": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Interest income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.inventories": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Inventories"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.long_term_debt": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Long-term debt"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.marketable_securities": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Marketable securities"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.net_income_cf": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.net_income_total": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Net income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.operating_cash_flow": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Net cash provided by (used in) operating activities"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.operating_expenses": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Total operating expenses"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.operating_income": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Operating income"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.period_end_shares_outstanding": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Common stock ($0.01 par value; 100,000 shares authorized; 11,108 and 11,246 shares issued; 10,593 and 10,731 shares outstanding)"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.pretax_income": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Income before income taxes"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.revenue": {
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "filing_year": 2025,
+      "labels": [
+       "Total net sales"
+      ],
+      "statement": "income_statement"
+     },
+     "FY2025.short_term_debt": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [],
+      "statement": "balance_sheet"
+     },
+     "FY2025.stock_based_compensation": {
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "filing_year": 2025,
+      "labels": [
+       "Stock-based compensation"
+      ],
+      "statement": "cash_flow"
+     },
+     "FY2025.stockholders_equity": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Total stockholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.total_assets": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Total assets"
+      ],
+      "statement": "balance_sheet"
+     },
+     "FY2025.total_liabilities_and_equity": {
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "filing_year": 2025,
+      "labels": [
+       "Total liabilities and stockholders’ equity"
+      ],
+      "statement": "balance_sheet"
+     }
+    },
+    "identity_checks": [
+     {
+      "critical": true,
+      "detail": "Validates that the balance sheet grid was parsed with correct period alignment.",
+      "difference_pct": 0.0,
+      "lhs": 818042.0,
+      "name": "FY2025 balance sheet: total assets = total liabilities and equity",
+      "rhs": 818042.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates that the income statement and cash flow statement describe the same periods.",
+      "difference_pct": 0.0,
+      "lhs": 33364.0,
+      "name": "FY2021 net income: income statement = cash flow statement",
+      "rhs": 33364.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates that the income statement and cash flow statement describe the same periods.",
+      "difference_pct": 0.0,
+      "lhs": -2722.0,
+      "name": "FY2022 net income: income statement = cash flow statement",
+      "rhs": -2722.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates that the income statement and cash flow statement describe the same periods.",
+      "difference_pct": 0.0,
+      "lhs": 30425.0,
+      "name": "FY2023 net income: income statement = cash flow statement",
+      "rhs": 30425.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates that the income statement and cash flow statement describe the same periods.",
+      "difference_pct": 0.0,
+      "lhs": 59248.0,
+      "name": "FY2024 net income: income statement = cash flow statement",
+      "rhs": 59248.0,
+      "status": "passed"
+     },
+     {
+      "critical": false,
+      "detail": "Validates that the income statement and cash flow statement describe the same periods.",
+      "difference_pct": 0.0,
+      "lhs": 77670.0,
+      "name": "FY2025 net income: income statement = cash flow statement",
+      "rhs": 77670.0,
+      "status": "passed"
+     }
+    ],
+    "missing_fields": [],
+    "reconciliation_log": [
+     "No refinement requested by the auditor; deterministic baseline retained."
+    ],
+    "summary_may_be_stale": false,
+    "warnings": [
+     "FY2023: income tax line is presented benefit-positive; normalized to expense-positive (7,120.0).",
+     "FY2024: income tax line is presented benefit-positive; normalized to expense-positive (9,265.0).",
+     "FY2025: income tax line is presented benefit-positive; normalized to expense-positive (19,087.0).",
+     "FY2022: income tax line is presented benefit-positive; normalized to expense-positive (-3,217.0).",
+     "FY2021: income tax line is presented benefit-positive; normalized to expense-positive (4,791.0)."
+    ]
+   },
+   "earnings_quality": [
+    {
+     "accruals": -12963.0,
+     "adjustments": [],
+     "adjustments_pct_of_operating_income": null,
+     "deferred_tax_to_net_income_pct": -0.93,
+     "effective_tax_rate_pct": 12.56,
+     "fiscal_year": 2021,
+     "net_income_adjustments_total": 0.0,
+     "non_operating_income": 13272.0,
+     "non_operating_to_operating_income_pct": 53.35,
+     "normalized_net_income": 33364.0,
+     "normalized_net_margin_pct": 7.1,
+     "normalized_operating_income": 24879.0,
+     "normalized_operating_margin_pct": 5.3,
+     "operating_income_adjustments_total": 0.0,
+     "sbc_adjusted_fcf": -27483.0,
+     "sbc_to_ocf_pct": 27.54,
+     "sbc_to_operating_income_pct": 51.28,
+     "sloan_accruals_ratio_pct": null,
+     "stock_based_compensation": 12757.0
+    },
+    {
+     "accruals": -49474.0,
+     "adjustments": [],
+     "adjustments_pct_of_operating_income": null,
+     "deferred_tax_to_net_income_pct": -299.34,
+     "effective_tax_rate_pct": 54.19,
+     "fiscal_year": 2022,
+     "net_income_adjustments_total": 0.0,
+     "non_operating_income": -18184.0,
+     "non_operating_to_operating_income_pct": -148.47,
+     "normalized_net_income": -2722.0,
+     "normalized_net_margin_pct": -0.53,
+     "normalized_operating_income": 12248.0,
+     "normalized_operating_margin_pct": 2.38,
+     "operating_income_adjustments_total": 0.0,
+     "sbc_adjusted_fcf": -36514.0,
+     "sbc_to_ocf_pct": 41.97,
+     "sbc_to_operating_income_pct": 160.2,
+     "sloan_accruals_ratio_pct": -10.69,
+     "stock_based_compensation": 19621.0
+    },
+    {
+     "accruals": -54521.0,
+     "adjustments": [],
+     "adjustments_pct_of_operating_income": null,
+     "deferred_tax_to_net_income_pct": -19.31,
+     "effective_tax_rate_pct": 18.96,
+     "fiscal_year": 2023,
+     "net_income_adjustments_total": 0.0,
+     "non_operating_income": 705.0,
+     "non_operating_to_operating_income_pct": 1.91,
+     "normalized_net_income": 30425.0,
+     "normalized_net_margin_pct": 5.29,
+     "normalized_operating_income": 36852.0,
+     "normalized_operating_margin_pct": 6.41,
+     "operating_income_adjustments_total": 0.0,
+     "sbc_adjusted_fcf": 8194.0,
+     "sbc_to_ocf_pct": 28.28,
+     "sbc_to_operating_income_pct": 65.19,
+     "sloan_accruals_ratio_pct": -11.01,
+     "stock_based_compensation": 24023.0
+    },
+    {
+     "accruals": -56629.0,
+     "adjustments": [],
+     "adjustments_pct_of_operating_income": null,
+     "deferred_tax_to_net_income_pct": -7.84,
+     "effective_tax_rate_pct": 13.5,
+     "fiscal_year": 2024,
+     "net_income_adjustments_total": 0.0,
+     "non_operating_income": 21.0,
+     "non_operating_to_operating_income_pct": 0.03,
+     "normalized_net_income": 59248.0,
+     "normalized_net_margin_pct": 9.29,
+     "normalized_operating_income": 68593.0,
+     "normalized_operating_margin_pct": 10.75,
+     "operating_income_adjustments_total": 0.0,
+     "sbc_adjusted_fcf": 10867.0,
+     "sbc_to_ocf_pct": 19.0,
+     "sbc_to_operating_income_pct": 32.09,
+     "sloan_accruals_ratio_pct": -9.83,
+     "stock_based_compensation": 22011.0
+    },
+    {
+     "accruals": -61844.0,
+     "adjustments": [],
+     "adjustments_pct_of_operating_income": null,
+     "deferred_tax_to_net_income_pct": 14.77,
+     "effective_tax_rate_pct": 19.61,
+     "fiscal_year": 2025,
+     "net_income_adjustments_total": 0.0,
+     "non_operating_income": 17336.0,
+     "non_operating_to_operating_income_pct": 21.68,
+     "normalized_net_income": 77670.0,
+     "normalized_net_margin_pct": 10.83,
+     "normalized_operating_income": 79975.0,
+     "normalized_operating_margin_pct": 11.16,
+     "operating_income_adjustments_total": 0.0,
+     "sbc_adjusted_fcf": -11772.0,
+     "sbc_to_ocf_pct": 13.95,
+     "sbc_to_operating_income_pct": 24.34,
+     "sloan_accruals_ratio_pct": -8.57,
+     "stock_based_compensation": 19467.0
+    }
+   ],
+   "fiscal_year": 2025,
+   "forensic_findings": [
+    {
+     "code": "NON_CORE_INCOME_DEPENDENCE",
+     "fiscal_year": 2025,
+     "message": "NON-CORE INCOME DEPENDENCE (FY2025): Non-operating income of $17,336.0M equals 21.7% of operating income; pre-tax earnings lean on interest and other income rather than the core business.",
+     "metric": "non_operating_to_operating_income_pct",
+     "severity": "medium",
+     "threshold": 20.0,
+     "value": 21.68
+    },
+    {
+     "code": "SBC_INTENSITY",
+     "fiscal_year": 2024,
+     "message": "STOCK-BASED COMPENSATION INTENSITY (FY2024): SBC of $22,011.0M equals 19.0% of operating cash flow and 32.1% of operating income; SBC-adjusted FCF is $10,867.0M.",
+     "metric": "sbc_to_ocf_pct",
+     "severity": "medium",
+     "threshold": 15.0,
+     "value": 19.0
+    },
+    {
+     "code": "SBC_INTENSITY",
+     "fiscal_year": 2023,
+     "message": "STOCK-BASED COMPENSATION INTENSITY (FY2023): SBC of $24,023.0M equals 28.3% of operating cash flow and 65.2% of operating income; SBC-adjusted FCF is $8,194.0M.",
+     "metric": "sbc_to_ocf_pct",
+     "severity": "medium",
+     "threshold": 15.0,
+     "value": 28.28
+    },
+    {
+     "code": "TAX_ANOMALY",
+     "fiscal_year": 2022,
+     "message": "TAX ANOMALY (FY2022): Reported earnings include a deferred tax adjustment of $-8,148.0M (-299.3% of net income). Net income and margins for this year are not comparable without normalization (e.g. valuation-allowance release).",
+     "metric": "effective_tax_rate_pct",
+     "severity": "medium",
+     "threshold": null,
+     "value": 54.19
+    },
+    {
+     "code": "SBC_INTENSITY",
+     "fiscal_year": 2022,
+     "message": "STOCK-BASED COMPENSATION INTENSITY (FY2022): SBC of $19,621.0M equals 42.0% of operating cash flow and 160.2% of operating income; SBC-adjusted FCF is $-36,514.0M.",
+     "metric": "sbc_to_ocf_pct",
+     "severity": "medium",
+     "threshold": 15.0,
+     "value": 41.97
+    },
+    {
+     "code": "NON_CORE_INCOME_DEPENDENCE",
+     "fiscal_year": 2021,
+     "message": "NON-CORE INCOME DEPENDENCE (FY2021): Non-operating income of $13,272.0M equals 53.4% of operating income; pre-tax earnings lean on interest and other income rather than the core business.",
+     "metric": "non_operating_to_operating_income_pct",
+     "severity": "medium",
+     "threshold": 20.0,
+     "value": 53.35
+    },
+    {
+     "code": "SBC_INTENSITY",
+     "fiscal_year": 2021,
+     "message": "STOCK-BASED COMPENSATION INTENSITY (FY2021): SBC of $12,757.0M equals 27.5% of operating cash flow and 51.3% of operating income; SBC-adjusted FCF is $-27,483.0M.",
+     "metric": "sbc_to_ocf_pct",
+     "severity": "medium",
+     "threshold": 15.0,
+     "value": 27.54
+    }
+   ],
+   "income_statement_markdown_table": "**Year Ended December 31,**\n\n| Line item | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Net product sales | 255,887 | 272,311 | 296,266 |\n| Net service sales | 318,898 | 365,648 | 420,658 |\n| Total net sales | 574,785 | 637,959 | 716,924 |\n| **Operating expenses:** |  |  |  |\n| Cost of sales | 304,739 | 326,288 | 356,414 |\n| Fulfillment | 90,619 | 98,505 | 109,074 |\n| Technology and infrastructure | 85,622 | 88,544 | 108,521 |\n| Sales and marketing | 44,370 | 43,907 | 47,129 |\n| General and administrative | 11,816 | 11,359 | 11,172 |\n| Other operating expense (income), net | 767 | 763 | 4,639 |\n| Total operating expenses | 537,933 | 569,366 | 636,949 |\n| Operating income | 36,852 | 68,593 | 79,975 |\n| Interest income | 2,949 | 4,677 | 4,381 |\n| Interest expense | (3,182) | (2,406) | (2,274) |\n| Other income (expense), net | 938 | (2,250) | 15,229 |\n| Total non-operating income | 705 | 21 | 17,336 |\n| Income before income taxes | 37,557 | 68,614 | 97,311 |\n| Provision for income taxes | (7,120) | (9,265) | (19,087) |\n| Equity-method investment activity, net of tax | (12) | (101) | (554) |\n| Net income | 30,425 | 59,248 | 77,670 |\n| Basic earnings per share | 2.95 | 5.66 | 7.29 |\n| Diluted earnings per share | 2.90 | 5.53 | 7.17 |\n| **Weighted-average shares used in computation of earnings per share:** |  |  |  |\n| Basic | 10,304 | 10,473 | 10,656 |\n| Diluted | 10,492 | 10,721 | 10,827 |",
+   "multi_year_history": [
+    {
+     "capital_expenditures": 61053.0,
+     "depreciation_amortization": 34433.0,
+     "fcf_conversion_pct": -44.14,
+     "fcf_growth_pct": null,
+     "fiscal_year": 2021,
+     "free_cash_flow": -14726.0,
+     "gross_margin_pct": 42.03,
+     "gross_profit": 197478.0,
+     "interest_expense": 1809.0,
+     "net_income": 33364.0,
+     "net_margin_pct": 7.1,
+     "operating_cash_flow": 46327.0,
+     "operating_income": 24879.0,
+     "operating_income_growth_pct": null,
+     "operating_margin_pct": 5.3,
+     "revenue": 469822.0,
+     "revenue_growth_pct": null
+    },
+    {
+     "capital_expenditures": 63645.0,
+     "depreciation_amortization": 41921.0,
+     "fcf_conversion_pct": 620.61,
+     "fcf_growth_pct": -14.72,
+     "fiscal_year": 2022,
+     "free_cash_flow": -16893.0,
+     "gross_margin_pct": 43.81,
+     "gross_profit": 225152.0,
+     "interest_expense": 2367.0,
+     "net_income": -2722.0,
+     "net_margin_pct": -0.53,
+     "operating_cash_flow": 46752.0,
+     "operating_income": 12248.0,
+     "operating_income_growth_pct": -50.77,
+     "operating_margin_pct": 2.38,
+     "revenue": 513983.0,
+     "revenue_growth_pct": 9.4
+    },
+    {
+     "capital_expenditures": 52729.0,
+     "depreciation_amortization": 48663.0,
+     "fcf_conversion_pct": 105.89,
+     "fcf_growth_pct": 290.71,
+     "fiscal_year": 2023,
+     "free_cash_flow": 32217.0,
+     "gross_margin_pct": 46.98,
+     "gross_profit": 270046.0,
+     "interest_expense": 3182.0,
+     "net_income": 30425.0,
+     "net_margin_pct": 5.29,
+     "operating_cash_flow": 84946.0,
+     "operating_income": 36852.0,
+     "operating_income_growth_pct": 200.88,
+     "operating_margin_pct": 6.41,
+     "revenue": 574785.0,
+     "revenue_growth_pct": 11.83
+    },
+    {
+     "capital_expenditures": 82999.0,
+     "depreciation_amortization": 52795.0,
+     "fcf_conversion_pct": 55.49,
+     "fcf_growth_pct": 2.05,
+     "fiscal_year": 2024,
+     "free_cash_flow": 32878.0,
+     "gross_margin_pct": 48.85,
+     "gross_profit": 311671.0,
+     "interest_expense": 2406.0,
+     "net_income": 59248.0,
+     "net_margin_pct": 9.29,
+     "operating_cash_flow": 115877.0,
+     "operating_income": 68593.0,
+     "operating_income_growth_pct": 86.13,
+     "operating_margin_pct": 10.75,
+     "revenue": 637959.0,
+     "revenue_growth_pct": 10.99
+    },
+    {
+     "capital_expenditures": 131819.0,
+     "depreciation_amortization": 65756.0,
+     "fcf_conversion_pct": 9.91,
+     "fcf_growth_pct": -76.6,
+     "fiscal_year": 2025,
+     "free_cash_flow": 7695.0,
+     "gross_margin_pct": 50.29,
+     "gross_profit": 360510.0,
+     "interest_expense": 2274.0,
+     "net_income": 77670.0,
+     "net_margin_pct": 10.83,
+     "operating_cash_flow": 139514.0,
+     "operating_income": 79975.0,
+     "operating_income_growth_pct": 16.59,
+     "operating_margin_pct": 11.16,
+     "revenue": 716924.0,
+     "revenue_growth_pct": 12.38
+    }
+   ],
+   "profitability_and_return_ratios": {
+    "capital_basis": "average",
+    "effective_tax_rate_pct": 19.61,
+    "equity_status": "positive_book_equity",
+    "invested_capital": 295537.5,
+    "latest_gross_margin_pct": 50.29,
+    "latest_net_margin_pct": 10.83,
+    "latest_operating_margin_pct": 11.16,
+    "nopat": 64291.9,
+    "roe_pct": 22.29,
+    "roic_on_gross_capital_pct": 15.77,
+    "roic_pct": 21.75,
+    "tax_rate_source": "derived_from_10k"
+   },
+   "restatement_notes": [
+    "No retrospective restatements identified: overlapping years agree across the FY2025, FY2024, FY2023 10-K filings for all extracted line items."
+   ],
+   "share_count_history": [
+    {
+     "diluted_share_growth_pct": null,
+     "diluted_weighted_shares": 10296.0,
+     "fiscal_year": 2021,
+     "period_end_share_growth_pct": null,
+     "period_end_shares_outstanding": null
+    },
+    {
+     "diluted_share_growth_pct": -1.04,
+     "diluted_weighted_shares": 10189.0,
+     "fiscal_year": 2022,
+     "period_end_share_growth_pct": null,
+     "period_end_shares_outstanding": 10242.0
+    },
+    {
+     "diluted_share_growth_pct": 2.97,
+     "diluted_weighted_shares": 10492.0,
+     "fiscal_year": 2023,
+     "period_end_share_growth_pct": 1.38,
+     "period_end_shares_outstanding": 10383.0
+    },
+    {
+     "diluted_share_growth_pct": 2.18,
+     "diluted_weighted_shares": 10721.0,
+     "fiscal_year": 2024,
+     "period_end_share_growth_pct": 2.02,
+     "period_end_shares_outstanding": 10593.0
+    },
+    {
+     "diluted_share_growth_pct": 0.99,
+     "diluted_weighted_shares": 10827.0,
+     "fiscal_year": 2025,
+     "period_end_share_growth_pct": 1.3,
+     "period_end_shares_outstanding": 10731.0
+    }
+   ],
+   "solvency_and_liquidity_ratios": {
+    "current_ratio": 1.05,
+    "ebitda": 145731.0,
+    "net_debt_to_ebitda": -0.39,
+    "net_debt_to_ebitda_interpretation": "net_cash_surplus",
+    "total_debt_to_equity": 0.16
+   },
+   "ticker": "AMZN",
+   "working_capital": [
+    {
+     "cash_conversion_cycle_days": null,
+     "dio_change_pct": null,
+     "dio_days": null,
+     "dpo_days": null,
+     "dso_change_pct": null,
+     "dso_days": null,
+     "fiscal_year": 2021
+    },
+    {
+     "cash_conversion_cycle_days": -27.0,
+     "dio_change_pct": null,
+     "dio_days": 43.5,
+     "dpo_days": 100.6,
+     "dso_change_pct": null,
+     "dso_days": 30.1,
+     "fiscal_year": 2022
+    },
+    {
+     "cash_conversion_cycle_days": -28.7,
+     "dio_change_pct": -8.28,
+     "dio_days": 39.9,
+     "dpo_days": 101.8,
+     "dso_change_pct": 10.3,
+     "dso_days": 33.2,
+     "fiscal_year": 2023
+    },
+    {
+     "cash_conversion_cycle_days": -35.6,
+     "dio_change_pct": -4.01,
+     "dio_days": 38.3,
+     "dpo_days": 105.6,
+     "dso_change_pct": -4.52,
+     "dso_days": 31.7,
+     "fiscal_year": 2024
+    },
+    {
+     "cash_conversion_cycle_days": -51.1,
+     "dio_change_pct": 2.35,
+     "dio_days": 39.2,
+     "dpo_days": 124.8,
+     "dso_change_pct": 8.83,
+     "dso_days": 34.5,
+     "fiscal_year": 2025
+    }
+   ]
+  },
+  "forecast": {
+   "applied_drivers": {
+    "capex_path": [
+     0.1506,
+     0.146,
+     0.1413,
+     0.1367,
+     0.1321,
+     0.1274,
+     0.1228,
+     0.1182,
+     0.1135,
+     0.1089
+    ],
+    "capex_pct_of_revenue": 0.15059016434926042,
+    "da_pct_of_revenue": 0.09171962439533339,
+    "nwc_pct_of_incremental_revenue": -0.02205961643835615,
+    "operating_margin": [
+     0.1116,
+     0.1116,
+     0.1116,
+     0.1116,
+     0.1116,
+     0.1116,
+     0.1116,
+     0.1116,
+     0.1116,
+     0.1116
+    ],
+    "reinvestment_method": "value_driver_fade",
+    "revenue_growth": [
+     0.1114,
+     0.1018,
+     0.0922,
+     0.0826,
+     0.073,
+     0.0634,
+     0.0538,
+     0.0442,
+     0.0346,
+     0.025
+    ],
+    "sbc_pct_of_revenue": 0.027153505810936725,
+    "steady_state_capex_pct_of_revenue": 0.1089,
+    "tax_rate": 0.1623
+   },
+   "assumptions": {
+    "base_invested_capital": 476713.0,
+    "base_operating_margin": 0.1116,
+    "base_revenue": 716924.0,
+    "base_roic": 0.1405946626244302,
+    "base_year": 2025,
+    "capex_average_pct_of_revenue": 0.13523507154918665,
+    "capex_pct_of_revenue": 0.15059016434926042,
+    "capex_years": 3,
+    "da_pct_of_revenue": 0.09171962439533339,
+    "da_source": "reported",
+    "growth_volatility": 0.011250999955559508,
+    "historical_average_margin": 0.072,
+    "historical_cagr": 0.11143723551067208,
+    "historical_rows": [
+     {
+      "fiscal_year": 2021,
+      "operating_margin_pct": 5.3,
+      "revenue": 469822.0,
+      "revenue_growth_pct": null
+     },
+     {
+      "fiscal_year": 2022,
+      "operating_margin_pct": 2.38,
+      "revenue": 513983.0,
+      "revenue_growth_pct": 9.4
+     },
+     {
+      "fiscal_year": 2023,
+      "operating_margin_pct": 6.41,
+      "revenue": 574785.0,
+      "revenue_growth_pct": 11.83
+     },
+     {
+      "fiscal_year": 2024,
+      "operating_margin_pct": 10.75,
+      "revenue": 637959.0,
+      "revenue_growth_pct": 10.99
+     },
+     {
+      "fiscal_year": 2025,
+      "operating_margin_pct": 11.16,
+      "revenue": 716924.0,
+      "revenue_growth_pct": 12.38
+     }
+    ],
+    "history_years": 5,
+    "latest_capex_pct_of_revenue": 0.18386746712343288,
+    "latest_revenue_growth": 0.12380000000000001,
+    "margin_source": "reported",
+    "margin_trend": "expanding",
+    "nwc_pct_of_incremental_revenue": -0.02205961643835615,
+    "nwc_source": "working_capital_days",
+    "sbc_pct_of_revenue": 0.027153505810936725,
+    "sbc_source": "reported",
+    "steady_state_ronic": 0.1405946626244302,
+    "steady_state_ronic_source": "base_roic",
+    "tax_rate": 0.1623,
+    "tax_source": "median_effective",
+    "warnings": []
+   },
+   "average_annual_fcf": 66412.6,
+   "base_revenue": 716924.0,
+   "citations": [],
+   "cumulative_fcf": 664125.99,
+   "diagnostics": {
+    "base_roic_pct": 14.06,
+    "fade_extended": false,
+    "final_year_growth_pct": 2.5,
+    "final_year_reinvestment_rate_pct": 17.8,
+    "implied_fundamental_growth_pct": 2.5,
+    "ronic_pct": 16.04,
+    "steady_state_ronic_pct": 14.06,
+    "target_reinvestment_rate_pct": 17.78,
+    "terminal_growth_pct": 2.5,
+    "warnings": []
+   },
+   "driver_adjustments": [],
+   "fiscal_year": 2025,
+   "forecast_horizon_years": 10,
+   "forecast_schedule": [
+    {
+     "projected_capex": 119996.47,
+     "projected_depreciation": 73081.22,
+     "projected_ebit": 88921.69,
+     "projected_ebit_margin_pct": 11.16,
+     "projected_nopat": 74489.7,
+     "projected_nwc_change": -1761.8,
+     "projected_revenue": 796789.33,
+     "projected_revenue_growth_pct": 11.14,
+     "projected_sbc": 21635.62,
+     "projected_unlevered_fcf": 29336.24,
+     "projected_year": 2026
+    },
+    {
+     "projected_capex": 128173.76,
+     "projected_depreciation": 80520.89,
+     "projected_ebit": 97973.92,
+     "projected_ebit_margin_pct": 11.16,
+     "projected_nopat": 82072.75,
+     "projected_nwc_change": -1789.33,
+     "projected_revenue": 877902.49,
+     "projected_revenue_growth_pct": 10.18,
+     "projected_sbc": 23838.13,
+     "projected_unlevered_fcf": 36209.2,
+     "projected_year": 2027
+    },
+    {
+     "projected_capex": 135484.81,
+     "projected_depreciation": 87944.91,
+     "projected_ebit": 107007.11,
+     "projected_ebit_margin_pct": 11.16,
+     "projected_nopat": 89639.86,
+     "projected_nwc_change": -1785.56,
+     "projected_revenue": 958845.1,
+     "projected_revenue_growth_pct": 9.22,
+     "projected_sbc": 26036.01,
+     "projected_unlevered_fcf": 43885.52,
+     "projected_year": 2028
+    },
+    {
+     "projected_capex": 141900.85,
+     "projected_depreciation": 95209.16,
+     "projected_ebit": 115845.9,
+     "projected_ebit_margin_pct": 11.16,
+     "projected_nopat": 97044.11,
+     "projected_nwc_change": -1747.13,
+     "projected_revenue": 1038045.7,
+     "projected_revenue_growth_pct": 8.26,
+     "projected_sbc": 28186.58,
+     "projected_unlevered_fcf": 52099.56,
+     "projected_year": 2029
+    },
+    {
+     "projected_capex": 147136.02,
+     "projected_depreciation": 102159.43,
+     "projected_ebit": 124302.65,
+     "projected_ebit_margin_pct": 11.16,
+     "projected_nopat": 104128.33,
+     "projected_nwc_change": -1671.62,
+     "projected_revenue": 1113823.04,
+     "projected_revenue_growth_pct": 7.3,
+     "projected_sbc": 30244.2,
+     "projected_unlevered_fcf": 60823.36,
+     "projected_year": 2030
+    },
+    {
+     "projected_capex": 150897.58,
+     "projected_depreciation": 108636.34,
+     "projected_ebit": 132183.44,
+     "projected_ebit_margin_pct": 11.16,
+     "projected_nopat": 110730.07,
+     "projected_nwc_change": -1557.77,
+     "projected_revenue": 1184439.42,
+     "projected_revenue_growth_pct": 6.34,
+     "projected_sbc": 32161.68,
+     "projected_unlevered_fcf": 70026.59,
+     "projected_year": 2031
+    },
+    {
+     "projected_capex": 153274.33,
+     "projected_depreciation": 114480.97,
+     "projected_ebit": 139294.91,
+     "projected_ebit_margin_pct": 11.16,
+     "projected_nopat": 116687.34,
+     "projected_nwc_change": -1405.7,
+     "projected_revenue": 1248162.26,
+     "projected_revenue_growth_pct": 5.38,
+     "projected_sbc": 33891.98,
+     "projected_unlevered_fcf": 79299.69,
+     "projected_year": 2032
+    },
+    {
+     "projected_capex": 154053.73,
+     "projected_depreciation": 119541.03,
+     "projected_ebit": 145451.74,
+     "projected_ebit_margin_pct": 11.16,
+     "projected_nopat": 121844.93,
+     "projected_nwc_change": -1217.0,
+     "projected_revenue": 1303331.03,
+     "projected_revenue_growth_pct": 4.42,
+     "projected_sbc": 35390.01,
+     "projected_unlevered_fcf": 88549.23,
+     "projected_year": 2033
+    },
+    {
+     "projected_capex": 153046.38,
+     "projected_depreciation": 123677.15,
+     "projected_ebit": 150484.37,
+     "projected_ebit_margin_pct": 11.16,
+     "projected_nopat": 126060.76,
+     "projected_nwc_change": -994.78,
+     "projected_revenue": 1348426.29,
+     "projected_revenue_growth_pct": 3.46,
+     "projected_sbc": 36614.5,
+     "projected_unlevered_fcf": 97686.31,
+     "projected_year": 2034
+    },
+    {
+     "projected_capex": 150514.71,
+     "projected_depreciation": 126769.08,
+     "projected_ebit": 154246.48,
+     "projected_ebit_margin_pct": 11.16,
+     "projected_nopat": 129212.28,
+     "projected_nwc_change": -743.64,
+     "projected_revenue": 1382136.94,
+     "projected_revenue_growth_pct": 2.5,
+     "projected_sbc": 37529.86,
+     "projected_unlevered_fcf": 106210.29,
+     "projected_year": 2035
+    }
+   ],
+   "forecast_table_markdown": "| Metric ($ Millions) | FY2021A | FY2022A | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $469,822 | $513,983 | $574,785 | $637,959 | $716,924 | $796,789 | $877,902 | $958,845 | $1,038,046 | $1,113,823 | $1,184,439 | $1,248,162 | $1,303,331 | $1,348,426 | $1,382,137 |\n| Revenue Growth YoY | — | +9.4% | +11.8% | +11.0% | +12.4% | +11.1% | +10.2% | +9.2% | +8.3% | +7.3% | +6.3% | +5.4% | +4.4% | +3.5% | +2.5% |\n| Operating Income (EBIT) | — | — | — | — | — | $88,922 | $97,974 | $107,007 | $115,846 | $124,303 | $132,183 | $139,295 | $145,452 | $150,484 | $154,246 |\n| Operating Margin | 5.3% | 2.4% | 6.4% | 10.8% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% |\n| NOPAT (Effective Tax 16.2%) | — | — | — | — | — | $74,490 | $82,073 | $89,640 | $97,044 | $104,128 | $110,730 | $116,687 | $121,845 | $126,061 | $129,212 |\n| Capital Expenditures | — | — | — | — | — | $119,996 | $128,174 | $135,485 | $141,901 | $147,136 | $150,898 | $153,274 | $154,054 | $153,046 | $150,515 |\n| Depreciation & Amortization | — | — | — | — | — | $73,081 | $80,521 | $87,945 | $95,209 | $102,159 | $108,636 | $114,481 | $119,541 | $123,677 | $126,769 |\n| Change in Working Capital (ΔNWC) | — | — | — | — | — | $-1,762 | $-1,789 | $-1,786 | $-1,747 | $-1,672 | $-1,558 | $-1,406 | $-1,217 | $-995 | $-744 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | — | — | $21,636 | $23,838 | $26,036 | $28,187 | $30,244 | $32,162 | $33,892 | $35,390 | $36,614 | $37,530 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | — | — | **$29,336** | **$36,209** | **$43,886** | **$52,100** | **$60,823** | **$70,027** | **$79,300** | **$88,549** | **$97,686** | **$106,210** |",
+   "growth_rationale": "Item 7 gave 3 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 11.14% in year 1 to 2.50% in year 10, against 2.50% terminal growth.",
+   "guidance_source": "historical_fade",
+   "margin_rationale": "Operating margin moves from the reported base of 11.16% to 11.16% by year 10.",
+   "mdna_assessment": {
+    "chunk_count": 6,
+    "forward_looking_count": 3,
+    "is_informative": false,
+    "quantified_guidance": []
+   },
+   "projected_fcfs": [
+    29336.24,
+    36209.2,
+    43885.52,
+    52099.56,
+    60823.36,
+    70026.59,
+    79299.69,
+    88549.23,
+    97686.31,
+    106210.29
+   ],
+   "reinvestment_rationale": "CapEx starts at 15.06% of revenue from the recency-weighted 3-year audited level (latest year 18.39%, simple average 13.52%) and fades to a 10.89% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 14.1% return on new capital (base roic) = 17.8% of NOPAT; D&A is held at 9.17% (reported); working capital at -2.21% of incremental revenue (working_capital_days); SBC at 2.72% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.",
+   "revenue_cagr_pct": 6.78,
+   "scenarios": [
+    {
+     "cumulative_fcf": 809375.78,
+     "name": "bull",
+     "operating_margin_pct": [
+      12.16,
+      12.16,
+      12.16,
+      12.16,
+      12.16,
+      12.16,
+      12.16,
+      12.16,
+      12.16,
+      12.16
+     ],
+     "probability": 0.25,
+     "projected_fcfs": [
+      36943.57,
+      45262.03,
+      54356.7,
+      64292.43,
+      74816.11,
+      85577.59,
+      96560.28,
+      107330.28,
+      117428.1,
+      126808.69
+     ],
+     "revenue_cagr_pct": 7.77,
+     "revenue_growth_pct": [
+      13.14,
+      11.96,
+      10.78,
+      9.59,
+      8.41,
+      7.23,
+      6.05,
+      4.86,
+      3.68,
+      2.5
+     ]
+    },
+    {
+     "cumulative_fcf": 664125.99,
+     "name": "base",
+     "operating_margin_pct": [
+      11.16,
+      11.16,
+      11.16,
+      11.16,
+      11.16,
+      11.16,
+      11.16,
+      11.16,
+      11.16,
+      11.16
+     ],
+     "probability": 0.5,
+     "projected_fcfs": [
+      29336.24,
+      36209.2,
+      43885.52,
+      52099.56,
+      60823.36,
+      70026.59,
+      79299.69,
+      88549.23,
+      97686.31,
+      106210.29
+     ],
+     "revenue_cagr_pct": 6.78,
+     "revenue_growth_pct": [
+      11.14,
+      10.18,
+      9.22,
+      8.26,
+      7.3,
+      6.34,
+      5.38,
+      4.42,
+      3.46,
+      2.5
+     ]
+    },
+    {
+     "cumulative_fcf": 495048.22,
+     "name": "bear",
+     "operating_margin_pct": [
+      9.66,
+      9.66,
+      9.66,
+      9.66,
+      9.66,
+      9.66,
+      9.66,
+      9.66,
+      9.66,
+      9.66
+     ],
+     "probability": 0.25,
+     "projected_fcfs": [
+      18691.84,
+      24300.99,
+      30509.14,
+      37271.34,
+      44510.03,
+      52024.65,
+      59915.64,
+      67957.38,
+      75994.48,
+      83872.73
+     ],
+     "revenue_cagr_pct": 5.8,
+     "revenue_growth_pct": [
+      9.14,
+      8.4,
+      7.66,
+      6.93,
+      6.19,
+      5.45,
+      4.71,
+      3.98,
+      3.24,
+      2.5
+     ]
+    }
+   ],
+   "tax_rate_pct": 16.23,
+   "ticker": "AMZN"
+  },
+  "pipeline_notes": [],
+  "risk_audit": {
+   "citations": [],
+   "data_quality": {
+    "chars_read": 62620,
+    "coverage_mode": "full_section",
+    "item1a_chunks": 40,
+    "notes": [
+     "llm_output_missing: the model returned no parsable risk inventory.",
+     "Only 0 risks survived evidence verification (target 5-8)."
+    ],
+    "prior_fiscal_year": 2024,
+    "quantified_disclosures": 0,
+    "quantified_uncovered": [],
+    "quotes_rejected": 0,
+    "risks_dropped_unverified": 0,
+    "risks_merged": 0,
+    "risks_proposed": 0,
+    "section_located_by": "item_label"
+   },
+   "disclosure_changes": {
+    "change_ratio_pct": 5.9,
+    "current_sentences": 270,
+    "modified_sentences": 11,
+    "new_passages": [
+     {
+      "chunk_id": "20530ea7-0288-492b-9198-5849bab15616",
+      "similarity": 0.025,
+      "text": "The disclosures in this section reflect our beliefs and opinions as to factors that could materially and adversely affect us in the future. References to past events are provided by way of example only and are not intended to be a complete listing or a representation as to whether or not such factors have occurred in the past."
+     },
+     {
+      "chunk_id": "acb685ff-97df-464c-9b79-21bf7f60e692",
+      "similarity": 0.104,
+      "text": "the extent to which operators of networks, systems, and services between us and customers successfully divert customers from or charge fees to access our stores and service offerings;"
+     },
+     {
+      "chunk_id": "43d2567b-8194-4292-9fd8-8a1d21d9391a",
+      "similarity": 0.25,
+      "text": "There can be no assurance that we will be able to operate our networks effectively."
+     },
+     {
+      "chunk_id": "4ca99f28-dd70-4a35-850b-1929c1e99f84",
+      "similarity": 0.206,
+      "text": "Legal and Regulatory Risks Government Regulation Is Evolving and Unfavorable Changes Could Harm Our Business"
+     }
+    ],
+    "new_sentences": 5,
+    "prior_fiscal_year": 2024,
+    "prior_sentences": 272,
+    "removed_passages": [
+     {
+      "chunk_id": "1d2b325b-6117-4349-998b-be93d3713737",
+      "similarity": 0.182,
+      "text": "Although we believe these structures and activities comply with existing 7 Table of Contents"
+     },
+     {
+      "chunk_id": "a8407ba1-1a51-4e0d-862b-3d954f6285cc",
+      "similarity": 0.297,
+      "text": "We Face Risks Related to Adequately Protecting Our Intellectual Property Rights and Being Accused of Infringing Intellectual Property Rights of Third Parties"
+     },
+     {
+      "chunk_id": "f598f7a3-1b0e-4d5c-aa25-f599a1b081f7",
+      "similarity": 0.267,
+      "text": "Our revenue growth may not be sustainable, and our percentage growth rates may decrease."
+     },
+     {
+      "chunk_id": "e9f45ad9-c74d-4548-8689-ab7cf62cb4a3",
+      "similarity": 0.104,
+      "text": "the extent to which operators of the networks between our customers and our stores successfully charge fees to grant our customers unimpaired and unconstrained access to our online services;"
+     },
+     {
+      "chunk_id": "c5ad27c2-84b7-4a2d-bd20-b38c538a3a8f",
+      "similarity": 0.217,
+      "text": "We Face Risks Related to Successfully Optimizing and Operating Our Fulfillment Network and Data Centers"
+     },
+     {
+      "chunk_id": "3376a855-6c0f-4ad6-bf54-574725835e76",
+      "similarity": 0.155,
+      "text": "We Face Risks Related to System Interruption and Lack of Redundancy"
+     }
+    ],
+    "removed_sentences": 6,
+    "unchanged_sentences": 254
+   },
+   "evidence_table_markdown": "_No verified filing evidence._",
+   "fiscal_year": 2025,
+   "identified_risks": [],
+   "overall_risk_profile": "Not Assessed",
+   "primary_existential_threat": "",
+   "primary_threat_risk_id": null,
+   "risk_matrix_markdown": "_No risks survived evidence verification against the filing._",
+   "ticker": "AMZN"
+  },
+  "routing_plan": {
+   "active_agents": [
+    "business_strategist",
+    "financial_auditor",
+    "risk_analyst",
+    "forecasting_analyst",
+    "valuation_specialist",
+    "lead_synthesizer"
+   ],
+   "available_fiscal_years": [
+    2025,
+    2024,
+    2023,
+    2022,
+    2021
+   ],
+   "company_name": "AMAZON.COM, INC.",
+   "conversational_response": null,
+   "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+   "fiscal_year": 2025,
+   "parameter_notes": [],
+   "query_type": "full_10k_report",
+   "routing_provenance": "llm_inferred",
+   "ticker": "AMZN",
+   "updated_session_state": {
+    "active_company": "AMAZON.COM, INC.",
+    "active_fiscal_year": 2025,
+    "active_ticker": "AMZN",
+    "available_fiscal_years": [
+     2025,
+     2024,
+     2023,
+     2022,
+     2021
+    ],
+    "last_query_type": "full_10k_report"
+   },
+   "valuation_overrides": {},
+   "year_requested": 2025,
+   "year_substituted": false
+  },
+  "sources": [
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "chunk_index": 130,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "chunk_index": 132,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "chunk_index": 129,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": "Computed from the audited income statement, balance sheet and cash flow statement",
+    "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 1,
+    "provider": null,
+    "quote": null,
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [],
+    "derived_from": null,
+    "document_id": null,
+    "fiscal_year": null,
+    "kind": "market",
+    "label": "Share price",
+    "n": 2,
+    "provider": "yfinance_live",
+    "quote": null,
+    "ticker": null
+   },
+   {
+    "chunks": [],
+    "derived_from": null,
+    "document_id": null,
+    "fiscal_year": null,
+    "kind": "market",
+    "label": "Risk-free rate",
+    "n": 3,
+    "provider": "us_10y_treasury_live",
+    "quote": null,
+    "ticker": null
+   },
+   {
+    "chunks": [],
+    "derived_from": null,
+    "document_id": null,
+    "fiscal_year": null,
+    "kind": "market",
+    "label": "Equity risk premium",
+    "n": 4,
+    "provider": "damodaran_implied_sp500_2026-07",
+    "quote": null,
+    "ticker": null
+   },
+   {
+    "chunks": [],
+    "derived_from": null,
+    "document_id": null,
+    "fiscal_year": null,
+    "kind": "market",
+    "label": "Beta",
+    "n": 5,
+    "provider": "yfinance_raw",
+    "quote": null,
+    "ticker": null
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "chunk_index": 132,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": "Computed from the audited balance sheet",
+    "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 6,
+    "provider": null,
+    "quote": null,
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6",
+      "chunk_index": 203,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": "Reported in the segment note (ASC 280)",
+    "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 7,
+    "provider": null,
+    "quote": null,
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e",
+      "chunk_index": 204,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": "Reported in the revenue disaggregation table (ASC 606)",
+    "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 8,
+    "provider": null,
+    "quote": null,
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "chunk_index": 130,
+      "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+      "fiscal_year": 2023,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "chunk_index": 131,
+      "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+      "fiscal_year": 2024,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "chunk_index": 130,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": "Computed from the audited income statement",
+    "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+    "fiscal_year": 2023,
+    "kind": "derived",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 9,
+    "provider": null,
+    "quote": null,
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+      "chunk_index": 129,
+      "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+      "fiscal_year": 2023,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+      "chunk_index": 130,
+      "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+      "fiscal_year": 2024,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "chunk_index": 129,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": "Computed from the audited cash flow statement",
+    "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+    "fiscal_year": 2023,
+    "kind": "derived",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 10,
+    "provider": null,
+    "quote": null,
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+      "chunk_index": 129,
+      "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+      "fiscal_year": 2023,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+      "chunk_index": 130,
+      "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+      "fiscal_year": 2024,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "chunk_index": 129,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "chunk_index": 130,
+      "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+      "fiscal_year": 2023,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "chunk_index": 131,
+      "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+      "fiscal_year": 2024,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "chunk_index": 130,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": "Computed from the audited cash flow statement and income statement",
+    "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+    "fiscal_year": 2023,
+    "kind": "derived",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 11,
+    "provider": null,
+    "quote": null,
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
+      "chunk_index": 130,
+      "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+      "fiscal_year": 2023,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "b2c88356-1006-4ba4-a827-99321b792dd7",
+      "chunk_index": 131,
+      "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+      "fiscal_year": 2024,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "chunk_index": 130,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "dd6824ea-b18b-4827-8e14-15a4de7406b8",
+      "chunk_index": 129,
+      "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+      "fiscal_year": 2023,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "4556e370-ff87-42de-828d-2df649d49daa",
+      "chunk_index": 130,
+      "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+      "fiscal_year": 2024,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "chunk_index": 129,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "f3112e78-c845-4aae-a526-ed1cfa6f68c0",
+      "chunk_index": 132,
+      "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+      "fiscal_year": 2023,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2024 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "52e85480-5719-418b-8025-cc6513cb1213",
+      "chunk_index": 133,
+      "document_id": "5116a6db-895e-406c-a0b2-ba4ecebeb4d7",
+      "fiscal_year": 2024,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "chunk_index": 132,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": "Computed from the audited income statement, cash flow statement and balance sheet",
+    "document_id": "9fd9e0dc-92af-4e08-843b-d05dc82cd904",
+    "fiscal_year": 2023,
+    "kind": "derived",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 12,
+    "provider": null,
+    "quote": null,
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "chunk_index": 130,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "b41691fb-d31e-4328-ad4f-1642a9929efd",
+      "chunk_index": 129,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": "Computed from the audited income statement and cash flow statement",
+    "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 13,
+    "provider": null,
+    "quote": null,
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "chunk_index": 130,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": "Computed from the audited income statement",
+    "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 14,
+    "provider": null,
+    "quote": null,
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "e063c1be-635e-4348-b315-e8382582939a",
+      "chunk_index": 130,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     },
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+      "chunk_id": "848c19d6-d3aa-46af-bcaa-8f6ca497840a",
+      "chunk_index": 132,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 8",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": "Computed from the audited income statement and balance sheet",
+    "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+    "fiscal_year": 2025,
+    "kind": "derived",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
+    "n": 15,
+    "provider": null,
+    "quote": null,
+    "ticker": "AMZN"
+   }
+  ],
+  "updated_session_state": {
+   "active_company": "AMAZON.COM, INC.",
+   "active_fiscal_year": 2025,
+   "active_ticker": "AMZN",
+   "available_fiscal_years": [
+    2025,
+    2024,
+    2023,
+    2022,
+    2021
+   ],
+   "last_query_type": "full_10k_report"
+  }
+ },
+ "scenario": "full_amzn_2025"
+}

@@ -1,0 +1,141 @@
+{
+ "events": [
+  {
+   "message": "Analyzing research inquiry & context...",
+   "node": "supervisor",
+   "type": "status"
+  },
+  {
+   "details": {
+    "fiscal_year": 2025,
+    "query_type": "risk_factors_only",
+    "ticker": "TSLA",
+    "valuation_overrides": {},
+    "year_substituted": false
+   },
+   "message": "Resolved filing: TSLA FY2025 | Route: risk_factors_only",
+   "node": "supervisor",
+   "type": "status"
+  },
+  {
+   "message": "Analyzed Item 1A risks & threats (0 verified risks, 0 severe; full-section read; no prior-year baseline)",
+   "node": "risk_analyst",
+   "type": "status"
+  },
+  {
+   "message": "Synthesized 3-Pillar Thesis and compiled final publication report.",
+   "node": "lead_synthesizer",
+   "type": "status"
+  },
+  {
+   "response": "# Material Risk Factors & Existential Overhangs: Tesla, Inc. (TSLA)\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: not assessed\n\n## 1. Risk Summary\n\nRisk disclosures focus on competition and regulation.\n\n## 2. Verified Risk Matrix\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\n## 3. Risk-by-Risk Assessment\n\n## 4. Primary Existential Threat & Bear-Case Linkage\n\nA demand slowdown is the main bear case.\n\n## 5. Year-over-Year Disclosure Changes\n\nNo prior-year Item 1A was available, so year-over-year disclosure changes were not assessed.\n\n## 6. Filing Evidence & Audit Trail\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "sources": [],
+   "type": "result",
+   "updated_session_state": {
+    "active_company": "Tesla, Inc.",
+    "active_fiscal_year": 2025,
+    "active_ticker": "TSLA",
+    "available_fiscal_years": [
+     2025
+    ],
+    "last_query_type": "risk_factors_only"
+   }
+  }
+ ],
+ "outputs": {
+  "business_moat": null,
+  "conversational_response": null,
+  "dcf_valuation": null,
+  "error_message": null,
+  "final_report": {
+   "company_name": "Tesla, Inc.",
+   "current_share_price": null,
+   "executive_summary": "The filing supports a balanced view of the business.",
+   "fiscal_year": 2025,
+   "full_markdown_report": "# Material Risk Factors & Existential Overhangs: Tesla, Inc. (TSLA)\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: not assessed\n\n## 1. Risk Summary\n\nRisk disclosures focus on competition and regulation.\n\n## 2. Verified Risk Matrix\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\n## 3. Risk-by-Risk Assessment\n\n## 4. Primary Existential Threat & Bear-Case Linkage\n\nA demand slowdown is the main bear case.\n\n## 5. Year-over-Year Disclosure Changes\n\nNo prior-year Item 1A was available, so year-over-year disclosure changes were not assessed.\n\n## 6. Filing Evidence & Audit Trail\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "implied_fair_value_per_share": null,
+   "sources": [],
+   "synthesis_provenance": "llm_structured",
+   "three_pillar_thesis": {
+    "pillar_1_business_moat": "The business relies on its installed base and its brand.",
+    "pillar_2_financial_durability": "Cash generation covers reinvestment needs.",
+    "pillar_3_valuation_asymmetry": "The valuation case rests on the base-case cash flows."
+   },
+   "ticker": "TSLA",
+   "upside_downside_pct": null,
+   "valuation_stance": null,
+   "year_substituted": false
+  },
+  "financial_audit": null,
+  "forecast": null,
+  "pipeline_notes": [],
+  "risk_audit": {
+   "citations": [],
+   "data_quality": {
+    "chars_read": 86213,
+    "coverage_mode": "full_section",
+    "item1a_chunks": 58,
+    "notes": [
+     "llm_output_missing: the model returned no parsable risk inventory.",
+     "Only 0 risks survived evidence verification (target 5-8)."
+    ],
+    "prior_fiscal_year": null,
+    "quantified_disclosures": 0,
+    "quantified_uncovered": [],
+    "quotes_rejected": 0,
+    "risks_dropped_unverified": 0,
+    "risks_merged": 0,
+    "risks_proposed": 0,
+    "section_located_by": "item_label"
+   },
+   "disclosure_changes": null,
+   "evidence_table_markdown": "_No verified filing evidence._",
+   "fiscal_year": 2025,
+   "identified_risks": [],
+   "overall_risk_profile": "Not Assessed",
+   "primary_existential_threat": "",
+   "primary_threat_risk_id": null,
+   "risk_matrix_markdown": "_No risks survived evidence verification against the filing._",
+   "ticker": "TSLA"
+  },
+  "routing_plan": {
+   "active_agents": [
+    "risk_analyst"
+   ],
+   "available_fiscal_years": [
+    2025
+   ],
+   "company_name": "Tesla, Inc.",
+   "conversational_response": null,
+   "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+   "fiscal_year": 2025,
+   "parameter_notes": [],
+   "query_type": "risk_factors_only",
+   "routing_provenance": "llm_inferred",
+   "ticker": "TSLA",
+   "updated_session_state": {
+    "active_company": "Tesla, Inc.",
+    "active_fiscal_year": 2025,
+    "active_ticker": "TSLA",
+    "available_fiscal_years": [
+     2025
+    ],
+    "last_query_type": "risk_factors_only"
+   },
+   "valuation_overrides": {},
+   "year_requested": null,
+   "year_substituted": false
+  },
+  "sources": [],
+  "updated_session_state": {
+   "active_company": "Tesla, Inc.",
+   "active_fiscal_year": 2025,
+   "active_ticker": "TSLA",
+   "available_fiscal_years": [
+    2025
+   ],
+   "last_query_type": "risk_factors_only"
+  }
+ },
+ "scenario": "risk_tsla_2025"
+}
