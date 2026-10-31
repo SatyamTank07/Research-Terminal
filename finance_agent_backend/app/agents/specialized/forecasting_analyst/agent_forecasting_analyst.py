@@ -21,6 +21,7 @@ from langchain_core.tools import StructuredTool
 from pydantic import ValidationError
 
 from app.agents.base import StructuredAgent
+from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
@@ -497,3 +498,27 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
                 seen.add(cid)
                 out.append(known[cid])
         return out
+
+
+def forecast_cash_flows(run: RunContext, upstream: Upstream) -> ForecastOutput:
+    """Pipeline entry: UFCF forecast from the audit, guided by moat and risk when they ran."""
+    return ForecastingAnalystAgent().forecast(
+        ticker=run.ticker,
+        fiscal_year=run.fiscal_year,
+        financial_audit=upstream.get("financial_audit"),
+        business_moat=upstream.get("business_moat"),
+        risk_audit=upstream.get("risk_audit"),
+        terminal_growth=run.terminal_growth_rate,
+        callbacks=run.callbacks,
+    )
+
+
+def summarize_forecast(fc: Optional[ForecastOutput]) -> StatusLine:
+    if fc is None:
+        return "Forecast unavailable", None
+    source = "MD&A-informed" if fc.guidance_source == "mdna_informed" else "historical fade"
+    return (
+        f"Built {fc.forecast_horizon_years}-year UFCF forecast ({source}, revenue CAGR "
+        f"{fc.revenue_cagr_pct:.1f}%, {len(fc.scenarios)} scenarios)",
+        None,
+    )

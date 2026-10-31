@@ -12,10 +12,12 @@ from datetime import date
 from typing import Any, List, Optional
 
 from app.agents.base import StructuredAgent
+from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
 from app.agents.specialized.prompts import render_prompt
+from app.agents.specialized.valuation_specialist.context import balance_sheet_date, market_inputs
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
 from app.agents.tools.valuation_model import MarketInputs, ValuationBuild, build_valuation
 
@@ -135,3 +137,41 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
         if v.data_quality.warnings:
             paragraphs.append("Caveats: " + " ".join(v.data_quality.warnings))
         return "\n\n".join(paragraphs)
+
+
+def value_equity(run: RunContext, upstream: Upstream) -> DCFValuationOutput:
+    """Pipeline entry: CAPM WACC, DCF, scenarios and sensitivity at today's market inputs."""
+    market = market_inputs(run.ticker, run.valuation_overrides)
+    bs_date = balance_sheet_date(run.ticker, run.fiscal_year)
+    user_wacc = run.valuation_overrides.get("wacc")
+    wacc_label = f"{user_wacc * 100:.2f}%" if user_wacc is not None else "CAPM"
+    logger.info(
+        f"[valuation_specialist] Valuing {run.ticker} (price=${market.share_price} [{market.share_price_source}], "
+        f"beta={market.beta} [{market.beta_source}], rf={market.risk_free_rate} [{market.risk_free_rate_source}], "
+        f"g={run.terminal_growth_rate * 100:.1f}%, balance_sheet_date={bs_date}, user_wacc={wacc_label})"
+    )
+    return ValuationSpecialistAgent().value(
+        ticker=run.ticker,
+        fiscal_year=run.fiscal_year,
+        financial_audit=upstream.get("financial_audit"),
+        forecast=upstream.get("forecast"),
+        market=market,
+        terminal_growth_rate=run.terminal_growth_rate,
+        wacc_override=user_wacc,
+        valuation_date=run.valuation_date,
+        balance_sheet_date=bs_date,
+        callbacks=run.callbacks,
+    )
+
+
+def summarize_valuation(val: Optional[DCFValuationOutput]) -> StatusLine:
+    if val is None:
+        return "Valuation unavailable", None
+    message = (
+        f"Discounted at {val.wacc_audit.wacc_pct:.2f}% "
+        f"({'user override' if val.wacc_audit.wacc_source == 'user_override' else 'CAPM WACC'}); "
+        f"base-case DCF fair value ${val.implied_fair_value_per_share:.2f}/share"
+    )
+    if val.bear_fair_value is not None and val.bull_fair_value is not None:
+        message += f" (bear ${val.bear_fair_value:.2f} - bull ${val.bull_fair_value:.2f})"
+    return message, None

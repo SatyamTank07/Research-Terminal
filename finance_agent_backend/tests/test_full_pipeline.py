@@ -1,7 +1,7 @@
 """End-to-End Pipeline & Integration Tests for Milestone 6 (Part 2).
 
 Validates:
-1. LangGraph StateGraph structure and compilation via build_equity_research_graph().
+1. LangGraph StateGraph structure and compilation via build_graph().
 2. MultiAgentOrchestrator registration and BaseAgent interface compatibility.
 3. Fast-Path DCF valuation execution on Tesla (TSLA FY2025):
    - Confirms skipping qualitative branches (business moat & risk factors remain None).
@@ -18,26 +18,15 @@ Validates:
 import asyncio
 import unittest
 from unittest.mock import MagicMock, patch
-from app.agents import AgentRegistry, MultiAgentOrchestrator, build_equity_research_graph
-from app.agents.specialized.business_strategist import BusinessStrategistAgent
-from app.agents.specialized.financial_auditor import FinancialAuditorAgent
-from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
-from app.agents.specialized.lead_synthesizer import LeadSynthesizerAgent
-from app.agents.specialized.risk_analyst import RiskAnalystAgent
+from app.agents import AgentRegistry, MultiAgentOrchestrator, build_graph
+from app.agents.specialized.business_strategist import BusinessMoatOutput, BusinessStrategistAgent
+from app.agents.specialized.financial_auditor import FinancialAuditOutput, FinancialAuditorAgent
+from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent, ForecastOutput
+from app.agents.specialized.lead_synthesizer import Final10KResearchReport, LeadSynthesizerAgent, ThreePillarThesis
+from app.agents.specialized.risk_analyst import RiskAnalystAgent, RiskAuditOutput, RiskItem
 from app.agents.specialized.supervisor import SupervisorAgent
 from app.agents.specialized.supervisor.agent_supervisor import SupervisorExtraction
-from app.agents.specialized.valuation_specialist import ValuationSpecialistAgent
-from app.agents.state import (
-    BusinessMoatOutput,
-    DCFValuationOutput,
-    EquityResearchState,
-    Final10KResearchReport,
-    FinancialAuditOutput,
-    ForecastOutput,
-    RiskAuditOutput,
-    RiskItem,
-    ThreePillarThesis,
-)
+from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
 from app.agents.tools.financial_math_tools import (
     AnnualFinancialInput,
     BalanceSheetInput,
@@ -282,8 +271,9 @@ class TestMilestone6FullPipeline(unittest.TestCase):
         }
 
         cls.patches = [
-            patch("app.agents.orchestrator.fetch_market_context", return_value=cls.mock_market),
-            patch("app.agents.orchestrator._balance_sheet_date", return_value="2025-12-31"),
+            patch("app.agents.specialized.valuation_specialist.context.fetch_market_context", return_value=cls.mock_market),
+            patch("app.agents.specialized.valuation_specialist.agent_valuation_specialist.balance_sheet_date",
+                  return_value="2025-12-31"),
             patch("app.agents.tools.rag_narrative_tools._get_embedder", return_value=cls.mock_embedder),
             patch.object(SupervisorAgent, "_extract_with_llm", side_effect=cls._mock_supervisor_extract),
             patch.object(BusinessStrategistAgent, "analyze", side_effect=cls._mock_moat_analyze),
@@ -301,9 +291,22 @@ class TestMilestone6FullPipeline(unittest.TestCase):
         for p in reversed(cls.patches):
             p.stop()
 
+    @staticmethod
+    def _view(state) -> dict:
+        """Flat view of the run state for assertions."""
+        turn, outputs = state["run"], state.get("outputs") or {}
+        ctx = turn.run_context
+        return {
+            "ticker": ctx.ticker if ctx else None,
+            "fiscal_year": ctx.fiscal_year if ctx else None,
+            "query_type": turn.route,
+            **outputs,
+            "final_report": state.get("final"),
+        }
+
     def test_01_graph_compilation_and_registry(self):
         """Verify graph builds cleanly and agent is registered in AgentRegistry."""
-        graph = build_equity_research_graph()
+        graph = build_graph()
         self.assertIsNotNone(graph)
 
         agent = AgentRegistry.get("multi_agent")
@@ -323,13 +326,13 @@ class TestMilestone6FullPipeline(unittest.TestCase):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            state: EquityResearchState = loop.run_until_complete(
+            state = self._view(loop.run_until_complete(
                 self.orchestrator.arun(
                     user_query="Calculate DCF intrinsic fair value and WACC for TSLA",
                     ticker="TSLA",
                     fiscal_year=2025,
                 )
-            )
+            ))
         finally:
             loop.close()
 
@@ -364,13 +367,13 @@ class TestMilestone6FullPipeline(unittest.TestCase):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            state: EquityResearchState = loop.run_until_complete(
+            state = self._view(loop.run_until_complete(
                 self.orchestrator.arun(
                     user_query="What is NVDA's business model, segments, and competitive economic moat?",
                     ticker="NVDA",
                     fiscal_year=2026,
                 )
-            )
+            ))
         finally:
             loop.close()
 
@@ -425,13 +428,13 @@ class TestMilestone6FullPipeline(unittest.TestCase):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            state: EquityResearchState = loop.run_until_complete(
+            state = self._view(loop.run_until_complete(
                 self.orchestrator.arun(
                     user_query="Generate comprehensive 10-K equity research report on Apple for FY2025",
                     ticker="AAPL",
                     fiscal_year=2025,
                 )
-            )
+            ))
         finally:
             loop.close()
 

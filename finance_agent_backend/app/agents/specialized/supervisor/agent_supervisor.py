@@ -16,10 +16,11 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
 from app.agents.base import AgentOutput, BaseAgent
-from app.agents.query_parameters import SESSION_KEY, parse_valuation_overrides, resolve_session_overrides
+from app.agents.pipeline.contract import Conversation, RunContext, StatusLine
+from app.agents.query_parameters import SESSION_KEY, parse_valuation_overrides, resolve_session_overrides, resolve_terminal_growth
 from app.agents.specialized.prompts import render_prompt
 from app.agents.registry import AgentRegistry
-from app.agents.specialized.supervisor.state_supervisor import QueryType, RoutingPlan
+from app.agents.specialized.supervisor.state_supervisor import QueryType, RoutingPlan, TurnResolution
 from app.database import SessionLocal
 
 from app.models import ANNUAL_REPORT_FILING_TYPE, Document
@@ -488,3 +489,61 @@ class SupervisorAgent(BaseAgent):
                 content=f"Supervisor Routing Error: {str(e)}",
                 sources=[],
             )
+
+
+def resolve_turn(conversation: Conversation) -> TurnResolution:
+    """Routes one chat turn and, for a research route, fixes the facts every agent will share."""
+    plan = SupervisorAgent().route(
+        user_query=conversation.user_query,
+        ticker=conversation.ticker,
+        fiscal_year=conversation.fiscal_year,
+        session_state=conversation.session_state,
+        messages=conversation.messages,
+        callbacks=conversation.callbacks,
+    )
+    logger.info(
+        f"[supervisor] Resolved {plan.ticker} FY{plan.fiscal_year} "
+        f"route={plan.query_type} (year_substituted={plan.year_substituted})"
+    )
+    run_context = None
+    if plan.query_type != "conversational":
+        run_context = RunContext(
+            ticker=plan.ticker,
+            company_name=plan.company_name or plan.ticker,
+            fiscal_year=plan.fiscal_year,
+            available_fiscal_years=tuple(plan.available_fiscal_years),
+            document_id=plan.document_id,
+            user_query=conversation.user_query,
+            route=plan.query_type,
+            year_substituted=plan.year_substituted,
+            valuation_overrides=dict(plan.valuation_overrides),
+            terminal_growth_rate=resolve_terminal_growth(plan.valuation_overrides),
+            valuation_date=conversation.run_date,
+            callbacks=conversation.callbacks,
+        )
+    return TurnResolution(
+        route=plan.query_type,
+        plan=plan,
+        run_context=run_context,
+        conversational_response=plan.conversational_response,
+        session_update=plan.updated_session_state,
+        parameter_notes=tuple(plan.parameter_notes),
+    )
+
+
+def supervisor_milestone(turn: Optional[TurnResolution]) -> StatusLine:
+    """SSE status line for a resolved research turn; conversational turns show none."""
+    if turn is None or turn.run_context is None:
+        return None, None
+    plan = turn.plan
+    sub_note = " (substituted year)" if plan.year_substituted else ""
+    return (
+        f"Resolved filing: {plan.ticker} FY{plan.fiscal_year}{sub_note} | Route: {plan.query_type}",
+        {
+            "ticker": plan.ticker,
+            "fiscal_year": plan.fiscal_year,
+            "query_type": plan.query_type,
+            "year_substituted": plan.year_substituted,
+            "valuation_overrides": plan.valuation_overrides,
+        },
+    )

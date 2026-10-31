@@ -23,8 +23,7 @@ from langchain_core.messages import AIMessage, ToolMessage
 
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
-from app.agents.specialized.risk_analyst import RiskAnalystAgent
-from app.agents.state import RiskAuditOutput, RiskEvidence, RiskItem
+from app.agents.specialized.risk_analyst import RiskAnalystAgent, RiskAuditOutput, RiskEvidence, RiskItem
 from app.agents.tools.rag_narrative_tools import NarrativeChunkResult, retrieve_10k_narrative_tool
 from app.agents.tools.risk_disclosure_tools import diff_risk_disclosures, fetch_section_chunks, locate_section_chunks
 

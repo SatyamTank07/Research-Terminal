@@ -11,7 +11,7 @@ from app.agents.specialized.lead_synthesizer.report_citations import (
     NullCiter,
     ReportCiter,
 )
-from app.agents.state import RiskEvidence
+from app.agents.specialized.risk_analyst import RiskEvidence
 from app.agents.tools.business_disclosure_tools import SegmentFigure
 from app.agents.tools.citation_registry import CitationRegistry, marker
 from tests.test_agent_lead_synthesizer import _create_mock_audit, _create_mock_moat, _create_mock_risk

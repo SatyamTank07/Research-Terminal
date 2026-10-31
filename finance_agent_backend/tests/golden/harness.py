@@ -27,15 +27,19 @@ def extract_outputs(state: Dict[str, Any]) -> Dict[str, Any]:
 
     This is the only place that knows the state's shape; update it when the shape changes, never the snapshots.
     """
+    outputs = state.get("outputs") or {}
+    final = state.get("final")
+    turn = state.get("run")
+    report = final if isinstance(final, BaseModel) else None
     return {
-        "routing_plan": _dump(state.get("routing_plan")),
-        **{key: _dump(state.get(key)) for key in OUTPUT_KEYS},
-        "final_report": _dump(state.get("final_report")),
-        "conversational_response": state.get("conversational_response"),
-        "sources": [_dump(source) for source in state.get("sources") or []],
-        "updated_session_state": state.get("updated_session_state"),
-        "pipeline_notes": list(state.get("pipeline_notes") or []),
-        "error_message": state.get("error_message"),
+        "routing_plan": _dump(turn.plan) if turn is not None else None,
+        **{key: _dump(outputs.get(key)) for key in OUTPUT_KEYS},
+        "final_report": _dump(report),
+        "conversational_response": final if isinstance(final, str) else None,
+        "sources": [source.model_dump() for source in report.sources] if report is not None else [],
+        "updated_session_state": turn.session_update if turn is not None else None,
+        "pipeline_notes": [note.message for note in state.get("notes") or []],
+        "error_message": None,  # no run ever set one; kept so the snapshots stay byte-identical
     }
 
 

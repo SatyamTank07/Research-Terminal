@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from app.agents.orchestrator import MultiAgentOrchestrator, forecasting_analyst_node
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
 from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import (
@@ -18,8 +17,7 @@ from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import
     PROPOSE_TOOL_NAME,
 )
 from app.agents.specialized.prompts import render_prompt
-from app.agents.specialized.valuation_specialist import ValuationSpecialistAgent
-from app.agents.state import DCFValuationOutput
+from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
 from app.agents.tools.forecast_baseline import build_forecast_baseline
 from app.agents.tools.forecast_drivers import DEFAULT_TERMINAL_GROWTH
 from app.agents.tools.mdna_guidance import assess_mdna_guidance
@@ -206,45 +204,50 @@ class TestForecastingAnalystAgent(unittest.TestCase):
         self.assertGreater(val.implied_fair_value_per_share, 50.0)
 
 
-class TestForecastNodeWiring(unittest.TestCase):
-    def test_node_passes_risk_and_terminal_growth(self):
-        forecast = make_forecast_output()
+class TestForecastSpec(unittest.TestCase):
+    def test_passes_risk_and_the_runs_terminal_growth(self):
+        from app.agents.pipeline.contract import Upstream
+        from app.agents.specialized.forecasting_analyst import AGENT
+        from tests.pipeline.fixtures import make_run_context
+
         risk = SimpleNamespace(overall_risk_profile="High", identified_risks=[])
-        state = {
-            "ticker": "AAPL", "fiscal_year": 2025, "financial_audit": make_aapl_audit(), "business_moat": None,
-            "risk_audit": risk, "user_query": "full report on AAPL with terminal growth 3%", "callbacks": None,
-            "routing_plan": SimpleNamespace(valuation_overrides={"terminal_growth": 0.03}),
-        }
-        with patch.object(ForecastingAnalystAgent, "forecast", return_value=forecast) as mock_forecast:
-            result = asyncio.run(forecasting_analyst_node(state))
-        self.assertIs(result["forecast"], forecast)
+        upstream = Upstream({"financial_audit": make_aapl_audit(), "business_moat": None, "risk_audit": risk},
+                            AGENT.declared)
+        with patch.object(ForecastingAnalystAgent, "forecast", return_value="forecast") as mock_forecast:
+            self.assertEqual(AGENT.run(make_run_context(terminal_growth_rate=0.03), upstream), "forecast")
         kwargs = mock_forecast.call_args.kwargs
         self.assertIs(kwargs["risk_audit"], risk)
         self.assertAlmostEqual(kwargs["terminal_growth"], 0.03)
 
-    def test_node_defaults_terminal_growth_and_skips_without_audit(self):
-        state = {"ticker": "AAPL", "fiscal_year": 2025, "financial_audit": make_aapl_audit(), "callbacks": None}
-        with patch.object(ForecastingAnalystAgent, "forecast", return_value=make_forecast_output()) as mock_forecast:
-            asyncio.run(forecasting_analyst_node(state))
-        self.assertEqual(mock_forecast.call_args.kwargs["terminal_growth"], DEFAULT_TERMINAL_GROWTH)
+    def test_skips_without_an_audit(self):
+        from app.agents.pipeline.node import make_agent_node
+        from app.agents.specialized.forecasting_analyst import AGENT
+        from tests.pipeline.fixtures import make_run_context
 
-        result = asyncio.run(forecasting_analyst_node({**state, "financial_audit": None}))
-        self.assertIsNone(result["forecast"])
-        self.assertIn("no audited financial statements", result["pipeline_notes"][0])
+        state = {"run": SimpleNamespace(run_context=make_run_context()), "outputs": {"financial_audit": None}}
+        update = asyncio.run(make_agent_node(AGENT)(state))
+        self.assertIsNone(update["outputs"]["forecast"])
+        self.assertIn("no audited financial statements", update["notes"][0].message)
 
-    def test_node_failure_is_recorded_not_raised(self):
-        state = {"ticker": "AAPL", "fiscal_year": 2025, "financial_audit": make_aapl_audit(), "callbacks": None}
+    def test_failure_is_recorded_not_raised(self):
+        from app.agents.pipeline.node import make_agent_node
+        from app.agents.specialized.forecasting_analyst import AGENT
+        from tests.pipeline.fixtures import make_run_context
+
+        state = {"run": SimpleNamespace(run_context=make_run_context()), "outputs": {"financial_audit": make_aapl_audit()}}
         with patch.object(ForecastingAnalystAgent, "forecast", side_effect=ValueError("base_revenue must be positive")):
-            result = asyncio.run(forecasting_analyst_node(state))
-        self.assertIsNone(result["forecast"])
-        self.assertIn("Forecasting Analyst failed (ValueError: base_revenue must be positive)", result["pipeline_notes"][0])
+            update = asyncio.run(make_agent_node(AGENT)(state))
+        self.assertIsNone(update["outputs"]["forecast"])
+        self.assertIn("Forecasting Analyst failed (ValueError: base_revenue must be positive)", update["notes"][0].message)
 
     def test_status_message(self):
-        msg = MultiAgentOrchestrator._forecast_status_message(make_forecast_output())
-        self.assertIn("5-year UFCF forecast", msg)
-        self.assertIn("historical fade", msg)
-        self.assertIn("3 scenarios", msg)
-        self.assertEqual(MultiAgentOrchestrator._forecast_status_message(None), "Forecast unavailable")
+        from app.agents.specialized.forecasting_analyst import AGENT
+
+        message, _ = AGENT.milestone(make_forecast_output())
+        self.assertIn("5-year UFCF forecast", message)
+        self.assertIn("historical fade", message)
+        self.assertIn("3 scenarios", message)
+        self.assertEqual(AGENT.milestone(None), ("Forecast unavailable", None))
 
 
 if __name__ == "__main__":

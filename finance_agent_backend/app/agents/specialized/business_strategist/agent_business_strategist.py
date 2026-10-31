@@ -20,6 +20,7 @@ import logging
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from app.agents.base import StructuredAgent
+from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.business_strategist.state_business_strategist import (
     MOAT_TYPES,
@@ -836,3 +837,14 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             if chunk is not None:
                 add(cid, {"item": items.get(cid) or chunk.item, "breadcrumb": chunk.breadcrumb, "sub_section": chunk.sub_section})
         return citations
+
+
+def analyze_business(run: RunContext, upstream: Upstream) -> BusinessMoatOutput:
+    """Pipeline entry: Item 1 business model and moat for the run's filing."""
+    return BusinessStrategistAgent().analyze(ticker=run.ticker, fiscal_year=run.fiscal_year, callbacks=run.callbacks)
+
+
+def summarize_moat(moat: Optional[BusinessMoatOutput]) -> StatusLine:
+    if moat is None:
+        return "Economic moat analysis unavailable", None
+    return f"Completed economic moat analysis (Moat: {moat.economic_moat_type})", None

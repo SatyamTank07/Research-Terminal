@@ -2,16 +2,13 @@
 
 Covers the code-built valuation (Blume beta, Kd from interest over average debt, value-driver terminal
 value, NCI bridge, roll-forward, bull/base/bear values), the WACC override and missing-market-data paths,
-the single commentary LLM call with its template fallback, and the orchestrator node wiring.
+the single commentary LLM call with its template fallback, and the pipeline AGENT spec wiring.
 """
 
-import asyncio
 import unittest
 from datetime import date
-from types import SimpleNamespace
 from unittest.mock import patch
 
-from app.agents.orchestrator import MultiAgentOrchestrator, valuation_specialist_node
 from app.agents.query_parameters import parse_valuation_overrides
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
@@ -178,34 +175,38 @@ class TestValuationSpecialistAgent(unittest.TestCase):
         self.assertIn("probability-weighted", out.valuation_summary)
 
     def test_07_status_message(self):
+        from app.agents.specialized.valuation_specialist import AGENT
+
         out = make_valuation_output()
-        msg = MultiAgentOrchestrator._valuation_status_message(out)
+        msg, _ = AGENT.milestone(out)
         self.assertIn(f"${out.implied_fair_value_per_share:.2f}/share", msg)
         self.assertIn(f"bear ${out.bear_fair_value:.2f}", msg)
         self.assertIn("CAPM WACC", msg)
-        self.assertEqual(MultiAgentOrchestrator._valuation_status_message(None), "Valuation unavailable")
+        self.assertEqual(AGENT.milestone(None), ("Valuation unavailable", None))
 
 
-class TestValuationNodeWiring(unittest.TestCase):
-    def _run_node(self, query: str, market_data: dict):
-        state = {
-            "ticker": "AAPL", "fiscal_year": 2025, "financial_audit": make_aapl_audit(),
-            "forecast": make_forecast_output(), "user_query": query, "callbacks": None, "session_state": {},
-            # The supervisor parses overrides into the routing plan; the node only reads them from there.
-            "routing_plan": SimpleNamespace(valuation_overrides=parse_valuation_overrides(query).values()),
-        }
-        with patch("app.agents.orchestrator.fetch_market_context", return_value=market_data), \
-                patch("app.agents.orchestrator._balance_sheet_date", return_value=AAPL_BALANCE_SHEET_DATE), \
+class TestValuationSpecWiring(unittest.TestCase):
+    CONTEXT = "app.agents.specialized.valuation_specialist.context"
+    AGENT_MODULE = "app.agents.specialized.valuation_specialist.agent_valuation_specialist"
+
+    def _run(self, query: str, market_data: dict, **ctx_changes):
+        from app.agents.pipeline.contract import Upstream
+        from app.agents.specialized.valuation_specialist import AGENT
+        from tests.pipeline.fixtures import make_run_context
+
+        ctx = make_run_context(valuation_overrides=parse_valuation_overrides(query).values(), **ctx_changes)
+        upstream = Upstream({"financial_audit": make_aapl_audit(), "forecast": make_forecast_output()}, AGENT.declared)
+        with patch(f"{self.CONTEXT}.fetch_market_context", return_value=market_data), \
+                patch(f"{self.AGENT_MODULE}.balance_sheet_date", return_value=AAPL_BALANCE_SHEET_DATE), \
                 patch.object(ValuationSpecialistAgent, "value", return_value="sentinel") as mock_value:
-            result = asyncio.run(valuation_specialist_node(state))
-        self.assertEqual(result, {"dcf_valuation": "sentinel"})
-        return mock_value.call_args.kwargs
+            self.assertEqual(AGENT.run(ctx, upstream), "sentinel")
+        return ctx, mock_value.call_args.kwargs
 
     def test_user_overrides_take_precedence(self):
         live = {"share_price": 230.0, "market_cap": 3_450_000.0, "beta": 1.1, "beta_source": "yfinance_raw",
                 "risk_free_rate": 0.044, "risk_free_rate_source": "us_10y_treasury_live",
                 "market_data_source": "yfinance_live"}
-        kwargs = self._run_node("value AAPL with beta 1.3, share price 200 and WACC of 9%", live)
+        ctx, kwargs = self._run("value AAPL with beta 1.3, share price 200 and WACC of 9%", live)
         market: MarketInputs = kwargs["market"]
         self.assertEqual((market.beta, market.beta_source), (1.3, "user_provided"))
         self.assertEqual((market.share_price, market.share_price_source), (200.0, "user_provided"))
@@ -213,18 +214,35 @@ class TestValuationNodeWiring(unittest.TestCase):
         self.assertEqual(market.risk_free_rate, 0.044)
         self.assertAlmostEqual(kwargs["wacc_override"], 0.09)
         self.assertEqual(kwargs["balance_sheet_date"], AAPL_BALANCE_SHEET_DATE)
-        self.assertIsInstance(kwargs["valuation_date"], date)
+        self.assertEqual(kwargs["valuation_date"], ctx.valuation_date)
         self.assertIsNotNone(kwargs["forecast"])
 
     def test_live_market_data_passes_through(self):
         live = {"share_price": 230.0, "market_cap": 3_450_000.0, "beta": None, "beta_source": "unavailable",
                 "risk_free_rate": 0.042, "risk_free_rate_source": "house_default_config",
                 "market_data_source": "yfinance_live"}
-        market: MarketInputs = self._run_node("DCF for AAPL", live)["market"]
+        _, kwargs = self._run("DCF for AAPL", live)
+        market: MarketInputs = kwargs["market"]
         self.assertEqual(market.share_price_source, "yfinance_live")
         self.assertEqual(market.market_cap, 3_450_000.0)
         self.assertIsNone(market.beta)
         self.assertEqual(market.risk_free_rate_source, "house_default_config")
+
+    def test_forecast_and_valuation_share_one_terminal_growth(self):
+        from app.agents.pipeline.contract import Upstream
+        from app.agents.specialized.forecasting_analyst import AGENT as FORECASTER
+        from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
+        from tests.pipeline.fixtures import make_run_context
+
+        live = {"share_price": 230.0, "market_cap": 3_450_000.0, "beta": 1.1, "beta_source": "yfinance_raw",
+                "risk_free_rate": 0.044, "risk_free_rate_source": "us_10y_treasury_live",
+                "market_data_source": "yfinance_live"}
+        ctx, valuation_kwargs = self._run("DCF for AAPL", live, terminal_growth_rate=0.031)
+        upstream = Upstream({"financial_audit": make_aapl_audit()}, FORECASTER.declared)
+        with patch.object(ForecastingAnalystAgent, "forecast", return_value="forecast") as mock_forecast:
+            FORECASTER.run(ctx, upstream)
+        self.assertEqual(mock_forecast.call_args.kwargs["terminal_growth"], valuation_kwargs["terminal_growth_rate"])
+        self.assertAlmostEqual(valuation_kwargs["terminal_growth_rate"], 0.031)
 
 
 class TestBuildValuationEdges(unittest.TestCase):

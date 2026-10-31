@@ -1,7 +1,11 @@
 """State and Output Schemas for Lead Supervisor Agent."""
 
-from typing import Any, Dict, List, Literal, Optional
+from dataclasses import dataclass
+from typing import Any, Dict, List, Literal, Optional, Tuple
+
 from pydantic import BaseModel, Field
+
+from app.agents.pipeline.contract import RunContext
 
 QueryType = Literal[
     "full_10k_report",
@@ -54,3 +58,15 @@ class RoutingPlan(BaseModel):
     updated_session_state: Optional[Dict[str, Any]] = Field(
         default=None, description="Updated active session state to persist to PostgreSQL conversation record"
     )
+
+
+@dataclass(frozen=True)
+class TurnResolution:
+    """What the Supervisor hands the pipeline for one chat turn."""
+
+    route: str
+    plan: RoutingPlan
+    run_context: Optional[RunContext]
+    conversational_response: Optional[str]
+    session_update: Optional[Dict[str, Any]]
+    parameter_notes: Tuple[str, ...]

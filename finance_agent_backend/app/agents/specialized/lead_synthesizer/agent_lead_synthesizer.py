@@ -20,6 +20,7 @@ from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
 from app.agents.base import AgentOutput, BaseAgent, StructuredAgent
+from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
@@ -431,4 +432,28 @@ class LeadSynthesizerAgent(BaseAgent):
             ),
             sources=[],
         )
+
+
+def write_research_report(run: RunContext, upstream: Upstream) -> Final10KResearchReport:
+    """Pipeline entry: assembles the route's report from every research output that exists."""
+    return LeadSynthesizerAgent().synthesize(
+        ticker=run.ticker,
+        company_name=run.company_name,
+        fiscal_year=run.fiscal_year,
+        business_moat=upstream.get("business_moat"),
+        financial_audit=upstream.get("financial_audit"),
+        forecast=upstream.get("forecast"),
+        dcf_valuation=upstream.get("dcf_valuation"),
+        risk_audit=upstream.get("risk_audit"),
+        year_substituted=run.year_substituted,
+        available_fiscal_years=list(run.available_fiscal_years),
+        user_query=run.user_query,
+        query_type=run.route,
+        pipeline_notes=[note.message for note in upstream.notes],
+        callbacks=run.callbacks,
+    )
+
+
+def summarize_report(report: Optional[Final10KResearchReport]) -> StatusLine:
+    return "Synthesized 3-Pillar Thesis and compiled final publication report.", None
 

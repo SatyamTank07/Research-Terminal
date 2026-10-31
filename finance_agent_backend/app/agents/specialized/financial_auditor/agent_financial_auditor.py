@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Optional
 from langchain_core.tools import StructuredTool
 
 from app.agents.base import StructuredAgent
+from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.financial_auditor.state_financial_auditor import (
@@ -561,3 +562,24 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
             seen.add(cid)
             merged.append(cit)
         return merged
+
+
+def audit_financial_statements(run: RunContext, upstream: Upstream) -> FinancialAuditOutput:
+    """Pipeline entry: multi-year Item 8 audit anchored on the run's filing."""
+    return FinancialAuditorAgent().audit(
+        ticker=run.ticker,
+        fiscal_year=run.fiscal_year,
+        available_fiscal_years=list(run.available_fiscal_years),
+        callbacks=run.callbacks,
+    )
+
+
+def summarize_audit(audit: Optional[FinancialAuditOutput]) -> StatusLine:
+    if audit is None:
+        return "Financial statement audit unavailable", None
+    severe_cnt = sum(1 for f in audit.forensic_findings if f.severity in ("high", "medium"))
+    return (
+        f"Audited financial statements & ratios ({severe_cnt} high/medium forensic findings, "
+        f"{audit.data_quality.extraction_mode} extraction)",
+        None,
+    )

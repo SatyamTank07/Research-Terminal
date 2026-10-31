@@ -14,6 +14,7 @@ import re
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from app.agents.base import StructuredAgent
+from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
@@ -682,3 +683,35 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
                         citation[key] = chunk[key]
                 citations.append(citation)
         return citations
+
+
+def analyze_risks(run: RunContext, upstream: Upstream) -> RiskAuditOutput:
+    """Pipeline entry: verified Item 1A risk inventory with the prior-year comparison."""
+    return RiskAnalystAgent().analyze(
+        ticker=run.ticker,
+        fiscal_year=run.fiscal_year,
+        available_fiscal_years=list(run.available_fiscal_years),
+        callbacks=run.callbacks,
+    )
+
+
+def summarize_risks(risk: Optional[RiskAuditOutput]) -> StatusLine:
+    """SSE status line summarizing the verified risk inventory."""
+    if risk is None:
+        return "Analyzed Item 1A risks & threats (no risk output)", None
+    if risk.data_quality.coverage_mode == "not_provided":
+        return "Analyzed Item 1A risks & threats (filing provides no risk factors; nothing rated)", None
+    severe = sum(1 for r in risk.identified_risks if r.severity == "Severe")
+    coverage = risk.data_quality.coverage_mode.replace("_", "-")
+    if risk.data_quality.section_located_by == "heading_boundary":
+        coverage += " (located by headings)"
+    if risk.disclosure_changes:
+        new_cnt = sum(1 for r in risk.identified_risks if r.disclosure_change in ("New", "Expanded"))
+        change = f"{new_cnt} new/expanded vs FY{risk.disclosure_changes.prior_fiscal_year}"
+    else:
+        change = "no prior-year baseline"
+    return (
+        f"Analyzed Item 1A risks & threats ({len(risk.identified_risks)} verified risks, {severe} severe; "
+        f"{coverage} read; {change})",
+        None,
+    )
