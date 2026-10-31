@@ -20,7 +20,7 @@
 - Never hardcode tickers or years in app code. Tickers in tests and golden scenarios are fine.
 - LangGraph nodes are `async`; synchronous agent / LLM / DB / yfinance work runs through `asyncio.to_thread`.
 - New code follows the spec's naming rules (§10): folders named after the analyst question, finance verb + object for functions, units in names (`_rate` decimal, `_pct` percent, `_x`, `_bps`, `_days`), no `utils` / `helpers` / `engine`.
-- New module files stay under about 200 lines.
+- No file-length cap: a file may run to 2000, 5000 or more lines as long as everything in it belongs to one thing. Split a file only when it mixes more than one concern.
 - All commands run inside Docker: `docker exec finance_agent pytest tests/ -q` (omit `-it` when non-interactive). `pytest` is installed ad hoc in the container and is not in `requirements.txt`; do not rebuild the image unless `requirements.txt` changes.
 - Phase 1 gate for every PR: full suite green **and** `docker exec finance_agent pytest tests/golden -q` green with no snapshot change.
 - Phase 2 / 3 gate: full suite green; snapshots regenerated in a separate commit `test(golden): regenerate for <change>` whose diff the PR description explains.

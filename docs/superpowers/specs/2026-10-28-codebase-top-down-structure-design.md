@@ -244,8 +244,8 @@ modules/<analyst_question>/
   thresholds.py   named constants for every rule cut-off
 ```
 
-A code-only module has no `judge.j2` or `verify.py`. Files stay under about 200 lines; a bigger file means the
-module answers more than one question and should split.
+A code-only module has no `judge.j2` or `verify.py`. A file has no length limit: 2,000 or 5,000 lines is fine as long as
+everything in it belongs to one thing. Split a file only when it mixes more than one concern, never because it is long.
 
 ## 7. L3 — Step vocabulary (Break 2)
 
