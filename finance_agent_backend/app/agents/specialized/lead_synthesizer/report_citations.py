@@ -11,7 +11,7 @@ import logging
 from functools import wraps
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
-from app.agents.tools.citation_registry import CitationRegistry, SourceSpec
+from app.agents.shared.citations import CitationRegistry, SourceSpec
 
 logger = logging.getLogger("finance_agent.agents.lead_synthesizer.citations")
 

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
 from app.agents import AgentRegistry
-from app.agents.tools.citation_registry import strip_markers
+from app.agents.shared.citations import strip_markers
 from app.models import ChatMessage, Conversation, User
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.langfuse_service import flush_langfuse, langfuse_trace_scope

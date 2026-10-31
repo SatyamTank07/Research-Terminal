@@ -221,7 +221,7 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
 
     def setUp(self):
         self.synthesizer = LeadSynthesizerAgent()
-        resolver = patch("app.agents.tools.citation_registry.resolve_chunk_metadata", return_value={})
+        resolver = patch("app.agents.shared.citations.resolve_chunk_metadata", return_value={})
         resolver.start()
         self.addCleanup(resolver.stop)
 

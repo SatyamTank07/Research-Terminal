@@ -22,6 +22,13 @@ from pydantic import BaseModel, Field
 from app.agents.base import AgentOutput, BaseAgent, StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
+from app.agents.shared.citations import CitationRegistry, SourceRef, strip_markers
+from app.agents.shared.figures import (
+    annotate_sentences,
+    build_figure_index,
+    collect_known_figures,
+    strip_unverified_sentences,
+)
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
@@ -38,13 +45,6 @@ from app.agents.specialized.lead_synthesizer.report_citations import (
     NO_CITATIONS_NOTE,
     NullCiter,
     ReportCiter,
-)
-from app.agents.tools.citation_registry import CitationRegistry, SourceRef, strip_markers
-from app.agents.tools.figure_verification import (
-    annotate_sentences,
-    build_figure_index,
-    collect_known_figures,
-    strip_unverified_sentences,
 )
 
 logger = logging.getLogger("finance_agent.agents.lead_synthesizer")

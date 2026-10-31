@@ -3,7 +3,7 @@
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 
-from app.agents.tools.citation_registry import SourceRef
+from app.agents.shared.citations import SourceRef
 
 
 class ThreePillarThesis(BaseModel):
