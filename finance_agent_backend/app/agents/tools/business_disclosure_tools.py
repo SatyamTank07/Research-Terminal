@@ -29,7 +29,8 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.agents.tools.risk_disclosure_tools import TEN_K_ITEM_ORDER, heading_item, normalize_text, split_sentences
+from app.agents.shared.filing.sections import TEN_K_ITEM_ORDER, heading_item
+from app.agents.shared.filing.sentences import normalize_text, split_sentences
 from app.services.financial_tables import (
     StatementGrid,
     StatementRow,

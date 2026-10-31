@@ -34,12 +34,7 @@ from app.agents.tools.forecast_tools import (
     ForecastScheduleResult,
     calculate_forecast_schedule,
 )
-from app.agents.tools.risk_disclosure_tools import (
-    RiskDisclosureDiff,
-    build_section_context,
-    diff_risk_disclosures,
-    fetch_section_chunks,
-)
+from app.agents.tools.risk_disclosure_tools import RiskDisclosureDiff, diff_risk_disclosures
 from app.agents.tools.tavily_search import get_tavily_tool
 from app.agents.tools.catalog_tools import search_sec_catalog
 
@@ -69,9 +64,7 @@ __all__ = [
     "ForecastScheduleResult",
     "calculate_forecast_schedule",
     "RiskDisclosureDiff",
-    "build_section_context",
     "diff_risk_disclosures",
-    "fetch_section_chunks",
     "get_tavily_tool",
     "search_sec_catalog",
 ]

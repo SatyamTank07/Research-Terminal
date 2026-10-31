@@ -17,6 +17,8 @@ from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.narrative_search import retrieve_10k_narrative_tool
+from app.agents.shared.filing.sections import build_section_context, locate_section_chunks
+from app.agents.shared.filing.sentences import normalize_text
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
     FINANCIAL_TRANSMISSIONS,
@@ -32,7 +34,6 @@ from app.agents.tools.risk_disclosure_tools import (
     RISK_SECTION_ITEM,
     SEVERITY_ORDER,
     build_prior_index,
-    build_section_context,
     classify_disclosure_change,
     derive_overall_profile,
     derive_severity,
@@ -41,9 +42,7 @@ from app.agents.tools.risk_disclosure_tools import (
     extract_quantified_disclosures,
     is_boilerplate,
     is_material_disclosure,
-    locate_section_chunks,
     normalize_level,
-    normalize_text,
     numbers_supported,
     render_risk_evidence_table,
     render_risk_matrix_markdown,

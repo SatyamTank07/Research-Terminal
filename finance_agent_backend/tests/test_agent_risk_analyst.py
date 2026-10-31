@@ -25,7 +25,8 @@ from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst import RiskAnalystAgent, RiskAuditOutput, RiskEvidence, RiskItem
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative_tool
-from app.agents.tools.risk_disclosure_tools import diff_risk_disclosures, fetch_section_chunks, locate_section_chunks
+from app.agents.shared.filing.sections import fetch_section_chunks, locate_section_chunks
+from app.agents.tools.risk_disclosure_tools import diff_risk_disclosures
 
 LOCATE_PATH = "app.agents.specialized.risk_analyst.agent_risk_analyst.locate_section_chunks"
 
@@ -571,7 +572,7 @@ class TestRiskAnalystDatabase(unittest.TestCase):
             self.assertTrue(c["chunk_id"])
 
     def test_heading_boundary_recovers_mislabeled_item_1a(self):
-        chunks, located_by = locate_section_chunks("AMZN", 2025)
+        chunks, located_by = locate_section_chunks("AMZN", 2025, "Item 1A")
         if located_by == "not_found":
             self.skipTest("AMZN FY2025 not ingested")
         if located_by == "item_label":
@@ -582,8 +583,8 @@ class TestRiskAnalystDatabase(unittest.TestCase):
         self.assertNotIn("Unresolved Staff Comments", chunks[-1].content[:200])
 
     def test_full_section_fetch_and_diff_on_real_filings(self):
-        current = fetch_section_chunks("AAPL", 2025)
-        prior = fetch_section_chunks("AAPL", 2024)
+        current = fetch_section_chunks("AAPL", 2025, "Item 1A")
+        prior = fetch_section_chunks("AAPL", 2024, "Item 1A")
         if not current or not prior:
             self.skipTest("AAPL FY2024/FY2025 Item 1A not ingested")
         self.assertTrue(all(c.item == "Item 1A" for c in current))

@@ -1,18 +1,15 @@
 """Unit Tests for the deterministic Risk-Disclosure toolkit (Item 1A).
 
 Validates quote verification, numeric-claim support, the likelihood x impact severity matrix,
-aggregate risk profile, materiality / boilerplate screens, context budgeting, the
+aggregate risk profile, materiality / boilerplate screens, the not-provided check, the
 year-over-year disclosure diff, and the markdown renderers. No database or network access.
 """
 
 import unittest
-from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
 
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from app.agents.tools.risk_disclosure_tools import (
     build_prior_index,
-    build_section_context,
     cap_level,
     classify_disclosure_change,
     derive_overall_profile,
@@ -20,9 +17,7 @@ from app.agents.tools.risk_disclosure_tools import (
     diff_risk_disclosures,
     disclosure_covered,
     extract_quantified_disclosures,
-    heading_item,
     is_boilerplate,
-    locate_section_chunks,
     section_not_provided,
     is_material_disclosure,
     normalize_level,
@@ -174,64 +169,8 @@ class TestQuantifiedDisclosures(unittest.TestCase):
         self.assertFalse(substantiates_high_impact([], None))
 
 
-def _row(idx: int, content: str, chunk_type: str = "narrative", item: str = "Cover Page"):
-    chunk = SimpleNamespace(id=f"k{idx}", item=item, breadcrumb=f"X > {item}", sub_section=None,
-                            content=content, chunk_index=idx, chunk_type=chunk_type)
-    doc = SimpleNamespace(id="doc-1", ticker="TEST", fiscal_year=2026)
-    return chunk, doc
-
-
-class TestSectionLocation(unittest.TestCase):
-    TOC = ("### Page | PART I | | Item 1. | Business | 3 | | Item 1A. | Risk Factors | 6 | "
-           "| Item 1B. | Unresolved Staff Comments | 16 | | Item 2. | Properties | 17 |")
+class TestSectionNotProvided(unittest.TestCase):
     LONG_BODY = "Our business depends on a small number of suppliers and customers in several regions. " * 6
-
-    def test_heading_detection(self):
-        self.assertEqual(heading_item("| Item 1A. | Risk Factors |\n| :--- | :--- |"), "1A")
-        self.assertEqual(heading_item("| Item 6. | Reserved |"), "6")
-        self.assertEqual(heading_item("ITEM 7. MANAGEMENT'S DISCUSSION AND ANALYSIS"), "7")
-        self.assertIsNone(heading_item(self.TOC))
-        self.assertEqual(heading_item("Item 1A. Risk Factors " + self.LONG_BODY), "1A")
-        self.assertIsNone(heading_item("Item 1A of Part I describes factors that " + self.LONG_BODY))
-        self.assertIsNone(heading_item("For more information, see Item 1A. Risk Factors."))
-        self.assertIsNone(heading_item("| Item 99. | Nothing |"))
-
-    def _locate(self, rows, labeled=None):
-        query = MagicMock()
-        query.order_by.return_value.all.return_value = rows
-        with patch("app.agents.tools.risk_disclosure_tools.fetch_section_chunks", return_value=labeled or []), \
-                patch("app.agents.tools.risk_disclosure_tools._filing_chunks_query", return_value=query):
-            return locate_section_chunks("TEST", 2026, "Item 1A", db=MagicMock())
-
-    def test_boundary_location_when_labels_are_wrong(self):
-        rows = [
-            _row(0, self.TOC, "table"),
-            _row(1, "| Item 1. | Business |", "table"),
-            _row(2, "We design products. " + self.LONG_BODY),
-            _row(3, "| Item 1A. | Risk Factors |\n| :--- | :--- |", "table"),
-            _row(4, "Risk one narrative. " + self.LONG_BODY),
-            _row(5, "| Segment | Share |\n| :--- | :--- |\n| A | 40% |", "table"),
-            _row(6, "Risk two narrative; see Item 7 for details. " + self.LONG_BODY),
-            _row(7, "| Item 1B. | Unresolved Staff Comments |", "table"),
-            _row(8, "None."),
-            _row(9, "| Item 1C. | Cybersecurity |", "table"),
-        ]
-        chunks, located_by = self._locate(rows)
-        self.assertEqual(located_by, "heading_boundary")
-        self.assertEqual([c.chunk_index for c in chunks], [4, 6])
-        self.assertTrue(all(c.item == "Item 1A" for c in chunks))
-
-    def test_heading_inside_long_chunk_and_label_precedence(self):
-        rows = [_row(0, "Item 1A. Risk Factors " + self.LONG_BODY), _row(1, "More risk text. " + self.LONG_BODY),
-                _row(2, "Item 2. Properties " + self.LONG_BODY)]
-        chunks, located_by = self._locate(rows)
-        self.assertEqual(([c.chunk_index for c in chunks], located_by), ([0, 1], "heading_boundary"))
-
-        labeled = [_chunk("L1", "Labeled risk text " + self.LONG_BODY)]
-        chunks, located_by = self._locate(rows, labeled=labeled)
-        self.assertEqual((chunks, located_by), (labeled, "item_label"))
-
-        self.assertEqual(self._locate([_row(0, self.LONG_BODY)]), ([], "not_found"))
 
     def test_not_provided_detection(self):
         self.assertTrue(section_not_provided([_chunk("n", "Not applicable.")]))
@@ -239,37 +178,6 @@ class TestSectionLocation(unittest.TestCase):
         self.assertTrue(section_not_provided([]))
         self.assertFalse(section_not_provided([_chunk("r", self.LONG_BODY * 10 + " Not applicable to our Japanese subsidiaries.")]))
         self.assertFalse(section_not_provided([_chunk("r", CONCENTRATION)]))
-
-    def test_section_queries_are_scoped_to_annual_reports(self):
-        from app.database import SessionLocal
-        from app.agents.tools.risk_disclosure_tools import _filing_chunks_query
-        db = SessionLocal()
-        try:
-            sql = str(_filing_chunks_query(db, "TEST", 2026).statement)
-        finally:
-            db.close()
-        self.assertIn("documents.filing_type", sql)
-
-
-class TestSectionContext(unittest.TestCase):
-    def test_full_section_within_budget(self):
-        chunks = [_chunk("c1", "Summary bullet text " * 10, 0), _chunk("c2", CONCENTRATION, 1)]
-        context, mode, chars = build_section_context(chunks, char_budget=10_000)
-        self.assertEqual(mode, "full_section")
-        self.assertIn("[chunk:c1]", context)
-        self.assertIn("[chunk:c2] We receive a significant amount", context)
-        self.assertGreater(chars, len(CONCENTRATION))
-
-    def test_budgeted_section_keeps_summary_and_truncates_rest(self):
-        summary = "Summary of Risk Factors • Risk one is here. • Risk two is here. • Risk three is here. " * 5
-        body = "Detailed risk heading sentence. " + ("Long detailed paragraph text. " * 200)
-        chunks = [_chunk("s1", summary, 0)] + [_chunk(f"b{i}", body, i + 1) for i in range(5)]
-        context, mode, _ = build_section_context(chunks, char_budget=5_000)
-        self.assertEqual(mode, "budgeted_section")
-        self.assertIn(summary.strip(), context)
-        self.assertIn("[chunk:b0] Detailed risk heading sentence.", context)
-        self.assertIn("[...]", context)
-        self.assertLessEqual(len(context), 5_000 + 200)
 
 
 class TestDisclosureDiff(unittest.TestCase):
