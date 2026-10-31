@@ -25,6 +25,7 @@ from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative
 from app.agents.shared.filing.sections import build_section_context, locate_section_chunks
 from app.agents.shared.filing.sentences import normalize_text
+from app.agents.shared.llm_call import complete_once
 from app.agents.shared.quotes import find_quote_chunk, numbers_supported
 from app.agents.specialized.business_strategist.state_business_strategist import (
     MOAT_TYPES,
@@ -200,21 +201,10 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
 
     def _run_judgement_llm(self, prompt: str, callbacks: Optional[List[Any]]) -> str:
         """Single tool-free completion returning the qualitative judgement as JSON text."""
-        from dotenv import load_dotenv
-        from langchain_core.messages import HumanMessage, SystemMessage
-        from langchain_openai import ChatOpenAI
-
-        load_dotenv(override=True)
-        llm = ChatOpenAI(
-            model=self.model_name.replace("openai:", ""),
-            temperature=0,
-            max_retries=3,
-            max_tokens=JUDGEMENT_MAX_TOKENS,
-            model_kwargs={"response_format": {"type": "json_object"}},
+        return complete_once(
+            self.model_name, prompt, system_prompt=self.get_system_prompt(),
+            max_tokens=JUDGEMENT_MAX_TOKENS, max_retries=3, json_mode=True, callbacks=callbacks,
         )
-        config = {"callbacks": callbacks} if callbacks else {}
-        messages = [SystemMessage(content=self.get_system_prompt()), HumanMessage(content=prompt)]
-        return llm.invoke(messages, config=config).content
 
     # ------------------------------------------------------------------
     # Pre-fetch helpers (never raise)

@@ -595,5 +595,13 @@ class TestRiskAnalystDatabase(unittest.TestCase):
         self.assertTrue(diff.new_passages)
 
 
+class TestRepairCallSettings(unittest.TestCase):
+    def test_repair_call_has_no_system_prompt_and_five_retries(self):
+        agent = RiskAnalystAgent()
+        with patch("app.agents.specialized.risk_analyst.agent_risk_analyst.complete_once", return_value="{}") as call:
+            agent._run_repair_llm("p", None)
+        call.assert_called_once_with(agent.model_name, "p", max_retries=5, callbacks=None)
+
+
 if __name__ == "__main__":
     unittest.main()

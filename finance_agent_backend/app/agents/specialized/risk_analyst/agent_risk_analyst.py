@@ -19,6 +19,7 @@ from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.narrative_search import retrieve_10k_narrative_tool
 from app.agents.shared.filing.sections import build_section_context, locate_section_chunks
 from app.agents.shared.filing.sentences import normalize_text
+from app.agents.shared.llm_call import complete_once
 from app.agents.shared.quotes import find_quote_chunk, numbers_supported
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
@@ -256,14 +257,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
 
     def _run_repair_llm(self, prompt: str, callbacks: Optional[List[Any]]) -> str:
         """Single tool-free completion for the coverage repair pass."""
-        from dotenv import load_dotenv
-        from langchain_core.messages import HumanMessage
-        from langchain_openai import ChatOpenAI
-
-        load_dotenv(override=True)
-        llm = ChatOpenAI(model=self.model_name.replace("openai:", ""), temperature=0, max_retries=5)
-        config = {"callbacks": callbacks} if callbacks else {}
-        return llm.invoke([HumanMessage(content=prompt)], config=config).content
+        return complete_once(self.model_name, prompt, max_retries=5, callbacks=callbacks)
 
     # ------------------------------------------------------------------
     # Setup helpers

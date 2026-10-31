@@ -14,6 +14,7 @@ from typing import Any, List, Optional
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
+from app.agents.shared.llm_call import complete_once
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
 from app.agents.specialized.prompts import render_prompt
@@ -91,20 +92,10 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
 
     def _run_commentary_llm(self, prompt: str, callbacks: Optional[List[Any]]) -> str:
         """Single tool-free completion that turns the code-built valuation into commentary."""
-        from dotenv import load_dotenv
-        from langchain_core.messages import HumanMessage, SystemMessage
-        from langchain_openai import ChatOpenAI
-
-        load_dotenv(override=True)
-        llm = ChatOpenAI(
-            model=self.model_name.replace("openai:", ""),
-            temperature=0,
-            max_retries=5,
-            max_tokens=COMMENTARY_MAX_TOKENS,
+        return complete_once(
+            self.model_name, prompt, system_prompt=self.get_system_prompt(),
+            max_tokens=COMMENTARY_MAX_TOKENS, max_retries=5, callbacks=callbacks,
         )
-        config = {"callbacks": callbacks} if callbacks else {}
-        messages = [SystemMessage(content=self.get_system_prompt()), HumanMessage(content=prompt)]
-        return llm.invoke(messages, config=config).content
 
     @staticmethod
     def _template_summary(v: ValuationBuild) -> str:

@@ -269,5 +269,17 @@ class TestCommentaryTruncation(unittest.TestCase):
         self.assertEqual(trim_to_complete_sentence("no sentence end at all"), "no sentence end at all")
 
 
+class TestCommentaryCallSettings(unittest.TestCase):
+    def test_commentary_call_has_system_prompt_cap_and_five_retries(self):
+        from app.agents.specialized.valuation_specialist.agent_valuation_specialist import COMMENTARY_MAX_TOKENS
+        agent = ValuationSpecialistAgent()
+        with patch("app.agents.specialized.valuation_specialist.agent_valuation_specialist.complete_once", return_value="x") as call:
+            agent._run_commentary_llm("p", None)
+        call.assert_called_once_with(
+            agent.model_name, "p", system_prompt=agent.get_system_prompt(),
+            max_tokens=COMMENTARY_MAX_TOKENS, max_retries=5, callbacks=None,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

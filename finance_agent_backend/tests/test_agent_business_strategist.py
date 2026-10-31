@@ -408,5 +408,17 @@ class TestRealFilingSmoke(unittest.TestCase):
         self.assertGreaterEqual(len(out.reportable_segments), 2)
 
 
+class TestJudgementCallSettings(unittest.TestCase):
+    def test_judgement_call_is_json_with_system_prompt_cap_and_three_retries(self):
+        from app.agents.specialized.business_strategist.agent_business_strategist import JUDGEMENT_MAX_TOKENS
+        agent = BusinessStrategistAgent()
+        with patch(f"{MODULE}.complete_once", return_value="{}") as call:
+            agent._run_judgement_llm("p", None)
+        call.assert_called_once_with(
+            agent.model_name, "p", system_prompt=agent.get_system_prompt(),
+            max_tokens=JUDGEMENT_MAX_TOKENS, max_retries=3, json_mode=True, callbacks=None,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
