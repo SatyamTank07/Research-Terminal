@@ -19,6 +19,7 @@ from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.narrative_search import retrieve_10k_narrative_tool
 from app.agents.shared.filing.sections import build_section_context, locate_section_chunks
 from app.agents.shared.filing.sentences import normalize_text
+from app.agents.shared.quotes import find_quote_chunk, numbers_supported
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
     FINANCIAL_TRANSMISSIONS,
@@ -43,13 +44,11 @@ from app.agents.tools.risk_disclosure_tools import (
     is_boilerplate,
     is_material_disclosure,
     normalize_level,
-    numbers_supported,
     render_risk_evidence_table,
     render_risk_matrix_markdown,
     section_not_provided,
     states_immaterial,
     substantiates_high_impact,
-    verify_quote,
 )
 
 logger = logging.getLogger("finance_agent.agents.risk_analyst")
@@ -543,13 +542,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         """Matches a quote to its claimed chunk (exact or near-verbatim), else to any pooled chunk (exact)."""
         if ev is None or not pool:
             return None
-        claimed = pool.get(ev.chunk_id)
-        hit = claimed if claimed and verify_quote(ev.quote, claimed["content"]) else None
-        if hit is None:
-            hit = next(
-                (c for cid, c in pool.items() if cid != ev.chunk_id and verify_quote(ev.quote, c["content"], allow_fuzzy=False)),
-                None,
-            )
+        hit = find_quote_chunk(ev.quote, ev.chunk_id, pool)
         if hit is None:
             return None
         return RiskEvidence(

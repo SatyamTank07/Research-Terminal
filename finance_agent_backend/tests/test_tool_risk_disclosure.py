@@ -1,6 +1,6 @@
 """Unit Tests for the deterministic Risk-Disclosure toolkit (Item 1A).
 
-Validates quote verification, numeric-claim support, the likelihood x impact severity matrix,
+Validates the likelihood x impact severity matrix,
 aggregate risk profile, materiality / boilerplate screens, the not-provided check, the
 year-over-year disclosure diff, and the markdown renderers. No database or network access.
 """
@@ -21,12 +21,10 @@ from app.agents.tools.risk_disclosure_tools import (
     section_not_provided,
     is_material_disclosure,
     normalize_level,
-    numbers_supported,
     render_risk_evidence_table,
     render_risk_matrix_markdown,
     states_immaterial,
     substantiates_high_impact,
-    verify_quote,
 )
 
 CONCENTRATION = (
@@ -49,43 +47,6 @@ def _chunk(chunk_id: str, content: str, idx: int = 0, item: str = "Item 1A", fy:
         content=content,
         chunk_index=idx,
     )
-
-
-class TestQuoteVerification(unittest.TestCase):
-    def test_exact_and_normalized_quotes_pass(self):
-        quote = "sales to one direct customer represented 22% of total revenue"
-        self.assertTrue(verify_quote(quote, CONCENTRATION))
-        self.assertTrue(verify_quote(quote.upper().replace(" ", "   "), CONCENTRATION))
-
-    def test_curly_quotes_and_dashes_are_normalized(self):
-        text = "The Company’s products — including chips — face export licensing requirements in China."
-        self.assertTrue(verify_quote("The Company's products - including chips - face export licensing requirements", text))
-
-    def test_ellipsis_segments_each_must_match(self):
-        quote = "sales to one direct customer represented 22% ... another direct customer represented 14% of total revenue"
-        self.assertTrue(verify_quote(quote, CONCENTRATION))
-        bad = "sales to one direct customer represented 22% ... another customer represented 40% of total revenue"
-        self.assertFalse(verify_quote(bad, CONCENTRATION))
-
-    def test_near_verbatim_passes_only_with_fuzzy(self):
-        quote = "sales to one customer represented 22% of total revenue and sales to another direct customer represented 14%"
-        self.assertTrue(verify_quote(quote, CONCENTRATION))
-        self.assertFalse(verify_quote(quote, CONCENTRATION, allow_fuzzy=False))
-
-    def test_fabricated_and_degenerate_quotes_fail(self):
-        self.assertFalse(verify_quote("management believes the outcome will not have a material adverse effect", CONCENTRATION))
-        self.assertFalse(verify_quote("22% of", CONCENTRATION))  # too short to be evidence
-        self.assertFalse(verify_quote(None, CONCENTRATION))
-        self.assertFalse(verify_quote("sales to one direct customer represented 22%", None))
-
-
-class TestNumericSupport(unittest.TestCase):
-    def test_numbers_must_appear_in_evidence(self):
-        self.assertTrue(numbers_supported("Two direct customers at 22% and 14% of revenue", [CONCENTRATION]))
-        self.assertFalse(numbers_supported("One customer is 35% of revenue", [CONCENTRATION]))
-        self.assertTrue(numbers_supported("A $4,500.0 million charge", ["we incurred a $4500 million charge"]))
-        self.assertTrue(numbers_supported(None, [CONCENTRATION]))
-        self.assertTrue(numbers_supported("Most revenue comes from few customers", [CONCENTRATION]))
 
 
 class TestSeverityAndProfile(unittest.TestCase):

@@ -25,6 +25,7 @@ from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative
 from app.agents.shared.filing.sections import build_section_context, locate_section_chunks
 from app.agents.shared.filing.sentences import normalize_text
+from app.agents.shared.quotes import find_quote_chunk, numbers_supported
 from app.agents.specialized.business_strategist.state_business_strategist import (
     MOAT_TYPES,
     NOT_DISCLOSED,
@@ -54,7 +55,6 @@ from app.agents.tools.claim_relevance import (
     segment_quote_mentions,
     threat_quote_supports,
 )
-from app.agents.tools.risk_disclosure_tools import numbers_supported, verify_quote
 
 logger = logging.getLogger("finance_agent.agents.business_strategist")
 
@@ -413,9 +413,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             if not isinstance(quote, str) or not quote.strip():
                 continue
             quote = quote.strip()[:MAX_QUOTE_CHARS]
-            hit = pool.get(chunk_id) if chunk_id in pool and verify_quote(quote, pool[chunk_id]["content"]) else None
-            if hit is None:
-                hit = next((c for cid, c in pool.items() if cid != chunk_id and verify_quote(quote, c["content"], allow_fuzzy=False)), None)
+            hit = find_quote_chunk(quote, chunk_id, pool)
             if hit is None:
                 dq.quotes_rejected += 1
                 continue

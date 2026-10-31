@@ -2,7 +2,6 @@
 
 Pure-Python helpers backing the evidence-first Risk Analyst:
 - Year-over-year disclosure diff (sentence-level 3-word-shingle Jaccard).
-- Verbatim quote verification and numeric-claim support checks against retrieved chunks.
 - Likelihood x impact severity matrix, aggregate risk profile, materiality / boilerplate screens.
 - Markdown renderers for the verified risk matrix and evidence table.
 
@@ -28,9 +27,6 @@ MODIFIED_SIMILARITY = 0.3
 MAX_NEW_PASSAGES = 12
 MAX_REMOVED_PASSAGES = 8
 PASSAGE_MAX_CHARS = 400
-
-QUOTE_FUZZY_COVERAGE = 0.85
-MIN_QUOTE_WORDS = 4
 
 LEVELS = ("High", "Medium", "Low")
 SEVERITY_ORDER = {"Severe": 0, "Moderate": 1, "Low": 2}
@@ -89,7 +85,6 @@ _PREAMBLE_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
-_NUMBER = re.compile(r"\d[\d,]*(?:\.\d+)?")
 
 
 # ==============================================================================
@@ -332,70 +327,8 @@ def classify_disclosure_change(quotes: Sequence[str], prior_index: Optional[Sent
 
 
 # ==============================================================================
-# 4. Evidence verification
+# 4. Materiality screens
 # ==============================================================================
-def verify_quote(quote: str, chunk_text: str, allow_fuzzy: bool = True) -> bool:
-    """True if `quote` appears in `chunk_text` verbatim (after normalization) or near-verbatim.
-
-    Ellipses split the quote into segments that must each match. With `allow_fuzzy`, a segment
-    that is not an exact substring passes if >= 85% of its words appear in a same-length window
-    of the chunk.
-    """
-    if not isinstance(quote, str) or not isinstance(chunk_text, str):
-        return False
-    haystack = normalize_text(chunk_text)
-    segments = [s.strip(" .,;:\"'") for s in re.split(r"\.\.\.|…|\[\.\.\.\]", normalize_text(quote))]
-    segments = [s for s in segments if s]
-    if not segments or sum(len(s.split()) for s in segments) < MIN_QUOTE_WORDS:
-        return False
-    hay_words = split_words(haystack)
-    for segment in segments:
-        if segment in haystack:
-            continue
-        if not allow_fuzzy:
-            return False
-        seg_words = split_words(segment)
-        if not seg_words or not _fuzzy_window_match(seg_words, hay_words):
-            return False
-    return True
-
-
-def _fuzzy_window_match(needle: List[str], hay: List[str]) -> bool:
-    """Near-verbatim match: >= 85% of words in a same-length window, and every number exact."""
-    size = len(needle)
-    if size > len(hay):
-        return False
-    target = defaultdict(int)
-    for w in needle:
-        target[w] += 1
-    numbers = [w for w in target if any(ch.isdigit() for ch in w)]
-    for start in range(0, len(hay) - size + 1):
-        window = defaultdict(int)
-        for w in hay[start:start + size + 2]:
-            window[w] += 1
-        if any(window.get(n, 0) < target[n] for n in numbers):
-            continue
-        hit = sum(min(cnt, window.get(w, 0)) for w, cnt in target.items())
-        if hit / size >= QUOTE_FUZZY_COVERAGE:
-            return True
-    return False
-
-
-def _canonical_number(token: str) -> str:
-    return token.replace(",", "").rstrip("0").rstrip(".") if "." in token else token.replace(",", "")
-
-
-def numbers_supported(text: Optional[str], evidence_texts: Sequence[str]) -> bool:
-    """True if every number in `text` also appears in the evidence (commas / trailing zeros ignored)."""
-    if not text:
-        return True
-    claimed = {_canonical_number(n) for n in _NUMBER.findall(text)}
-    if not claimed:
-        return True
-    available = {_canonical_number(n) for t in evidence_texts for n in _NUMBER.findall(t or "")}
-    return claimed <= available
-
-
 def states_immaterial(text: str) -> bool:
     return bool(text) and bool(IMMATERIALITY_PATTERNS.search(text))
 
@@ -493,8 +426,6 @@ __all__ = [
     "build_prior_index",
     "diff_risk_disclosures",
     "classify_disclosure_change",
-    "verify_quote",
-    "numbers_supported",
     "states_immaterial",
     "is_boilerplate",
     "normalize_level",
