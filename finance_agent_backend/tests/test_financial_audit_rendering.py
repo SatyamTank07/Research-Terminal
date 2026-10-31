@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.lead_synthesizer.report_citations import NullCiter
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.tools.financial_math_tools import run_audit_from_inputs
 from app.agents.tools.statement_extraction import build_statement_grids, extract_audit_inputs
 from app.services.ingestion.sec_parser import SECParser
@@ -42,7 +42,7 @@ class TestFinancialAuditRendering(unittest.TestCase):
 
     def test_01_synthesizer_context_tables(self):
         prompt = render_prompt(
-            "lead_synthesizer",
+            "lead_synthesizer", "prompt_lead_synthesizer.j2",
             ticker="TSLA",
             company_name="Tesla, Inc.",
             fiscal_year=2025,
@@ -71,7 +71,7 @@ class TestFinancialAuditRendering(unittest.TestCase):
 
     def test_02_financial_audit_instruction_and_report_layout(self):
         instruction = render_prompt(
-            "prompt_synthesizer_instruction.j2",
+            "lead_synthesizer", "prompt_synthesizer_instruction.j2",
             ticker="TSLA",
             company_name="Tesla, Inc.",
             fiscal_year=2025,
@@ -80,7 +80,7 @@ class TestFinancialAuditRendering(unittest.TestCase):
         self.assertIn("route `financial_audit_only`", instruction)
 
         report = render_prompt(
-            "report_layout.j2",
+            "lead_synthesizer", "report_layout.j2",
             ticker="TSLA", company_name="Tesla, Inc.", fiscal_year=2025, query_type="financial_audit_only",
             financial_audit=_tsla_audit_output(), p={}, notes=[], provenance="template_default", removed_sentences=0,
             cite=NullCiter(),

@@ -17,10 +17,10 @@ from unittest.mock import MagicMock, patch
 from langchain_core.messages import AIMessage, ToolMessage
 
 from app.agents.registry import AgentRegistry
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.financial_auditor import FinancialAuditOutput, FinancialAuditorAgent
 from app.agents.tools.financial_math_tools import run_audit_from_inputs
-from app.agents.tools.rag_table_tools import retrieve_multiyear_financial_series_tool
+from app.agents.shared.filing.table_search import retrieve_multiyear_financial_series_tool
 from app.agents.tools.statement_extraction import build_statement_grids, extract_audit_inputs
 from tests.statement_fixtures import tsla_payloads
 
@@ -52,7 +52,7 @@ class TestFinancialAuditorAgent(unittest.TestCase):
         self.assertIsInstance(agent, FinancialAuditorAgent)
         self.assertEqual(agent.model_name, "openai:gpt-4o-mini")
 
-        prompt = render_prompt("financial_auditor")
+        prompt = render_prompt("financial_auditor", "prompt_financial_auditor.j2")
         for marker in ["Senior Forensic CPA", "refine_financial_audit_tool", "audit_financial_metrics_tool",
                        "<auditor_summary_contract>", "normalization_adjustments", "**Earnings Quality**"]:
             self.assertIn(marker, prompt)

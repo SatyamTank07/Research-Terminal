@@ -1,8 +1,8 @@
-"""Figure verification guard for model-written prose (app/agents/tools/figure_verification.py)."""
+"""Figure verification guard for model-written prose (app/agents/shared/figures.py)."""
 
 import unittest
 
-from app.agents.tools.figure_verification import (
+from app.agents.shared.figures import (
     annotate_sentences,
     attribute_sentence,
     build_figure_index,

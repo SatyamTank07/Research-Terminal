@@ -1,9 +1,9 @@
-"""Numbered filing citations (app/agents/tools/citation_registry.py)."""
+"""Numbered filing citations (app/agents/shared/citations.py)."""
 
 import unittest
 from unittest.mock import MagicMock, patch
 
-from app.agents.tools.citation_registry import (
+from app.agents.shared.citations import (
     CitationRegistry,
     resolve_chunk_metadata,
     SourceChunk,
@@ -110,7 +110,7 @@ class TestCitationRegistry(unittest.TestCase):
     def test_metadata_lookup_failure_raises_instead_of_dropping_every_source(self):
         session = MagicMock()
         session.query.side_effect = RuntimeError("database unavailable")
-        with patch("app.agents.tools.citation_registry.SessionLocal", return_value=session):
+        with patch("app.agents.shared.citations.SessionLocal", return_value=session):
             with self.assertRaises(RuntimeError):
                 resolve_chunk_metadata(["c1"])
         session.close.assert_called_once()

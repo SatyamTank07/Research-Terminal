@@ -1,4 +1,4 @@
-"""Unit and integration tests for rag_narrative_tools.py (Milestone 5 Foundation Tool).
+"""Unit and integration tests for shared/filing/narrative_search.py (Milestone 5 Foundation Tool).
 
 Validates Hybrid RRF (pgvector HNSW + TSVector GIN) retrieval across real ingested 10-K filings:
 - Apple Inc. (AAPL FY2025 & FY2024)
@@ -8,7 +8,7 @@ Validates Hybrid RRF (pgvector HNSW + TSVector GIN) retrieval across real ingest
 
 import unittest
 from unittest.mock import MagicMock, patch
-from app.agents.tools.rag_narrative_tools import (
+from app.agents.shared.filing.narrative_search import (
     NarrativeChunkResult,
     retrieve_10k_narrative,
     retrieve_10k_narrative_tool,
@@ -21,7 +21,7 @@ class TestRAGNarrativeTools(unittest.TestCase):
     def setUp(self):
         self.mock_embedder = MagicMock()
         self.mock_embedder.embed_query.return_value = [0.01] * 1536
-        self.patcher = patch("app.agents.tools.rag_narrative_tools._get_embedder", return_value=self.mock_embedder)
+        self.patcher = patch("app.agents.shared.filing.narrative_search._get_embedder", return_value=self.mock_embedder)
         self.patcher.start()
 
     def tearDown(self):
@@ -236,7 +236,7 @@ class TestRAGNarrativeTools(unittest.TestCase):
         """Verify _get_embedder returns a cached singleton across repeated calls."""
         self.patcher.stop()
         try:
-            from app.agents.tools.rag_narrative_tools import _get_embedder
+            from app.agents.shared.filing.narrative_search import _get_embedder
             emb1 = _get_embedder()
             emb2 = _get_embedder()
             self.assertIs(emb1, emb2, "_get_embedder should return the exact same cached instance")
@@ -288,7 +288,7 @@ class TestRAGNarrativeTools(unittest.TestCase):
             # 2. Force an internal PostgreSQL syntax error on the sparse query via monkeypatch
             # to_tsquery with invalid syntax raises a PostgreSQL syntax error when executed
             malformed_expr = func.to_tsquery("english", "&&& bad tsquery syntax !&")
-            with patch("app.agents.tools.rag_narrative_tools._build_tsquery_expression", return_value=malformed_expr):
+            with patch("app.agents.shared.filing.narrative_search._build_tsquery_expression", return_value=malformed_expr):
                 results = retrieve_10k_narrative(
                     ticker="AAPL",
                     fiscal_year=2025,

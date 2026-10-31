@@ -16,7 +16,12 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.filing.narrative_search import retrieve_10k_narrative_tool
+from app.agents.shared.filing.sections import build_section_context, locate_section_chunks
+from app.agents.shared.filing.sentences import normalize_text
+from app.agents.shared.llm_call import complete_once
+from app.agents.shared.prompts import render_prompt
+from app.agents.shared.quotes import find_quote_chunk, numbers_supported
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
     FINANCIAL_TRANSMISSIONS,
     RISK_CATEGORIES,
@@ -25,14 +30,12 @@ from app.agents.specialized.risk_analyst.state_risk_analyst import (
     RiskEvidence,
     RiskItem,
 )
-from app.agents.tools.rag_narrative_tools import retrieve_10k_narrative_tool
 from app.agents.tools.risk_disclosure_tools import (
     LEVEL_ORDER,
     QUANTIFIED_FIGURE,
     RISK_SECTION_ITEM,
     SEVERITY_ORDER,
     build_prior_index,
-    build_section_context,
     classify_disclosure_change,
     derive_overall_profile,
     derive_severity,
@@ -41,16 +44,12 @@ from app.agents.tools.risk_disclosure_tools import (
     extract_quantified_disclosures,
     is_boilerplate,
     is_material_disclosure,
-    locate_section_chunks,
     normalize_level,
-    normalize_text,
-    numbers_supported,
     render_risk_evidence_table,
     render_risk_matrix_markdown,
     section_not_provided,
     states_immaterial,
     substantiates_high_impact,
-    verify_quote,
 )
 
 logger = logging.getLogger("finance_agent.agents.risk_analyst")
@@ -187,7 +186,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         )
 
         query = render_prompt(
-            "prompt_risk_analyst_query.j2",
+            "risk_analyst", "prompt_risk_analyst_query.j2",
             ticker=ticker,
             fiscal_year=fiscal_year,
             coverage_mode=mode,
@@ -222,7 +221,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         pool = run["pool"]
         chunk_ids = list(dict.fromkeys(d.chunk_id for d in targets))
         prompt = render_prompt(
-            "prompt_risk_analyst_repair.j2",
+            "risk_analyst", "prompt_risk_analyst_repair.j2",
             ticker=ticker,
             fiscal_year=fiscal_year,
             targets=targets,
@@ -258,14 +257,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
 
     def _run_repair_llm(self, prompt: str, callbacks: Optional[List[Any]]) -> str:
         """Single tool-free completion for the coverage repair pass."""
-        from dotenv import load_dotenv
-        from langchain_core.messages import HumanMessage
-        from langchain_openai import ChatOpenAI
-
-        load_dotenv(override=True)
-        llm = ChatOpenAI(model=self.model_name.replace("openai:", ""), temperature=0, max_retries=5)
-        config = {"callbacks": callbacks} if callbacks else {}
-        return llm.invoke([HumanMessage(content=prompt)], config=config).content
+        return complete_once(self.model_name, prompt, max_retries=5, callbacks=callbacks)
 
     # ------------------------------------------------------------------
     # Setup helpers
@@ -544,13 +536,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         """Matches a quote to its claimed chunk (exact or near-verbatim), else to any pooled chunk (exact)."""
         if ev is None or not pool:
             return None
-        claimed = pool.get(ev.chunk_id)
-        hit = claimed if claimed and verify_quote(ev.quote, claimed["content"]) else None
-        if hit is None:
-            hit = next(
-                (c for cid, c in pool.items() if cid != ev.chunk_id and verify_quote(ev.quote, c["content"], allow_fuzzy=False)),
-                None,
-            )
+        hit = find_quote_chunk(ev.quote, ev.chunk_id, pool)
         if hit is None:
             return None
         return RiskEvidence(

@@ -22,6 +22,12 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative
+from app.agents.shared.filing.sections import build_section_context, locate_section_chunks
+from app.agents.shared.filing.sentences import normalize_text
+from app.agents.shared.llm_call import complete_once
+from app.agents.shared.prompts import render_prompt
+from app.agents.shared.quotes import find_quote_chunk, numbers_supported
 from app.agents.specialized.business_strategist.state_business_strategist import (
     MOAT_TYPES,
     NOT_DISCLOSED,
@@ -31,7 +37,6 @@ from app.agents.specialized.business_strategist.state_business_strategist import
     StrategistDataQuality,
     StrategyEvidence,
 )
-from app.agents.specialized.prompts import render_prompt
 from app.agents.tools.business_disclosure_tools import (
     DisclosureSentence,
     FilingChunk,
@@ -50,14 +55,6 @@ from app.agents.tools.claim_relevance import (
     pricing_claim_supported,
     segment_quote_mentions,
     threat_quote_supports,
-)
-from app.agents.tools.rag_narrative_tools import NarrativeChunkResult, retrieve_10k_narrative
-from app.agents.tools.risk_disclosure_tools import (
-    build_section_context,
-    locate_section_chunks,
-    normalize_text,
-    numbers_supported,
-    verify_quote,
 )
 
 logger = logging.getLogger("finance_agent.agents.business_strategist")
@@ -175,7 +172,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         segment_names = self._reportable_names(extraction)
         line_names = self._line_names(extraction)
         prompt = render_prompt(
-            "prompt_business_strategist_query.j2",
+            "business_strategist", "prompt_business_strategist_query.j2",
             ticker=ticker,
             fiscal_year=fiscal_year,
             coverage_mode=dq.coverage_mode,
@@ -204,21 +201,10 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
 
     def _run_judgement_llm(self, prompt: str, callbacks: Optional[List[Any]]) -> str:
         """Single tool-free completion returning the qualitative judgement as JSON text."""
-        from dotenv import load_dotenv
-        from langchain_core.messages import HumanMessage, SystemMessage
-        from langchain_openai import ChatOpenAI
-
-        load_dotenv(override=True)
-        llm = ChatOpenAI(
-            model=self.model_name.replace("openai:", ""),
-            temperature=0,
-            max_retries=3,
-            max_tokens=JUDGEMENT_MAX_TOKENS,
-            model_kwargs={"response_format": {"type": "json_object"}},
+        return complete_once(
+            self.model_name, prompt, system_prompt=self.get_system_prompt(),
+            max_tokens=JUDGEMENT_MAX_TOKENS, max_retries=3, json_mode=True, callbacks=callbacks,
         )
-        config = {"callbacks": callbacks} if callbacks else {}
-        messages = [SystemMessage(content=self.get_system_prompt()), HumanMessage(content=prompt)]
-        return llm.invoke(messages, config=config).content
 
     # ------------------------------------------------------------------
     # Pre-fetch helpers (never raise)
@@ -417,9 +403,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             if not isinstance(quote, str) or not quote.strip():
                 continue
             quote = quote.strip()[:MAX_QUOTE_CHARS]
-            hit = pool.get(chunk_id) if chunk_id in pool and verify_quote(quote, pool[chunk_id]["content"]) else None
-            if hit is None:
-                hit = next((c for cid, c in pool.items() if cid != chunk_id and verify_quote(quote, c["content"], allow_fuzzy=False)), None)
+            hit = find_quote_chunk(quote, chunk_id, pool)
             if hit is None:
                 dq.quotes_rejected += 1
                 continue

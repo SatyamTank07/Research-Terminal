@@ -1,4 +1,4 @@
-"""Universal 10-K Narrative Retrieval Tool (Hybrid RRF).
+"""Hybrid narrative search over a stored 10-K (dense vectors + full-text), fused with RRF.
 
 Enables qualitative agents (Business Strategist, Risk Analyst) and the Forecasting Analyst
 to retrieve high-relevance narrative disclosures from SEC 10-K filings using Hybrid Search:

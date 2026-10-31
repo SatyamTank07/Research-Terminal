@@ -20,9 +20,9 @@ from unittest.mock import MagicMock, patch
 
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.business_strategist import BusinessMoatOutput, BusinessStrategistAgent
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.tools.business_disclosure_tools import FilingChunk
-from app.agents.tools.rag_narrative_tools import NarrativeChunkResult
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from tests.test_tool_business_disclosure import DISAGGREGATION, INCOME_STATEMENT, STACKED_SEGMENTS
 
 MODULE = "app.agents.specialized.business_strategist.agent_business_strategist"
@@ -159,12 +159,12 @@ class TestRegistrationAndPrompts(unittest.TestCase):
         self.assertEqual(agent.get_tools(), [])
 
     def test_prompts_render(self):
-        system = render_prompt("business_strategist")
+        system = render_prompt("business_strategist", "prompt_business_strategist.j2")
         self.assertIn("Senior Equity Research Analyst", system)
         self.assertIn('"primary_moat"', system)
         self.assertIn("Wide", system)
         query = render_prompt(
-            "prompt_business_strategist_query.j2",
+            "business_strategist", "prompt_business_strategist_query.j2",
             ticker="test", fiscal_year=2025, coverage_mode="full_section", section_context="[chunk:i1] text",
             disclosures=[], segment_basis="business", segment_names=["Retail"], line_names=["Online stores"],
             segment_table="SEG", revenue_mix="MIX",
@@ -406,6 +406,18 @@ class TestRealFilingSmoke(unittest.TestCase):
         self.assertIn("iPhone", out.primary_product_segments)
         self.assertIn("Services", out.primary_product_segments)
         self.assertGreaterEqual(len(out.reportable_segments), 2)
+
+
+class TestJudgementCallSettings(unittest.TestCase):
+    def test_judgement_call_is_json_with_system_prompt_cap_and_three_retries(self):
+        from app.agents.specialized.business_strategist.agent_business_strategist import JUDGEMENT_MAX_TOKENS
+        agent = BusinessStrategistAgent()
+        with patch(f"{MODULE}.complete_once", return_value="{}") as call:
+            agent._run_judgement_llm("p", None)
+        call.assert_called_once_with(
+            agent.model_name, "p", system_prompt=agent.get_system_prompt(),
+            max_tokens=JUDGEMENT_MAX_TOKENS, max_retries=3, json_mode=True, callbacks=None,
+        )
 
 
 if __name__ == "__main__":

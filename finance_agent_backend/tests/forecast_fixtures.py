@@ -18,7 +18,7 @@ from app.agents.tools.financial_math_tools import (
 from app.agents.tools.forecast_baseline import build_forecast_baseline
 from app.agents.tools.forecast_drivers import DEFAULT_TERMINAL_GROWTH, historical_fade_drivers
 from app.agents.tools.mdna_guidance import MdnaAssessment
-from app.agents.tools.rag_narrative_tools import NarrativeChunkResult
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 
 AAPL_ROWS: List[Dict[str, Any]] = [
     dict(fiscal_year=2023, revenue=383285.0, gross_profit=169148.0, operating_income=114301.0,

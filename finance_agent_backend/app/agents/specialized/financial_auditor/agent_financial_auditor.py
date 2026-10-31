@@ -24,7 +24,12 @@ from langchain_core.tools import StructuredTool
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.filing.table_search import (
+    retrieve_10k_tables,
+    retrieve_10k_tables_tool,
+    retrieve_multiyear_financial_series_tool,
+)
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.financial_auditor.state_financial_auditor import (
     AuditDataQuality,
     FinancialAuditOutput,
@@ -39,11 +44,6 @@ from app.agents.tools.financial_math_tools import (
     apply_input_corrections,
     audit_financial_metrics_tool,
     run_audit_from_inputs,
-)
-from app.agents.tools.rag_table_tools import (
-    retrieve_10k_tables,
-    retrieve_10k_tables_tool,
-    retrieve_multiyear_financial_series_tool,
 )
 from app.agents.tools.statement_extraction import (
     ExtractionResult,
@@ -147,7 +147,7 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
         )
 
         query = render_prompt(
-            "prompt_financial_auditor_query.j2",
+            "financial_auditor", "prompt_financial_auditor_query.j2",
             ticker=ticker,
             fiscal_year=fiscal_year,
             extraction_mode=mode,

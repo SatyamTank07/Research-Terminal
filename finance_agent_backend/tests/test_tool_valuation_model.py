@@ -2,7 +2,7 @@
 
 import unittest
 
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.valuation_specialist import ValuationSpecialistAgent
 from app.agents.tools.dcf_tools import dcf_fair_value_per_share
 from app.agents.tools.forecast_model import project_with_overrides
@@ -165,7 +165,7 @@ class TestReverseDcfInBuildValuation(unittest.TestCase):
     def test_template_and_prompt_carry_reverse_dcf(self):
         out = make_valuation_output()
         self.assertIn("Reverse DCF:", out.valuation_summary)
-        query = render_prompt("prompt_valuation_query.j2", v=out)
+        query = render_prompt("valuation_specialist", "prompt_valuation_query.j2", v=out)
         self.assertIn("- Reverse DCF:", query)
         self.assertIn("WACC rows x terminal RONIC columns", query)
         self.assertIn("EV/NOPAT", query)

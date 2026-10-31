@@ -22,10 +22,11 @@ from unittest.mock import MagicMock, patch
 from langchain_core.messages import AIMessage, ToolMessage
 
 from app.agents.registry import AgentRegistry
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.risk_analyst import RiskAnalystAgent, RiskAuditOutput, RiskEvidence, RiskItem
-from app.agents.tools.rag_narrative_tools import NarrativeChunkResult, retrieve_10k_narrative_tool
-from app.agents.tools.risk_disclosure_tools import diff_risk_disclosures, fetch_section_chunks, locate_section_chunks
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative_tool
+from app.agents.shared.filing.sections import fetch_section_chunks, locate_section_chunks
+from app.agents.tools.risk_disclosure_tools import diff_risk_disclosures
 
 LOCATE_PATH = "app.agents.specialized.risk_analyst.agent_risk_analyst.locate_section_chunks"
 
@@ -185,7 +186,7 @@ class TestRiskAnalystSetup(unittest.TestCase):
         self.assertIsInstance(agent, RiskAnalystAgent)
         self.assertEqual(agent.model_name, "openai:gpt-4o-mini")
 
-        prompt = render_prompt("risk_analyst")
+        prompt = render_prompt("risk_analyst", "prompt_risk_analyst.j2")
         for needle in ("Chief Risk Officer", "retrieve_10k_narrative_tool", "RiskAuditOutput", "BOILERPLATE FILTER",
                        "character-for-character", "primary_threat_risk_id", "Competitive & Demand"):
             self.assertIn(needle, prompt)
@@ -555,7 +556,7 @@ class TestRiskAnalystEdgeCases(unittest.TestCase):
 class TestRiskAnalystDatabase(unittest.TestCase):
     """Smoke tests against ingested filings; skipped when the filings are absent."""
 
-    @patch("app.agents.tools.rag_narrative_tools._get_embedder")
+    @patch("app.agents.shared.filing.narrative_search._get_embedder")
     def test_item1a_narrative_retrieval(self, mock_get_embedder):
         mock_embedder = MagicMock()
         mock_embedder.embed_query.return_value = [0.01] * 1536
@@ -571,7 +572,7 @@ class TestRiskAnalystDatabase(unittest.TestCase):
             self.assertTrue(c["chunk_id"])
 
     def test_heading_boundary_recovers_mislabeled_item_1a(self):
-        chunks, located_by = locate_section_chunks("AMZN", 2025)
+        chunks, located_by = locate_section_chunks("AMZN", 2025, "Item 1A")
         if located_by == "not_found":
             self.skipTest("AMZN FY2025 not ingested")
         if located_by == "item_label":
@@ -582,8 +583,8 @@ class TestRiskAnalystDatabase(unittest.TestCase):
         self.assertNotIn("Unresolved Staff Comments", chunks[-1].content[:200])
 
     def test_full_section_fetch_and_diff_on_real_filings(self):
-        current = fetch_section_chunks("AAPL", 2025)
-        prior = fetch_section_chunks("AAPL", 2024)
+        current = fetch_section_chunks("AAPL", 2025, "Item 1A")
+        prior = fetch_section_chunks("AAPL", 2024, "Item 1A")
         if not current or not prior:
             self.skipTest("AAPL FY2024/FY2025 Item 1A not ingested")
         self.assertTrue(all(c.item == "Item 1A" for c in current))
@@ -592,6 +593,14 @@ class TestRiskAnalystDatabase(unittest.TestCase):
         self.assertGreater(diff.unchanged_sentences, diff.new_sentences)
         self.assertGreater(diff.new_sentences, 0)
         self.assertTrue(diff.new_passages)
+
+
+class TestRepairCallSettings(unittest.TestCase):
+    def test_repair_call_has_no_system_prompt_and_five_retries(self):
+        agent = RiskAnalystAgent()
+        with patch("app.agents.specialized.risk_analyst.agent_risk_analyst.complete_once", return_value="{}") as call:
+            agent._run_repair_llm("p", None)
+        call.assert_called_once_with(agent.model_name, "p", max_retries=5, callbacks=None)
 
 
 if __name__ == "__main__":

@@ -62,10 +62,10 @@ class StructuredAgent(BaseAgent, Generic[T]):
     def get_system_prompt(self) -> str:
         """Renders and returns the system prompt."""
         if self.prompt_name:
-            from app.agents.specialized.prompts import render_prompt
-            return render_prompt(self.prompt_name)
+            from app.agents.shared.prompts import render_prompt
+            return render_prompt(self.prompt_name, f"prompt_{self.prompt_name}.j2")
         raise NotImplementedError(
-            f"Class {self.__class__.__name__} must define 'prompt_name' or override 'get_system_prompt()'."
+            f"Class {self.__class__.__name__} must define 'prompt_name' (its agent folder) or override 'get_system_prompt()'."
         )
 
 

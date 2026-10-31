@@ -1,10 +1,7 @@
 """Deterministic Risk-Disclosure Toolkit (Item 1A).
 
 Pure-Python helpers backing the evidence-first Risk Analyst:
-- Full-section retrieval of a filing's Item 1A narrative in filing order (exact item match).
-- Prompt context assembly under a character budget.
 - Year-over-year disclosure diff (sentence-level 3-word-shingle Jaccard).
-- Verbatim quote verification and numeric-claim support checks against retrieved chunks.
 - Likelihood x impact severity matrix, aggregate risk profile, materiality / boilerplate screens.
 - Markdown renderers for the verified risk matrix and evidence table.
 
@@ -17,26 +14,19 @@ from collections import defaultdict
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
 
-from app.agents.tools.rag_narrative_tools import NarrativeChunkResult
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult
+from app.agents.shared.filing.sentences import normalize_text, split_sentences, split_words
 
 logger = logging.getLogger("finance_agent.tools.risk_disclosure")
 
 RISK_SECTION_ITEM = "Item 1A"
-DEFAULT_CHAR_BUDGET = 160_000
-BUDGETED_CHUNK_LEAD_CHARS = 600
-MAX_SUMMARY_CHUNKS = 6
 
 UNCHANGED_SIMILARITY = 0.6
 MODIFIED_SIMILARITY = 0.3
-MIN_SENTENCE_CHARS = 60
 MAX_NEW_PASSAGES = 12
 MAX_REMOVED_PASSAGES = 8
 PASSAGE_MAX_CHARS = 400
-
-QUOTE_FUZZY_COVERAGE = 0.85
-MIN_QUOTE_WORDS = 4
 
 LEVELS = ("High", "Medium", "Low")
 SEVERITY_ORDER = {"Severe": 0, "Moderate": 1, "Low": 2}
@@ -95,14 +85,6 @@ _PREAMBLE_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
-_SENTENCE_SPLIT = re.compile(r"(?<=[.;:!?])\s+(?=[A-Z•\"“(])|\s*•\s*")
-_WORD = re.compile(r"[a-z0-9]+")
-_NUMBER = re.compile(r"\d[\d,]*(?:\.\d+)?")
-_CHAR_MAP = str.maketrans({
-    "‘": "'", "’": "'", "‛": "'", "′": "'",
-    "“": '"', "”": '"', "‟": '"', "″": '"',
-    "–": "-", "—": "-", "−": "-", " ": " ",
-})
 
 
 # ==============================================================================
@@ -139,153 +121,8 @@ class RiskDisclosureDiff(BaseModel):
 
 
 # ==============================================================================
-# 2. Retrieval & context assembly
+# 2. Section availability
 # ==============================================================================
-def _to_result(chunk: Any, doc: Any, item: Optional[str] = None) -> NarrativeChunkResult:
-    return NarrativeChunkResult(
-        chunk_id=str(chunk.id),
-        document_id=str(doc.id),
-        ticker=doc.ticker,
-        fiscal_year=doc.fiscal_year,
-        item=item or chunk.item or "Narrative",
-        breadcrumb=chunk.breadcrumb,
-        sub_section=chunk.sub_section,
-        content=chunk.content,
-        chunk_index=chunk.chunk_index,
-    )
-
-
-def _filing_chunks_query(db: Session, ticker: str, fiscal_year: int):
-    from app.models import ANNUAL_REPORT_FILING_TYPE, Document, DocumentChunk
-
-    return (
-        db.query(DocumentChunk, Document)
-        .join(Document, Document.id == DocumentChunk.document_id)
-        .filter(
-            Document.ticker == ticker.strip().upper(),
-            Document.fiscal_year == fiscal_year,
-            Document.filing_type == ANNUAL_REPORT_FILING_TYPE,
-        )
-    )
-
-
-def fetch_section_chunks(
-    ticker: str,
-    fiscal_year: int,
-    item: str = RISK_SECTION_ITEM,
-    db: Optional[Session] = None,
-) -> List[NarrativeChunkResult]:
-    """Returns every narrative chunk stored under `item` for the 10-K, in filing order (exact item match)."""
-    from app.database import SessionLocal
-    from app.models import DocumentChunk
-
-    owns_db = db is None
-    if owns_db:
-        db = SessionLocal()
-    try:
-        rows = (
-            _filing_chunks_query(db, ticker, fiscal_year)
-            .filter(DocumentChunk.chunk_type == "narrative", DocumentChunk.item == item)
-            .order_by(DocumentChunk.chunk_index.asc())
-            .all()
-        )
-        return [_to_result(chunk, doc) for chunk, doc in rows]
-    finally:
-        if owns_db:
-            db.close()
-
-
-# Standard Form 10-K item order and title keywords, used to find section boundaries from the
-# headings themselves when the stored item labels are wrong (e.g. headings rendered as tables).
-TEN_K_ITEM_ORDER = [
-    "1", "1A", "1B", "1C", "2", "3", "4", "5", "6", "7", "7A", "8",
-    "9", "9A", "9B", "9C", "10", "11", "12", "13", "14", "15", "16",
-]
-TEN_K_ITEM_TITLES = {
-    "1": r"business", "1A": r"risk\s+factors", "1B": r"unresolved\s+staff", "1C": r"cybersecurity",
-    "2": r"properties", "3": r"legal\s+proceedings", "4": r"mine\s+safety", "5": r"market\s+for",
-    "6": r"reserved|selected", "7": r"management", "7A": r"quantitative\s+and\s+qualitative",
-    "8": r"financial\s+statements", "9": r"changes\s+in\s+and\s+disagreements", "9A": r"controls\s+and\s+procedures",
-    "9B": r"other\s+information", "9C": r"foreign\s+jurisdictions", "10": r"directors", "11": r"executive\s+compensation",
-    "12": r"security\s+ownership", "13": r"certain\s+relationships", "14": r"principal\s+account",
-    "15": r"exhibits?", "16": r"form\s+10-k\s+summary",
-}
-HEADING_MAX_CHARS = 300
-_HEADING_LEAD = re.compile(r"^[\s|#*>_:\-]*item\s*(\d{1,2}[a-c]?)\b\.?[\s|:\-—*]*", re.IGNORECASE)
-_ITEM_MENTION = re.compile(r"\bitem\s*(\d{1,2}[a-c]?)\b", re.IGNORECASE)
-
-
-def heading_item(content: str) -> Optional[str]:
-    """Returns the 10-K item a chunk opens with ("1A", "7"...) if the chunk is a section heading.
-
-    Short chunks (e.g. a heading rendered as a one-row table) qualify on the "Item N" lead alone;
-    longer chunks must also carry the item's title right after it, so cross-references such as
-    "see Item 1A" do not start a section. Tables of contents (>= 3 distinct items) never qualify.
-    """
-    match = _HEADING_LEAD.match(content or "")
-    if not match:
-        return None
-    number = match.group(1).upper()
-    if number not in TEN_K_ITEM_TITLES:
-        return None
-    if len({m.upper() for m in _ITEM_MENTION.findall(content)}) >= 3:
-        return None
-    if len(content) <= HEADING_MAX_CHARS:
-        return number
-    following = content[match.end():match.end() + 120]
-    return number if re.match(rf"[\W_]*(?:{TEN_K_ITEM_TITLES[number]})", following, re.IGNORECASE) else None
-
-
-def locate_section_chunks(
-    ticker: str,
-    fiscal_year: int,
-    item: str = RISK_SECTION_ITEM,
-    db: Optional[Session] = None,
-) -> Tuple[List[NarrativeChunkResult], str]:
-    """Finds a 10-K section's narrative chunks. Returns (chunks, located_by).
-
-    located_by:
-    - "item_label": chunks stored under the exact item label.
-    - "heading_boundary": labels were wrong, so the section was cut from the filing between its own
-      heading and the next later item heading; chunks are relabeled with `item`.
-    - "not_found": no label and no heading for the item.
-    """
-    from app.database import SessionLocal
-    from app.models import DocumentChunk
-
-    target = item.split()[-1].upper()
-    owns_db = db is None
-    if owns_db:
-        db = SessionLocal()
-    try:
-        labeled = fetch_section_chunks(ticker, fiscal_year, item, db=db)
-        if labeled:
-            return labeled, "item_label"
-        if target not in TEN_K_ITEM_ORDER:
-            return [], "not_found"
-
-        rows = _filing_chunks_query(db, ticker, fiscal_year).order_by(DocumentChunk.chunk_index.asc()).all()
-        target_rank = TEN_K_ITEM_ORDER.index(target)
-        start = next((i for i, (chunk, _) in enumerate(rows) if heading_item(chunk.content) == target), None)
-        if start is None:
-            return [], "not_found"
-
-        section: List[NarrativeChunkResult] = []
-        start_chunk, start_doc = rows[start]
-        if start_chunk.chunk_type == "narrative" and len(start_chunk.content) > HEADING_MAX_CHARS:
-            section.append(_to_result(start_chunk, start_doc, item))
-        for chunk, doc in rows[start + 1:]:
-            found = heading_item(chunk.content)
-            if found is not None and TEN_K_ITEM_ORDER.index(found) > target_rank:
-                break
-            if chunk.chunk_type == "narrative":
-                section.append(_to_result(chunk, doc, item))
-        return section, "heading_boundary"
-    finally:
-        if owns_db:
-            db.close()
-
-
 _NOT_PROVIDED = re.compile(
     r"not\s+applicable|smaller\s+reporting\s+compan|not\s+required\s+to\s+(?:provide|include)|\bomitted\b",
     re.IGNORECASE,
@@ -302,67 +139,14 @@ def section_not_provided(chunks: Sequence[NarrativeChunkResult]) -> bool:
     return len(text) <= NOT_PROVIDED_MAX_CHARS and bool(_NOT_PROVIDED.search(text))
 
 
-def _is_summary_chunk(content: str) -> bool:
-    return content.count("•") >= 3 or "summary" in content[:400].lower()
-
-
-def build_section_context(
-    chunks: Sequence[NarrativeChunkResult],
-    char_budget: int = DEFAULT_CHAR_BUDGET,
-) -> Tuple[str, str, int]:
-    """Renders chunks as `[chunk:<id>] text` blocks. Returns (context, coverage_mode, chars_included).
-
-    Within budget every chunk is included in full ("full_section"). Over budget the leading
-    "Summary of Risk Factors" chunks stay whole and every other chunk is cut to its lead text,
-    which carries the risk heading ("budgeted_section").
-    """
-    blocks = [(c.chunk_id, c.content.strip()) for c in chunks]
-    total = sum(len(text) for _, text in blocks)
-    if total <= char_budget:
-        mode = "full_section"
-        parts = [f"[chunk:{cid}] {text}" for cid, text in blocks]
-    else:
-        mode = "budgeted_section"
-        parts = []
-        used = 0
-        leading_summary = True
-        for idx, (cid, text) in enumerate(blocks):
-            if leading_summary and idx < MAX_SUMMARY_CHUNKS and _is_summary_chunk(text):
-                body = text
-            else:
-                leading_summary = False
-                body = text[:BUDGETED_CHUNK_LEAD_CHARS] + (" [...]" if len(text) > BUDGETED_CHUNK_LEAD_CHARS else "")
-            if used + len(body) > char_budget:
-                break
-            parts.append(f"[chunk:{cid}] {body}")
-            used += len(body)
-    context = "\n\n".join(parts)
-    return context, mode, sum(len(p) for p in parts)
-
-
 # ==============================================================================
-# 3. Text normalization, sentences & shingles
+# 3. Sentence shingles
 # ==============================================================================
-def normalize_text(text: str) -> str:
-    """Lowercases, maps curly quotes/dashes to ASCII and collapses whitespace."""
-    return re.sub(r"\s+", " ", (text or "").translate(_CHAR_MAP)).strip().lower()
-
-
-def _words(text: str) -> List[str]:
-    return _WORD.findall(normalize_text(text))
-
-
 def _shingles(text: str, n: int = 3) -> Set[Tuple[str, ...]]:
-    words = _words(text)
+    words = split_words(text)
     if len(words) < n:
         return {tuple(words)} if words else set()
     return {tuple(words[i:i + n]) for i in range(len(words) - n + 1)}
-
-
-def split_sentences(text: str) -> List[str]:
-    """Splits disclosure text into sentences / bullets, keeping substantive ones only."""
-    flat = re.sub(r"\s+", " ", text or "").strip()
-    return [s.strip() for s in _SENTENCE_SPLIT.split(flat) if len(s.strip()) >= MIN_SENTENCE_CHARS]
 
 
 class SentenceIndex:
@@ -543,70 +327,8 @@ def classify_disclosure_change(quotes: Sequence[str], prior_index: Optional[Sent
 
 
 # ==============================================================================
-# 4. Evidence verification
+# 4. Materiality screens
 # ==============================================================================
-def verify_quote(quote: str, chunk_text: str, allow_fuzzy: bool = True) -> bool:
-    """True if `quote` appears in `chunk_text` verbatim (after normalization) or near-verbatim.
-
-    Ellipses split the quote into segments that must each match. With `allow_fuzzy`, a segment
-    that is not an exact substring passes if >= 85% of its words appear in a same-length window
-    of the chunk.
-    """
-    if not isinstance(quote, str) or not isinstance(chunk_text, str):
-        return False
-    haystack = normalize_text(chunk_text)
-    segments = [s.strip(" .,;:\"'") for s in re.split(r"\.\.\.|…|\[\.\.\.\]", normalize_text(quote))]
-    segments = [s for s in segments if s]
-    if not segments or sum(len(s.split()) for s in segments) < MIN_QUOTE_WORDS:
-        return False
-    hay_words = _WORD.findall(haystack)
-    for segment in segments:
-        if segment in haystack:
-            continue
-        if not allow_fuzzy:
-            return False
-        seg_words = _WORD.findall(segment)
-        if not seg_words or not _fuzzy_window_match(seg_words, hay_words):
-            return False
-    return True
-
-
-def _fuzzy_window_match(needle: List[str], hay: List[str]) -> bool:
-    """Near-verbatim match: >= 85% of words in a same-length window, and every number exact."""
-    size = len(needle)
-    if size > len(hay):
-        return False
-    target = defaultdict(int)
-    for w in needle:
-        target[w] += 1
-    numbers = [w for w in target if any(ch.isdigit() for ch in w)]
-    for start in range(0, len(hay) - size + 1):
-        window = defaultdict(int)
-        for w in hay[start:start + size + 2]:
-            window[w] += 1
-        if any(window.get(n, 0) < target[n] for n in numbers):
-            continue
-        hit = sum(min(cnt, window.get(w, 0)) for w, cnt in target.items())
-        if hit / size >= QUOTE_FUZZY_COVERAGE:
-            return True
-    return False
-
-
-def _canonical_number(token: str) -> str:
-    return token.replace(",", "").rstrip("0").rstrip(".") if "." in token else token.replace(",", "")
-
-
-def numbers_supported(text: Optional[str], evidence_texts: Sequence[str]) -> bool:
-    """True if every number in `text` also appears in the evidence (commas / trailing zeros ignored)."""
-    if not text:
-        return True
-    claimed = {_canonical_number(n) for n in _NUMBER.findall(text)}
-    if not claimed:
-        return True
-    available = {_canonical_number(n) for t in evidence_texts for n in _NUMBER.findall(t or "")}
-    return claimed <= available
-
-
 def states_immaterial(text: str) -> bool:
     return bool(text) and bool(IMMATERIALITY_PATTERNS.search(text))
 
@@ -700,19 +422,10 @@ __all__ = [
     "is_material_disclosure",
     "substantiates_high_impact",
     "QUANTIFIED_FIGURE",
-    "fetch_section_chunks",
-    "locate_section_chunks",
-    "heading_item",
     "section_not_provided",
-    "TEN_K_ITEM_ORDER",
-    "build_section_context",
     "build_prior_index",
     "diff_risk_disclosures",
     "classify_disclosure_change",
-    "split_sentences",
-    "normalize_text",
-    "verify_quote",
-    "numbers_supported",
     "states_immaterial",
     "is_boilerplate",
     "normalize_level",
