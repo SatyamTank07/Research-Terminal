@@ -274,7 +274,7 @@ class TestMilestone6FullPipeline(unittest.TestCase):
             patch("app.agents.specialized.valuation_specialist.context.fetch_market_context", return_value=cls.mock_market),
             patch("app.agents.specialized.valuation_specialist.agent_valuation_specialist.balance_sheet_date",
                   return_value="2025-12-31"),
-            patch("app.agents.tools.rag_narrative_tools._get_embedder", return_value=cls.mock_embedder),
+            patch("app.agents.shared.filing.narrative_search._get_embedder", return_value=cls.mock_embedder),
             patch.object(SupervisorAgent, "_extract_with_llm", side_effect=cls._mock_supervisor_extract),
             patch.object(BusinessStrategistAgent, "analyze", side_effect=cls._mock_moat_analyze),
             patch.object(FinancialAuditorAgent, "audit", side_effect=cls._mock_audit),

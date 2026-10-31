@@ -22,7 +22,7 @@ from app.agents.registry import AgentRegistry
 from app.agents.specialized.business_strategist import BusinessMoatOutput, BusinessStrategistAgent
 from app.agents.specialized.prompts import render_prompt
 from app.agents.tools.business_disclosure_tools import FilingChunk
-from app.agents.tools.rag_narrative_tools import NarrativeChunkResult
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from tests.test_tool_business_disclosure import DISAGGREGATION, INCOME_STATEMENT, STACKED_SEGMENTS
 
 MODULE = "app.agents.specialized.business_strategist.agent_business_strategist"

@@ -1,4 +1,4 @@
-"""Universal 10-K RAG Table Retrieval Tool.
+"""Financial-table search over a stored 10-K (lexical scoring of Item 8 statement tables).
 
 Enables quantitative agents (Financial Auditor, Forecaster, Valuation Specialist)
 to deterministically retrieve exact, multi-year Markdown financial tables from

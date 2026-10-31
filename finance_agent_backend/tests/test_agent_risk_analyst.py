@@ -24,7 +24,7 @@ from langchain_core.messages import AIMessage, ToolMessage
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst import RiskAnalystAgent, RiskAuditOutput, RiskEvidence, RiskItem
-from app.agents.tools.rag_narrative_tools import NarrativeChunkResult, retrieve_10k_narrative_tool
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative_tool
 from app.agents.tools.risk_disclosure_tools import diff_risk_disclosures, fetch_section_chunks, locate_section_chunks
 
 LOCATE_PATH = "app.agents.specialized.risk_analyst.agent_risk_analyst.locate_section_chunks"
@@ -555,7 +555,7 @@ class TestRiskAnalystEdgeCases(unittest.TestCase):
 class TestRiskAnalystDatabase(unittest.TestCase):
     """Smoke tests against ingested filings; skipped when the filings are absent."""
 
-    @patch("app.agents.tools.rag_narrative_tools._get_embedder")
+    @patch("app.agents.shared.filing.narrative_search._get_embedder")
     def test_item1a_narrative_retrieval(self, mock_get_embedder):
         mock_embedder = MagicMock()
         mock_embedder.embed_query.return_value = [0.01] * 1536

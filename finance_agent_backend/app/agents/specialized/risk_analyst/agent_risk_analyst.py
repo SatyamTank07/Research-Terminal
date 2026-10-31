@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
+from app.agents.shared.filing.narrative_search import retrieve_10k_narrative_tool
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
     FINANCIAL_TRANSMISSIONS,
@@ -25,7 +26,6 @@ from app.agents.specialized.risk_analyst.state_risk_analyst import (
     RiskEvidence,
     RiskItem,
 )
-from app.agents.tools.rag_narrative_tools import retrieve_10k_narrative_tool
 from app.agents.tools.risk_disclosure_tools import (
     LEVEL_ORDER,
     QUANTIFIED_FIGURE,

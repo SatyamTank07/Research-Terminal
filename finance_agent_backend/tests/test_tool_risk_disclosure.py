@@ -9,7 +9,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from app.agents.tools.rag_narrative_tools import NarrativeChunkResult
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from app.agents.tools.risk_disclosure_tools import (
     build_prior_index,
     build_section_context,

@@ -23,6 +23,12 @@ from pydantic import ValidationError
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
+from app.agents.shared.filing.narrative_search import (
+    NarrativeChunkResult,
+    retrieve_10k_narrative,
+    retrieve_10k_narrative_tool,
+)
+from app.agents.shared.filing.table_search import retrieve_10k_tables_tool
 from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
@@ -47,12 +53,6 @@ from app.agents.tools.forecast_drivers import (
 )
 from app.agents.tools.forecast_model import build_forecast
 from app.agents.tools.mdna_guidance import MdnaAssessment, assess_mdna_guidance, margin_evidence_chunk_ids
-from app.agents.tools.rag_narrative_tools import (
-    NarrativeChunkResult,
-    retrieve_10k_narrative,
-    retrieve_10k_narrative_tool,
-)
-from app.agents.tools.rag_table_tools import retrieve_10k_tables_tool
 
 logger = logging.getLogger("finance_agent.agents.forecasting_analyst")
 

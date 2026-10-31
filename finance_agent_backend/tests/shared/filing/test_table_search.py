@@ -1,4 +1,4 @@
-"""Unit and integration tests for rag_table_tools.py (Milestone 1, Tool 1).
+"""Unit and integration tests for shared/filing/table_search.py (Milestone 1, Tool 1).
 
 Validates deterministic SQL table retrieval across real ingested 10-K filings:
 - Apple Inc. (AAPL FY2025 & FY2024)
@@ -6,7 +6,7 @@ Validates deterministic SQL table retrieval across real ingested 10-K filings:
 """
 
 import unittest
-from app.agents.tools.rag_table_tools import (
+from app.agents.shared.filing.table_search import (
     TableChunkResult,
     retrieve_10k_tables,
     retrieve_multiyear_financial_series,

@@ -19,7 +19,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.agents.tools.rag_narrative_tools import NarrativeChunkResult
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 
 logger = logging.getLogger("finance_agent.tools.risk_disclosure")
 

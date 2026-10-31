@@ -22,6 +22,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative
 from app.agents.specialized.business_strategist.state_business_strategist import (
     MOAT_TYPES,
     NOT_DISCLOSED,
@@ -51,7 +52,6 @@ from app.agents.tools.claim_relevance import (
     segment_quote_mentions,
     threat_quote_supports,
 )
-from app.agents.tools.rag_narrative_tools import NarrativeChunkResult, retrieve_10k_narrative
 from app.agents.tools.risk_disclosure_tools import (
     build_section_context,
     locate_section_chunks,
