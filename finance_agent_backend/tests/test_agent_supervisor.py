@@ -19,9 +19,8 @@ from unittest.mock import MagicMock, patch
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
 from app.agents.query_parameters import SESSION_KEY
-from app.agents.specialized.supervisor import SupervisorAgent, SupervisorExtraction
+from app.agents.specialized.supervisor import RoutingPlan, SupervisorAgent, SupervisorExtraction
 from app.agents.specialized.supervisor.agent_supervisor import CLARIFY_ENTITY_MESSAGE, extract_fiscal_year, names_entity
-from app.agents.state import RoutingPlan
 
 
 class TestAgentSupervisor(unittest.TestCase):

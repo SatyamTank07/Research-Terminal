@@ -18,8 +18,7 @@ from langchain_core.messages import AIMessage, ToolMessage
 
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
-from app.agents.state import FinancialAuditOutput
-from app.agents.specialized.financial_auditor import FinancialAuditorAgent
+from app.agents.specialized.financial_auditor import FinancialAuditOutput, FinancialAuditorAgent
 from app.agents.tools.financial_math_tools import run_audit_from_inputs
 from app.agents.tools.rag_table_tools import retrieve_multiyear_financial_series_tool
 from app.agents.tools.statement_extraction import build_statement_grids, extract_audit_inputs

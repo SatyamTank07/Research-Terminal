@@ -33,7 +33,7 @@ MARKET: Dict[str, Dict[str, float]] = {
 # Modules that read today's date: the valuation date (roll-forward) and the "is this year in the
 # future?" checks on user-supplied years. Each module's `date` is replaced by FakeDate.
 CLOCK_TARGETS = (
-    "app.agents.orchestrator.date",
+    "app.agents.pipeline.orchestrator.date",
     "app.agents.tools.valuation_model.date",
     "app.agents.query_parameters.date",
     "app.agents.specialized.supervisor.agent_supervisor.date",

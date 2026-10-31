@@ -18,20 +18,18 @@ import unittest
 from unittest.mock import MagicMock, patch
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.prompts import render_prompt
-from app.agents.state import (
-    BusinessMoatOutput,
-    DCFValuationOutput,
-    Final10KResearchReport,
-    FinancialAuditOutput,
-    ForecastOutput,
+from app.agents.specialized.business_strategist import BusinessMoatOutput, SegmentDetail
+from app.agents.specialized.financial_auditor import FinancialAuditOutput
+from app.agents.specialized.forecasting_analyst import ForecastOutput
+from app.agents.specialized.lead_synthesizer import Final10KResearchReport, ThreePillarThesis
+from app.agents.specialized.risk_analyst import (
     RiskAuditOutput,
     RiskDataQuality,
     RiskDisclosureDiff,
     RiskEvidence,
     RiskItem,
-    SegmentDetail,
-    ThreePillarThesis,
 )
+from app.agents.specialized.valuation_specialist import DCFValuationOutput
 from app.agents.tools.risk_disclosure_tools import (
     DisclosurePassage,
     render_risk_evidence_table,
