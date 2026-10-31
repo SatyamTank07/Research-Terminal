@@ -101,3 +101,35 @@ class TestFailureNote(unittest.TestCase):
     def test_empty_message_falls_back_to_the_exception_type(self):
         self.assertEqual(failure_note("Risk Analyst", KeyError()),
                          "Risk Analyst failed (KeyError: KeyError); its section is omitted from this report.")
+
+
+from datetime import date
+from unittest.mock import patch
+
+from app.agents.pipeline.contract import Conversation
+from app.agents.pipeline.node import supervisor_node
+
+
+def _turn(run_context, notes=(), reply=None):
+    return SimpleNamespace(run_context=run_context, parameter_notes=notes, conversational_response=reply,
+                           route=run_context.route if run_context else "conversational")
+
+
+class TestSupervisorNode(unittest.TestCase):
+    STATE = {"conversation": Conversation(user_query="q", messages=None, session_state=None, ticker="",
+                                          fiscal_year=0, run_date=date(2026, 10, 28))}
+
+    def test_research_turn_records_the_turn_and_parameter_notes(self):
+        turn = _turn(make_run_context(), notes=("WACC override 9% applied",))
+        with patch("app.agents.pipeline.node.resolve_turn", return_value=turn):
+            update = asyncio.run(supervisor_node(self.STATE))
+        self.assertIs(update["run"], turn)
+        self.assertEqual(update["notes"], [RunNote(agent="supervisor", kind="parameter", message="WACC override 9% applied")])
+        self.assertNotIn("final", update)
+
+    def test_conversational_turn_writes_the_reply_as_final(self):
+        turn = _turn(None, reply="A DCF discounts cash flows.")
+        with patch("app.agents.pipeline.node.resolve_turn", return_value=turn):
+            update = asyncio.run(supervisor_node(self.STATE))
+        self.assertEqual(update["final"], "A DCF discounts cash flows.")
+        self.assertNotIn("notes", update)

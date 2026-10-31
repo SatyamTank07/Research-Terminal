@@ -109,5 +109,21 @@ class TestResolveSessionOverrides(unittest.TestCase):
         self.assertEqual(SESSION_KEY, "valuation_overrides")
 
 
+class TestTerminalGrowthResolution(unittest.TestCase):
+    def test_user_value_wins(self):
+        from app.agents.query_parameters import resolve_terminal_growth
+        self.assertAlmostEqual(resolve_terminal_growth({"terminal_growth": 0.03}), 0.03)
+
+    def test_house_default_when_absent(self):
+        from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH, resolve_terminal_growth
+        self.assertEqual(resolve_terminal_growth({}), DEFAULT_TERMINAL_GROWTH)
+        self.assertEqual(DEFAULT_TERMINAL_GROWTH, 0.025)
+
+    def test_forecaster_uses_the_same_default(self):
+        from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
+        from app.agents.tools import forecast_drivers
+        self.assertIs(forecast_drivers.DEFAULT_TERMINAL_GROWTH, DEFAULT_TERMINAL_GROWTH)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -12,7 +12,7 @@ unbound and attaches to the next research ticker. Switching to a different compa
 import logging
 import re
 from datetime import date
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional
 
 from pydantic import BaseModel, Field
 
@@ -24,6 +24,14 @@ OVERRIDE_FIELDS = ("wacc", "terminal_growth", "beta", "share_price")
 WACC_BAND = (0.03, 0.25)
 TERMINAL_GROWTH_BAND = (-0.02, 0.05)
 BETA_BAND = (0.05, 4.0)
+
+DEFAULT_TERMINAL_GROWTH = 0.025  # house perpetual growth when the user gives none
+
+
+def resolve_terminal_growth(overrides: Mapping[str, Any]) -> float:
+    """User-specified perpetual growth (already range-checked), else the house default."""
+    value = overrides.get("terminal_growth")
+    return float(value) if value is not None else DEFAULT_TERMINAL_GROWTH
 
 _NUMBER = r"(-?\d+(?:,\d{3})*(?:\.\d+)?)"
 _LINK = r"\s*(?:of|is|at|=|:|to)?\s*"

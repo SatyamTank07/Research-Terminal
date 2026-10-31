@@ -438,5 +438,75 @@ class TestSupervisorSessionContinuity(unittest.TestCase):
         self.assertIn("Ignored discount rate", plan.parameter_notes[0])
 
 
+from datetime import date as _date
+from unittest.mock import patch as _patch
+
+from app.agents.pipeline.contract import Conversation
+from app.agents.specialized.supervisor import resolve_turn, supervisor_milestone
+
+
+def _plan(**changes) -> RoutingPlan:
+    fields = dict(
+        ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, year_requested=2025, year_substituted=False,
+        available_fiscal_years=[2025, 2024], document_id="doc-aapl-2025", query_type="dcf_valuation_only",
+        active_agents=[], routing_provenance="llm_inferred", conversational_response=None,
+        valuation_overrides={"wacc": 0.09, "terminal_growth": 0.03}, parameter_notes=["WACC override 9% applied"],
+        updated_session_state={"active_ticker": "AAPL"},
+    )
+    fields.update(changes)
+    return RoutingPlan(**fields)
+
+
+def _conversation(query: str = "DCF on AAPL") -> Conversation:
+    return Conversation(user_query=query, messages=None, session_state=None, ticker="", fiscal_year=0,
+                        run_date=_date(2026, 10, 28))
+
+
+class TestResolveTurn(unittest.TestCase):
+    def test_research_turn_builds_the_run_context(self):
+        with _patch.object(SupervisorAgent, "route", return_value=_plan()) as route:
+            turn = resolve_turn(_conversation())
+        self.assertEqual(route.call_args.kwargs["fiscal_year"], 0)  # today's sentinel, fixed in PR 12
+        ctx = turn.run_context
+        self.assertEqual((ctx.ticker, ctx.fiscal_year, ctx.route), ("AAPL", 2025, "dcf_valuation_only"))
+        self.assertEqual(ctx.available_fiscal_years, (2025, 2024))
+        self.assertAlmostEqual(ctx.terminal_growth_rate, 0.03)
+        self.assertEqual(ctx.valuation_date, _date(2026, 10, 28))
+        self.assertEqual(ctx.valuation_overrides, {"wacc": 0.09, "terminal_growth": 0.03})
+        self.assertEqual(turn.parameter_notes, ("WACC override 9% applied",))
+        self.assertEqual(turn.session_update, {"active_ticker": "AAPL"})
+
+    def test_terminal_growth_defaults_when_not_overridden(self):
+        with _patch.object(SupervisorAgent, "route", return_value=_plan(valuation_overrides={})):
+            turn = resolve_turn(_conversation())
+        self.assertEqual(turn.run_context.terminal_growth_rate, 0.025)
+
+    def test_company_name_falls_back_to_ticker(self):
+        with _patch.object(SupervisorAgent, "route", return_value=_plan(company_name=None)):
+            turn = resolve_turn(_conversation())
+        self.assertEqual(turn.run_context.company_name, "AAPL")
+
+    def test_conversational_turn_has_no_run_context(self):
+        plan = _plan(query_type="conversational", conversational_response="A DCF discounts cash flows.",
+                     ticker="", fiscal_year=0, parameter_notes=[])
+        with _patch.object(SupervisorAgent, "route", return_value=plan):
+            turn = resolve_turn(_conversation("what is a DCF?"))
+        self.assertIsNone(turn.run_context)
+        self.assertEqual(turn.conversational_response, "A DCF discounts cash flows.")
+
+
+class TestSupervisorMilestone(unittest.TestCase):
+    def test_research_turn_milestone(self):
+        with _patch.object(SupervisorAgent, "route", return_value=_plan()):
+            message, details = supervisor_milestone(resolve_turn(_conversation()))
+        self.assertEqual(message, "Resolved filing: AAPL FY2025 | Route: dcf_valuation_only")
+        self.assertEqual(details["valuation_overrides"], {"wacc": 0.09, "terminal_growth": 0.03})
+
+    def test_conversational_turn_has_no_milestone(self):
+        plan = _plan(query_type="conversational", conversational_response="hi", parameter_notes=[])
+        with _patch.object(SupervisorAgent, "route", return_value=plan):
+            self.assertEqual(supervisor_milestone(resolve_turn(_conversation())), (None, None))
+
+
 if __name__ == "__main__":
     unittest.main()

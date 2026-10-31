@@ -6,6 +6,7 @@ from typing import Any, Awaitable, Callable, Dict, List
 
 from app.agents.pipeline.contract import AgentSpec, RunNote, Upstream
 from app.agents.pipeline.run_state import ResearchRunState
+from app.agents.specialized.supervisor import resolve_turn
 
 logger = logging.getLogger("finance_agent.agents.pipeline")
 
@@ -49,3 +50,14 @@ def make_agent_node(spec: AgentSpec) -> Callable[[ResearchRunState], Awaitable[D
 
     agent_node.__name__ = f"{spec.name}_node"
     return agent_node
+
+
+async def supervisor_node(state: ResearchRunState) -> Dict[str, Any]:
+    """Resolves the chat turn; a conversational turn writes its reply as the run's final answer."""
+    turn = await asyncio.to_thread(resolve_turn, state["conversation"])
+    update: Dict[str, Any] = {"run": turn}
+    if turn.parameter_notes:
+        update["notes"] = [RunNote(agent="supervisor", kind="parameter", message=m) for m in turn.parameter_notes]
+    if turn.run_context is None:
+        update["final"] = turn.conversational_response
+    return update
