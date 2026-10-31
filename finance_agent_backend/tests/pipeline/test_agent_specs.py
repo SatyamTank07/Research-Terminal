@@ -59,3 +59,34 @@ class TestPhaseOneSpecs(unittest.TestCase):
         risk = SimpleNamespace(data_quality=SimpleNamespace(coverage_mode="not_provided"))
         self.assertEqual(RISK.milestone(risk)[0],
                          "Analyzed Item 1A risks & threats (filing provides no risk factors; nothing rated)")
+
+
+from app.agents.pipeline.contract import RunNote
+from app.agents.specialized.lead_synthesizer import AGENT as SYNTHESIZER
+from app.agents.specialized.lead_synthesizer import LeadSynthesizerAgent
+
+
+class TestSynthesizerSpec(unittest.TestCase):
+    def test_declarations(self):
+        self.assertTrue(SYNTHESIZER.writes_final)
+        self.assertEqual(SYNTHESIZER.uses, frozenset({"business_moat", "financial_audit", "forecast",
+                                                       "dcf_valuation", "risk_audit"}))
+        self.assertEqual(SYNTHESIZER.needs_any, frozenset({"business_moat", "financial_audit", "risk_audit"}))
+
+    def test_passes_route_notes_and_every_upstream_output(self):
+        notes = (RunNote(agent="supervisor", kind="parameter", message="WACC override 9% applied"),)
+        upstream = Upstream({"financial_audit": "audit", "risk_audit": "risk"}, SYNTHESIZER.declared, notes)
+        ctx = make_run_context(route="financial_audit_only", year_substituted=True, company_name="Apple Inc.")
+        with patch.object(LeadSynthesizerAgent, "synthesize", return_value="report") as synthesize:
+            self.assertEqual(SYNTHESIZER.run(ctx, upstream), "report")
+        kwargs = synthesize.call_args.kwargs
+        self.assertEqual(kwargs["query_type"], "financial_audit_only")
+        self.assertEqual(kwargs["pipeline_notes"], ["WACC override 9% applied"])
+        self.assertTrue(kwargs["year_substituted"])
+        self.assertEqual((kwargs["financial_audit"], kwargs["risk_audit"], kwargs["business_moat"]), ("audit", "risk", None))
+        self.assertEqual(kwargs["available_fiscal_years"], [2025, 2024])
+        self.assertEqual(kwargs["company_name"], "Apple Inc.")
+
+    def test_milestone(self):
+        self.assertEqual(SYNTHESIZER.milestone("report"),
+                         ("Synthesized 3-Pillar Thesis and compiled final publication report.", None))
