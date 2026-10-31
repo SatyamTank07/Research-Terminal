@@ -15,9 +15,9 @@ from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
 from app.agents.shared.llm_call import complete_once
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
-from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.valuation_specialist.context import balance_sheet_date, market_inputs
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
 from app.agents.tools.valuation_model import MarketInputs, ValuationBuild, build_valuation
@@ -76,7 +76,7 @@ class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
         summary, source = None, "template"
         try:
             summary = self._run_commentary_llm(
-                render_prompt("prompt_valuation_query.j2", v=build), callbacks
+                render_prompt("valuation_specialist", "prompt_valuation_query.j2", v=build), callbacks
             )
             summary = trim_to_complete_sentence(summary or "")
             if len(summary) >= MIN_COMMENTARY_CHARS:

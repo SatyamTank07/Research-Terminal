@@ -22,7 +22,7 @@ from unittest.mock import MagicMock, patch
 from langchain_core.messages import AIMessage, ToolMessage
 
 from app.agents.registry import AgentRegistry
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.risk_analyst import RiskAnalystAgent, RiskAuditOutput, RiskEvidence, RiskItem
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative_tool
 from app.agents.shared.filing.sections import fetch_section_chunks, locate_section_chunks
@@ -186,7 +186,7 @@ class TestRiskAnalystSetup(unittest.TestCase):
         self.assertIsInstance(agent, RiskAnalystAgent)
         self.assertEqual(agent.model_name, "openai:gpt-4o-mini")
 
-        prompt = render_prompt("risk_analyst")
+        prompt = render_prompt("risk_analyst", "prompt_risk_analyst.j2")
         for needle in ("Chief Risk Officer", "retrieve_10k_narrative_tool", "RiskAuditOutput", "BOILERPLATE FILTER",
                        "character-for-character", "primary_threat_risk_id", "Competitive & Demand"):
             self.assertIn(needle, prompt)

@@ -20,8 +20,8 @@ from app.agents.shared.filing.narrative_search import retrieve_10k_narrative_too
 from app.agents.shared.filing.sections import build_section_context, locate_section_chunks
 from app.agents.shared.filing.sentences import normalize_text
 from app.agents.shared.llm_call import complete_once
+from app.agents.shared.prompts import render_prompt
 from app.agents.shared.quotes import find_quote_chunk, numbers_supported
-from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
     FINANCIAL_TRANSMISSIONS,
     RISK_CATEGORIES,
@@ -186,7 +186,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         )
 
         query = render_prompt(
-            "prompt_risk_analyst_query.j2",
+            "risk_analyst", "prompt_risk_analyst_query.j2",
             ticker=ticker,
             fiscal_year=fiscal_year,
             coverage_mode=mode,
@@ -221,7 +221,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         pool = run["pool"]
         chunk_ids = list(dict.fromkeys(d.chunk_id for d in targets))
         prompt = render_prompt(
-            "prompt_risk_analyst_repair.j2",
+            "risk_analyst", "prompt_risk_analyst_repair.j2",
             ticker=ticker,
             fiscal_year=fiscal_year,
             targets=targets,

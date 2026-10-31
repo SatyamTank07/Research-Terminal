@@ -5,7 +5,6 @@ from app.agents.specialized.business_strategist.agent_business_strategist import
 from app.agents.specialized.risk_analyst.agent_risk_analyst import RiskAnalystAgent
 from app.agents.specialized.supervisor.agent_supervisor import SupervisorAgent
 from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import LeadSynthesizerAgent
-from app.agents.specialized.prompts import render_prompt
 
 __all__ = [
     "FinancialAuditorAgent",
@@ -15,5 +14,4 @@ __all__ = [
     "RiskAnalystAgent",
     "SupervisorAgent",
     "LeadSynthesizerAgent",
-    "render_prompt",
 ]

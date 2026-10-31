@@ -29,7 +29,7 @@ from app.agents.shared.filing.table_search import (
     retrieve_10k_tables_tool,
     retrieve_multiyear_financial_series_tool,
 )
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.financial_auditor.state_financial_auditor import (
     AuditDataQuality,
     FinancialAuditOutput,
@@ -147,7 +147,7 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
         )
 
         query = render_prompt(
-            "prompt_financial_auditor_query.j2",
+            "financial_auditor", "prompt_financial_auditor_query.j2",
             ticker=ticker,
             fiscal_year=fiscal_year,
             extraction_mode=mode,

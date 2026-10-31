@@ -17,7 +17,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from app.agents.registry import AgentRegistry
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.query_parameters import SESSION_KEY
 from app.agents.specialized.supervisor import RoutingPlan, SupervisorAgent, SupervisorExtraction
 from app.agents.specialized.supervisor.agent_supervisor import CLARIFY_ENTITY_MESSAGE, extract_fiscal_year, names_entity
@@ -35,7 +35,7 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertIsInstance(agent, SupervisorAgent)
 
         # Verify generic prompt renders
-        prompt = render_prompt("supervisor", catalog_summary="AAPL (2025), TSLA (2025)")
+        prompt = render_prompt("supervisor", "prompt_supervisor.j2", catalog_summary="AAPL (2025), TSLA (2025)")
         self.assertIn("Senior Equity Research Director", prompt)
         self.assertIn("full_10k_report", prompt)
         self.assertIn("dcf_valuation_only", prompt)
@@ -315,7 +315,7 @@ class TestAgentSupervisor(unittest.TestCase):
 
     def test_14_o1_prompt_constant_size(self):
         """Verify supervisor prompt has constant O(1) size and includes anti-interrogation guardrails."""
-        prompt = render_prompt("supervisor")
+        prompt = render_prompt("supervisor", "prompt_supervisor.j2")
         self.assertIn("MANDATORY CLARIFICATION RULES", prompt)
         self.assertIn("MANDATORY ANTI-INTERROGATION RULES", prompt)
         self.assertIn("Missing Target Entity", prompt)

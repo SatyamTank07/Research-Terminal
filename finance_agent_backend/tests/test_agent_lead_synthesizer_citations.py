@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import patch
 
 from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import LeadSynthesizerAgent
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.shared.citations import SourceChunk
 from tests.test_agent_lead_synthesizer import (
     FULL_PROSE,
@@ -74,7 +74,7 @@ class TestSynthesizerCitations(unittest.TestCase):
         ):
             self.assertNotIn("#cite-", text)
         context = render_prompt(
-            "lead_synthesizer", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025,
+            "lead_synthesizer", "prompt_lead_synthesizer.j2", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025,
             query_type="full_10k_report", financial_audit=audit_with_provenance(), business_moat=moat_with_evidence(),
             risk_audit=_create_mock_risk(), forecast=_create_mock_forecast(), dcf_valuation=_create_mock_dcf(),
         )

@@ -16,7 +16,7 @@ from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import
     NO_ACCEPTED_DRIVERS_WARNING,
     PROPOSE_TOOL_NAME,
 )
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
 from app.agents.tools.forecast_baseline import build_forecast_baseline
 from app.agents.tools.forecast_drivers import DEFAULT_TERMINAL_GROWTH
@@ -79,7 +79,7 @@ class TestForecastingAnalystAgent(unittest.TestCase):
 
     def test_registry_and_system_prompt(self):
         self.assertIsInstance(AgentRegistry.get("forecasting_analyst"), ForecastingAnalystAgent)
-        prompt = render_prompt("forecasting_analyst")
+        prompt = render_prompt("forecasting_analyst", "prompt_forecasting_analyst.j2")
         self.assertIn(PROPOSE_TOOL_NAME, prompt)
         self.assertIn("WHOLE percent", prompt)
 

@@ -26,6 +26,7 @@ from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retr
 from app.agents.shared.filing.sections import build_section_context, locate_section_chunks
 from app.agents.shared.filing.sentences import normalize_text
 from app.agents.shared.llm_call import complete_once
+from app.agents.shared.prompts import render_prompt
 from app.agents.shared.quotes import find_quote_chunk, numbers_supported
 from app.agents.specialized.business_strategist.state_business_strategist import (
     MOAT_TYPES,
@@ -36,7 +37,6 @@ from app.agents.specialized.business_strategist.state_business_strategist import
     StrategistDataQuality,
     StrategyEvidence,
 )
-from app.agents.specialized.prompts import render_prompt
 from app.agents.tools.business_disclosure_tools import (
     DisclosureSentence,
     FilingChunk,
@@ -172,7 +172,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         segment_names = self._reportable_names(extraction)
         line_names = self._line_names(extraction)
         prompt = render_prompt(
-            "prompt_business_strategist_query.j2",
+            "business_strategist", "prompt_business_strategist_query.j2",
             ticker=ticker,
             fiscal_year=fiscal_year,
             coverage_mode=dq.coverage_mode,

@@ -29,6 +29,7 @@ from app.agents.shared.figures import (
     collect_known_figures,
     strip_unverified_sentences,
 )
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
@@ -36,7 +37,6 @@ from app.agents.specialized.lead_synthesizer.state_lead_synthesizer import (
     Final10KResearchReport,
     ThreePillarThesis,
 )
-from app.agents.specialized.prompts import render_prompt
 from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
 from app.agents.specialized.lead_synthesizer.report_citations import (
@@ -156,7 +156,7 @@ class LeadSynthesizerAgent(BaseAgent):
         query_type = self._effective_route(query_type, artifacts)
 
         context = render_prompt(
-            "lead_synthesizer",
+            "lead_synthesizer", "prompt_lead_synthesizer.j2",
             ticker=ticker,
             company_name=company_name,
             fiscal_year=fiscal_year,
@@ -167,7 +167,7 @@ class LeadSynthesizerAgent(BaseAgent):
             **artifacts,
         )
         instruction = render_prompt(
-            "prompt_synthesizer_instruction.j2",
+            "lead_synthesizer", "prompt_synthesizer_instruction.j2",
             ticker=ticker,
             company_name=company_name,
             fiscal_year=fiscal_year,
@@ -185,7 +185,7 @@ class LeadSynthesizerAgent(BaseAgent):
 
         citer, cited_prose = self._cite_prose(prose, fiscal_year, artifacts, notes)
         full_report_md = render_prompt(
-            "report_layout.j2",
+            "lead_synthesizer", "report_layout.j2",
             ticker=ticker,
             company_name=company_name,
             fiscal_year=fiscal_year,

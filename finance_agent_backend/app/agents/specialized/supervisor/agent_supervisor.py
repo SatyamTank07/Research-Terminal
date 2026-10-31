@@ -18,8 +18,8 @@ from pydantic import BaseModel, Field
 from app.agents.base import AgentOutput, BaseAgent
 from app.agents.pipeline.contract import Conversation, RunContext, StatusLine
 from app.agents.query_parameters import SESSION_KEY, parse_valuation_overrides, resolve_session_overrides, resolve_terminal_growth
-from app.agents.specialized.prompts import render_prompt
 from app.agents.registry import AgentRegistry
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.supervisor.state_supervisor import QueryType, RoutingPlan, TurnResolution
 from app.database import SessionLocal
 
@@ -146,7 +146,7 @@ class SupervisorAgent(BaseAgent):
         callbacks: Optional[List[Any]] = None,
     ) -> SupervisorExtraction:
         """Utilizes supervisor.j2 prompt template for LLM routing and entity extraction with conversational history."""
-        system_prompt = render_prompt("supervisor", active_session=active_session)
+        system_prompt = render_prompt("supervisor", "prompt_supervisor.j2", active_session=active_session)
         llm = self._get_llm()
         structured_llm = llm.with_structured_output(SupervisorExtraction)
 

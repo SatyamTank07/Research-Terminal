@@ -29,7 +29,7 @@ from app.agents.shared.filing.narrative_search import (
     retrieve_10k_narrative_tool,
 )
 from app.agents.shared.filing.table_search import retrieve_10k_tables_tool
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import (
@@ -322,7 +322,7 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
         terminal_growth: float,
     ) -> str:
         return render_prompt(
-            "prompt_forecasting_analyst_query.j2",
+            "forecasting_analyst", "prompt_forecasting_analyst_query.j2",
             ticker=ticker,
             fiscal_year=fiscal_year,
             baseline=baseline,

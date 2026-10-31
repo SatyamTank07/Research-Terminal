@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 from app.agents.query_parameters import parse_valuation_overrides
 from app.agents.registry import AgentRegistry
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
 from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
 from app.agents.tools.valuation_model import MarketInputs, build_valuation
@@ -47,12 +47,12 @@ class TestValuationSpecialistAgent(unittest.TestCase):
         self.assertIsInstance(agent, ValuationSpecialistAgent)
         self.assertEqual(agent.get_tools(), [])
 
-        system = render_prompt("valuation_specialist")
+        system = render_prompt("valuation_specialist", "prompt_valuation_specialist.j2")
         self.assertIn("Use ONLY numbers that appear in the facts block", system)
         self.assertIn("four short paragraphs", system)
 
         v = make_valuation_output()
-        query = render_prompt("prompt_valuation_query.j2", v=v)
+        query = render_prompt("valuation_specialist", "prompt_valuation_query.j2", v=v)
         self.assertIn(f"${v.implied_fair_value_per_share:.2f}/share", query)
         self.assertIn("probability-weighted", query)
         self.assertIn(v.wacc_audit.risk_free_rate_source, query)

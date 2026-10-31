@@ -20,7 +20,7 @@ from unittest.mock import MagicMock, patch
 
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.business_strategist import BusinessMoatOutput, BusinessStrategistAgent
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.tools.business_disclosure_tools import FilingChunk
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from tests.test_tool_business_disclosure import DISAGGREGATION, INCOME_STATEMENT, STACKED_SEGMENTS
@@ -159,12 +159,12 @@ class TestRegistrationAndPrompts(unittest.TestCase):
         self.assertEqual(agent.get_tools(), [])
 
     def test_prompts_render(self):
-        system = render_prompt("business_strategist")
+        system = render_prompt("business_strategist", "prompt_business_strategist.j2")
         self.assertIn("Senior Equity Research Analyst", system)
         self.assertIn('"primary_moat"', system)
         self.assertIn("Wide", system)
         query = render_prompt(
-            "prompt_business_strategist_query.j2",
+            "business_strategist", "prompt_business_strategist_query.j2",
             ticker="test", fiscal_year=2025, coverage_mode="full_section", section_context="[chunk:i1] text",
             disclosures=[], segment_basis="business", segment_names=["Retail"], line_names=["Online stores"],
             segment_table="SEG", revenue_mix="MIX",

@@ -17,7 +17,7 @@ Validates:
 import unittest
 from unittest.mock import MagicMock, patch
 from app.agents.registry import AgentRegistry
-from app.agents.specialized.prompts import render_prompt
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.business_strategist import BusinessMoatOutput, SegmentDetail
 from app.agents.specialized.financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst import ForecastOutput
@@ -239,7 +239,7 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
 
     def test_01_initialization_and_registry(self):
         self.assertIsInstance(AgentRegistry.get("lead_synthesizer"), LeadSynthesizerAgent)
-        prompt = render_prompt("lead_synthesizer", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025)
+        prompt = render_prompt("lead_synthesizer", "prompt_lead_synthesizer.j2", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025)
         self.assertIn("Managing Director of Global Equity Research", prompt)
         self.assertIn("ResearchSynthesisPayload", prompt)
         self.assertIn("Prose only", prompt)
@@ -318,7 +318,7 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
     def test_06_risk_prompt_embeds_verified_context(self):
         risk = _create_mock_risk()
         prompt = render_prompt(
-            "lead_synthesizer", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025,
+            "lead_synthesizer", "prompt_lead_synthesizer.j2", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025,
             risk_audit=risk, query_type="risk_factors_only",
         )
         self.assertIn("VERIFIED RISK MATRIX (embed verbatim):", prompt)
