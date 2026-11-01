@@ -18,7 +18,7 @@
    "type": "status"
   },
   {
-   "message": "Completed economic moat analysis (Moat: None)",
+   "message": "Completed economic moat analysis (Moat: Intangible Assets / Brand)",
    "node": "business_strategist",
    "type": "status"
   },
@@ -48,7 +48,7 @@
    "type": "status"
   },
   {
-   "response": "# Institutional Equity Research Report: Apple Inc. (AAPL)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$120.18** |\n| Bear / Bull Fair Value | $109.12 / $130.06 |\n| Probability-Weighted Fair Value | $119.89 |\n| Current Share Price[[2]](#cite-2) | $230.00 (yfinance_live) |\n| Base-Case Upside / Downside | -47.8% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 19.8% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 9.15% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 5.70% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 69.8% |\n| Enterprise Value | $1,607,913.6M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-33,763.0M |\n| Equity Value (as of 2026-10-28) | $1,803,310.7M |\n| Valuation Shares[[6]](#cite-6) | 15,004.7M |\n| Forecast | 5-year explicit horizon, 3.4% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business.\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: Americas, Europe, Greater China, Japan, Rest of Asia Pacific\n- **Revenue lines (ASC 606)**: iPhone, Mac, iPad, Wearables, Home and Accessories, Services\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Americas | 178,353 | 42.9% | 6.8% | 72,480 | 40.6% | 41.3% |\n| Europe | 111,032 | 26.7% | 9.6% | 47,739 | 43.0% | 27.2% |\n| Greater China | 64,377 | 15.5% | -3.8% | 26,917 | 41.8% | 15.3% |\n| Japan | 28,703 | 6.9% | 14.6% | 13,955 | 48.6% | 7.9% |\n| Rest of Asia Pacific | 33,696 | 8.1% | 9.9% | 14,586 | 43.3% | 8.3% |\n| Corporate (not a reportable segment) | 0 | 0.0% | — | (42,627) | — | — |\n\n_Source: 10-K segment note (chunk `be5c8734-25a4-4cbc-afa1-3fede20ab970`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| iPhone | 209,586 | 50.4% | 4.2% |\n| Mac | 33,708 | 8.1% | 12.4% |\n| iPad | 28,023 | 6.7% | 5.0% |\n| Wearables, Home and Accessories | 35,686 | 8.6% | -3.6% |\n| Services | 109,158 | 26.2% | 13.5% |\n\n_Source: 10-K revenue disaggregation (chunk `cd417530-50c0-410f-8cef-bd0133473dad`); figures in USD millions as reported._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (not assessed) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n\n**Moat rationale (filing-based)**: Not assessed: the model returned malformed output.\n\n**Business analysis data-quality notes**\n- Reportable segments are geographic regions; product / service mix comes from the revenue disaggregation.\n- The model returned no parsable JSON; moat and competitive fields not assessed.\n\n**Competitive threats**\n\n- No specific competitive threats were extracted from Item 1.\n\n- **Pricing power**: Not assessed: the model returned malformed output.\n- **Customer concentration**: Not assessed: the model returned malformed output.\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Revenue[[9]](#cite-9) | 383,285.0 | 391,035.0 | 416,161.0 |\n| Revenue growth %[[9]](#cite-9) | N/A | +2.0% | +6.4% |\n| Gross margin %[[9]](#cite-9) | 44.13% | 46.21% | 46.91% |\n| Operating income[[9]](#cite-9) | 114,301.0 | 123,216.0 | 133,050.0 |\n| Operating margin %[[9]](#cite-9) | 29.82% | 31.51% | 31.97% |\n| Net income (attrib.)[[9]](#cite-9) | 96,995.0 | 93,736.0 | 112,010.0 |\n| Net margin %[[9]](#cite-9) | 25.31% | 23.97% | 26.92% |\n| Operating cash flow[[10]](#cite-10) | 110,543.0 | 118,254.0 | 111,482.0 |\n| Capex[[10]](#cite-10) | 10,959.0 | 9,447.0 | 12,715.0 |\n| Free cash flow[[10]](#cite-10) | 99,584.0 | 108,807.0 | 98,767.0 |\n| FCF conversion %[[11]](#cite-11) | 102.7% | 116.1% | 88.2% |\n| Stock-based comp.[[10]](#cite-10) | 10,833.0 | 11,688.0 | 12,863.0 |\n| SBC-adjusted FCF[[10]](#cite-10) | 88,751.0 | 97,119.0 | 85,904.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Normalized operating income[[9]](#cite-9) | 114,301.0 | 123,216.0 | 133,050.0 |\n| Normalized operating margin %[[9]](#cite-9) | 29.82% | 31.51% | 31.97% |\n| Normalized net income[[9]](#cite-9) | 96,995.0 | 93,736.0 | 112,010.0 |\n| Adjustments % of EBIT[[9]](#cite-9) | N/A | N/A | N/A |\n| Non-operating income[[9]](#cite-9) | -565.0 | 269.0 | -321.0 |\n| Non-operating % of EBIT[[9]](#cite-9) | -0.5% | 0.2% | -0.2% |\n| Effective tax rate %[[9]](#cite-9) | 14.7% | 24.1% | 15.6% |\n| Deferred tax % of NI[[11]](#cite-11) | N/A | N/A | N/A |\n| Accruals (NI - OCF)[[11]](#cite-11) | -13,548.0 | -24,518.0 | 528.0 |\n| Sloan accruals ratio %[[12]](#cite-12) | -3.8% | -6.8% | 0.1% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2025)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $35,934.0M |\n| Marketable securities[[6]](#cite-6) | $96,486.0M |\n| Total liquid cash[[6]](#cite-6) | $132,420.0M |\n| Total debt[[6]](#cite-6) | $98,657.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-33,763.0M |\n| Stockholders' equity[[6]](#cite-6) | $73,733.0M |\n| Valuation share count[[6]](#cite-6) | 15,004.7M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 0.89x |\n| EBITDA[[11]](#cite-11) | $144,748.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.23x |\n| Debt / equity[[6]](#cite-6) | 1.34x |\n| Effective tax rate[[9]](#cite-9) | 15.6% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[13]](#cite-13) | 478.8% |\n| ROIC (average gross debt + equity)[[13]](#cite-13) | 66.8% |\n| ROE (average equity)[[13]](#cite-13) | 171.4% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| HIGH | EARNINGS_QUALITY_DIVERGENCE | 2025 | EARNINGS QUALITY DIVERGENCE (FY2025): Net income increased by +19.50% ($93,736.0M -> $112,010.0M) while operating cash flow declined by -5.73% ($118,254.0M -> $111,482.0M), indicating accrual expansion, non-operating gains, or tax/working-capital cash timing outflows. |\n| LOW | WORKING_CAPITAL_DETERIORATION | 2024 | WORKING CAPITAL DETERIORATION (FY2024): DIO lengthened 16.7% to 12.6 days. |\n\n- **Restatement review**: No retrospective restatements identified: overlapping years agree across the FY2025, FY2024 10-K filings for all extracted line items.\n- **Data quality**: extraction mode `deterministic`; 8/8 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 5-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 31.97%; tax 15.61% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 1 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 4.20% in year 1 to 2.50% in year 5, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 31.97% to 31.97% by year 5.\n- **Reinvestment**: CapEx starts at 2.81% of revenue from the recency-weighted 3-year audited level (latest year 3.06%, simple average 2.78%) and fades to a 5.20% steady state by year 5, where net reinvestment equals 2.50% terminal growth / 30.0% return on new capital (base roic capped) = 8.3% of NOPAT; D&A is held at 2.81% (reported); working capital at -5.86% of incremental revenue (working_capital_days); SBC at 3.09% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $383,285 | $391,035 | $416,161 | $433,640 | $450,031 | $465,107 | $478,735 | $490,703 |\n| Revenue Growth YoY | — | +2.0% | +6.4% | +4.2% | +3.8% | +3.4% | +2.9% | +2.5% |\n| Operating Income (EBIT) | — | — | — | $138,635 | $143,875 | $148,695 | $153,052 | $156,878 |\n| Operating Margin | 29.8% | 31.5% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% |\n| NOPAT (Effective Tax 15.6%) | — | — | — | $116,994 | $121,416 | $125,484 | $129,160 | $132,389 |\n| Capital Expenditures | — | — | — | $12,185 | $15,346 | $18,604 | $22,022 | $25,517 |\n| Depreciation & Amortization | — | — | — | $12,189 | $12,650 | $13,074 | $13,457 | $13,793 |\n| Change in Working Capital (ΔNWC) | — | — | — | $-1,024 | $-960 | $-883 | $-798 | $-701 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $13,403 | $13,910 | $14,376 | $14,797 | $15,167 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$118,021** | **$119,680** | **$120,836** | **$121,393** | **$121,367** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 4.4% | $648,142M |\n| Base | 50% | 3.4% | $601,298M |\n| Bear | 25% | 2.2% | $547,827M |\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.13 | yfinance_raw (Blume-adjusted from raw 1.20) |\n| **Cost of Equity ($K_e$)** | **9.29%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 5.55% | Rf + 1.25% spread (no interest expense disclosed) |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **4.16%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $3,450,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $98,657.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.15% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.15%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (5 yrs, mid_year) | $486,227.9M |\n| PV of terminal value (value_driver) | $1,121,685.6M |\n| **Enterprise value** | **$1,607,913.6M** |\n| Plus: net cash | $33,763.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,641,676.6M |\n| Enterprise value rolled forward 1.08 yrs @ WACC 9.15% | $1,767,970.9M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $35,339.8M |\n| **Equity value at valuation date** | **$1,803,310.7M** |\n| Diluted shares | 15,004.70M |\n| **Fair value per share** | **$120.18** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 4.4% | $648,142M | $130.06 | -43.5% |\n| Base | 50% | 3.4% | $601,298M | $120.18 | -47.8% |\n| Bear | 25% | 2.2% | $547,827M | $109.12 | -52.6% |\n| **Probability-weighted** | 100% | | | **$119.89** | -47.9% |\n\n**Reverse DCF**: At $230.00 the market implies 19.8% constant revenue growth for 5 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 3.4% modeled revenue CAGR. At modeled growth the price instead needs a +29.8 pp operating-margin shift in every year (final-year margin 61.8% versus 32.0% modeled). Holding the modeled cash flows, the price corresponds to a 5.70% discount rate versus the 9.15% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.2%** | $130.03 | $133.91 | $138.18 | $142.94 | $148.24 |\n| **8.6%** | $121.71 | $124.92 | $128.43 | $132.30 | $136.57 |\n| **9.2%** *(Base)* | $114.53 | $117.22 | **$120.18** | $123.33 | $126.83 |\n| **9.7%** | $108.28 | $110.55 | $113.01 | $115.67 | $118.58 |\n| **10.2%** | $102.79 | $104.72 | $106.81 | $109.05 | $111.49 |\n\n| WACC \\ RONIC | 26.0% | 28.0% | 30.0% | 35.0% | 40.0% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.2%** | $136.79 | $137.54 | $138.18 | $139.48 | $140.45 |\n| **8.6%** | $127.17 | $127.84 | $128.43 | $129.60 | $130.48 |\n| **9.2%** *(Base)* | $118.99 | $119.61 | **$120.18** | $121.21 | $122.01 |\n| **9.7%** | $111.95 | $112.52 | $113.01 | $113.98 | $114.72 |\n| **10.2%** | $105.84 | $106.36 | $106.81 | $107.71 | $108.38 |\n\n**Valuation data-quality warnings**\n- Reverse DCF: the share price implies 19.8% annual revenue growth for 5 years versus 3.4% modeled (+16.4 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: vs FY2024\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._ _1 sentence(s) of commentary were removed because they cited figures absent from the verified data._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "response": "# Institutional Equity Research Report: Apple Inc. (AAPL)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$120.18** |\n| Bear / Bull Fair Value | $109.12 / $130.06 |\n| Probability-Weighted Fair Value | $119.89 |\n| Current Share Price[[2]](#cite-2) | $230.00 (yfinance_live) |\n| Base-Case Upside / Downside | -47.8% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 19.8% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 9.15% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 5.70% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 69.8% |\n| Enterprise Value | $1,607,913.6M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-33,763.0M |\n| Equity Value (as of 2026-10-28) | $1,803,310.7M |\n| Valuation Shares[[6]](#cite-6) | 15,004.7M |\n| Forecast | 5-year explicit horizon, 3.4% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business.\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: Americas, Europe, Greater China, Japan, Rest of Asia Pacific\n- **Revenue lines (ASC 606)**: iPhone, Mac, iPad, Wearables, Home and Accessories, Services\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Americas | 178,353 | 42.9% | 6.8% | 72,480 | 40.6% | 41.3% |\n| Europe | 111,032 | 26.7% | 9.6% | 47,739 | 43.0% | 27.2% |\n| Greater China | 64,377 | 15.5% | -3.8% | 26,917 | 41.8% | 15.3% |\n| Japan | 28,703 | 6.9% | 14.6% | 13,955 | 48.6% | 7.9% |\n| Rest of Asia Pacific | 33,696 | 8.1% | 9.9% | 14,586 | 43.3% | 8.3% |\n| Corporate (not a reportable segment) | 0 | 0.0% | — | (42,627) | — | — |\n\n_Source: 10-K segment note (chunk `be5c8734-25a4-4cbc-afa1-3fede20ab970`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| iPhone | 209,586 | 50.4% | 4.2% |\n| Mac | 33,708 | 8.1% | 12.4% |\n| iPad | 28,023 | 6.7% | 5.0% |\n| Wearables, Home and Accessories | 35,686 | 8.6% | -3.6% |\n| Services | 109,158 | 26.2% | 13.5% |\n\n_Source: 10-K revenue disaggregation (chunk `cd417530-50c0-410f-8cef-bd0133473dad`); figures in USD millions as reported._\n\n- **iPhone**: Smartphone line. _Drivers: Pro models._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat[[9]](#cite-9) | **Intangible Assets / Brand** (verified) |\n| Secondary moats | None identified |\n| Durability / trajectory | Narrow / Stable |\n\n**Moat rationale (filing-based)**: Branded service and support products.[[9]](#cite-9)\n\n**Business analysis data-quality notes**\n- Reportable segments are geographic regions; product / service mix comes from the revenue disaggregation.\n- Primary moat 'Network Effects' had no verified quote evidencing its mechanism; verified secondary moat 'Intangible Assets / Brand' promoted to primary.\n- Segment moat for 'Services' dropped: not a code-extracted segment or revenue line.\n- Durability capped at Narrow: 'Wide' needs at least 2 distinct verified moat quotes.\n- Pricing-power claim not evidenced by its quotes (they describe pricing, not pricing power); replaced by the verified quote.\n- 1 model-proposed product line(s) not in the extracted revenue table were dropped (Vision Pro).\n\n**Competitive threats**\n\n- Competitors cut prices and lower margins.[[10]](#cite-10)\n\n- **Pricing power**: Filing states: \"iPhone net sales increased during 2025 compared to 2024 due to higher net sales of Pro models.\"[[11]](#cite-11)\n- **Customer concentration**: Not explicitly disclosed in 10-K\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Revenue[[12]](#cite-12) | 383,285.0 | 391,035.0 | 416,161.0 |\n| Revenue growth %[[12]](#cite-12) | N/A | +2.0% | +6.4% |\n| Gross margin %[[12]](#cite-12) | 44.13% | 46.21% | 46.91% |\n| Operating income[[12]](#cite-12) | 114,301.0 | 123,216.0 | 133,050.0 |\n| Operating margin %[[12]](#cite-12) | 29.82% | 31.51% | 31.97% |\n| Net income (attrib.)[[12]](#cite-12) | 96,995.0 | 93,736.0 | 112,010.0 |\n| Net margin %[[12]](#cite-12) | 25.31% | 23.97% | 26.92% |\n| Operating cash flow[[13]](#cite-13) | 110,543.0 | 118,254.0 | 111,482.0 |\n| Capex[[13]](#cite-13) | 10,959.0 | 9,447.0 | 12,715.0 |\n| Free cash flow[[13]](#cite-13) | 99,584.0 | 108,807.0 | 98,767.0 |\n| FCF conversion %[[14]](#cite-14) | 102.7% | 116.1% | 88.2% |\n| Stock-based comp.[[13]](#cite-13) | 10,833.0 | 11,688.0 | 12,863.0 |\n| SBC-adjusted FCF[[13]](#cite-13) | 88,751.0 | 97,119.0 | 85,904.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Normalized operating income[[12]](#cite-12) | 114,301.0 | 123,216.0 | 133,050.0 |\n| Normalized operating margin %[[12]](#cite-12) | 29.82% | 31.51% | 31.97% |\n| Normalized net income[[12]](#cite-12) | 96,995.0 | 93,736.0 | 112,010.0 |\n| Adjustments % of EBIT[[12]](#cite-12) | N/A | N/A | N/A |\n| Non-operating income[[12]](#cite-12) | -565.0 | 269.0 | -321.0 |\n| Non-operating % of EBIT[[12]](#cite-12) | -0.5% | 0.2% | -0.2% |\n| Effective tax rate %[[12]](#cite-12) | 14.7% | 24.1% | 15.6% |\n| Deferred tax % of NI[[14]](#cite-14) | N/A | N/A | N/A |\n| Accruals (NI - OCF)[[14]](#cite-14) | -13,548.0 | -24,518.0 | 528.0 |\n| Sloan accruals ratio %[[15]](#cite-15) | -3.8% | -6.8% | 0.1% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2025)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $35,934.0M |\n| Marketable securities[[6]](#cite-6) | $96,486.0M |\n| Total liquid cash[[6]](#cite-6) | $132,420.0M |\n| Total debt[[6]](#cite-6) | $98,657.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-33,763.0M |\n| Stockholders' equity[[6]](#cite-6) | $73,733.0M |\n| Valuation share count[[6]](#cite-6) | 15,004.7M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 0.89x |\n| EBITDA[[14]](#cite-14) | $144,748.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.23x |\n| Debt / equity[[6]](#cite-6) | 1.34x |\n| Effective tax rate[[12]](#cite-12) | 15.6% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[16]](#cite-16) | 478.8% |\n| ROIC (average gross debt + equity)[[16]](#cite-16) | 66.8% |\n| ROE (average equity)[[16]](#cite-16) | 171.4% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| HIGH | EARNINGS_QUALITY_DIVERGENCE | 2025 | EARNINGS QUALITY DIVERGENCE (FY2025): Net income increased by +19.50% ($93,736.0M -> $112,010.0M) while operating cash flow declined by -5.73% ($118,254.0M -> $111,482.0M), indicating accrual expansion, non-operating gains, or tax/working-capital cash timing outflows. |\n| LOW | WORKING_CAPITAL_DETERIORATION | 2024 | WORKING CAPITAL DETERIORATION (FY2024): DIO lengthened 16.7% to 12.6 days. |\n\n- **Restatement review**: No retrospective restatements identified: overlapping years agree across the FY2025, FY2024 10-K filings for all extracted line items.\n- **Data quality**: extraction mode `deterministic`; 8/8 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 5-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 31.97%; tax 15.61% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 1 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 4.20% in year 1 to 2.50% in year 5, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 31.97% to 31.97% by year 5.\n- **Reinvestment**: CapEx starts at 2.81% of revenue from the recency-weighted 3-year audited level (latest year 3.06%, simple average 2.78%) and fades to a 5.20% steady state by year 5, where net reinvestment equals 2.50% terminal growth / 30.0% return on new capital (base roic capped) = 8.3% of NOPAT; D&A is held at 2.81% (reported); working capital at -5.86% of incremental revenue (working_capital_days); SBC at 3.09% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $383,285 | $391,035 | $416,161 | $433,640 | $450,031 | $465,107 | $478,735 | $490,703 |\n| Revenue Growth YoY | — | +2.0% | +6.4% | +4.2% | +3.8% | +3.4% | +2.9% | +2.5% |\n| Operating Income (EBIT) | — | — | — | $138,635 | $143,875 | $148,695 | $153,052 | $156,878 |\n| Operating Margin | 29.8% | 31.5% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% |\n| NOPAT (Effective Tax 15.6%) | — | — | — | $116,994 | $121,416 | $125,484 | $129,160 | $132,389 |\n| Capital Expenditures | — | — | — | $12,185 | $15,346 | $18,604 | $22,022 | $25,517 |\n| Depreciation & Amortization | — | — | — | $12,189 | $12,650 | $13,074 | $13,457 | $13,793 |\n| Change in Working Capital (ΔNWC) | — | — | — | $-1,024 | $-960 | $-883 | $-798 | $-701 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $13,403 | $13,910 | $14,376 | $14,797 | $15,167 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$118,021** | **$119,680** | **$120,836** | **$121,393** | **$121,367** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 4.4% | $648,142M |\n| Base | 50% | 3.4% | $601,298M |\n| Bear | 25% | 2.2% | $547,827M |\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.13 | yfinance_raw (Blume-adjusted from raw 1.20) |\n| **Cost of Equity ($K_e$)** | **9.29%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 5.55% | Rf + 1.25% spread (no interest expense disclosed) |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **4.16%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $3,450,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $98,657.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.15% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.15%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (5 yrs, mid_year) | $486,227.9M |\n| PV of terminal value (value_driver) | $1,121,685.6M |\n| **Enterprise value** | **$1,607,913.6M** |\n| Plus: net cash | $33,763.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,641,676.6M |\n| Enterprise value rolled forward 1.08 yrs @ WACC 9.15% | $1,767,970.9M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $35,339.8M |\n| **Equity value at valuation date** | **$1,803,310.7M** |\n| Diluted shares | 15,004.70M |\n| **Fair value per share** | **$120.18** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 4.4% | $648,142M | $130.06 | -43.5% |\n| Base | 50% | 3.4% | $601,298M | $120.18 | -47.8% |\n| Bear | 25% | 2.2% | $547,827M | $109.12 | -52.6% |\n| **Probability-weighted** | 100% | | | **$119.89** | -47.9% |\n\n**Reverse DCF**: At $230.00 the market implies 19.8% constant revenue growth for 5 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 3.4% modeled revenue CAGR. At modeled growth the price instead needs a +29.8 pp operating-margin shift in every year (final-year margin 61.8% versus 32.0% modeled). Holding the modeled cash flows, the price corresponds to a 5.70% discount rate versus the 9.15% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.2%** | $130.03 | $133.91 | $138.18 | $142.94 | $148.24 |\n| **8.6%** | $121.71 | $124.92 | $128.43 | $132.30 | $136.57 |\n| **9.2%** *(Base)* | $114.53 | $117.22 | **$120.18** | $123.33 | $126.83 |\n| **9.7%** | $108.28 | $110.55 | $113.01 | $115.67 | $118.58 |\n| **10.2%** | $102.79 | $104.72 | $106.81 | $109.05 | $111.49 |\n\n| WACC \\ RONIC | 26.0% | 28.0% | 30.0% | 35.0% | 40.0% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.2%** | $136.79 | $137.54 | $138.18 | $139.48 | $140.45 |\n| **8.6%** | $127.17 | $127.84 | $128.43 | $129.60 | $130.48 |\n| **9.2%** *(Base)* | $118.99 | $119.61 | **$120.18** | $121.21 | $122.01 |\n| **9.7%** | $111.95 | $112.52 | $113.01 | $113.98 | $114.72 |\n| **10.2%** | $105.84 | $106.36 | $106.81 | $107.71 | $108.38 |\n\n**Valuation data-quality warnings**\n- Reverse DCF: the share price implies 19.8% annual revenue growth for 5 years versus 3.4% modeled (+16.4 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: vs FY2024\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._ _1 sentence(s) of commentary were removed because they cited figures absent from the verified data._\n\n> *Synthesis Provenance: `llm_structured`*\n",
    "sources": [
     {
      "chunks": [
@@ -207,6 +207,72 @@
     {
      "chunks": [
       {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+       "chunk_id": "553617a0-f3ea-4426-93bf-7468ce6124ce",
+       "chunk_index": 11,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 1",
+       "ticker": "AAPL"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+     "n": 9,
+     "provider": null,
+     "quote": "The Company offers a portfolio of fee-based service and support products under the AppleCare ® brand.",
+     "ticker": "AAPL"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+       "chunk_id": "ccb4933e-79d4-40ee-8949-41bd36c1fb12",
+       "chunk_index": 14,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 1",
+       "ticker": "AAPL"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+     "n": 10,
+     "provider": null,
+     "quote": "Competition has been particularly intense as competitors have aggressively cut prices and lowered product margins.",
+     "ticker": "AAPL"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+       "chunk_id": "8b8bfe8f-a58b-4bf6-847f-b4d4922daa4e",
+       "chunk_index": 85,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 7",
+       "ticker": "AAPL"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "n": 11,
+     "provider": null,
+     "quote": "iPhone net sales increased during 2025 compared to 2024 due to higher net sales of Pro models.",
+     "ticker": "AAPL"
+    },
+    {
+     "chunks": [
+      {
        "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
        "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
        "chunk_index": 103,
@@ -221,7 +287,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 9,
+     "n": 12,
      "provider": null,
      "quote": null,
      "ticker": "AAPL"
@@ -243,7 +309,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 10,
+     "n": 13,
      "provider": null,
      "quote": null,
      "ticker": "AAPL"
@@ -274,7 +340,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 11,
+     "n": 14,
      "provider": null,
      "quote": null,
      "ticker": "AAPL"
@@ -323,7 +389,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 12,
+     "n": 15,
      "provider": null,
      "quote": null,
      "ticker": "AAPL"
@@ -354,7 +420,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 13,
+     "n": 16,
      "provider": null,
      "quote": null,
      "ticker": "AAPL"
@@ -375,8 +441,32 @@
  ],
  "outputs": {
   "business_moat": {
-   "business_summary": "Not assessed: the model returned malformed output.",
+   "business_summary": "Apple designs and sells smartphones, personal computers, tablets, wearables and accessories, and a growing portfolio of services across a large installed base of devices.",
    "citations": [
+    {
+     "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+     "chunk_id": "553617a0-f3ea-4426-93bf-7468ce6124ce",
+     "fiscal_year": 2025,
+     "item": "Item 1",
+     "sub_section": "Business",
+     "ticker": "AAPL"
+    },
+    {
+     "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+     "chunk_id": "ccb4933e-79d4-40ee-8949-41bd36c1fb12",
+     "fiscal_year": 2025,
+     "item": "Item 1",
+     "sub_section": "Business",
+     "ticker": "AAPL"
+    },
+    {
+     "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "chunk_id": "8b8bfe8f-a58b-4bf6-847f-b4d4922daa4e",
+     "fiscal_year": 2025,
+     "item": "Item 7",
+     "sub_section": "Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "ticker": "AAPL"
+    },
     {
      "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
      "chunk_id": "be5c8734-25a4-4cbc-afa1-3fede20ab970",
@@ -410,24 +500,30 @@
      "ticker": "AAPL"
     }
    ],
-   "competitive_threats": [],
-   "customer_concentration": "Not assessed: the model returned malformed output.",
+   "competitive_threats": [
+    "Competitors cut prices and lower margins."
+   ],
+   "customer_concentration": "Not explicitly disclosed in 10-K",
    "data_quality": {
     "chars_read": 16606,
-    "claims_dropped": 0,
-    "claims_proposed": 0,
-    "claims_verified": 0,
+    "claims_dropped": 4,
+    "claims_proposed": 6,
+    "claims_verified": 3,
     "consolidated_revenue": 416161.0,
     "coverage_mode": "full_section",
     "item1_chunks": 12,
-    "llm_status": "malformed",
+    "llm_status": "ok",
     "notes": [
      "Reportable segments are geographic regions; product / service mix comes from the revenue disaggregation.",
-     "The model returned no parsable JSON; moat and competitive fields not assessed."
+     "Primary moat 'Network Effects' had no verified quote evidencing its mechanism; verified secondary moat 'Intangible Assets / Brand' promoted to primary.",
+     "Segment moat for 'Services' dropped: not a code-extracted segment or revenue line.",
+     "Durability capped at Narrow: 'Wide' needs at least 2 distinct verified moat quotes.",
+     "Pricing-power claim not evidenced by its quotes (they describe pricing, not pricing power); replaced by the verified quote.",
+     "1 model-proposed product line(s) not in the extracted revenue table were dropped (Vision Pro)."
     ],
-    "quotes_off_topic": 0,
+    "quotes_off_topic": 2,
     "quotes_rejected": 0,
-    "quotes_verified": 0,
+    "quotes_verified": 3,
     "revenue_lines_reconciliation": "income_statement",
     "revenue_tables_found": 2,
     "section_located_by": "item_label",
@@ -438,14 +534,39 @@
     "supplementary_passages": 6,
     "units": "USD millions"
    },
-   "economic_moat_type": "None",
-   "evidence": [],
+   "economic_moat_type": "Intangible Assets / Brand",
+   "evidence": [
+    {
+     "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+     "chunk_id": "553617a0-f3ea-4426-93bf-7468ce6124ce",
+     "claim": "primary_moat",
+     "item": "Item 1",
+     "quote": "The Company offers a portfolio of fee-based service and support products under the AppleCare ® brand.",
+     "subject": "Intangible Assets / Brand"
+    },
+    {
+     "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+     "chunk_id": "ccb4933e-79d4-40ee-8949-41bd36c1fb12",
+     "claim": "competitive_threat",
+     "item": "Item 1",
+     "quote": "Competition has been particularly intense as competitors have aggressively cut prices and lowered product margins.",
+     "subject": "Competitors cut prices and lower margins."
+    },
+    {
+     "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "chunk_id": "8b8bfe8f-a58b-4bf6-847f-b4d4922daa4e",
+     "claim": "pricing_power",
+     "item": "Item 7",
+     "quote": "iPhone net sales increased during 2025 compared to 2024 due to higher net sales of Pro models.",
+     "subject": null
+    }
+   ],
    "fiscal_year": 2025,
-   "moat_assessment": "not_assessed",
-   "moat_durability": "Indeterminate",
-   "moat_rationale": "Not assessed: the model returned malformed output.",
-   "moat_trajectory": "Indeterminate",
-   "pricing_power_assessment": "Not assessed: the model returned malformed output.",
+   "moat_assessment": "verified",
+   "moat_durability": "Narrow",
+   "moat_rationale": "Branded service and support products.",
+   "moat_trajectory": "Stable",
+   "pricing_power_assessment": "Filing states: \"iPhone net sales increased during 2025 compared to 2024 due to higher net sales of Pro models.\"",
    "primary_product_segments": [
     "iPhone",
     "Mac",
@@ -460,7 +581,7 @@
     "Japan",
     "Rest of Asia Pacific"
    ],
-   "revenue_architecture": "Revenue mix by product / service line (FY2025, from the 10-K revenue disaggregation): iPhone 50.4%, Mac 8.1%, iPad 6.7%, Wearables, Home and Accessories 8.6%, Services 26.2%.",
+   "revenue_architecture": "Product sales plus services: subscriptions, AppleCare, payments and advertising.",
    "revenue_lines": [
     {
      "fiscal_year": 2025,
@@ -602,8 +723,10 @@
    "secondary_moat_types": [],
    "segment_details": [
     {
-     "description": "iPhone: FY2025 revenue $209,586M, 50.4% of revenue (from the 10-K tables).",
-     "growth_drivers": [],
+     "description": "Smartphone line.",
+     "growth_drivers": [
+      "Pro models"
+     ],
      "name": "iPhone"
     },
     {
@@ -617,7 +740,7 @@
      "name": "iPad"
     },
     {
-     "description": "Wearables, Home and Accessories: FY2025 revenue $35,686M, 8.6% of revenue (from the 10-K tables).",
+     "description": "Watch, AirPods and home devices.",
      "growth_drivers": [],
      "name": "Wearables, Home and Accessories"
     },
@@ -993,7 +1116,7 @@
    "current_share_price": 230.0,
    "executive_summary": "The filing supports a balanced view of the business.",
    "fiscal_year": 2025,
-   "full_markdown_report": "# Institutional Equity Research Report: Apple Inc. (AAPL)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$120.18** |\n| Bear / Bull Fair Value | $109.12 / $130.06 |\n| Probability-Weighted Fair Value | $119.89 |\n| Current Share Price[[2]](#cite-2) | $230.00 (yfinance_live) |\n| Base-Case Upside / Downside | -47.8% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 19.8% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 9.15% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 5.70% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 69.8% |\n| Enterprise Value | $1,607,913.6M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-33,763.0M |\n| Equity Value (as of 2026-10-28) | $1,803,310.7M |\n| Valuation Shares[[6]](#cite-6) | 15,004.7M |\n| Forecast | 5-year explicit horizon, 3.4% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business.\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: Americas, Europe, Greater China, Japan, Rest of Asia Pacific\n- **Revenue lines (ASC 606)**: iPhone, Mac, iPad, Wearables, Home and Accessories, Services\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Americas | 178,353 | 42.9% | 6.8% | 72,480 | 40.6% | 41.3% |\n| Europe | 111,032 | 26.7% | 9.6% | 47,739 | 43.0% | 27.2% |\n| Greater China | 64,377 | 15.5% | -3.8% | 26,917 | 41.8% | 15.3% |\n| Japan | 28,703 | 6.9% | 14.6% | 13,955 | 48.6% | 7.9% |\n| Rest of Asia Pacific | 33,696 | 8.1% | 9.9% | 14,586 | 43.3% | 8.3% |\n| Corporate (not a reportable segment) | 0 | 0.0% | — | (42,627) | — | — |\n\n_Source: 10-K segment note (chunk `be5c8734-25a4-4cbc-afa1-3fede20ab970`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| iPhone | 209,586 | 50.4% | 4.2% |\n| Mac | 33,708 | 8.1% | 12.4% |\n| iPad | 28,023 | 6.7% | 5.0% |\n| Wearables, Home and Accessories | 35,686 | 8.6% | -3.6% |\n| Services | 109,158 | 26.2% | 13.5% |\n\n_Source: 10-K revenue disaggregation (chunk `cd417530-50c0-410f-8cef-bd0133473dad`); figures in USD millions as reported._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (not assessed) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n\n**Moat rationale (filing-based)**: Not assessed: the model returned malformed output.\n\n**Business analysis data-quality notes**\n- Reportable segments are geographic regions; product / service mix comes from the revenue disaggregation.\n- The model returned no parsable JSON; moat and competitive fields not assessed.\n\n**Competitive threats**\n\n- No specific competitive threats were extracted from Item 1.\n\n- **Pricing power**: Not assessed: the model returned malformed output.\n- **Customer concentration**: Not assessed: the model returned malformed output.\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Revenue[[9]](#cite-9) | 383,285.0 | 391,035.0 | 416,161.0 |\n| Revenue growth %[[9]](#cite-9) | N/A | +2.0% | +6.4% |\n| Gross margin %[[9]](#cite-9) | 44.13% | 46.21% | 46.91% |\n| Operating income[[9]](#cite-9) | 114,301.0 | 123,216.0 | 133,050.0 |\n| Operating margin %[[9]](#cite-9) | 29.82% | 31.51% | 31.97% |\n| Net income (attrib.)[[9]](#cite-9) | 96,995.0 | 93,736.0 | 112,010.0 |\n| Net margin %[[9]](#cite-9) | 25.31% | 23.97% | 26.92% |\n| Operating cash flow[[10]](#cite-10) | 110,543.0 | 118,254.0 | 111,482.0 |\n| Capex[[10]](#cite-10) | 10,959.0 | 9,447.0 | 12,715.0 |\n| Free cash flow[[10]](#cite-10) | 99,584.0 | 108,807.0 | 98,767.0 |\n| FCF conversion %[[11]](#cite-11) | 102.7% | 116.1% | 88.2% |\n| Stock-based comp.[[10]](#cite-10) | 10,833.0 | 11,688.0 | 12,863.0 |\n| SBC-adjusted FCF[[10]](#cite-10) | 88,751.0 | 97,119.0 | 85,904.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Normalized operating income[[9]](#cite-9) | 114,301.0 | 123,216.0 | 133,050.0 |\n| Normalized operating margin %[[9]](#cite-9) | 29.82% | 31.51% | 31.97% |\n| Normalized net income[[9]](#cite-9) | 96,995.0 | 93,736.0 | 112,010.0 |\n| Adjustments % of EBIT[[9]](#cite-9) | N/A | N/A | N/A |\n| Non-operating income[[9]](#cite-9) | -565.0 | 269.0 | -321.0 |\n| Non-operating % of EBIT[[9]](#cite-9) | -0.5% | 0.2% | -0.2% |\n| Effective tax rate %[[9]](#cite-9) | 14.7% | 24.1% | 15.6% |\n| Deferred tax % of NI[[11]](#cite-11) | N/A | N/A | N/A |\n| Accruals (NI - OCF)[[11]](#cite-11) | -13,548.0 | -24,518.0 | 528.0 |\n| Sloan accruals ratio %[[12]](#cite-12) | -3.8% | -6.8% | 0.1% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2025)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $35,934.0M |\n| Marketable securities[[6]](#cite-6) | $96,486.0M |\n| Total liquid cash[[6]](#cite-6) | $132,420.0M |\n| Total debt[[6]](#cite-6) | $98,657.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-33,763.0M |\n| Stockholders' equity[[6]](#cite-6) | $73,733.0M |\n| Valuation share count[[6]](#cite-6) | 15,004.7M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 0.89x |\n| EBITDA[[11]](#cite-11) | $144,748.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.23x |\n| Debt / equity[[6]](#cite-6) | 1.34x |\n| Effective tax rate[[9]](#cite-9) | 15.6% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[13]](#cite-13) | 478.8% |\n| ROIC (average gross debt + equity)[[13]](#cite-13) | 66.8% |\n| ROE (average equity)[[13]](#cite-13) | 171.4% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| HIGH | EARNINGS_QUALITY_DIVERGENCE | 2025 | EARNINGS QUALITY DIVERGENCE (FY2025): Net income increased by +19.50% ($93,736.0M -> $112,010.0M) while operating cash flow declined by -5.73% ($118,254.0M -> $111,482.0M), indicating accrual expansion, non-operating gains, or tax/working-capital cash timing outflows. |\n| LOW | WORKING_CAPITAL_DETERIORATION | 2024 | WORKING CAPITAL DETERIORATION (FY2024): DIO lengthened 16.7% to 12.6 days. |\n\n- **Restatement review**: No retrospective restatements identified: overlapping years agree across the FY2025, FY2024 10-K filings for all extracted line items.\n- **Data quality**: extraction mode `deterministic`; 8/8 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 5-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 31.97%; tax 15.61% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 1 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 4.20% in year 1 to 2.50% in year 5, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 31.97% to 31.97% by year 5.\n- **Reinvestment**: CapEx starts at 2.81% of revenue from the recency-weighted 3-year audited level (latest year 3.06%, simple average 2.78%) and fades to a 5.20% steady state by year 5, where net reinvestment equals 2.50% terminal growth / 30.0% return on new capital (base roic capped) = 8.3% of NOPAT; D&A is held at 2.81% (reported); working capital at -5.86% of incremental revenue (working_capital_days); SBC at 3.09% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $383,285 | $391,035 | $416,161 | $433,640 | $450,031 | $465,107 | $478,735 | $490,703 |\n| Revenue Growth YoY | — | +2.0% | +6.4% | +4.2% | +3.8% | +3.4% | +2.9% | +2.5% |\n| Operating Income (EBIT) | — | — | — | $138,635 | $143,875 | $148,695 | $153,052 | $156,878 |\n| Operating Margin | 29.8% | 31.5% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% |\n| NOPAT (Effective Tax 15.6%) | — | — | — | $116,994 | $121,416 | $125,484 | $129,160 | $132,389 |\n| Capital Expenditures | — | — | — | $12,185 | $15,346 | $18,604 | $22,022 | $25,517 |\n| Depreciation & Amortization | — | — | — | $12,189 | $12,650 | $13,074 | $13,457 | $13,793 |\n| Change in Working Capital (ΔNWC) | — | — | — | $-1,024 | $-960 | $-883 | $-798 | $-701 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $13,403 | $13,910 | $14,376 | $14,797 | $15,167 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$118,021** | **$119,680** | **$120,836** | **$121,393** | **$121,367** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 4.4% | $648,142M |\n| Base | 50% | 3.4% | $601,298M |\n| Bear | 25% | 2.2% | $547,827M |\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.13 | yfinance_raw (Blume-adjusted from raw 1.20) |\n| **Cost of Equity ($K_e$)** | **9.29%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 5.55% | Rf + 1.25% spread (no interest expense disclosed) |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **4.16%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $3,450,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $98,657.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.15% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.15%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (5 yrs, mid_year) | $486,227.9M |\n| PV of terminal value (value_driver) | $1,121,685.6M |\n| **Enterprise value** | **$1,607,913.6M** |\n| Plus: net cash | $33,763.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,641,676.6M |\n| Enterprise value rolled forward 1.08 yrs @ WACC 9.15% | $1,767,970.9M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $35,339.8M |\n| **Equity value at valuation date** | **$1,803,310.7M** |\n| Diluted shares | 15,004.70M |\n| **Fair value per share** | **$120.18** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 4.4% | $648,142M | $130.06 | -43.5% |\n| Base | 50% | 3.4% | $601,298M | $120.18 | -47.8% |\n| Bear | 25% | 2.2% | $547,827M | $109.12 | -52.6% |\n| **Probability-weighted** | 100% | | | **$119.89** | -47.9% |\n\n**Reverse DCF**: At $230.00 the market implies 19.8% constant revenue growth for 5 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 3.4% modeled revenue CAGR. At modeled growth the price instead needs a +29.8 pp operating-margin shift in every year (final-year margin 61.8% versus 32.0% modeled). Holding the modeled cash flows, the price corresponds to a 5.70% discount rate versus the 9.15% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.2%** | $130.03 | $133.91 | $138.18 | $142.94 | $148.24 |\n| **8.6%** | $121.71 | $124.92 | $128.43 | $132.30 | $136.57 |\n| **9.2%** *(Base)* | $114.53 | $117.22 | **$120.18** | $123.33 | $126.83 |\n| **9.7%** | $108.28 | $110.55 | $113.01 | $115.67 | $118.58 |\n| **10.2%** | $102.79 | $104.72 | $106.81 | $109.05 | $111.49 |\n\n| WACC \\ RONIC | 26.0% | 28.0% | 30.0% | 35.0% | 40.0% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.2%** | $136.79 | $137.54 | $138.18 | $139.48 | $140.45 |\n| **8.6%** | $127.17 | $127.84 | $128.43 | $129.60 | $130.48 |\n| **9.2%** *(Base)* | $118.99 | $119.61 | **$120.18** | $121.21 | $122.01 |\n| **9.7%** | $111.95 | $112.52 | $113.01 | $113.98 | $114.72 |\n| **10.2%** | $105.84 | $106.36 | $106.81 | $107.71 | $108.38 |\n\n**Valuation data-quality warnings**\n- Reverse DCF: the share price implies 19.8% annual revenue growth for 5 years versus 3.4% modeled (+16.4 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: vs FY2024\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._ _1 sentence(s) of commentary were removed because they cited figures absent from the verified data._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "full_markdown_report": "# Institutional Equity Research Report: Apple Inc. (AAPL)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$120.18** |\n| Bear / Bull Fair Value | $109.12 / $130.06 |\n| Probability-Weighted Fair Value | $119.89 |\n| Current Share Price[[2]](#cite-2) | $230.00 (yfinance_live) |\n| Base-Case Upside / Downside | -47.8% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 19.8% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 9.15% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 5.70% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 69.8% |\n| Enterprise Value | $1,607,913.6M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-33,763.0M |\n| Equity Value (as of 2026-10-28) | $1,803,310.7M |\n| Valuation Shares[[6]](#cite-6) | 15,004.7M |\n| Forecast | 5-year explicit horizon, 3.4% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business.\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: Americas, Europe, Greater China, Japan, Rest of Asia Pacific\n- **Revenue lines (ASC 606)**: iPhone, Mac, iPad, Wearables, Home and Accessories, Services\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Americas | 178,353 | 42.9% | 6.8% | 72,480 | 40.6% | 41.3% |\n| Europe | 111,032 | 26.7% | 9.6% | 47,739 | 43.0% | 27.2% |\n| Greater China | 64,377 | 15.5% | -3.8% | 26,917 | 41.8% | 15.3% |\n| Japan | 28,703 | 6.9% | 14.6% | 13,955 | 48.6% | 7.9% |\n| Rest of Asia Pacific | 33,696 | 8.1% | 9.9% | 14,586 | 43.3% | 8.3% |\n| Corporate (not a reportable segment) | 0 | 0.0% | — | (42,627) | — | — |\n\n_Source: 10-K segment note (chunk `be5c8734-25a4-4cbc-afa1-3fede20ab970`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| iPhone | 209,586 | 50.4% | 4.2% |\n| Mac | 33,708 | 8.1% | 12.4% |\n| iPad | 28,023 | 6.7% | 5.0% |\n| Wearables, Home and Accessories | 35,686 | 8.6% | -3.6% |\n| Services | 109,158 | 26.2% | 13.5% |\n\n_Source: 10-K revenue disaggregation (chunk `cd417530-50c0-410f-8cef-bd0133473dad`); figures in USD millions as reported._\n\n- **iPhone**: Smartphone line. _Drivers: Pro models._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat[[9]](#cite-9) | **Intangible Assets / Brand** (verified) |\n| Secondary moats | None identified |\n| Durability / trajectory | Narrow / Stable |\n\n**Moat rationale (filing-based)**: Branded service and support products.[[9]](#cite-9)\n\n**Business analysis data-quality notes**\n- Reportable segments are geographic regions; product / service mix comes from the revenue disaggregation.\n- Primary moat 'Network Effects' had no verified quote evidencing its mechanism; verified secondary moat 'Intangible Assets / Brand' promoted to primary.\n- Segment moat for 'Services' dropped: not a code-extracted segment or revenue line.\n- Durability capped at Narrow: 'Wide' needs at least 2 distinct verified moat quotes.\n- Pricing-power claim not evidenced by its quotes (they describe pricing, not pricing power); replaced by the verified quote.\n- 1 model-proposed product line(s) not in the extracted revenue table were dropped (Vision Pro).\n\n**Competitive threats**\n\n- Competitors cut prices and lower margins.[[10]](#cite-10)\n\n- **Pricing power**: Filing states: \"iPhone net sales increased during 2025 compared to 2024 due to higher net sales of Pro models.\"[[11]](#cite-11)\n- **Customer concentration**: Not explicitly disclosed in 10-K\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Revenue[[12]](#cite-12) | 383,285.0 | 391,035.0 | 416,161.0 |\n| Revenue growth %[[12]](#cite-12) | N/A | +2.0% | +6.4% |\n| Gross margin %[[12]](#cite-12) | 44.13% | 46.21% | 46.91% |\n| Operating income[[12]](#cite-12) | 114,301.0 | 123,216.0 | 133,050.0 |\n| Operating margin %[[12]](#cite-12) | 29.82% | 31.51% | 31.97% |\n| Net income (attrib.)[[12]](#cite-12) | 96,995.0 | 93,736.0 | 112,010.0 |\n| Net margin %[[12]](#cite-12) | 25.31% | 23.97% | 26.92% |\n| Operating cash flow[[13]](#cite-13) | 110,543.0 | 118,254.0 | 111,482.0 |\n| Capex[[13]](#cite-13) | 10,959.0 | 9,447.0 | 12,715.0 |\n| Free cash flow[[13]](#cite-13) | 99,584.0 | 108,807.0 | 98,767.0 |\n| FCF conversion %[[14]](#cite-14) | 102.7% | 116.1% | 88.2% |\n| Stock-based comp.[[13]](#cite-13) | 10,833.0 | 11,688.0 | 12,863.0 |\n| SBC-adjusted FCF[[13]](#cite-13) | 88,751.0 | 97,119.0 | 85,904.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: |\n| Normalized operating income[[12]](#cite-12) | 114,301.0 | 123,216.0 | 133,050.0 |\n| Normalized operating margin %[[12]](#cite-12) | 29.82% | 31.51% | 31.97% |\n| Normalized net income[[12]](#cite-12) | 96,995.0 | 93,736.0 | 112,010.0 |\n| Adjustments % of EBIT[[12]](#cite-12) | N/A | N/A | N/A |\n| Non-operating income[[12]](#cite-12) | -565.0 | 269.0 | -321.0 |\n| Non-operating % of EBIT[[12]](#cite-12) | -0.5% | 0.2% | -0.2% |\n| Effective tax rate %[[12]](#cite-12) | 14.7% | 24.1% | 15.6% |\n| Deferred tax % of NI[[14]](#cite-14) | N/A | N/A | N/A |\n| Accruals (NI - OCF)[[14]](#cite-14) | -13,548.0 | -24,518.0 | 528.0 |\n| Sloan accruals ratio %[[15]](#cite-15) | -3.8% | -6.8% | 0.1% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2025)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $35,934.0M |\n| Marketable securities[[6]](#cite-6) | $96,486.0M |\n| Total liquid cash[[6]](#cite-6) | $132,420.0M |\n| Total debt[[6]](#cite-6) | $98,657.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-33,763.0M |\n| Stockholders' equity[[6]](#cite-6) | $73,733.0M |\n| Valuation share count[[6]](#cite-6) | 15,004.7M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 0.89x |\n| EBITDA[[14]](#cite-14) | $144,748.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.23x |\n| Debt / equity[[6]](#cite-6) | 1.34x |\n| Effective tax rate[[12]](#cite-12) | 15.6% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[16]](#cite-16) | 478.8% |\n| ROIC (average gross debt + equity)[[16]](#cite-16) | 66.8% |\n| ROE (average equity)[[16]](#cite-16) | 171.4% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| HIGH | EARNINGS_QUALITY_DIVERGENCE | 2025 | EARNINGS QUALITY DIVERGENCE (FY2025): Net income increased by +19.50% ($93,736.0M -> $112,010.0M) while operating cash flow declined by -5.73% ($118,254.0M -> $111,482.0M), indicating accrual expansion, non-operating gains, or tax/working-capital cash timing outflows. |\n| LOW | WORKING_CAPITAL_DETERIORATION | 2024 | WORKING CAPITAL DETERIORATION (FY2024): DIO lengthened 16.7% to 12.6 days. |\n\n- **Restatement review**: No retrospective restatements identified: overlapping years agree across the FY2025, FY2024 10-K filings for all extracted line items.\n- **Data quality**: extraction mode `deterministic`; 8/8 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 5-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 31.97%; tax 15.61% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 1 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 4.20% in year 1 to 2.50% in year 5, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 31.97% to 31.97% by year 5.\n- **Reinvestment**: CapEx starts at 2.81% of revenue from the recency-weighted 3-year audited level (latest year 3.06%, simple average 2.78%) and fades to a 5.20% steady state by year 5, where net reinvestment equals 2.50% terminal growth / 30.0% return on new capital (base roic capped) = 8.3% of NOPAT; D&A is held at 2.81% (reported); working capital at -5.86% of incremental revenue (working_capital_days); SBC at 3.09% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $383,285 | $391,035 | $416,161 | $433,640 | $450,031 | $465,107 | $478,735 | $490,703 |\n| Revenue Growth YoY | — | +2.0% | +6.4% | +4.2% | +3.8% | +3.4% | +2.9% | +2.5% |\n| Operating Income (EBIT) | — | — | — | $138,635 | $143,875 | $148,695 | $153,052 | $156,878 |\n| Operating Margin | 29.8% | 31.5% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% | 32.0% |\n| NOPAT (Effective Tax 15.6%) | — | — | — | $116,994 | $121,416 | $125,484 | $129,160 | $132,389 |\n| Capital Expenditures | — | — | — | $12,185 | $15,346 | $18,604 | $22,022 | $25,517 |\n| Depreciation & Amortization | — | — | — | $12,189 | $12,650 | $13,074 | $13,457 | $13,793 |\n| Change in Working Capital (ΔNWC) | — | — | — | $-1,024 | $-960 | $-883 | $-798 | $-701 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $13,403 | $13,910 | $14,376 | $14,797 | $15,167 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$118,021** | **$119,680** | **$120,836** | **$121,393** | **$121,367** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 4.4% | $648,142M |\n| Base | 50% | 3.4% | $601,298M |\n| Bear | 25% | 2.2% | $547,827M |\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.13 | yfinance_raw (Blume-adjusted from raw 1.20) |\n| **Cost of Equity ($K_e$)** | **9.29%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 5.55% | Rf + 1.25% spread (no interest expense disclosed) |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **4.16%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $3,450,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $98,657.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.15% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.15%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (5 yrs, mid_year) | $486,227.9M |\n| PV of terminal value (value_driver) | $1,121,685.6M |\n| **Enterprise value** | **$1,607,913.6M** |\n| Plus: net cash | $33,763.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,641,676.6M |\n| Enterprise value rolled forward 1.08 yrs @ WACC 9.15% | $1,767,970.9M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $35,339.8M |\n| **Equity value at valuation date** | **$1,803,310.7M** |\n| Diluted shares | 15,004.70M |\n| **Fair value per share** | **$120.18** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 4.4% | $648,142M | $130.06 | -43.5% |\n| Base | 50% | 3.4% | $601,298M | $120.18 | -47.8% |\n| Bear | 25% | 2.2% | $547,827M | $109.12 | -52.6% |\n| **Probability-weighted** | 100% | | | **$119.89** | -47.9% |\n\n**Reverse DCF**: At $230.00 the market implies 19.8% constant revenue growth for 5 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 3.4% modeled revenue CAGR. At modeled growth the price instead needs a +29.8 pp operating-margin shift in every year (final-year margin 61.8% versus 32.0% modeled). Holding the modeled cash flows, the price corresponds to a 5.70% discount rate versus the 9.15% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.2%** | $130.03 | $133.91 | $138.18 | $142.94 | $148.24 |\n| **8.6%** | $121.71 | $124.92 | $128.43 | $132.30 | $136.57 |\n| **9.2%** *(Base)* | $114.53 | $117.22 | **$120.18** | $123.33 | $126.83 |\n| **9.7%** | $108.28 | $110.55 | $113.01 | $115.67 | $118.58 |\n| **10.2%** | $102.79 | $104.72 | $106.81 | $109.05 | $111.49 |\n\n| WACC \\ RONIC | 26.0% | 28.0% | 30.0% | 35.0% | 40.0% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.2%** | $136.79 | $137.54 | $138.18 | $139.48 | $140.45 |\n| **8.6%** | $127.17 | $127.84 | $128.43 | $129.60 | $130.48 |\n| **9.2%** *(Base)* | $118.99 | $119.61 | **$120.18** | $121.21 | $122.01 |\n| **9.7%** | $111.95 | $112.52 | $113.01 | $113.98 | $114.72 |\n| **10.2%** | $105.84 | $106.36 | $106.81 | $107.71 | $108.38 |\n\n**Valuation data-quality warnings**\n- Reverse DCF: the share price implies 19.8% annual revenue growth for 5 years versus 3.4% modeled (+16.4 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: vs FY2024\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._ _1 sentence(s) of commentary were removed because they cited figures absent from the verified data._\n\n> *Synthesis Provenance: `llm_structured`*\n",
    "implied_fair_value_per_share": 120.18,
    "sources": [
     {
@@ -1153,6 +1276,72 @@
     {
      "chunks": [
       {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+       "chunk_id": "553617a0-f3ea-4426-93bf-7468ce6124ce",
+       "chunk_index": 11,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 1",
+       "ticker": "AAPL"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+     "n": 9,
+     "provider": null,
+     "quote": "The Company offers a portfolio of fee-based service and support products under the AppleCare ® brand.",
+     "ticker": "AAPL"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+       "chunk_id": "ccb4933e-79d4-40ee-8949-41bd36c1fb12",
+       "chunk_index": 14,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 1",
+       "ticker": "AAPL"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+     "n": 10,
+     "provider": null,
+     "quote": "Competition has been particularly intense as competitors have aggressively cut prices and lowered product margins.",
+     "ticker": "AAPL"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+       "chunk_id": "8b8bfe8f-a58b-4bf6-847f-b4d4922daa4e",
+       "chunk_index": 85,
+       "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+       "fiscal_year": 2025,
+       "item": "Item 7",
+       "ticker": "AAPL"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "n": 11,
+     "provider": null,
+     "quote": "iPhone net sales increased during 2025 compared to 2024 due to higher net sales of Pro models.",
+     "ticker": "AAPL"
+    },
+    {
+     "chunks": [
+      {
        "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
        "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
        "chunk_index": 103,
@@ -1167,7 +1356,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 9,
+     "n": 12,
      "provider": null,
      "quote": null,
      "ticker": "AAPL"
@@ -1189,7 +1378,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 10,
+     "n": 13,
      "provider": null,
      "quote": null,
      "ticker": "AAPL"
@@ -1220,7 +1409,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 11,
+     "n": 14,
      "provider": null,
      "quote": null,
      "ticker": "AAPL"
@@ -1269,7 +1458,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 12,
+     "n": 15,
      "provider": null,
      "quote": null,
      "ticker": "AAPL"
@@ -1300,7 +1489,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 13,
+     "n": 16,
      "provider": null,
      "quote": null,
      "ticker": "AAPL"
@@ -3046,6 +3235,72 @@
    {
     "chunks": [
      {
+      "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+      "chunk_id": "553617a0-f3ea-4426-93bf-7468ce6124ce",
+      "chunk_index": 11,
+      "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+      "fiscal_year": 2025,
+      "item": "Item 1",
+      "ticker": "AAPL"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+    "n": 9,
+    "provider": null,
+    "quote": "The Company offers a portfolio of fee-based service and support products under the AppleCare ® brand.",
+    "ticker": "AAPL"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+      "chunk_id": "ccb4933e-79d4-40ee-8949-41bd36c1fb12",
+      "chunk_index": 14,
+      "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+      "fiscal_year": 2025,
+      "item": "Item 1",
+      "ticker": "AAPL"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART I > Item 1: Business",
+    "n": 10,
+    "provider": null,
+    "quote": "Competition has been particularly intense as competitors have aggressively cut prices and lowered product margins.",
+    "ticker": "AAPL"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+      "chunk_id": "8b8bfe8f-a58b-4bf6-847f-b4d4922daa4e",
+      "chunk_index": 85,
+      "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+      "fiscal_year": 2025,
+      "item": "Item 7",
+      "ticker": "AAPL"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "ba78b338-96c4-4205-b1a1-5a424d720a4b",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+    "n": 11,
+    "provider": null,
+    "quote": "iPhone net sales increased during 2025 compared to 2024 due to higher net sales of Pro models.",
+    "ticker": "AAPL"
+   },
+   {
+    "chunks": [
+     {
       "breadcrumb": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
       "chunk_id": "36733e1c-c92b-4932-8648-3daaa8866c75",
       "chunk_index": 103,
@@ -3060,7 +3315,7 @@
     "fiscal_year": 2025,
     "kind": "derived",
     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-    "n": 9,
+    "n": 12,
     "provider": null,
     "quote": null,
     "ticker": "AAPL"
@@ -3082,7 +3337,7 @@
     "fiscal_year": 2025,
     "kind": "derived",
     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-    "n": 10,
+    "n": 13,
     "provider": null,
     "quote": null,
     "ticker": "AAPL"
@@ -3113,7 +3368,7 @@
     "fiscal_year": 2025,
     "kind": "derived",
     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-    "n": 11,
+    "n": 14,
     "provider": null,
     "quote": null,
     "ticker": "AAPL"
@@ -3162,7 +3417,7 @@
     "fiscal_year": 2025,
     "kind": "derived",
     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-    "n": 12,
+    "n": 15,
     "provider": null,
     "quote": null,
     "ticker": "AAPL"
@@ -3193,7 +3448,7 @@
     "fiscal_year": 2025,
     "kind": "derived",
     "label": "Apple Inc. (AAPL) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-    "n": 13,
+    "n": 16,
     "provider": null,
     "quote": null,
     "ticker": "AAPL"

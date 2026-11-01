@@ -1,6 +1,7 @@
 """The offline fakes must answer exactly like the services they replace, with fixed values."""
 
 import asyncio
+import json
 import importlib
 import unittest
 
@@ -9,6 +10,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from pydantic import BaseModel
 
 from tests.golden.offline import CLOCK_TARGETS, EMBEDDING_DIM, GOLDEN_DATE, FakeDate, offline
+from tests.golden.strategist_replies import STRATEGIST_REPLIES
 
 
 class _Answer(BaseModel):
@@ -74,3 +76,12 @@ class TestOfflineFakes(unittest.TestCase):
             pass
         self.assertNotEqual(yfinance.Ticker.__name__, "FakeTicker")
         self.assertNotEqual(ChatOpenAI.with_structured_output.__name__, "<lambda>")
+
+    def test_strategist_judgement_gets_its_canned_reply(self):
+        prompt = "Assess the business model and economic moat of NVDA from its fiscal year 2026 SEC 10-K.\n\n<item_1>"
+        unknown = "Assess the business model and economic moat of ZZZZ from its fiscal year 2026 SEC 10-K."
+        with offline({}):
+            reply = _chat().invoke(prompt)
+            other = _chat().invoke(unknown)
+        self.assertEqual(json.loads(reply.content), STRATEGIST_REPLIES[("NVDA", 2026)])
+        self.assertEqual(other.content, "{}")

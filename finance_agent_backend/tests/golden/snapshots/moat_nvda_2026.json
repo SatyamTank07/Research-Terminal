@@ -18,7 +18,7 @@
    "type": "status"
   },
   {
-   "message": "Completed economic moat analysis (Moat: None)",
+   "message": "Completed economic moat analysis (Moat: Network Effects)",
    "node": "business_strategist",
    "type": "status"
   },
@@ -28,7 +28,7 @@
    "type": "status"
   },
   {
-   "response": "# Business Operations & Economic Moat Analysis: NVIDIA CORP (NVDA)\n> **Filing Source**: SEC Form 10-K (FY2026) | **Primary Moat**: **None** | **Durability**: **Indeterminate** | **Trajectory**: **Indeterminate**\n\n## 1. Executive Summary & Revenue Architecture\n\nThe filing supports a balanced view of the business.\n\n**Revenue architecture (filing-based)**: Revenue mix by product / service line (FY2026, from the 10-K revenue disaggregation): Data Center 89.7%, Gaming 7.4%, Professional Visualization 1.5%, Automotive 1.1%, OEM and Other 0.3%.\n\n## 2. Segments & Disaggregated Revenue Architecture\n\n- **Reportable segments (ASC 280)**: Compute & Networking, Graphics\n- **Revenue lines (ASC 606)**: Data Center, Gaming, Professional Visualization, Automotive, OEM and Other\n\n**Reportable segments (verified from the segment note)**[[1]](#cite-1)\n\n| Segment | FY2026 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Compute & Networking | 193,479 | 89.6% | 66.5% | 130,141 | 67.3% | 93.4% |\n| Graphics | 22,459 | 10.4% | 57.0% | 9,156 | 40.8% | 6.6% |\n\n_Source: 10-K segment note (chunk `26b52a89-af2d-4d60-a78b-9846e216d374`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[2]](#cite-2)\n\n| Revenue line | FY2026 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Data Center | 193,737 | 89.7% | 68.2% |\n| &nbsp;&nbsp;↳ Compute | 162,361 | 75.2% | 58.9% |\n| &nbsp;&nbsp;↳ Networking | 31,376 | 14.5% | 141.5% |\n| Gaming | 16,042 | 7.4% | 41.3% |\n| Professional Visualization | 3,191 | 1.5% | 69.9% |\n| Automotive | 2,349 | 1.1% | 38.7% |\n| OEM and Other | 619 | 0.3% | 59.1% |\n\n_Source: 10-K revenue disaggregation (chunk `40fa96f8-8f71-4703-b3b8-e81ae177bc64`); figures in USD millions as reported._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (not assessed) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n\n**Moat rationale (filing-based)**: Not assessed: the model returned malformed output.\n\n**Business analysis data-quality notes**\n- The model returned no parsable JSON; moat and competitive fields not assessed.\n\n## 3. Economic Moat Deconstruction\n\nSegment disclosure frames the revenue mix.\n\n## 4. Competitive Threats & Counter-Evidence Stress Test\n\n- No specific competitive threats were extracted from Item 1.\n\n## 5. Market Power & Customer Concentration\n\n- **Pricing power**: Not assessed: the model returned malformed output.\n- **Customer concentration**: Filing states: \"Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.\"[[3]](#cite-3)\n\n## 6. Filing Evidence & Audit Trail\n\nEvery numbered marker in this report opens the cited passage of the 10-K; the numbered source list follows the report.\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._ _1 sentence(s) of commentary were removed because they cited figures absent from the verified data._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "response": "# Business Operations & Economic Moat Analysis: NVIDIA CORP (NVDA)\n> **Filing Source**: SEC Form 10-K (FY2026) | **Primary Moat**: **Network Effects** | **Durability**: **Wide** | **Trajectory**: **Expanding**\n\n## 1. Executive Summary & Revenue Architecture\n\nThe filing supports a balanced view of the business.\n\n**Revenue architecture (filing-based)**: Hardware platform sales to OEMs, ODMs, CSPs and distributors, plus software licenses.\n\n## 2. Segments & Disaggregated Revenue Architecture\n\n- **Reportable segments (ASC 280)**: Compute & Networking, Graphics\n- **Revenue lines (ASC 606)**: Data Center, Gaming, Professional Visualization, Automotive, OEM and Other\n\n**Reportable segments (verified from the segment note)**[[1]](#cite-1)\n\n| Segment | FY2026 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Compute & Networking | 193,479 | 89.6% | 66.5% | 130,141 | 67.3% | 93.4% |\n| Graphics | 22,459 | 10.4% | 57.0% | 9,156 | 40.8% | 6.6% |\n\n_Source: 10-K segment note (chunk `26b52a89-af2d-4d60-a78b-9846e216d374`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[2]](#cite-2)\n\n| Revenue line | FY2026 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Data Center | 193,737 | 89.7% | 68.2% |\n| &nbsp;&nbsp;↳ Compute | 162,361 | 75.2% | 58.9% |\n| &nbsp;&nbsp;↳ Networking | 31,376 | 14.5% | 141.5% |\n| Gaming | 16,042 | 7.4% | 41.3% |\n| Professional Visualization | 3,191 | 1.5% | 69.9% |\n| Automotive | 2,349 | 1.1% | 38.7% |\n| OEM and Other | 619 | 0.3% | 59.1% |\n\n_Source: 10-K revenue disaggregation (chunk `40fa96f8-8f71-4703-b3b8-e81ae177bc64`); figures in USD millions as reported._\n\n- **Data Center**: Rack-scale AI compute and networking platforms. _Drivers: Blackwell architecture, AI model makers._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat[[3]](#cite-3) | **Network Effects** (verified) |\n| Secondary moats[[4]](#cite-4) | High Switching Costs |\n| Durability / trajectory | Wide / Expanding |\n| Compute & Networking[[5]](#cite-5) | Cost Advantage: Data-center-scale interconnect of compute nodes. |\n\n**Moat rationale (filing-based)**: A growing developer base and installed base make the platform more valuable to each customer.[[3]](#cite-3)\n\n**Business analysis data-quality notes**\n- Secondary moat 'Intangible Assets / Brand' dropped: no verified filing quote evidencing its mechanism.\n- Segment moat for 'Robotics' dropped: not a code-extracted segment or revenue line.\n- 1 model-proposed product line(s) not in the extracted revenue table were dropped (Networking).\n\n## 3. Economic Moat Deconstruction\n\nSegment disclosure frames the revenue mix.\n\n## 4. Competitive Threats & Counter-Evidence Stress Test\n\n- Existing competitors and new entrants may offer lower-priced or better-performing products.[[6]](#cite-6)\n- China-based competitors are favoured by the Chinese government.[[7]](#cite-7)\n\n## 5. Market Power & Customer Concentration\n\n- **Pricing power**: Cheaper competing products have lowered selling prices for some NVIDIA products.[[8]](#cite-8)\n- **Customer concentration**: Two direct customers represented 22% and 14% of fiscal year 2026 revenue.[[9]](#cite-9)\n\n## 6. Filing Evidence & Audit Trail\n\nEvery numbered marker in this report opens the cited passage of the 10-K; the numbered source list follows the report.\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._ _1 sentence(s) of commentary were removed because they cited figures absent from the verified data._\n\n> *Synthesis Provenance: `llm_structured`*\n",
    "sources": [
     {
      "chunks": [
@@ -77,6 +77,138 @@
     {
      "chunks": [
       {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+       "chunk_id": "dc0cd4c0-7912-4d37-8902-41ac49c6c1e6",
+       "chunk_index": 13,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "n": 3,
+     "provider": null,
+     "quote": "The large and growing number of developers and installed base across our platforms strengthens our ecosystem and increases the value of our platform for our customers.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+       "chunk_id": "7fb4c320-73a6-4bdd-8fcd-c36382daee5e",
+       "chunk_index": 28,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "n": 4,
+     "provider": null,
+     "quote": "Our Deep Learning Institute provides online training for developers in industries and organizations around the world to build AI and accelerated computing applications that leverage our platforms.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+       "chunk_id": "4470942a-c4a2-4d10-95db-a7616d1dad25",
+       "chunk_index": 18,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "n": 5,
+     "provider": null,
+     "quote": "This has enabled us to architect data center-scale computing platforms that can interconnect up to hundreds of thousands of compute nodes with high-performance networking.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+       "chunk_id": "c2e8c08d-732f-43d5-89ac-14e514f824e3",
+       "chunk_index": 31,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "n": 6,
+     "provider": null,
+     "quote": "We expect competition to increase from both existing competitors and new market entrants with products that may be lower priced than ours or may provide better performance or additional features not provided by our products.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+       "chunk_id": "ab4bd743-97fa-4c4d-94ea-561415c83bdf",
+       "chunk_index": 38,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "n": 7,
+     "provider": null,
+     "quote": "The Chinese government has encouraged customers to purchase from our China-based competitors and discouraged customers from purchasing, importing, or using our data center products, including any China-specific product designed to comply with U.S. export controls.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "c7fb38ce-1a30-418e-92aa-8b7b1ad184a9",
+       "chunk_index": 50,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 8,
+     "provider": null,
+     "quote": "Our competitors’ products, services and technologies, including those mentioned above in this Annual Report on Form 10-K, may be cheaper or provide better functionality or features than ours",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
        "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
        "chunk_id": "f0b359b4-acbd-4784-9d96-e8f55faef355",
        "chunk_index": 146,
@@ -91,9 +223,9 @@
      "fiscal_year": 2026,
      "kind": "verbatim",
      "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
-     "n": 3,
+     "n": 9,
      "provider": null,
-     "quote": "Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
+     "quote": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue",
      "ticker": "NVDA"
     }
    ],
@@ -111,8 +243,56 @@
  ],
  "outputs": {
   "business_moat": {
-   "business_summary": "Not assessed: the model returned malformed output.",
+   "business_summary": "NVIDIA sells accelerated computing platforms: GPUs, CPUs, networking, systems and software for data centers, gaming, professional visualization and automotive. Data center AI infrastructure drives most revenue.",
    "citations": [
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "chunk_id": "dc0cd4c0-7912-4d37-8902-41ac49c6c1e6",
+     "fiscal_year": 2026,
+     "item": "Item 1",
+     "sub_section": "Business",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "chunk_id": "7fb4c320-73a6-4bdd-8fcd-c36382daee5e",
+     "fiscal_year": 2026,
+     "item": "Item 1",
+     "sub_section": "Business",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "chunk_id": "4470942a-c4a2-4d10-95db-a7616d1dad25",
+     "fiscal_year": 2026,
+     "item": "Item 1",
+     "sub_section": "Business",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "chunk_id": "c2e8c08d-732f-43d5-89ac-14e514f824e3",
+     "fiscal_year": 2026,
+     "item": "Item 1",
+     "sub_section": "Business",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "chunk_id": "ab4bd743-97fa-4c4d-94ea-561415c83bdf",
+     "fiscal_year": 2026,
+     "item": "Item 1",
+     "sub_section": "Business",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "chunk_id": "c7fb38ce-1a30-418e-92aa-8b7b1ad184a9",
+     "fiscal_year": 2026,
+     "item": "Item 1A",
+     "sub_section": "Risk Factors",
+     "ticker": "NVDA"
+    },
     {
      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
      "chunk_id": "f0b359b4-acbd-4784-9d96-e8f55faef355",
@@ -138,23 +318,28 @@
      "ticker": "NVDA"
     }
    ],
-   "competitive_threats": [],
-   "customer_concentration": "Filing states: \"Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.\"",
+   "competitive_threats": [
+    "Existing competitors and new entrants may offer lower-priced or better-performing products.",
+    "China-based competitors are favoured by the Chinese government."
+   ],
+   "customer_concentration": "Two direct customers represented 22% and 14% of fiscal year 2026 revenue.",
    "data_quality": {
     "chars_read": 49391,
-    "claims_dropped": 0,
-    "claims_proposed": 0,
-    "claims_verified": 1,
+    "claims_dropped": 3,
+    "claims_proposed": 10,
+    "claims_verified": 7,
     "consolidated_revenue": 215938.0,
     "coverage_mode": "full_section",
     "item1_chunks": 32,
-    "llm_status": "malformed",
+    "llm_status": "ok",
     "notes": [
-     "The model returned no parsable JSON; moat and competitive fields not assessed."
+     "Secondary moat 'Intangible Assets / Brand' dropped: no verified filing quote evidencing its mechanism.",
+     "Segment moat for 'Robotics' dropped: not a code-extracted segment or revenue line.",
+     "1 model-proposed product line(s) not in the extracted revenue table were dropped (Networking)."
     ],
-    "quotes_off_topic": 0,
-    "quotes_rejected": 0,
-    "quotes_verified": 0,
+    "quotes_off_topic": 1,
+    "quotes_rejected": 1,
+    "quotes_verified": 7,
     "revenue_lines_reconciliation": "income_statement",
     "revenue_tables_found": 1,
     "section_located_by": "item_label",
@@ -165,23 +350,71 @@
     "supplementary_passages": 9,
     "units": "USD millions"
    },
-   "economic_moat_type": "None",
+   "economic_moat_type": "Network Effects",
    "evidence": [
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "chunk_id": "dc0cd4c0-7912-4d37-8902-41ac49c6c1e6",
+     "claim": "primary_moat",
+     "item": "Item 1",
+     "quote": "The large and growing number of developers and installed base across our platforms strengthens our ecosystem and increases the value of our platform for our customers.",
+     "subject": "Network Effects"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "chunk_id": "7fb4c320-73a6-4bdd-8fcd-c36382daee5e",
+     "claim": "secondary_moat",
+     "item": "Item 1",
+     "quote": "Our Deep Learning Institute provides online training for developers in industries and organizations around the world to build AI and accelerated computing applications that leverage our platforms.",
+     "subject": "High Switching Costs"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "chunk_id": "4470942a-c4a2-4d10-95db-a7616d1dad25",
+     "claim": "segment_moat",
+     "item": "Item 1",
+     "quote": "This has enabled us to architect data center-scale computing platforms that can interconnect up to hundreds of thousands of compute nodes with high-performance networking.",
+     "subject": "Compute & Networking"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "chunk_id": "c2e8c08d-732f-43d5-89ac-14e514f824e3",
+     "claim": "competitive_threat",
+     "item": "Item 1",
+     "quote": "We expect competition to increase from both existing competitors and new market entrants with products that may be lower priced than ours or may provide better performance or additional features not provided by our products.",
+     "subject": "Existing competitors and new entrants may offer lower-priced or better-performing products."
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "chunk_id": "ab4bd743-97fa-4c4d-94ea-561415c83bdf",
+     "claim": "competitive_threat",
+     "item": "Item 1",
+     "quote": "The Chinese government has encouraged customers to purchase from our China-based competitors and discouraged customers from purchasing, importing, or using our data center products, including any China-specific product designed to comply with U.S. export controls.",
+     "subject": "China-based competitors are favoured by the Chinese government."
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "chunk_id": "c7fb38ce-1a30-418e-92aa-8b7b1ad184a9",
+     "claim": "pricing_power",
+     "item": "Item 1A",
+     "quote": "Our competitors’ products, services and technologies, including those mentioned above in this Annual Report on Form 10-K, may be cheaper or provide better functionality or features than ours",
+     "subject": null
+    },
     {
      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
      "chunk_id": "f0b359b4-acbd-4784-9d96-e8f55faef355",
      "claim": "customer_concentration",
      "item": "Item 7",
-     "quote": "Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
-     "subject": "code_screened"
+     "quote": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue",
+     "subject": null
     }
    ],
    "fiscal_year": 2026,
-   "moat_assessment": "not_assessed",
-   "moat_durability": "Indeterminate",
-   "moat_rationale": "Not assessed: the model returned malformed output.",
-   "moat_trajectory": "Indeterminate",
-   "pricing_power_assessment": "Not assessed: the model returned malformed output.",
+   "moat_assessment": "verified",
+   "moat_durability": "Wide",
+   "moat_rationale": "A growing developer base and installed base make the platform more valuable to each customer.",
+   "moat_trajectory": "Expanding",
+   "pricing_power_assessment": "Cheaper competing products have lowered selling prices for some NVIDIA products.",
    "primary_product_segments": [
     "Data Center",
     "Gaming",
@@ -193,7 +426,7 @@
     "Compute & Networking",
     "Graphics"
    ],
-   "revenue_architecture": "Revenue mix by product / service line (FY2026, from the 10-K revenue disaggregation): Data Center 89.7%, Gaming 7.4%, Professional Visualization 1.5%, Automotive 1.1%, OEM and Other 0.3%.",
+   "revenue_architecture": "Hardware platform sales to OEMs, ODMs, CSPs and distributors, plus software licenses.",
    "revenue_lines": [
     {
      "fiscal_year": 2026,
@@ -386,15 +619,20 @@
     }
    ],
    "revenue_mix_markdown": "| Revenue line | FY2026 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Data Center | 193,737 | 89.7% | 68.2% |\n| &nbsp;&nbsp;↳ Compute | 162,361 | 75.2% | 58.9% |\n| &nbsp;&nbsp;↳ Networking | 31,376 | 14.5% | 141.5% |\n| Gaming | 16,042 | 7.4% | 41.3% |\n| Professional Visualization | 3,191 | 1.5% | 69.9% |\n| Automotive | 2,349 | 1.1% | 38.7% |\n| OEM and Other | 619 | 0.3% | 59.1% |\n\n_Source: 10-K revenue disaggregation (chunk `40fa96f8-8f71-4703-b3b8-e81ae177bc64`); figures in USD millions as reported._",
-   "secondary_moat_types": [],
+   "secondary_moat_types": [
+    "High Switching Costs"
+   ],
    "segment_details": [
     {
-     "description": "Data Center: FY2026 revenue $193,737M, 89.7% of revenue (from the 10-K tables).",
-     "growth_drivers": [],
+     "description": "Rack-scale AI compute and networking platforms.",
+     "growth_drivers": [
+      "Blackwell architecture",
+      "AI model makers"
+     ],
      "name": "Data Center"
     },
     {
-     "description": "Gaming: FY2026 revenue $16,042M, 7.4% of revenue (from the 10-K tables).",
+     "description": "GeForce GPUs for gamers.",
      "growth_drivers": [],
      "name": "Gaming"
     },
@@ -494,7 +732,13 @@
      "source_chunk_id": "26b52a89-af2d-4d60-a78b-9846e216d374"
     }
    ],
-   "segment_specific_moats": [],
+   "segment_specific_moats": [
+    {
+     "moat_rationale": "Data-center-scale interconnect of compute nodes.",
+     "moat_type": "Cost Advantage",
+     "segment_name": "Compute & Networking"
+    }
+   ],
    "segment_table_markdown": "| Segment | FY2026 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Compute & Networking | 193,479 | 89.6% | 66.5% | 130,141 | 67.3% | 93.4% |\n| Graphics | 22,459 | 10.4% | 57.0% | 9,156 | 40.8% | 6.6% |\n\n_Source: 10-K segment note (chunk `26b52a89-af2d-4d60-a78b-9846e216d374`); figures in USD millions as reported._",
    "ticker": "NVDA"
   },
@@ -506,7 +750,7 @@
    "current_share_price": null,
    "executive_summary": "The filing supports a balanced view of the business.",
    "fiscal_year": 2026,
-   "full_markdown_report": "# Business Operations & Economic Moat Analysis: NVIDIA CORP (NVDA)\n> **Filing Source**: SEC Form 10-K (FY2026) | **Primary Moat**: **None** | **Durability**: **Indeterminate** | **Trajectory**: **Indeterminate**\n\n## 1. Executive Summary & Revenue Architecture\n\nThe filing supports a balanced view of the business.\n\n**Revenue architecture (filing-based)**: Revenue mix by product / service line (FY2026, from the 10-K revenue disaggregation): Data Center 89.7%, Gaming 7.4%, Professional Visualization 1.5%, Automotive 1.1%, OEM and Other 0.3%.\n\n## 2. Segments & Disaggregated Revenue Architecture\n\n- **Reportable segments (ASC 280)**: Compute & Networking, Graphics\n- **Revenue lines (ASC 606)**: Data Center, Gaming, Professional Visualization, Automotive, OEM and Other\n\n**Reportable segments (verified from the segment note)**[[1]](#cite-1)\n\n| Segment | FY2026 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Compute & Networking | 193,479 | 89.6% | 66.5% | 130,141 | 67.3% | 93.4% |\n| Graphics | 22,459 | 10.4% | 57.0% | 9,156 | 40.8% | 6.6% |\n\n_Source: 10-K segment note (chunk `26b52a89-af2d-4d60-a78b-9846e216d374`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[2]](#cite-2)\n\n| Revenue line | FY2026 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Data Center | 193,737 | 89.7% | 68.2% |\n| &nbsp;&nbsp;↳ Compute | 162,361 | 75.2% | 58.9% |\n| &nbsp;&nbsp;↳ Networking | 31,376 | 14.5% | 141.5% |\n| Gaming | 16,042 | 7.4% | 41.3% |\n| Professional Visualization | 3,191 | 1.5% | 69.9% |\n| Automotive | 2,349 | 1.1% | 38.7% |\n| OEM and Other | 619 | 0.3% | 59.1% |\n\n_Source: 10-K revenue disaggregation (chunk `40fa96f8-8f71-4703-b3b8-e81ae177bc64`); figures in USD millions as reported._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (not assessed) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n\n**Moat rationale (filing-based)**: Not assessed: the model returned malformed output.\n\n**Business analysis data-quality notes**\n- The model returned no parsable JSON; moat and competitive fields not assessed.\n\n## 3. Economic Moat Deconstruction\n\nSegment disclosure frames the revenue mix.\n\n## 4. Competitive Threats & Counter-Evidence Stress Test\n\n- No specific competitive threats were extracted from Item 1.\n\n## 5. Market Power & Customer Concentration\n\n- **Pricing power**: Not assessed: the model returned malformed output.\n- **Customer concentration**: Filing states: \"Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.\"[[3]](#cite-3)\n\n## 6. Filing Evidence & Audit Trail\n\nEvery numbered marker in this report opens the cited passage of the 10-K; the numbered source list follows the report.\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._ _1 sentence(s) of commentary were removed because they cited figures absent from the verified data._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "full_markdown_report": "# Business Operations & Economic Moat Analysis: NVIDIA CORP (NVDA)\n> **Filing Source**: SEC Form 10-K (FY2026) | **Primary Moat**: **Network Effects** | **Durability**: **Wide** | **Trajectory**: **Expanding**\n\n## 1. Executive Summary & Revenue Architecture\n\nThe filing supports a balanced view of the business.\n\n**Revenue architecture (filing-based)**: Hardware platform sales to OEMs, ODMs, CSPs and distributors, plus software licenses.\n\n## 2. Segments & Disaggregated Revenue Architecture\n\n- **Reportable segments (ASC 280)**: Compute & Networking, Graphics\n- **Revenue lines (ASC 606)**: Data Center, Gaming, Professional Visualization, Automotive, OEM and Other\n\n**Reportable segments (verified from the segment note)**[[1]](#cite-1)\n\n| Segment | FY2026 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Compute & Networking | 193,479 | 89.6% | 66.5% | 130,141 | 67.3% | 93.4% |\n| Graphics | 22,459 | 10.4% | 57.0% | 9,156 | 40.8% | 6.6% |\n\n_Source: 10-K segment note (chunk `26b52a89-af2d-4d60-a78b-9846e216d374`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[2]](#cite-2)\n\n| Revenue line | FY2026 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Data Center | 193,737 | 89.7% | 68.2% |\n| &nbsp;&nbsp;↳ Compute | 162,361 | 75.2% | 58.9% |\n| &nbsp;&nbsp;↳ Networking | 31,376 | 14.5% | 141.5% |\n| Gaming | 16,042 | 7.4% | 41.3% |\n| Professional Visualization | 3,191 | 1.5% | 69.9% |\n| Automotive | 2,349 | 1.1% | 38.7% |\n| OEM and Other | 619 | 0.3% | 59.1% |\n\n_Source: 10-K revenue disaggregation (chunk `40fa96f8-8f71-4703-b3b8-e81ae177bc64`); figures in USD millions as reported._\n\n- **Data Center**: Rack-scale AI compute and networking platforms. _Drivers: Blackwell architecture, AI model makers._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat[[3]](#cite-3) | **Network Effects** (verified) |\n| Secondary moats[[4]](#cite-4) | High Switching Costs |\n| Durability / trajectory | Wide / Expanding |\n| Compute & Networking[[5]](#cite-5) | Cost Advantage: Data-center-scale interconnect of compute nodes. |\n\n**Moat rationale (filing-based)**: A growing developer base and installed base make the platform more valuable to each customer.[[3]](#cite-3)\n\n**Business analysis data-quality notes**\n- Secondary moat 'Intangible Assets / Brand' dropped: no verified filing quote evidencing its mechanism.\n- Segment moat for 'Robotics' dropped: not a code-extracted segment or revenue line.\n- 1 model-proposed product line(s) not in the extracted revenue table were dropped (Networking).\n\n## 3. Economic Moat Deconstruction\n\nSegment disclosure frames the revenue mix.\n\n## 4. Competitive Threats & Counter-Evidence Stress Test\n\n- Existing competitors and new entrants may offer lower-priced or better-performing products.[[6]](#cite-6)\n- China-based competitors are favoured by the Chinese government.[[7]](#cite-7)\n\n## 5. Market Power & Customer Concentration\n\n- **Pricing power**: Cheaper competing products have lowered selling prices for some NVIDIA products.[[8]](#cite-8)\n- **Customer concentration**: Two direct customers represented 22% and 14% of fiscal year 2026 revenue.[[9]](#cite-9)\n\n## 6. Filing Evidence & Audit Trail\n\nEvery numbered marker in this report opens the cited passage of the 10-K; the numbered source list follows the report.\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._ _1 sentence(s) of commentary were removed because they cited figures absent from the verified data._\n\n> *Synthesis Provenance: `llm_structured`*\n",
    "implied_fair_value_per_share": null,
    "sources": [
     {
@@ -556,6 +800,138 @@
     {
      "chunks": [
       {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+       "chunk_id": "dc0cd4c0-7912-4d37-8902-41ac49c6c1e6",
+       "chunk_index": 13,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "n": 3,
+     "provider": null,
+     "quote": "The large and growing number of developers and installed base across our platforms strengthens our ecosystem and increases the value of our platform for our customers.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+       "chunk_id": "7fb4c320-73a6-4bdd-8fcd-c36382daee5e",
+       "chunk_index": 28,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "n": 4,
+     "provider": null,
+     "quote": "Our Deep Learning Institute provides online training for developers in industries and organizations around the world to build AI and accelerated computing applications that leverage our platforms.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+       "chunk_id": "4470942a-c4a2-4d10-95db-a7616d1dad25",
+       "chunk_index": 18,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "n": 5,
+     "provider": null,
+     "quote": "This has enabled us to architect data center-scale computing platforms that can interconnect up to hundreds of thousands of compute nodes with high-performance networking.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+       "chunk_id": "c2e8c08d-732f-43d5-89ac-14e514f824e3",
+       "chunk_index": 31,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "n": 6,
+     "provider": null,
+     "quote": "We expect competition to increase from both existing competitors and new market entrants with products that may be lower priced than ours or may provide better performance or additional features not provided by our products.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+       "chunk_id": "ab4bd743-97fa-4c4d-94ea-561415c83bdf",
+       "chunk_index": 38,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+     "n": 7,
+     "provider": null,
+     "quote": "The Chinese government has encouraged customers to purchase from our China-based competitors and discouraged customers from purchasing, importing, or using our data center products, including any China-specific product designed to comply with U.S. export controls.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "c7fb38ce-1a30-418e-92aa-8b7b1ad184a9",
+       "chunk_index": 50,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 8,
+     "provider": null,
+     "quote": "Our competitors’ products, services and technologies, including those mentioned above in this Annual Report on Form 10-K, may be cheaper or provide better functionality or features than ours",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
        "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
        "chunk_id": "f0b359b4-acbd-4784-9d96-e8f55faef355",
        "chunk_index": 146,
@@ -570,9 +946,9 @@
      "fiscal_year": 2026,
      "kind": "verbatim",
      "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
-     "n": 3,
+     "n": 9,
      "provider": null,
-     "quote": "Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
+     "quote": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue",
      "ticker": "NVDA"
     }
    ],
@@ -667,6 +1043,138 @@
    {
     "chunks": [
      {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+      "chunk_id": "dc0cd4c0-7912-4d37-8902-41ac49c6c1e6",
+      "chunk_index": 13,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+    "n": 3,
+    "provider": null,
+    "quote": "The large and growing number of developers and installed base across our platforms strengthens our ecosystem and increases the value of our platform for our customers.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+      "chunk_id": "7fb4c320-73a6-4bdd-8fcd-c36382daee5e",
+      "chunk_index": 28,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+    "n": 4,
+    "provider": null,
+    "quote": "Our Deep Learning Institute provides online training for developers in industries and organizations around the world to build AI and accelerated computing applications that leverage our platforms.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+      "chunk_id": "4470942a-c4a2-4d10-95db-a7616d1dad25",
+      "chunk_index": 18,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+    "n": 5,
+    "provider": null,
+    "quote": "This has enabled us to architect data center-scale computing platforms that can interconnect up to hundreds of thousands of compute nodes with high-performance networking.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+      "chunk_id": "c2e8c08d-732f-43d5-89ac-14e514f824e3",
+      "chunk_index": 31,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+    "n": 6,
+    "provider": null,
+    "quote": "We expect competition to increase from both existing competitors and new market entrants with products that may be lower priced than ours or may provide better performance or additional features not provided by our products.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+      "chunk_id": "ab4bd743-97fa-4c4d-94ea-561415c83bdf",
+      "chunk_index": 38,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1: Business",
+    "n": 7,
+    "provider": null,
+    "quote": "The Chinese government has encouraged customers to purchase from our China-based competitors and discouraged customers from purchasing, importing, or using our data center products, including any China-specific product designed to comply with U.S. export controls.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "c7fb38ce-1a30-418e-92aa-8b7b1ad184a9",
+      "chunk_index": 50,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1A",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+    "n": 8,
+    "provider": null,
+    "quote": "Our competitors’ products, services and technologies, including those mentioned above in this Annual Report on Form 10-K, may be cheaper or provide better functionality or features than ours",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
       "chunk_id": "f0b359b4-acbd-4784-9d96-e8f55faef355",
       "chunk_index": 146,
@@ -681,9 +1189,9 @@
     "fiscal_year": 2026,
     "kind": "verbatim",
     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART II > Item 7: Management's Discussion and Analysis of Financial Condition and Results of Operations",
-    "n": 3,
+    "n": 9,
     "provider": null,
-    "quote": "Direct Customers – For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
+    "quote": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue",
     "ticker": "NVDA"
    }
   ],

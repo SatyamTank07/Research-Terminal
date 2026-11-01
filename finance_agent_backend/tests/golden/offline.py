@@ -2,26 +2,34 @@
 
 Every boundary that leaves the process is replaced: chat models, embeddings, market quotes and the clock
 that dates the valuation. The fakes patch library classes (langchain_openai, yfinance) rather than app
-modules, so snapshots keep working while app code moves between files. The one exception is
-CLOCK_TARGETS: update it when a module that reads today's date moves.
+modules, so snapshots keep working while app code moves between files. Two things track app code:
+- CLOCK_TARGETS: update it when a module that reads today's date moves.
+- STRATEGIST_PROMPT: chat models answer "{}" except the Strategist's judgement, which gets the canned reply for its
+  (ticker, year), found by the opening line of its query prompt. If that line changes, the Strategist gets "{}"
+  again and the golden diff shows its moat falling back to "not_assessed".
 """
 
 import contextlib
 import hashlib
+import json
 import random
+import re
 from datetime import date
 from typing import Any, AsyncIterator, Dict, Iterator, List, Mapping, Optional
 from unittest.mock import patch
 
 import pandas as pd
-from langchain_core.messages import AIMessage, AIMessageChunk
+from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
 from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResult
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
+from tests.golden.strategist_replies import STRATEGIST_REPLIES
 
 GOLDEN_DATE = date(2026, 10, 28)
 EMBEDDING_DIM = 1536
 TREASURY_10Y_PCT = 4.3
 CHAT_REPLY = "{}"
+STRATEGIST_PROMPT = re.compile(r"Assess the business model and economic moat of (\w+) from its fiscal year (\d+) ")
 
 MARKET: Dict[str, Dict[str, float]] = {
     "AAPL": {"last_price": 230.0, "market_cap": 3.45e12, "beta": 1.2},
@@ -48,8 +56,18 @@ class FakeDate(date):
         return GOLDEN_DATE
 
 
+def chat_reply(messages: List[BaseMessage]) -> str:
+    """The canned Strategist judgement for its (ticker, year), else "{}"."""
+    for message in messages:
+        found = STRATEGIST_PROMPT.match(message.content) if isinstance(message.content, str) else None
+        if found:
+            reply = STRATEGIST_REPLIES.get((found.group(1), int(found.group(2))))
+            return json.dumps(reply) if reply is not None else CHAT_REPLY
+    return CHAT_REPLY
+
+
 def _fake_generate(self, messages, stop=None, run_manager=None, **kwargs) -> ChatResult:
-    return ChatResult(generations=[ChatGeneration(message=AIMessage(content=CHAT_REPLY))])
+    return ChatResult(generations=[ChatGeneration(message=AIMessage(content=chat_reply(messages)))])
 
 
 async def _fake_agenerate(self, messages, stop=None, run_manager=None, **kwargs) -> ChatResult:
@@ -57,11 +75,11 @@ async def _fake_agenerate(self, messages, stop=None, run_manager=None, **kwargs)
 
 
 def _fake_stream(self, messages, stop=None, run_manager=None, **kwargs) -> Iterator[ChatGenerationChunk]:
-    yield ChatGenerationChunk(message=AIMessageChunk(content=CHAT_REPLY))
+    yield ChatGenerationChunk(message=AIMessageChunk(content=chat_reply(messages)))
 
 
 async def _fake_astream(self, messages, stop=None, run_manager=None, **kwargs) -> AsyncIterator[ChatGenerationChunk]:
-    yield ChatGenerationChunk(message=AIMessageChunk(content=CHAT_REPLY))
+    yield ChatGenerationChunk(message=AIMessageChunk(content=chat_reply(messages)))
 
 
 class FakeStructuredModel:
