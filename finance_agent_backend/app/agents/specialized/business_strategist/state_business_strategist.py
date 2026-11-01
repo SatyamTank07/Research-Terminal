@@ -4,35 +4,10 @@ from pydantic import BaseModel, Field
 
 from app.agents.specialized.business_strategist.evidence import StrategyEvidence
 from app.agents.specialized.business_strategist.modules.business_model.schema import SegmentDetail
+from app.agents.specialized.business_strategist.modules.competition_and_moat.schema import MoatType, SecondaryMoatType, SegmentMoat
 from app.agents.specialized.business_strategist.modules.revenue_mix.schema import RevenueLineFigure, SegmentFigure
 
-MoatType = Literal[
-    "Network Effects",
-    "Cost Advantage",
-    "High Switching Costs",
-    "Intangible Assets / Brand",
-    "Efficient Scale",
-    "None",
-]
-SecondaryMoatType = Literal[
-    "Network Effects",
-    "Cost Advantage",
-    "High Switching Costs",
-    "Intangible Assets / Brand",
-    "Efficient Scale",
-]
-MOAT_TYPES: List[str] = list(MoatType.__args__)
 NOT_DISCLOSED = "Not explicitly disclosed in 10-K"
-
-
-class SegmentMoat(BaseModel):
-    """Competitive economic moat evaluation for a discrete business segment or division."""
-
-    segment_name: str = Field(..., description="Operating segment or division name")
-    moat_type: MoatType = Field(..., description="Moat classification for this specific segment")
-    moat_rationale: str = Field(
-        ..., description="Evidence-backed rationale for this segment's competitive defense cited from 10-K"
-    )
 
 
 class StrategistDataQuality(BaseModel):
