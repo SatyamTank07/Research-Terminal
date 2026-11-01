@@ -26,22 +26,6 @@ MAX_NEW_PASSAGES = 12
 MAX_REMOVED_PASSAGES = 8
 PASSAGE_MAX_CHARS = 400
 
-LEVELS = ("High", "Medium", "Low")
-SEVERITY_ORDER = {"Severe": 0, "Moderate": 1, "Low": 2}
-LEVEL_ORDER = {"High": 0, "Medium": 1, "Low": 2}
-
-_SEVERITY_MATRIX = {
-    ("High", "High"): "Severe",
-    ("Medium", "High"): "Severe",
-    ("Low", "High"): "Moderate",
-    ("High", "Medium"): "Moderate",
-    ("Medium", "Medium"): "Moderate",
-    ("Low", "Medium"): "Low",
-    ("High", "Low"): "Low",
-    ("Medium", "Low"): "Low",
-    ("Low", "Low"): "Low",
-}
-
 IMMATERIALITY_PATTERNS = re.compile(
     r"not\s+(?:currently\s+)?(?:expected|believed|anticipated|likely)\s+to\s+(?:have|result\s+in|be)\s+(?:a\s+)?material"
     r"|(?:will|would|does|did|could)\s+not\s+(?:have|result\s+in)\s+(?:a\s+)?material\s+adverse"
@@ -317,31 +301,8 @@ def is_boilerplate(text: str) -> bool:
 
 
 # ==============================================================================
-# 5. Severity & profile
+# 5. Profile
 # ==============================================================================
-def normalize_level(value: Any) -> Optional[str]:
-    """Maps free-form LLM ratings onto High / Medium / Low (None if unrecognizable)."""
-    if not isinstance(value, str):
-        return None
-    v = value.strip().lower()
-    if v in ("high", "severe", "critical", "very high", "elevated"):
-        return "High"
-    if v in ("medium", "moderate", "mid", "med"):
-        return "Medium"
-    if v in ("low", "minor", "limited", "very low"):
-        return "Low"
-    return None
-
-
-def cap_level(level: str, ceiling: str) -> str:
-    """Returns the lower of `level` and `ceiling` on the High > Medium > Low scale."""
-    return level if LEVEL_ORDER[level] >= LEVEL_ORDER[ceiling] else ceiling
-
-
-def derive_severity(likelihood: str, impact: str) -> str:
-    return _SEVERITY_MATRIX.get((likelihood, impact), "Moderate")
-
-
 def derive_overall_profile(severities: Sequence[str]) -> str:
     """Aggregate rating; "Not Assessed" when no verified risk exists (never a reassuring "Low")."""
     if not severities:
@@ -405,12 +366,7 @@ __all__ = [
     "classify_disclosure_change",
     "states_immaterial",
     "is_boilerplate",
-    "normalize_level",
-    "cap_level",
-    "derive_severity",
     "derive_overall_profile",
     "render_risk_matrix_markdown",
     "render_risk_evidence_table",
-    "SEVERITY_ORDER",
-    "LEVEL_ORDER",
 ]

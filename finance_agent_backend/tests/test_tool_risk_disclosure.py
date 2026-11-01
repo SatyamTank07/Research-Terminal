@@ -1,7 +1,6 @@
 """Unit Tests for the deterministic Risk-Disclosure toolkit (Item 1A).
 
-Validates the likelihood x impact severity matrix,
-aggregate risk profile, materiality / boilerplate screens, the
+Validates the aggregate risk profile, materiality / boilerplate screens, the
 year-over-year disclosure diff, and the markdown renderers. No database or network access.
 """
 
@@ -10,16 +9,13 @@ import unittest
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from app.agents.tools.risk_disclosure_tools import (
     build_prior_index,
-    cap_level,
     classify_disclosure_change,
     derive_overall_profile,
-    derive_severity,
     diff_risk_disclosures,
     disclosure_covered,
     extract_quantified_disclosures,
     is_boilerplate,
     is_material_disclosure,
-    normalize_level,
     render_risk_evidence_table,
     render_risk_matrix_markdown,
     states_immaterial,
@@ -48,30 +44,13 @@ def _chunk(chunk_id: str, content: str, idx: int = 0, item: str = "Item 1A", fy:
     )
 
 
-class TestSeverityAndProfile(unittest.TestCase):
-    def test_severity_matrix(self):
-        self.assertEqual(derive_severity("High", "High"), "Severe")
-        self.assertEqual(derive_severity("Medium", "High"), "Severe")
-        self.assertEqual(derive_severity("Low", "High"), "Moderate")
-        self.assertEqual(derive_severity("High", "Medium"), "Moderate")
-        self.assertEqual(derive_severity("Low", "Medium"), "Low")
-        self.assertEqual(derive_severity("High", "Low"), "Low")
-
+class TestOverallProfile(unittest.TestCase):
     def test_overall_profile(self):
         self.assertEqual(derive_overall_profile(["Severe", "Severe", "Low"]), "High")
         self.assertEqual(derive_overall_profile(["Severe", "Low", "Low"]), "Moderate")
         self.assertEqual(derive_overall_profile(["Moderate"] * 3), "Moderate")
         self.assertEqual(derive_overall_profile(["Moderate", "Low"]), "Low")
         self.assertEqual(derive_overall_profile([]), "Not Assessed")
-
-    def test_level_normalization_and_caps(self):
-        self.assertEqual(normalize_level("severe"), "High")
-        self.assertEqual(normalize_level(" Moderate "), "Medium")
-        self.assertEqual(normalize_level("low"), "Low")
-        self.assertIsNone(normalize_level("unknown"))
-        self.assertIsNone(normalize_level(3))
-        self.assertEqual(cap_level("High", "Medium"), "Medium")
-        self.assertEqual(cap_level("Low", "Medium"), "Low")
 
 
 class TestScreens(unittest.TestCase):

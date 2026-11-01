@@ -29,6 +29,7 @@ from app.agents.specialized.risk_analyst.context import (
     section_not_provided,
     tool_chunks,
 )
+from app.agents.specialized.risk_analyst.ratings import derive_severity, higher_level, normalize_level, rank_key
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
     FINANCIAL_TRANSMISSIONS,
     RISK_CATEGORIES,
@@ -38,19 +39,15 @@ from app.agents.specialized.risk_analyst.state_risk_analyst import (
     RiskItem,
 )
 from app.agents.tools.risk_disclosure_tools import (
-    LEVEL_ORDER,
     QUANTIFIED_FIGURE,
-    SEVERITY_ORDER,
     build_prior_index,
     classify_disclosure_change,
     derive_overall_profile,
-    derive_severity,
     diff_risk_disclosures,
     disclosure_covered,
     extract_quantified_disclosures,
     is_boilerplate,
     is_material_disclosure,
-    normalize_level,
     render_risk_evidence_table,
     render_risk_matrix_markdown,
     states_immaterial,
@@ -89,14 +86,6 @@ MAX_UNCOVERED_LISTED = 5
 MAX_REPAIR_DISCLOSURES = 4
 _NOTE_EXPOSURE = "Quantified exposure removed: its figures do not appear in the cited filing text."
 _NOTE_MITIGATION = "Mitigation removed: no verified filing quote supports it."
-
-
-def _rank_key(risk: RiskItem) -> Tuple[int, int, int]:
-    return SEVERITY_ORDER[risk.severity], LEVEL_ORDER[risk.impact], LEVEL_ORDER[risk.likelihood]
-
-
-def _higher(a: str, b: str) -> str:
-    return a if LEVEL_ORDER[a] <= LEVEL_ORDER[b] else b
 
 
 def _title_tokens(title: str) -> set:
@@ -426,7 +415,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
 
         survivors, absorbed = self._merge_duplicates(verified)
         dq.risks_merged = len(absorbed)
-        ranked = sorted(survivors, key=_rank_key)
+        ranked = sorted(survivors, key=rank_key)
         if len(ranked) > MAX_RISKS:
             dq.notes.append(f"{len(ranked) - MAX_RISKS} lower-ranked verified risks omitted (cap of {MAX_RISKS}).")
             ranked = ranked[:MAX_RISKS]
@@ -528,7 +517,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         """Folds duplicate risks into the higher-ranked one. Returns (survivors, {id(absorbed): survivor})."""
         survivors: List[RiskItem] = []
         absorbed: Dict[int, RiskItem] = {}
-        for risk in sorted(risks, key=_rank_key):
+        for risk in sorted(risks, key=rank_key):
             base = next((s for s in survivors if self._is_duplicate(s, risk)), None)
             if base is None:
                 survivors.append(risk)
@@ -553,8 +542,8 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
             if key not in seen:
                 seen.add(key)
                 base.evidence.append(e)
-        base.likelihood = _higher(base.likelihood, other.likelihood)
-        base.impact = _higher(base.impact, other.impact)
+        base.likelihood = higher_level(base.likelihood, other.likelihood)
+        base.impact = higher_level(base.impact, other.impact)
         base.severity = derive_severity(base.likelihood, base.impact)
         base.financial_transmission = list(dict.fromkeys(base.financial_transmission + other.financial_transmission))
         base.monitoring_signposts = list(dict.fromkeys(base.monitoring_signposts + other.monitoring_signposts))[:MAX_SIGNPOSTS]
