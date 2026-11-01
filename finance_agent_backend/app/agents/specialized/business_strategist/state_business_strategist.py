@@ -7,7 +7,6 @@ from app.agents.specialized.business_strategist.modules.business_model.schema im
 from app.agents.specialized.business_strategist.modules.competition_and_moat.schema import MoatType, SecondaryMoatType, SegmentMoat
 from app.agents.specialized.business_strategist.modules.revenue_mix.schema import RevenueLineFigure, SegmentFigure
 
-NOT_DISCLOSED = "Not explicitly disclosed in 10-K"
 
 
 class StrategistDataQuality(BaseModel):

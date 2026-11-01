@@ -24,8 +24,6 @@ from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
 from app.agents.shared.llm_call import complete_once
 from app.agents.shared.prompts import render_prompt
-from app.agents.shared.quotes import numbers_supported
-from app.agents.specialized.business_strategist.claim_relevance import pricing_claim_supported
 from app.agents.specialized.business_strategist.context import (
     FilingChunk,
     Pool,
@@ -35,25 +33,14 @@ from app.agents.specialized.business_strategist.context import (
     pool_chunk,
     read_item1,
 )
-from app.agents.specialized.business_strategist.evidence import (
-    MAX_QUOTE_CHARS,
-    StrategyEvidence,
-    VerifyTally,
-    not_assessed,
-    text_of,
-    verify_quotes,
-)
-from app.agents.specialized.business_strategist.state_business_strategist import (
-    NOT_DISCLOSED,
-    BusinessMoatOutput,
-    StrategistDataQuality,
-)
+from app.agents.specialized.business_strategist.evidence import StrategyEvidence, VerifyTally
+from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput, StrategistDataQuality
 from app.agents.specialized.business_strategist.modules.business_model import verify_business_model
 from app.agents.specialized.business_strategist.modules.competition_and_moat import (
     not_assessed_competition,
     verify_competition_and_moat,
 )
-from app.agents.specialized.business_strategist.modules.market_power import DisclosureSentence, gather_disclosures
+from app.agents.specialized.business_strategist.modules.market_power import DisclosureSentence, gather_disclosures, verify_market_power
 from app.agents.specialized.business_strategist.modules.revenue_mix import (
     SegmentExtraction,
     extract_segment_disclosures,
@@ -66,8 +53,6 @@ from app.agents.specialized.business_strategist.modules.revenue_mix import (
 logger = logging.getLogger("finance_agent.agents.business_strategist")
 
 JUDGEMENT_MAX_TOKENS = 2_000
-
-_NOT_DISCLOSED_HINTS = ("not explicitly disclosed", "not disclosed", "no disclosure", "not discussed", "not stated")
 
 
 @AgentRegistry.register("business_strategist")
@@ -207,7 +192,6 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         dq: StrategistDataQuality,
     ) -> BusinessMoatOutput:
         segment_names = reportable_segment_names(extraction)
-        tally = VerifyTally()
         data = raw or {}
         assessed = raw is not None
         reason = (
@@ -217,12 +201,11 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         )
 
         competition = verify_competition_and_moat(data, pool, extraction) if assessed else not_assessed_competition(reason)
-        evidence: List[StrategyEvidence] = list(competition.evidence)
-        pricing = self._enforce_pricing(data, pool, evidence, tally) if assessed else not_assessed(reason)
-        concentration = self._enforce_concentration(data, pool, disclosures, evidence, tally, assessed, reason)
+        market = verify_market_power(data, pool, disclosures, assessed, reason)
+        evidence: List[StrategyEvidence] = competition.evidence + market.evidence
         business = verify_business_model(data, pool, extraction, reason)
         self._record_tally(competition.tally, dq)
-        self._record_tally(tally, dq)
+        self._record_tally(market.tally, dq)
         self._record_tally(business.tally, dq)
 
         dq.claims_verified = len({(e.claim, e.subject) for e in evidence})
@@ -239,8 +222,8 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             segment_table_markdown=render_segment_table_markdown(extraction.segments),
             revenue_mix_markdown=render_revenue_mix_markdown(extraction.revenue_lines),
             competitive_threats=competition.competitive_threats,
-            pricing_power_assessment=pricing,
-            customer_concentration=concentration,
+            pricing_power_assessment=market.pricing_power_assessment,
+            customer_concentration=market.customer_concentration,
             evidence=evidence,
             data_quality=dq,
             citations=self._build_citations(evidence, pool, extraction, filing, items, ticker, fiscal_year),
@@ -256,78 +239,6 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         dq.quotes_rejected += tally.quotes_rejected
         dq.quotes_off_topic += tally.quotes_off_topic
         dq.notes.extend(tally.notes)
-
-    @staticmethod
-    def _is_not_disclosed(text: str) -> bool:
-        low = text.lower()
-        return any(h in low for h in _NOT_DISCLOSED_HINTS)
-
-    # --- pricing / concentration ----------------------------------------
-    def _enforce_pricing(
-        self, data: Dict[str, Any], pool: Pool, evidence: List[StrategyEvidence], tally: VerifyTally
-    ) -> str:
-        raw = data.get("pricing_power") if isinstance(data.get("pricing_power"), dict) else {}
-        assessment = text_of(raw.get("assessment"))
-        if not assessment or self._is_not_disclosed(assessment):
-            return NOT_DISCLOSED
-        tally.claims_proposed += 1
-        verified = verify_quotes(raw.get("evidence"), pool, tally, "pricing_power", None)
-        if not verified:
-            tally.claims_dropped += 1
-            tally.notes.append("Pricing-power assessment dropped: no verified filing quote.")
-            return NOT_DISCLOSED
-        evidence.extend(verified)
-        if not any(pricing_claim_supported(assessment, e.quote) for e in verified):
-            tally.claims_dropped += 1
-            tally.notes.append("Pricing-power claim not evidenced by its quotes (they describe pricing, not pricing power); "
-                            "replaced by the verified quote.")
-            return f'Filing states: "{verified[0].quote}"'
-        if not numbers_supported(assessment, [pool[e.chunk_id]["content"] for e in verified]):
-            tally.notes.append("Pricing-power text cited figures absent from its quotes; replaced by the verified quote.")
-            return f'Filing states: "{verified[0].quote}"'
-        return assessment
-
-    def _enforce_concentration(
-        self,
-        data: Dict[str, Any],
-        pool: Pool,
-        disclosures: Sequence[DisclosureSentence],
-        evidence: List[StrategyEvidence],
-        tally: VerifyTally,
-        assessed: bool,
-        reason: str,
-    ) -> str:
-        raw = data.get("customer_concentration") if isinstance(data.get("customer_concentration"), dict) else {}
-        disclosure = text_of(raw.get("disclosure"))
-        if assessed and disclosure and not self._is_not_disclosed(disclosure):
-            tally.claims_proposed += 1
-            verified = verify_quotes(raw.get("evidence"), pool, tally, "customer_concentration", None)
-            if verified and numbers_supported(disclosure, [pool[e.chunk_id]["content"] for e in verified]):
-                evidence.extend(verified)
-                return disclosure
-            tally.claims_dropped += 1
-            tally.notes.append("Customer-concentration text lacked a verified quote or supported figures; replaced deterministically.")
-
-        # Deterministic fallback: the screened filing sentence itself, verbatim.
-        revenue = [d for d in disclosures if d.kind == "revenue_concentration"]
-        receivables = [d for d in disclosures if d.kind == "receivables_concentration"]
-        chosen = revenue[0] if revenue else receivables[0] if receivables else None
-        if chosen is not None and chosen.chunk_id in pool:
-            chunk = pool[chosen.chunk_id]
-            evidence.append(
-                StrategyEvidence(
-                    claim="customer_concentration",
-                    subject="code_screened",
-                    chunk_id=chosen.chunk_id,
-                    quote=chosen.text[:MAX_QUOTE_CHARS],
-                    item=chunk.get("item"),
-                    breadcrumb=chunk.get("breadcrumb"),
-                )
-            )
-            if revenue:
-                return f'Filing states: "{chosen.text}"'
-            return f'{NOT_DISCLOSED} for revenue. Receivables: "{chosen.text}"'
-        return NOT_DISCLOSED if assessed else not_assessed(reason)
 
     # --- citations --------------------------------------------------------
     @staticmethod

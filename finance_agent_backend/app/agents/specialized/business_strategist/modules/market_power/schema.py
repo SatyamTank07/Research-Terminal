@@ -4,6 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+NOT_DISCLOSED = "Not explicitly disclosed in 10-K"
 
 class DisclosureSentence(BaseModel):
     """A filing sentence surfaced by a deterministic screen, with its chunk and (inferred) item."""
