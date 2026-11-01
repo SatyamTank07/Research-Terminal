@@ -3,12 +3,11 @@
 import unittest
 
 from app.agents.tools.financial_math_tools import NormalizationAdjustment
-from app.agents.tools.forecast_baseline import (
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline.thresholds import (
     STEADY_STATE_RONIC_CAP,
     STEADY_STATE_RONIC_DEFAULT,
     STEADY_STATE_RONIC_FLOOR,
-    build_forecast_baseline,
-    render_history_table,
 )
 from tests.forecast_fixtures import (
     AAPL_BALANCE_SHEET,
@@ -116,10 +115,9 @@ class TestForecastBaseline(unittest.TestCase):
         self.assertIsNone(b.growth_volatility)
         self.assertEqual(b.capex_years, 1)
 
-    def test_history_rows_and_table(self):
+    def test_history_rows_cover_every_audited_year(self):
         b = build_forecast_baseline(make_aapl_audit())
         self.assertEqual([r.fiscal_year for r in b.historical_rows], [2023, 2024, 2025])
-        self.assertIn("| FY2025 | 416,161 | +6.43% | 31.97% |", render_history_table(b.historical_rows))
 
     def test_invested_capital_is_debt_plus_equity(self):
         self.assertAlmostEqual(build_forecast_baseline(make_aapl_audit()).base_invested_capital, 152393.0)

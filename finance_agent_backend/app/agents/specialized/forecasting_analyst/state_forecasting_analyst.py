@@ -1,14 +1,23 @@
-"""State and Output Schemas for Financial Forecasting Analyst Agent."""
+"""Output schemas of the Forecasting Analyst: every number is code-built."""
 
 from typing import Any, Dict, List, Literal
 
 from pydantic import BaseModel, Field
 
-from app.agents.tools.forecast_baseline import ForecastBaseline
-from app.agents.tools.forecast_drivers import DriverAdjustment, ForecastDrivers
-from app.agents.tools.forecast_model import ForecastDiagnostics, ForecastScenario
-from app.agents.tools.forecast_tools import ForecastYearResult
-from app.agents.tools.mdna_guidance import MdnaAssessment
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import ForecastBaseline
+from app.agents.specialized.forecasting_analyst.modules.forecast_consistency import ForecastDiagnostics
+from app.agents.specialized.forecasting_analyst.modules.free_cash_flow_schedule import ForecastYearResult
+from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment
+from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import DriverAdjustment, ForecastDrivers
+from app.agents.specialized.forecasting_analyst.modules.scenarios import ForecastScenario
+
+__all__ = [
+    "ForecastBuild",
+    "ForecastDiagnostics",
+    "ForecastOutput",
+    "ForecastYear",
+    "GuidanceSource",
+]
 
 ForecastYear = ForecastYearResult
 GuidanceSource = Literal["mdna_informed", "historical_fade"]
@@ -41,3 +50,26 @@ class ForecastOutput(BaseModel):
     margin_rationale: str
     reinvestment_rationale: str
     citations: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class ForecastBuild(BaseModel):
+    """The code-built forecast before assembly: applied drivers, base schedule, scenarios and diagnostics."""
+
+    drivers: ForecastDrivers
+    schedule: Dict[str, Any]
+    scenarios: List[ForecastScenario]
+    diagnostics: ForecastDiagnostics
+
+    def preview_rows(self) -> List[Dict[str, float]]:
+        return [
+            {
+                "year": y["projected_year"],
+                "revenue": y["projected_revenue"],
+                "growth_pct": y["projected_revenue_growth_pct"],
+                "ebit_margin_pct": y["projected_ebit_margin_pct"],
+                "capex_pct": round(y["projected_capex"] / y["projected_revenue"] * 100.0, 2)
+                if y["projected_revenue"] else 0.0,
+                "ufcf": y["projected_unlevered_fcf"],
+            }
+            for y in self.schedule["forecast_schedule"]
+        ]

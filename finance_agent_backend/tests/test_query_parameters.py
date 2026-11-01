@@ -119,11 +119,6 @@ class TestTerminalGrowthResolution(unittest.TestCase):
         self.assertEqual(resolve_terminal_growth({}), DEFAULT_TERMINAL_GROWTH)
         self.assertEqual(DEFAULT_TERMINAL_GROWTH, 0.025)
 
-    def test_forecaster_uses_the_same_default(self):
-        from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
-        from app.agents.tools import forecast_drivers
-        self.assertIs(forecast_drivers.DEFAULT_TERMINAL_GROWTH, DEFAULT_TERMINAL_GROWTH)
-
 
 if __name__ == "__main__":
     unittest.main()

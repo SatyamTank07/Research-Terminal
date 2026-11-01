@@ -21,7 +21,7 @@ from app.agents.specialized.valuation_specialist.modules.intrinsic_value.calcula
     calculate_dcf,
     dcf_fair_value_per_share,
 )
-from app.agents.tools.forecast_model import project_with_overrides
+from app.agents.specialized.forecasting_analyst import project_with_overrides
 from app.agents.specialized.valuation_specialist.write import summarize_from_template
 from app.config import settings
 from tests.forecast_fixtures import (

@@ -2,12 +2,18 @@
 
 from typing import Any, Dict, Iterable, List, Optional
 
+from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
-from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import (
-    build_forecast_output,
+from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import build_forecast
+from app.agents.specialized.forecasting_analyst.assemble import (
+    assemble_forecast,
     fallback_rationales,
     mdna_fade_reason,
 )
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
+from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment
+from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import historical_fade_drivers
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
 from app.agents.tools.financial_math_tools import (
     AnnualFinancialInput,
@@ -15,10 +21,6 @@ from app.agents.tools.financial_math_tools import (
     NormalizationAdjustment,
     audit_financial_metrics,
 )
-from app.agents.tools.forecast_baseline import build_forecast_baseline
-from app.agents.tools.forecast_drivers import DEFAULT_TERMINAL_GROWTH, historical_fade_drivers
-from app.agents.tools.mdna_guidance import MdnaAssessment
-from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 
 AAPL_ROWS: List[Dict[str, Any]] = [
     dict(fiscal_year=2023, revenue=383285.0, gross_profit=169148.0, operating_income=114301.0,
@@ -201,8 +203,9 @@ def make_forecast_output(
     baseline = build_forecast_baseline(audit or make_aapl_audit())
     drivers = historical_fade_drivers(baseline, DEFAULT_TERMINAL_GROWTH)
     mdna = MdnaAssessment()
-    return build_forecast_output(
-        ticker=ticker, fiscal_year=fiscal_year, baseline=baseline, drivers=drivers,
+    return assemble_forecast(
+        ticker=ticker, fiscal_year=fiscal_year, baseline=baseline,
+        build=build_forecast(baseline, drivers, DEFAULT_TERMINAL_GROWTH),
         guidance_source="historical_fade", mdna=mdna, terminal_growth=DEFAULT_TERMINAL_GROWTH,
         rationales=fallback_rationales(baseline, drivers, DEFAULT_TERMINAL_GROWTH, mdna_fade_reason(mdna)),
     )

@@ -23,42 +23,39 @@ from pydantic import ValidationError
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
-from app.agents.shared.filing.narrative_search import (
-    NarrativeChunkResult,
-    retrieve_10k_narrative,
-    retrieve_10k_narrative_tool,
-)
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative_tool
 from app.agents.shared.filing.table_search import retrieve_10k_tables_tool
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
-from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import (
-    ForecastOutput,
-    GuidanceSource,
+from app.agents.specialized.forecasting_analyst.assemble import (
+    assemble_forecast,
+    fallback_rationales,
+    mdna_fade_reason,
+    resolve_forecast_citations,
 )
-from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
-from app.agents.tools.forecast_baseline import (
-    ForecastBaseline,
-    build_forecast_baseline,
-    render_history_table,
-)
-from app.agents.tools.forecast_drivers import (
-    DEFAULT_TERMINAL_GROWTH,
+from app.agents.specialized.forecasting_analyst.context import fetch_mdna_chunks
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import ForecastBaseline, build_forecast_baseline, render_history_table
+from app.agents.specialized.forecasting_analyst.modules.forecast_consistency import compute_diagnostics
+from app.agents.specialized.forecasting_analyst.modules.free_cash_flow_schedule import run_schedule
+from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment, assess_mdna_guidance, margin_evidence_chunk_ids
+from app.agents.specialized.forecasting_analyst.modules.reinvestment_path import apply_reinvestment_path
+from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import (
     DriverAdjustment,
     ForecastDriverProposal,
     ForecastDrivers,
+    extend_fade,
     historical_fade_drivers,
     screen_forecast_drivers,
     unsupported_margin_corridor,
 )
-from app.agents.tools.forecast_model import build_forecast
-from app.agents.tools.mdna_guidance import MdnaAssessment, assess_mdna_guidance, margin_evidence_chunk_ids
+from app.agents.specialized.forecasting_analyst.modules.scenarios import build_scenarios
+from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastBuild, ForecastOutput
+from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
 
 logger = logging.getLogger("finance_agent.agents.forecasting_analyst")
 
 PROPOSE_TOOL_NAME = "propose_forecast_drivers_tool"
-MDNA_QUERY = "outlook expect demand growth pricing margins costs capital expenditures guidance"
-MDNA_CHUNK_LIMIT = 6
 EXCERPT_CHARS = 700
 MAX_PROMPT_RISKS = 3
 RISK_TRANSMISSIONS = {"Revenue", "Gross Margin", "Operating Expenses"}
@@ -93,120 +90,25 @@ Returns status "accepted" (applied drivers, clamps, schedule preview, diagnostic
 """
 
 
-def driver_rationales(baseline: ForecastBaseline, drivers: ForecastDrivers, terminal_growth: float) -> Dict[str, str]:
-    """Factual rationale text used when the LLM did not supply one."""
-    g, m = drivers.revenue_growth, drivers.operating_margin
-    return {
-        "growth_rationale": (
-            f"Revenue growth runs from {g[0] * 100:.2f}% in year 1 to {g[-1] * 100:.2f}% in year {len(g)}, "
-            f"against {terminal_growth * 100:.2f}% terminal growth."
-        ),
-        "margin_rationale": (
-            f"Operating margin moves from the {baseline.margin_source} base of "
-            f"{baseline.base_operating_margin * 100:.2f}% to {m[-1] * 100:.2f}% by year {len(m)}."
-        ),
-        "reinvestment_rationale": _reinvestment_rationale(baseline, drivers, terminal_growth),
-    }
-
-
-def _reinvestment_rationale(baseline: ForecastBaseline, drivers: ForecastDrivers, terminal_growth: float) -> str:
-    start = drivers.capex_path[0] if drivers.capex_path else drivers.capex_pct_of_revenue
-    steady = drivers.steady_state_capex_pct_of_revenue
-    n = len(drivers.capex_path) or len(drivers.revenue_growth)
-    if drivers.capex_pct_of_revenue == baseline.capex_pct_of_revenue:
-        origin = (
-            f"the recency-weighted {baseline.capex_years}-year audited level (latest year "
-            f"{baseline.latest_capex_pct_of_revenue * 100:.2f}%, simple average "
-            f"{baseline.capex_average_pct_of_revenue * 100:.2f}%)"
-        )
-    else:
-        origin = "a cited MD&A CapEx plan"
-    if steady is None:
-        fade = ""
-    elif drivers.reinvestment_method == "maintenance_fade":
-        fade = (
-            f" and fades to {steady * 100:.2f}% by year {n}, maintenance level (equal to D&A), because "
-            f"final-year NOPAT is not positive"
-        )
-    else:
-        fade = (
-            f" and fades to a {steady * 100:.2f}% steady state by year {n}, where net reinvestment equals "
-            f"{terminal_growth * 100:.2f}% terminal growth / {baseline.steady_state_ronic * 100:.1f}% return on new "
-            f"capital ({baseline.steady_state_ronic_source.replace('_', ' ')}) = "
-            f"{terminal_growth / baseline.steady_state_ronic * 100:.1f}% of NOPAT"
-        )
-    return (
-        f"CapEx starts at {start * 100:.2f}% of revenue from {origin}{fade}; D&A is held at "
-        f"{drivers.da_pct_of_revenue * 100:.2f}% ({baseline.da_source}); working capital at "
-        f"{drivers.nwc_pct_of_incremental_revenue * 100:.2f}% of incremental revenue ({baseline.nwc_source}); "
-        f"SBC at {drivers.sbc_pct_of_revenue * 100:.2f}% of revenue is already expensed in EBIT, so UFCF treats "
-        f"it as a cash cost."
-    )
-
-
-def mdna_fade_reason(mdna: MdnaAssessment) -> str:
-    return (
-        f"Item 7 gave {mdna.forward_looking_count} forward-looking statement(s), too few to anchor a guided "
-        f"forecast, so growth fades linearly from the historical trend."
-    )
-
-
-def fallback_rationales(
-    baseline: ForecastBaseline, drivers: ForecastDrivers, terminal_growth: float, reason: str
-) -> Dict[str, str]:
-    """Growth rationale prefixed with why no guided forecast was built (the rest stays code-written)."""
-    return {"growth_rationale": f"{reason} {driver_rationales(baseline, drivers, terminal_growth)['growth_rationale']}"}
-
-
-def build_forecast_output(
-    *,
-    ticker: str,
-    fiscal_year: int,
+def build_forecast(
     baseline: ForecastBaseline,
     drivers: ForecastDrivers,
-    guidance_source: GuidanceSource,
-    mdna: MdnaAssessment,
     terminal_growth: float,
     risk_profile: Optional[str] = None,
-    rationales: Optional[Dict[str, str]] = None,
-    adjustments: Sequence[DriverAdjustment] = (),
-    citations: Sequence[Dict[str, Any]] = (),
-    extra_warnings: Sequence[str] = (),
-) -> ForecastOutput:
-    """Assembles ForecastOutput from code-built numbers; missing rationales get factual defaults.
-
-    The reinvestment rationale is always code-written: code owns the whole CapEx/D&A/working-capital path.
-    """
-    build = build_forecast(baseline, drivers, terminal_growth, risk_profile)
-    sched = build.schedule
-    code_texts = driver_rationales(baseline, build.drivers, terminal_growth)
-    texts = {**code_texts, **(rationales or {}), "reinvestment_rationale": code_texts["reinvestment_rationale"]}
-    diagnostics = build.diagnostics.model_copy(
-        update={"warnings": build.diagnostics.warnings + list(extra_warnings)}
+) -> ForecastBuild:
+    """The forecast checklist: every number after the drivers, built in code from the screened (or faded) path."""
+    growth, margins, extended = extend_fade(drivers.revenue_growth, drivers.operating_margin, terminal_growth)
+    applied, reinvestment_warnings = apply_reinvestment_path(
+        baseline, drivers.model_copy(update={"revenue_growth": growth, "operating_margin": margins}), terminal_growth
     )
-    return ForecastOutput(
-        ticker=ticker.upper(),
-        fiscal_year=fiscal_year,
-        base_revenue=sched["base_revenue"],
-        forecast_horizon_years=sched["forecast_horizon_years"],
-        revenue_cagr_pct=sched["revenue_cagr_pct"],
-        cumulative_fcf=sched["cumulative_fcf"],
-        average_annual_fcf=sched["average_annual_fcf"],
-        guidance_source=guidance_source,
-        tax_rate_pct=sched["tax_rate_pct"],
-        projected_fcfs=sched["projected_fcfs"],
-        forecast_schedule=sched["forecast_schedule"],
-        forecast_table_markdown=sched["forecast_table_markdown"],
-        assumptions=baseline,
-        applied_drivers=build.drivers,
-        driver_adjustments=list(adjustments),
-        scenarios=build.scenarios,
+    schedule = run_schedule(baseline, applied)
+    diagnostics = compute_diagnostics(baseline, applied, schedule, terminal_growth, extended)
+    diagnostics.warnings.extend(reinvestment_warnings)
+    return ForecastBuild(
+        drivers=applied,
+        schedule=schedule,
+        scenarios=build_scenarios(baseline, applied, schedule, risk_profile, terminal_growth),
         diagnostics=diagnostics,
-        mdna_assessment=mdna,
-        growth_rationale=texts["growth_rationale"],
-        margin_rationale=texts["margin_rationale"],
-        reinvestment_rationale=texts["reinvestment_rationale"],
-        citations=list(citations),
     )
 
 
@@ -248,14 +150,14 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
         ticker: str,
         fiscal_year: int,
         financial_audit: FinancialAuditOutput,
+        terminal_growth: float,
         business_moat: Optional[BusinessMoatOutput] = None,
         risk_audit: Optional[RiskAuditOutput] = None,
-        terminal_growth: float = DEFAULT_TERMINAL_GROWTH,
         callbacks: Optional[List[Any]] = None,
     ) -> ForecastOutput:
         ticker = ticker.upper()
         baseline = build_forecast_baseline(financial_audit)
-        chunks = self._fetch_mdna(ticker, fiscal_year)
+        chunks = fetch_mdna_chunks(ticker, fiscal_year)
         mdna = assess_mdna_guidance(chunks)
         risk_profile = risk_audit.overall_risk_profile if risk_audit is not None else None
 
@@ -265,10 +167,10 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
                 f"sentence(s); using historical fade without the LLM."
             )
             drivers = historical_fade_drivers(baseline, terminal_growth)
-            return build_forecast_output(
-                ticker=ticker, fiscal_year=fiscal_year, baseline=baseline, drivers=drivers,
+            return assemble_forecast(
+                ticker=ticker, fiscal_year=fiscal_year, baseline=baseline,
+                build=build_forecast(baseline, drivers, terminal_growth, risk_profile),
                 guidance_source="historical_fade", mdna=mdna, terminal_growth=terminal_growth,
-                risk_profile=risk_profile,
                 rationales=fallback_rationales(baseline, drivers, terminal_growth, mdna_fade_reason(mdna)),
             )
 
@@ -299,17 +201,6 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
     # ------------------------------------------------------------------
     # Setup helpers
     # ------------------------------------------------------------------
-    @staticmethod
-    def _fetch_mdna(ticker: str, fiscal_year: int) -> List[NarrativeChunkResult]:
-        try:
-            return retrieve_10k_narrative(
-                ticker=ticker, fiscal_year=fiscal_year, query=MDNA_QUERY,
-                section_item="Item 7", limit=MDNA_CHUNK_LIMIT,
-            )
-        except Exception as e:
-            logger.warning(f"MD&A retrieval failed for {ticker} FY{fiscal_year}: {e}")
-            return []
-
     def _render_query(
         self,
         ticker: str,
@@ -437,23 +328,27 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
         extra_warnings: Sequence[str] = (),
     ) -> ForecastOutput:
         """Assembles the output from the accepted drivers, or the historical fade when none were accepted."""
+        baseline, terminal_growth = ctx["baseline"], ctx["terminal_growth"]
         common = dict(
-            ticker=ticker, fiscal_year=fiscal_year, baseline=ctx["baseline"], mdna=ctx["mdna"],
-            terminal_growth=ctx["terminal_growth"], risk_profile=ctx["risk_profile"],
+            ticker=ticker, fiscal_year=fiscal_year, baseline=baseline, mdna=ctx["mdna"],
+            terminal_growth=terminal_growth,
         )
         if accepted is None:
             logger.warning(f"{ticker} FY{fiscal_year}: {NO_ACCEPTED_DRIVERS_WARNING}")
-            drivers = historical_fade_drivers(ctx["baseline"], ctx["terminal_growth"])
-            return build_forecast_output(
-                **common, drivers=drivers, guidance_source="historical_fade",
-                rationales=fallback_rationales(ctx["baseline"], drivers, ctx["terminal_growth"], NO_DRIVERS_REASON),
+            drivers = historical_fade_drivers(baseline, terminal_growth)
+            return assemble_forecast(
+                **common, build=build_forecast(baseline, drivers, terminal_growth, ctx["risk_profile"]),
+                guidance_source="historical_fade",
+                rationales=fallback_rationales(baseline, drivers, terminal_growth, NO_DRIVERS_REASON),
                 extra_warnings=[*extra_warnings, NO_ACCEPTED_DRIVERS_WARNING],
             )
         drivers, adjustments, evidence_ids = accepted
-        return build_forecast_output(
-            **common, drivers=drivers, guidance_source="mdna_informed", rationales=rationales,
-            adjustments=adjustments,
-            citations=self._resolve_citations(llm_citations, ctx["chunks"], evidence_ids, messages),
+        return assemble_forecast(
+            **common, build=build_forecast(baseline, drivers, terminal_growth, ctx["risk_profile"]),
+            guidance_source="mdna_informed", rationales=rationales, adjustments=adjustments,
+            citations=resolve_forecast_citations(
+                llm_citations, ctx["chunks"], evidence_ids, self._extract_citations_from_messages(messages),
+            ),
             extra_warnings=extra_warnings,
         )
 
@@ -476,28 +371,6 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
                     list(payload.get("evidence_chunk_ids", [])),
                 )
         return None
-
-    def _resolve_citations(
-        self,
-        llm_citations: Any,
-        chunks: Sequence[NarrativeChunkResult],
-        evidence_ids: Sequence[str],
-        messages: List[Any],
-    ) -> List[Dict[str, Any]]:
-        """Keeps only citations that point at a chunk the agent actually saw."""
-        known: Dict[str, Dict[str, Any]] = {
-            c.chunk_id: {"chunk_id": c.chunk_id, "item": c.item, "breadcrumb": c.breadcrumb} for c in chunks
-        }
-        for cit in self._extract_citations_from_messages(messages):
-            known.setdefault(cit["chunk_id"], cit)
-        ordered = [c.get("chunk_id") for c in (llm_citations or []) if isinstance(c, dict)] + list(evidence_ids)
-        seen: Set[str] = set()
-        out: List[Dict[str, Any]] = []
-        for cid in ordered:
-            if cid in known and cid not in seen:
-                seen.add(cid)
-                out.append(known[cid])
-        return out
 
 
 def forecast_cash_flows(run: RunContext, upstream: Upstream) -> ForecastOutput:

@@ -3,7 +3,8 @@
 import unittest
 
 from app.agents.specialized.valuation_specialist.modules.intrinsic_value.calculate import calculate_dcf
-from app.agents.tools.forecast_tools import HistoricalRow, calculate_forecast_schedule
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import HistoricalRow
+from app.agents.specialized.forecasting_analyst.modules.free_cash_flow_schedule import calculate_forecast_schedule
 
 BASE = dict(base_revenue=1000.0, base_year=2025, tax_rate=0.25, capex_pct_of_revenue=0.05, depreciation_pct_of_revenue=0.04)
 

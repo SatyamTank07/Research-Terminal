@@ -1,0 +1,5 @@
+"""Code-owned limits of the MD&A guidance screen."""
+
+MIN_FORWARD_LOOKING_SENTENCES = 2
+MAX_GUIDANCE_SENTENCES = 8
+MAX_SENTENCE_CHARS = 400

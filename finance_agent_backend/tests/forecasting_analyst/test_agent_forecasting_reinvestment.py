@@ -7,9 +7,10 @@ from unittest.mock import MagicMock, patch
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
+from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
 from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
 from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import PROPOSE_TOOL_NAME
-from app.agents.tools.forecast_baseline import build_forecast_baseline
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
 from tests.forecast_fixtures import (
     AMZN_GUIDANCE_CHUNK,
     GUIDANCE_CHUNK,
@@ -18,7 +19,7 @@ from tests.forecast_fixtures import (
     make_chunk,
 )
 
-RETRIEVE = "app.agents.specialized.forecasting_analyst.agent_forecasting_analyst.retrieve_10k_narrative"
+RETRIEVE = "app.agents.specialized.forecasting_analyst.context.retrieve_10k_narrative"
 CHUNKS = [make_chunk("c1", GUIDANCE_CHUNK), make_chunk("m1", MARGIN_OUTLOOK_CHUNK)]
 REVERSAL = {"revenue_growth_pct": [6.0, 5.5, 5.0, 4.0, 3.0], "operating_margin_pct": [31.0, 29.0, 27.0, 26.0, 25.0]}
 FINAL = json.dumps({"growth_rationale": "g", "margin_rationale": "m", "citations": []})
@@ -40,7 +41,7 @@ def _run(proposals: List[Dict[str, Any]], chunks=CHUNKS):
     llm.invoke.side_effect = invoke
     with patch(RETRIEVE, return_value=chunks), \
             patch.object(ForecastingAnalystAgent, "_get_or_create_agent", return_value=llm):
-        return forecaster.forecast(ticker="AAPL", fiscal_year=2025, financial_audit=make_aapl_audit())
+        return forecaster.forecast(ticker="AAPL", fiscal_year=2025, financial_audit=make_aapl_audit(), terminal_growth=DEFAULT_TERMINAL_GROWTH)
 
 
 class TestForecasterMarginEvidence(unittest.TestCase):
@@ -72,7 +73,7 @@ class TestForecasterMarginEvidence(unittest.TestCase):
         forecaster = ForecastingAnalystAgent()
         with patch(RETRIEVE, return_value=[make_chunk("a1", AMZN_GUIDANCE_CHUNK)]), \
                 patch.object(ForecastingAnalystAgent, "_get_or_create_agent") as get_agent:
-            out = forecaster.forecast(ticker="AMZN", fiscal_year=2025, financial_audit=make_aapl_audit())
+            out = forecaster.forecast(ticker="AMZN", fiscal_year=2025, financial_audit=make_aapl_audit(), terminal_growth=DEFAULT_TERMINAL_GROWTH)
         get_agent.assert_not_called()
         self.assertEqual(out.guidance_source, "historical_fade")
 

@@ -2,7 +2,7 @@
 
 import unittest
 
-from app.agents.tools.mdna_guidance import (
+from app.agents.specialized.forecasting_analyst.modules.management_guidance import (
     assess_mdna_guidance,
     is_outlook_sentence,
     is_quantified_guidance,
