@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 from pydantic import BaseModel, Field
 
 from app.agents.specialized.financial_auditor.findings import ForensicFinding
+from app.agents.specialized.financial_auditor.modules.financial_history import YearFinancialsResult
 from app.agents.specialized.financial_auditor.modules.statement_integrity import AuditDataQuality
 from app.agents.tools.financial_math_tools import (
     BalanceSheetResult,
@@ -13,7 +14,6 @@ from app.agents.tools.financial_math_tools import (
     YearCapitalIntensity,
     YearCostStructure,
     YearEarningsQuality,
-    YearFinancialsResult,
     YearShareCount,
     YearWorkingCapital,
 )

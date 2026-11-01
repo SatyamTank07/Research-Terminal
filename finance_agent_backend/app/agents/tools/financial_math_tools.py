@@ -15,7 +15,6 @@ The LLM only chooses inputs and normalization items; every number is produced he
 """
 
 import logging
-import math
 import re
 from typing import Any, Dict, List, Literal, Optional
 
@@ -30,6 +29,15 @@ from app.agents.specialized.financial_auditor.context.audit_inputs import (
     validate_audit_inputs,
 )
 from app.agents.specialized.financial_auditor.findings import ForensicFinding, Severity, rank_findings
+from app.agents.specialized.financial_auditor.modules.financial_history import (
+    YearFinancialsResult,
+    build_financial_history,
+    cost_of_revenue_of,
+    gross_profit_of,
+    growth_pct,
+    operating_expenses_of,
+    pct_of,
+)
 
 logger = logging.getLogger("finance_agent.tools.financial_math")
 
@@ -82,26 +90,6 @@ class NormalizationAdjustment(BaseModel):
 # ==============================================================================
 # 2. Output Schemas
 # ==============================================================================
-class YearFinancialsResult(BaseModel):
-    fiscal_year: int
-    revenue: float
-    gross_profit: Optional[float] = None
-    gross_margin_pct: Optional[float] = None
-    operating_income: float
-    operating_margin_pct: float
-    net_income: float
-    net_margin_pct: float
-    operating_cash_flow: float
-    capital_expenditures: float
-    free_cash_flow: float
-    depreciation_amortization: Optional[float] = None
-    interest_expense: Optional[float] = None
-    fcf_conversion_pct: Optional[float] = None
-    revenue_growth_pct: Optional[float] = None
-    operating_income_growth_pct: Optional[float] = None
-    fcf_growth_pct: Optional[float] = None
-
-
 class BalanceSheetResult(BaseModel):
     fiscal_year: int
     cash_and_equivalents: float
@@ -232,26 +220,6 @@ class FinancialAuditResult(BaseModel):
 # ==============================================================================
 # 3. Helpers
 # ==============================================================================
-def _validate_finite_number(val: Any, name: str) -> float:
-    if val is None:
-        raise ValueError(f"{name} cannot be None.")
-    if not isinstance(val, (int, float)) or math.isnan(val) or math.isinf(val):
-        raise ValueError(f"{name} must be a valid finite number, got: {val}")
-    return float(val)
-
-
-def _pct(num: Optional[float], den: Optional[float], digits: int = 2) -> Optional[float]:
-    if num is None or den is None or den == 0:
-        return None
-    return round(num / den * 100.0, digits)
-
-
-def _growth(cur: Optional[float], prev: Optional[float]) -> Optional[float]:
-    if cur is None or prev is None or prev == 0:
-        return None
-    return round((cur - prev) / abs(prev) * 100.0, 2)
-
-
 def _year_tax_rate(inp: AnnualFinancialInput) -> Optional[float]:
     """Derived effective tax rate (decimal) when pre-tax income is positive and tax is an expense."""
     if inp.pretax_income is None or inp.income_tax_expense is None:
@@ -259,29 +227,6 @@ def _year_tax_rate(inp: AnnualFinancialInput) -> Optional[float]:
     if inp.pretax_income <= 0 or inp.income_tax_expense < 0:
         return None
     return inp.income_tax_expense / inp.pretax_income
-
-
-def _cost_of_revenue(inp: AnnualFinancialInput) -> Optional[float]:
-    if inp.cost_of_revenue is not None:
-        return inp.cost_of_revenue
-    if inp.gross_profit is not None:
-        return inp.revenue - inp.gross_profit
-    return None
-
-
-def _gross_profit(inp: AnnualFinancialInput) -> Optional[float]:
-    if inp.gross_profit is not None:
-        return inp.gross_profit
-    if inp.cost_of_revenue is not None:
-        return round(inp.revenue - inp.cost_of_revenue, 4)
-    return None
-
-
-def _operating_expenses(inp: AnnualFinancialInput) -> Optional[float]:
-    if inp.operating_expenses is not None:
-        return inp.operating_expenses
-    gp = _gross_profit(inp)
-    return round(gp - inp.operating_income, 4) if gp is not None else None
 
 
 # ==============================================================================
@@ -296,39 +241,7 @@ def calculate_financial_ratios(
     check_audit_window(annual_financials, balance_sheet, prior_balance_sheet)
 
     sorted_years = sorted(annual_financials, key=lambda x: x.fiscal_year)
-    history: List[YearFinancialsResult] = []
-    prev: Optional[AnnualFinancialInput] = None
-    prev_fcf: Optional[float] = None
-
-    for f in sorted_years:
-        rev = _validate_finite_number(f.revenue, f"revenue ({f.fiscal_year})")
-        ebit = _validate_finite_number(f.operating_income, f"operating_income ({f.fiscal_year})")
-        ni = _validate_finite_number(f.net_income, f"net_income ({f.fiscal_year})")
-        ocf = _validate_finite_number(f.operating_cash_flow, f"operating_cash_flow ({f.fiscal_year})")
-        capex = _validate_finite_number(f.capital_expenditures, f"capital_expenditures ({f.fiscal_year})")
-        gp = _gross_profit(f)
-        fcf = round(ocf - capex, 2)
-
-        history.append(YearFinancialsResult(
-            fiscal_year=f.fiscal_year,
-            revenue=rev,
-            gross_profit=gp,
-            gross_margin_pct=_pct(gp, rev),
-            operating_income=ebit,
-            operating_margin_pct=_pct(ebit, rev) or 0.0,
-            net_income=ni,
-            net_margin_pct=_pct(ni, rev) or 0.0,
-            operating_cash_flow=ocf,
-            capital_expenditures=capex,
-            free_cash_flow=fcf,
-            depreciation_amortization=f.depreciation_amortization,
-            interest_expense=abs(f.interest_expense) if f.interest_expense is not None else None,
-            fcf_conversion_pct=_pct(fcf, ni),
-            revenue_growth_pct=_growth(rev, prev.revenue) if prev else None,
-            operating_income_growth_pct=_growth(ebit, prev.operating_income) if prev else None,
-            fcf_growth_pct=_growth(fcf, prev_fcf) if prev else None,
-        ))
-        prev, prev_fcf = f, fcf
+    history = build_financial_history(annual_financials)
 
     latest_input = sorted_years[-1]
     latest = history[-1]
@@ -564,7 +477,7 @@ def calculate_quality_of_earnings(
         sbc = f.stock_based_compensation
         non_op = round(f.pretax_income - f.operating_income, 2) if f.pretax_income is not None else None
         year_rate = _year_tax_rate(f)
-        etr_pct = _pct(f.income_tax_expense, f.pretax_income) if (
+        etr_pct = pct_of(f.income_tax_expense, f.pretax_income) if (
             f.pretax_income not in (None, 0) and f.income_tax_expense is not None
         ) else None
 
@@ -580,27 +493,27 @@ def calculate_quality_of_earnings(
         eq.append(YearEarningsQuality(
             fiscal_year=f.fiscal_year,
             accruals=accruals,
-            sloan_accruals_ratio_pct=_pct(accruals, avg_ta),
+            sloan_accruals_ratio_pct=pct_of(accruals, avg_ta),
             stock_based_compensation=sbc,
-            sbc_to_ocf_pct=_pct(sbc, f.operating_cash_flow) if f.operating_cash_flow > 0 else None,
-            sbc_to_operating_income_pct=_pct(sbc, f.operating_income) if f.operating_income > 0 else None,
+            sbc_to_ocf_pct=pct_of(sbc, f.operating_cash_flow) if f.operating_cash_flow > 0 else None,
+            sbc_to_operating_income_pct=pct_of(sbc, f.operating_income) if f.operating_income > 0 else None,
             sbc_adjusted_fcf=round(h.free_cash_flow - sbc, 2) if sbc is not None else None,
             non_operating_income=non_op,
-            non_operating_to_operating_income_pct=_pct(non_op, f.operating_income) if f.operating_income > 0 else None,
+            non_operating_to_operating_income_pct=pct_of(non_op, f.operating_income) if f.operating_income > 0 else None,
             effective_tax_rate_pct=etr_pct,
-            deferred_tax_to_net_income_pct=_pct(f.deferred_income_taxes, abs(f.net_income)) if f.net_income else None,
+            deferred_tax_to_net_income_pct=pct_of(f.deferred_income_taxes, abs(f.net_income)) if f.net_income else None,
             adjustments=year_adj,
             operating_income_adjustments_total=ebit_adj,
             net_income_adjustments_total=ni_total_adj,
-            adjustments_pct_of_operating_income=_pct(abs_ebit_adj, abs(f.operating_income)) if year_adj else None,
+            adjustments_pct_of_operating_income=pct_of(abs_ebit_adj, abs(f.operating_income)) if year_adj else None,
             normalized_operating_income=norm_ebit,
-            normalized_operating_margin_pct=_pct(norm_ebit, rev) or 0.0,
+            normalized_operating_margin_pct=pct_of(norm_ebit, rev) or 0.0,
             normalized_net_income=norm_ni,
-            normalized_net_margin_pct=_pct(norm_ni, rev) or 0.0,
+            normalized_net_margin_pct=pct_of(norm_ni, rev) or 0.0,
         ))
 
         # --- Working capital days (ending-balance basis)
-        cogs = _cost_of_revenue(f)
+        cogs = cost_of_revenue_of(f)
         dso = round(f.accounts_receivable / rev * 365.0, 1) if f.accounts_receivable is not None and rev > 0 else None
         dio = round(f.inventories / cogs * 365.0, 1) if f.inventories is not None and cogs and cogs > 0 else None
         dpo = round(f.accounts_payable / cogs * 365.0, 1) if f.accounts_payable is not None and cogs and cogs > 0 else None
@@ -611,8 +524,8 @@ def calculate_quality_of_earnings(
             dio_days=dio,
             dpo_days=dpo,
             cash_conversion_cycle_days=ccc,
-            dso_change_pct=_growth(dso, prev_wc.dso_days) if prev_wc else None,
-            dio_change_pct=_growth(dio, prev_wc.dio_days) if prev_wc else None,
+            dso_change_pct=growth_pct(dso, prev_wc.dso_days) if prev_wc else None,
+            dio_change_pct=growth_pct(dio, prev_wc.dio_days) if prev_wc else None,
         )
         wc.append(year_wc)
 
@@ -623,10 +536,10 @@ def calculate_quality_of_earnings(
             ocf_chg = round(f.operating_cash_flow - prev.operating_cash_flow, 2)
             capex_chg = round(f.capital_expenditures - prev.capital_expenditures, 2)
             fcf_chg = round(h.free_cash_flow - prev_h.free_cash_flow, 2)
-            from_capex = _pct(-capex_chg, fcf_chg) if fcf_chg else None
+            from_capex = pct_of(-capex_chg, fcf_chg) if fcf_chg else None
         ci.append(YearCapitalIntensity(
             fiscal_year=f.fiscal_year,
-            capex_to_revenue_pct=_pct(f.capital_expenditures, rev),
+            capex_to_revenue_pct=pct_of(f.capital_expenditures, rev),
             capex_to_depreciation=round(f.capital_expenditures / f.depreciation_amortization, 2)
             if f.depreciation_amortization else None,
             ocf_change=ocf_chg,
@@ -636,11 +549,11 @@ def calculate_quality_of_earnings(
         ))
 
         # --- Cost structure
-        opex = _operating_expenses(f)
+        opex = operating_expenses_of(f)
         opex_growth = rev_growth = gm_bps = om_bps = None
         if prev is not None:
             prev_h = hist_map[prev.fiscal_year]
-            opex_growth = _growth(opex, _operating_expenses(prev))
+            opex_growth = growth_pct(opex, operating_expenses_of(prev))
             rev_growth = h.revenue_growth_pct
             if h.gross_margin_pct is not None and prev_h.gross_margin_pct is not None:
                 gm_bps = round((h.gross_margin_pct - prev_h.gross_margin_pct) * 100.0, 0)
@@ -660,9 +573,9 @@ def calculate_quality_of_earnings(
         sh.append(YearShareCount(
             fiscal_year=f.fiscal_year,
             diluted_weighted_shares=f.diluted_weighted_shares,
-            diluted_share_growth_pct=_growth(f.diluted_weighted_shares, prev.diluted_weighted_shares) if prev else None,
+            diluted_share_growth_pct=growth_pct(f.diluted_weighted_shares, prev.diluted_weighted_shares) if prev else None,
             period_end_shares_outstanding=f.period_end_shares_outstanding,
-            period_end_share_growth_pct=_growth(f.period_end_shares_outstanding, prev.period_end_shares_outstanding)
+            period_end_share_growth_pct=growth_pct(f.period_end_shares_outstanding, prev.period_end_shares_outstanding)
             if prev else None,
         ))
 
@@ -703,8 +616,8 @@ def detect_forensic_findings(
 
     # Net income up while OCF down
     for prev, cur in zip(history, history[1:]):
-        ni_g = _growth(cur.net_income, prev.net_income)
-        ocf_g = _growth(cur.operating_cash_flow, prev.operating_cash_flow)
+        ni_g = growth_pct(cur.net_income, prev.net_income)
+        ocf_g = growth_pct(cur.operating_cash_flow, prev.operating_cash_flow)
         if ni_g is not None and ocf_g is not None and ni_g > 0.0 and ocf_g < 0.0:
             add("EARNINGS_QUALITY_DIVERGENCE", "high", cur.fiscal_year, "net_income_vs_ocf_growth_pct", ni_g, 0.0,
                 f"EARNINGS QUALITY DIVERGENCE (FY{cur.fiscal_year}): Net income increased by +{ni_g:.2f}% "
@@ -738,7 +651,7 @@ def detect_forensic_findings(
         p_in, c_in = inputs[prev.fiscal_year], inputs[cur.fiscal_year]
         rev_g = cur.revenue_growth_pct or 0.0
         if p_in.accounts_receivable and c_in.accounts_receivable is not None:
-            ar_g = _growth(c_in.accounts_receivable, p_in.accounts_receivable)
+            ar_g = growth_pct(c_in.accounts_receivable, p_in.accounts_receivable)
             if ar_g is not None and ar_g - rev_g > 15.0 and ar_g > 5.0:
                 add("RECEIVABLES_DIVERGENCE", "medium", cur.fiscal_year, "ar_growth_minus_revenue_growth_pp",
                     ar_g - rev_g, 15.0,
@@ -746,7 +659,7 @@ def detect_forensic_findings(
                     f"(${p_in.accounts_receivable:,.1f}M -> ${c_in.accounts_receivable:,.1f}M) versus revenue "
                     f"growth of {rev_g:+.2f}%, which may signal aggressive revenue recognition or collection delays.")
         if p_in.inventories and c_in.inventories:
-            inv_g = _growth(c_in.inventories, p_in.inventories)
+            inv_g = growth_pct(c_in.inventories, p_in.inventories)
             if inv_g is not None and inv_g - rev_g > 20.0 and inv_g > 10.0:
                 add("INVENTORY_ACCUMULATION", "medium", cur.fiscal_year, "inventory_growth_minus_revenue_growth_pp",
                     inv_g - rev_g, 20.0,
