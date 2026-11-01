@@ -4,9 +4,10 @@ Every boundary that leaves the process is replaced: chat models, embeddings, mar
 that dates the valuation. The fakes patch library classes (langchain_openai, yfinance) rather than app
 modules, so snapshots keep working while app code moves between files. Two things track app code:
 - CLOCK_TARGETS: update it when a module that reads today's date moves.
-- STRATEGIST_PROMPT: chat models answer "{}" except the Strategist's judgement, which gets the canned reply for its
-  (ticker, year), found by the opening line of its query prompt. If that line changes, the Strategist gets "{}"
-  again and the golden diff shows its moat falling back to "not_assessed".
+- CANNED_REPLIES: chat models answer "{}" except the judgements listed there (the Strategist's judgement, the Risk
+  Analyst's inventory and its coverage repair), which get the canned reply for their (ticker, year), found by the
+  opening line of their prompt. If such a line changes, that call gets "{}" again and the golden diff shows it (moat
+  falling back to "not_assessed", no verified risks).
 """
 
 import contextlib
@@ -23,6 +24,7 @@ from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
 from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResult
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
+from tests.golden.risk_replies import RISK_REPAIR_REPLIES, RISK_REPLIES
 from tests.golden.strategist_replies import STRATEGIST_REPLIES
 
 GOLDEN_DATE = date(2026, 10, 28)
@@ -30,6 +32,15 @@ EMBEDDING_DIM = 1536
 TREASURY_10Y_PCT = 4.3
 CHAT_REPLY = "{}"
 STRATEGIST_PROMPT = re.compile(r"Assess the business model and economic moat of (\w+) from its fiscal year (\d+) ")
+RISK_PROMPT = re.compile(r"Build the risk inventory for (\w+) from its fiscal year (\d+) ")
+RISK_REPAIR_PROMPT = re.compile(
+    r"You are a Chief Risk Officer completing a risk inventory for (\w+) from its fiscal year (\d+) "
+)
+CANNED_REPLIES = (
+    (STRATEGIST_PROMPT, STRATEGIST_REPLIES),
+    (RISK_PROMPT, RISK_REPLIES),
+    (RISK_REPAIR_PROMPT, RISK_REPAIR_REPLIES),
+)
 
 MARKET: Dict[str, Dict[str, float]] = {
     "AAPL": {"last_price": 230.0, "market_cap": 3.45e12, "beta": 1.2},
@@ -57,12 +68,15 @@ class FakeDate(date):
 
 
 def chat_reply(messages: List[BaseMessage]) -> str:
-    """The canned Strategist judgement for its (ticker, year), else "{}"."""
+    """The canned judgement whose prompt opens a message, for its (ticker, year), else "{}"."""
     for message in messages:
-        found = STRATEGIST_PROMPT.match(message.content) if isinstance(message.content, str) else None
-        if found:
-            reply = STRATEGIST_REPLIES.get((found.group(1), int(found.group(2))))
-            return json.dumps(reply) if reply is not None else CHAT_REPLY
+        if not isinstance(message.content, str):
+            continue
+        for prompt, replies in CANNED_REPLIES:
+            found = prompt.match(message.content)
+            if found:
+                reply = replies.get((found.group(1), int(found.group(2))))
+                return json.dumps(reply) if reply is not None else CHAT_REPLY
     return CHAT_REPLY
 
 

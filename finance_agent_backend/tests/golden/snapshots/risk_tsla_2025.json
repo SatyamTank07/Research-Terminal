@@ -18,7 +18,7 @@
    "type": "status"
   },
   {
-   "message": "Analyzed Item 1A risks & threats (0 verified risks, 0 severe; full-section read; no prior-year baseline)",
+   "message": "Analyzed Item 1A risks & threats (6 verified risks, 2 severe; full-section read; no prior-year baseline)",
    "node": "risk_analyst",
    "type": "status"
   },
@@ -28,8 +28,163 @@
    "type": "status"
   },
   {
-   "response": "# Material Risk Factors & Existential Overhangs: Tesla, Inc. (TSLA)\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: not assessed\n\n## 1. Risk Summary\n\nRisk disclosures focus on competition and regulation.\n\n## 2. Verified Risk Matrix\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\n## 3. Risk-by-Risk Assessment\n\n## 4. Primary Existential Threat & Bear-Case Linkage\n\nA demand slowdown is the main bear case.\n\n## 5. Year-over-Year Disclosure Changes\n\nNo prior-year Item 1A was available, so year-over-year disclosure changes were not assessed.\n\n## 6. Filing Evidence & Audit Trail\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
-   "sources": [],
+   "response": "# Material Risk Factors & Existential Overhangs: Tesla, Inc. (TSLA)\n> **Overall Risk Profile**: **High** | **Severe Risks**: 2 of 6 | **Disclosure Baseline**: not assessed\n\n## 1. Risk Summary\n\nRisk disclosures focus on competition and regulation.\n\n## 2. Verified Risk Matrix\n\n| # | Risk | Category | Likelihood | Impact | Severity | Model line(s) hit | vs prior year |\n| :--- | :--- | :--- | :---: | :---: | :---: | :--- | :---: |\n| R1 | Claims and scrutiny over driver assistance | Regulatory & Legal | High | High | **Severe** | Operating Expenses, Revenue | Not Assessed |\n| R2 | Loss of EV incentives | Competitive & Demand | Medium | High | **Severe** | Revenue | Not Assessed |\n| R3 | Battery cell supply | Supply Chain & Concentration | High | Medium | **Moderate** | Gross Margin, Capex & Working Capital | Not Assessed |\n| R4 | Autonomy and Robotaxi execution | Technological & Cybersecurity | High | Medium | **Moderate** | Revenue, Terminal Value | Not Assessed |\n| R5 | Dependence on Elon Musk | Operational | Medium | Medium | **Moderate** | Terminal Value | Not Assessed |\n| R6 | Vehicle market competition | Competitive & Demand | Medium | Medium | **Moderate** | Revenue | Not Assessed |\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\n## 3. Risk-by-Risk Assessment\n\n### R1 — Claims and scrutiny over driver assistance\n- **Disclosure**: The company faces claims and regulatory scrutiny over its technologies.[[1]](#cite-1)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Operating Expenses, Revenue\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n### R2 — Loss of EV incentives\n- **Disclosure**: Expired EV incentives may have hurt sales.[[2]](#cite-2)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n### R3 — Battery cell supply\n- **Disclosure**: Growth requires substantially more lithium-ion cells.[[3]](#cite-3)[[4]](#cite-4)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Gross Margin, Capex & Working Capital\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n### R4 — Autonomy and Robotaxi execution\n- **Disclosure**: The future business depends on autonomous driving and Cybercab.[[5]](#cite-5)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue, Terminal Value\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n### R5 — Dependence on Elon Musk\n- **Disclosure**: The company is highly dependent on its CEO.[[6]](#cite-6)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Terminal Value\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n### R6 — Vehicle market competition\n- **Disclosure**: Target demographics are highly competitive.[[7]](#cite-7)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n## 4. Primary Existential Threat & Bear-Case Linkage\n\nA demand slowdown is the main bear case.\n\n## 5. Year-over-Year Disclosure Changes\n\nNo prior-year Item 1A was available, so year-over-year disclosure changes were not assessed.\n\n## 6. Filing Evidence & Audit Trail\n\n| Chunk ID | Section | Breadcrumb |\n| :--- | :--- | :--- |\n| `45a19053-3a2e-41e8-b6cd-1f1622eaa6be` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `0d95bcbc-2e74-4824-8e19-3fcdf8aa2e64` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `c909ad16-10c0-487f-959d-de25aba49915` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `7e9ac2a0-5437-44fa-93a6-814b9e084782` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `0f01ed4c-dbf2-4ace-9abb-9726562025c4` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `baf66bd4-7d64-4805-9025-53517d5286a8` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `21a45a2e-c0e9-471e-962c-d9ab05e7ef23` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "sources": [
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "45a19053-3a2e-41e8-b6cd-1f1622eaa6be",
+       "chunk_index": 63,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 1,
+     "provider": null,
+     "quote": "We have experienced, and we expect to continue to face, claims and regulatory scrutiny arising from or related to misuse or claimed failures or alleged misrepresentations of the technologies that we are pioneering.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "0d95bcbc-2e74-4824-8e19-3fcdf8aa2e64",
+       "chunk_index": 86,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 2,
+     "provider": null,
+     "quote": "previously available incentives favoring electric vehicles in certain areas have expired or were cancelled or temporarily unavailable, and in some cases were not eventually replaced or reinstituted, which may have negatively impacted sales.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "c909ad16-10c0-487f-959d-de25aba49915",
+       "chunk_index": 53,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 3,
+     "provider": null,
+     "quote": "We are dependent on the continued supply of lithium-ion battery cells for our vehicles and energy storage products, and we will require substantially more cells to grow our business according to our plans.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "7e9ac2a0-5437-44fa-93a6-814b9e084782",
+       "chunk_index": 52,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 4,
+     "provider": null,
+     "quote": "We will need to maintain and significantly grow our access to battery cells, including through the development and manufacture of our own cells, and control our related costs.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "0f01ed4c-dbf2-4ace-9abb-9726562025c4",
+       "chunk_index": 45,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 5,
+     "provider": null,
+     "quote": "our future business depends on development of our driver assistance systems and autonomous driving solutions and increasing the production of mass-market vehicles, including Cybercab, our purpose-built Robotaxi product.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "baf66bd4-7d64-4805-9025-53517d5286a8",
+       "chunk_index": 68,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 6,
+     "provider": null,
+     "quote": "In particular, we are highly dependent on the services of Elon Musk, Technoking of Tesla and our Chief Executive Officer.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "21a45a2e-c0e9-471e-962c-d9ab05e7ef23",
+       "chunk_index": 55,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 7,
+     "provider": null,
+     "quote": "The target demographics for our vehicles are highly competitive.",
+     "ticker": "TSLA"
+    }
+   ],
    "type": "result",
    "updated_session_state": {
     "active_company": "Tesla, Inc.",
@@ -52,9 +207,164 @@
    "current_share_price": null,
    "executive_summary": "The filing supports a balanced view of the business.",
    "fiscal_year": 2025,
-   "full_markdown_report": "# Material Risk Factors & Existential Overhangs: Tesla, Inc. (TSLA)\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: not assessed\n\n## 1. Risk Summary\n\nRisk disclosures focus on competition and regulation.\n\n## 2. Verified Risk Matrix\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\n## 3. Risk-by-Risk Assessment\n\n## 4. Primary Existential Threat & Bear-Case Linkage\n\nA demand slowdown is the main bear case.\n\n## 5. Year-over-Year Disclosure Changes\n\nNo prior-year Item 1A was available, so year-over-year disclosure changes were not assessed.\n\n## 6. Filing Evidence & Audit Trail\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "full_markdown_report": "# Material Risk Factors & Existential Overhangs: Tesla, Inc. (TSLA)\n> **Overall Risk Profile**: **High** | **Severe Risks**: 2 of 6 | **Disclosure Baseline**: not assessed\n\n## 1. Risk Summary\n\nRisk disclosures focus on competition and regulation.\n\n## 2. Verified Risk Matrix\n\n| # | Risk | Category | Likelihood | Impact | Severity | Model line(s) hit | vs prior year |\n| :--- | :--- | :--- | :---: | :---: | :---: | :--- | :---: |\n| R1 | Claims and scrutiny over driver assistance | Regulatory & Legal | High | High | **Severe** | Operating Expenses, Revenue | Not Assessed |\n| R2 | Loss of EV incentives | Competitive & Demand | Medium | High | **Severe** | Revenue | Not Assessed |\n| R3 | Battery cell supply | Supply Chain & Concentration | High | Medium | **Moderate** | Gross Margin, Capex & Working Capital | Not Assessed |\n| R4 | Autonomy and Robotaxi execution | Technological & Cybersecurity | High | Medium | **Moderate** | Revenue, Terminal Value | Not Assessed |\n| R5 | Dependence on Elon Musk | Operational | Medium | Medium | **Moderate** | Terminal Value | Not Assessed |\n| R6 | Vehicle market competition | Competitive & Demand | Medium | Medium | **Moderate** | Revenue | Not Assessed |\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\n## 3. Risk-by-Risk Assessment\n\n### R1 — Claims and scrutiny over driver assistance\n- **Disclosure**: The company faces claims and regulatory scrutiny over its technologies.[[1]](#cite-1)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Operating Expenses, Revenue\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n### R2 — Loss of EV incentives\n- **Disclosure**: Expired EV incentives may have hurt sales.[[2]](#cite-2)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n### R3 — Battery cell supply\n- **Disclosure**: Growth requires substantially more lithium-ion cells.[[3]](#cite-3)[[4]](#cite-4)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Gross Margin, Capex & Working Capital\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n### R4 — Autonomy and Robotaxi execution\n- **Disclosure**: The future business depends on autonomous driving and Cybercab.[[5]](#cite-5)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue, Terminal Value\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n### R5 — Dependence on Elon Musk\n- **Disclosure**: The company is highly dependent on its CEO.[[6]](#cite-6)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Terminal Value\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n### R6 — Vehicle market competition\n- **Disclosure**: Target demographics are highly competitive.[[7]](#cite-7)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n## 4. Primary Existential Threat & Bear-Case Linkage\n\nA demand slowdown is the main bear case.\n\n## 5. Year-over-Year Disclosure Changes\n\nNo prior-year Item 1A was available, so year-over-year disclosure changes were not assessed.\n\n## 6. Filing Evidence & Audit Trail\n\n| Chunk ID | Section | Breadcrumb |\n| :--- | :--- | :--- |\n| `45a19053-3a2e-41e8-b6cd-1f1622eaa6be` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `0d95bcbc-2e74-4824-8e19-3fcdf8aa2e64` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `c909ad16-10c0-487f-959d-de25aba49915` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `7e9ac2a0-5437-44fa-93a6-814b9e084782` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `0f01ed4c-dbf2-4ace-9abb-9726562025c4` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `baf66bd4-7d64-4805-9025-53517d5286a8` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `21a45a2e-c0e9-471e-962c-d9ab05e7ef23` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
    "implied_fair_value_per_share": null,
-   "sources": [],
+   "sources": [
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "45a19053-3a2e-41e8-b6cd-1f1622eaa6be",
+       "chunk_index": 63,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 1,
+     "provider": null,
+     "quote": "We have experienced, and we expect to continue to face, claims and regulatory scrutiny arising from or related to misuse or claimed failures or alleged misrepresentations of the technologies that we are pioneering.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "0d95bcbc-2e74-4824-8e19-3fcdf8aa2e64",
+       "chunk_index": 86,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 2,
+     "provider": null,
+     "quote": "previously available incentives favoring electric vehicles in certain areas have expired or were cancelled or temporarily unavailable, and in some cases were not eventually replaced or reinstituted, which may have negatively impacted sales.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "c909ad16-10c0-487f-959d-de25aba49915",
+       "chunk_index": 53,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 3,
+     "provider": null,
+     "quote": "We are dependent on the continued supply of lithium-ion battery cells for our vehicles and energy storage products, and we will require substantially more cells to grow our business according to our plans.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "7e9ac2a0-5437-44fa-93a6-814b9e084782",
+       "chunk_index": 52,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 4,
+     "provider": null,
+     "quote": "We will need to maintain and significantly grow our access to battery cells, including through the development and manufacture of our own cells, and control our related costs.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "0f01ed4c-dbf2-4ace-9abb-9726562025c4",
+       "chunk_index": 45,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 5,
+     "provider": null,
+     "quote": "our future business depends on development of our driver assistance systems and autonomous driving solutions and increasing the production of mass-market vehicles, including Cybercab, our purpose-built Robotaxi product.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "baf66bd4-7d64-4805-9025-53517d5286a8",
+       "chunk_index": 68,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 6,
+     "provider": null,
+     "quote": "In particular, we are highly dependent on the services of Elon Musk, Technoking of Tesla and our Chief Executive Officer.",
+     "ticker": "TSLA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "21a45a2e-c0e9-471e-962c-d9ab05e7ef23",
+       "chunk_index": 55,
+       "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+       "fiscal_year": 2025,
+       "item": "Item 1A",
+       "ticker": "TSLA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "n": 7,
+     "provider": null,
+     "quote": "The target demographics for our vehicles are highly competitive.",
+     "ticker": "TSLA"
+    }
+   ],
    "synthesis_provenance": "llm_structured",
    "three_pillar_thesis": {
     "pillar_1_business_moat": "The business relies on its installed base and its brand.",
@@ -70,32 +380,277 @@
   "forecast": null,
   "pipeline_notes": [],
   "risk_audit": {
-   "citations": [],
+   "citations": [
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "chunk_id": "45a19053-3a2e-41e8-b6cd-1f1622eaa6be",
+     "fiscal_year": 2025,
+     "item": "Item 1A",
+     "sub_section": "RISK FACTORS",
+     "ticker": "TSLA"
+    },
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "chunk_id": "0d95bcbc-2e74-4824-8e19-3fcdf8aa2e64",
+     "fiscal_year": 2025,
+     "item": "Item 1A",
+     "sub_section": "RISK FACTORS",
+     "ticker": "TSLA"
+    },
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "chunk_id": "c909ad16-10c0-487f-959d-de25aba49915",
+     "fiscal_year": 2025,
+     "item": "Item 1A",
+     "sub_section": "RISK FACTORS",
+     "ticker": "TSLA"
+    },
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "chunk_id": "7e9ac2a0-5437-44fa-93a6-814b9e084782",
+     "fiscal_year": 2025,
+     "item": "Item 1A",
+     "sub_section": "RISK FACTORS",
+     "ticker": "TSLA"
+    },
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "chunk_id": "0f01ed4c-dbf2-4ace-9abb-9726562025c4",
+     "fiscal_year": 2025,
+     "item": "Item 1A",
+     "sub_section": "RISK FACTORS",
+     "ticker": "TSLA"
+    },
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "chunk_id": "baf66bd4-7d64-4805-9025-53517d5286a8",
+     "fiscal_year": 2025,
+     "item": "Item 1A",
+     "sub_section": "RISK FACTORS",
+     "ticker": "TSLA"
+    },
+    {
+     "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+     "chunk_id": "21a45a2e-c0e9-471e-962c-d9ab05e7ef23",
+     "fiscal_year": 2025,
+     "item": "Item 1A",
+     "sub_section": "RISK FACTORS",
+     "ticker": "TSLA"
+    }
+   ],
    "data_quality": {
     "chars_read": 86213,
     "coverage_mode": "full_section",
     "item1a_chunks": 58,
-    "notes": [
-     "llm_output_missing: the model returned no parsable risk inventory.",
-     "Only 0 risks survived evidence verification (target 5-8)."
-    ],
+    "notes": [],
     "prior_fiscal_year": null,
     "quantified_disclosures": 0,
     "quantified_uncovered": [],
     "quotes_rejected": 0,
     "risks_dropped_unverified": 0,
     "risks_merged": 0,
-    "risks_proposed": 0,
+    "risks_proposed": 6,
     "section_located_by": "item_label"
    },
    "disclosure_changes": null,
-   "evidence_table_markdown": "_No verified filing evidence._",
+   "evidence_table_markdown": "| Chunk ID | Section | Breadcrumb |\n| :--- | :--- | :--- |\n| `45a19053-3a2e-41e8-b6cd-1f1622eaa6be` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `0d95bcbc-2e74-4824-8e19-3fcdf8aa2e64` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `c909ad16-10c0-487f-959d-de25aba49915` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `7e9ac2a0-5437-44fa-93a6-814b9e084782` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `0f01ed4c-dbf2-4ace-9abb-9726562025c4` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `baf66bd4-7d64-4805-9025-53517d5286a8` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |\n| `21a45a2e-c0e9-471e-962c-d9ab05e7ef23` | Item 1A | Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS |",
    "fiscal_year": 2025,
-   "identified_risks": [],
-   "overall_risk_profile": "Not Assessed",
-   "primary_existential_threat": "",
-   "primary_threat_risk_id": null,
-   "risk_matrix_markdown": "_No risks survived evidence verification against the filing._",
+   "identified_risks": [
+    {
+     "adjustments": [],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "45a19053-3a2e-41e8-b6cd-1f1622eaa6be",
+       "item": "Item 1A",
+       "quote": "We have experienced, and we expect to continue to face, claims and regulatory scrutiny arising from or related to misuse or claimed failures or alleged misrepresentations of the technologies that we are pioneering.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Operating Expenses",
+      "Revenue"
+     ],
+     "impact": "High",
+     "likelihood": "High",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": null,
+     "risk_category": "Regulatory & Legal",
+     "risk_id": "R1",
+     "risk_summary": "The company faces claims and regulatory scrutiny over its technologies.",
+     "risk_title": "Claims and scrutiny over driver assistance",
+     "severity": "Severe"
+    },
+    {
+     "adjustments": [],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "0d95bcbc-2e74-4824-8e19-3fcdf8aa2e64",
+       "item": "Item 1A",
+       "quote": "previously available incentives favoring electric vehicles in certain areas have expired or were cancelled or temporarily unavailable, and in some cases were not eventually replaced or reinstituted, which may have negatively impacted sales.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Revenue"
+     ],
+     "impact": "High",
+     "likelihood": "Medium",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": null,
+     "risk_category": "Competitive & Demand",
+     "risk_id": "R2",
+     "risk_summary": "Expired EV incentives may have hurt sales.",
+     "risk_title": "Loss of EV incentives",
+     "severity": "Severe"
+    },
+    {
+     "adjustments": [
+      "Impact capped at Medium: no filing-stated magnitude or realized effect supports a High impact."
+     ],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "c909ad16-10c0-487f-959d-de25aba49915",
+       "item": "Item 1A",
+       "quote": "We are dependent on the continued supply of lithium-ion battery cells for our vehicles and energy storage products, and we will require substantially more cells to grow our business according to our plans.",
+       "verified": true
+      },
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "7e9ac2a0-5437-44fa-93a6-814b9e084782",
+       "item": "Item 1A",
+       "quote": "We will need to maintain and significantly grow our access to battery cells, including through the development and manufacture of our own cells, and control our related costs.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Gross Margin",
+      "Capex & Working Capital"
+     ],
+     "impact": "Medium",
+     "likelihood": "High",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": null,
+     "risk_category": "Supply Chain & Concentration",
+     "risk_id": "R3",
+     "risk_summary": "Growth requires substantially more lithium-ion cells.",
+     "risk_title": "Battery cell supply",
+     "severity": "Moderate"
+    },
+    {
+     "adjustments": [
+      "Impact capped at Medium: no filing-stated magnitude or realized effect supports a High impact."
+     ],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "0f01ed4c-dbf2-4ace-9abb-9726562025c4",
+       "item": "Item 1A",
+       "quote": "our future business depends on development of our driver assistance systems and autonomous driving solutions and increasing the production of mass-market vehicles, including Cybercab, our purpose-built Robotaxi product.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Revenue",
+      "Terminal Value"
+     ],
+     "impact": "Medium",
+     "likelihood": "High",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": null,
+     "risk_category": "Technological & Cybersecurity",
+     "risk_id": "R4",
+     "risk_summary": "The future business depends on autonomous driving and Cybercab.",
+     "risk_title": "Autonomy and Robotaxi execution",
+     "severity": "Moderate"
+    },
+    {
+     "adjustments": [
+      "Impact capped at Medium: no filing-stated magnitude or realized effect supports a High impact."
+     ],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "baf66bd4-7d64-4805-9025-53517d5286a8",
+       "item": "Item 1A",
+       "quote": "In particular, we are highly dependent on the services of Elon Musk, Technoking of Tesla and our Chief Executive Officer.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Terminal Value"
+     ],
+     "impact": "Medium",
+     "likelihood": "Medium",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": null,
+     "risk_category": "Operational",
+     "risk_id": "R5",
+     "risk_summary": "The company is highly dependent on its CEO.",
+     "risk_title": "Dependence on Elon Musk",
+     "severity": "Moderate"
+    },
+    {
+     "adjustments": [],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+       "chunk_id": "21a45a2e-c0e9-471e-962c-d9ab05e7ef23",
+       "item": "Item 1A",
+       "quote": "The target demographics for our vehicles are highly competitive.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Revenue"
+     ],
+     "impact": "Medium",
+     "likelihood": "Medium",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": null,
+     "risk_category": "Competitive & Demand",
+     "risk_id": "R6",
+     "risk_summary": "Target demographics are highly competitive.",
+     "risk_title": "Vehicle market competition",
+     "severity": "Moderate"
+    }
+   ],
+   "overall_risk_profile": "High",
+   "primary_existential_threat": "Claims and regulatory scrutiny could limit FSD and Robotaxi.",
+   "primary_threat_risk_id": "R1",
+   "risk_matrix_markdown": "| # | Risk | Category | Likelihood | Impact | Severity | Model line(s) hit | vs prior year |\n| :--- | :--- | :--- | :---: | :---: | :---: | :--- | :---: |\n| R1 | Claims and scrutiny over driver assistance | Regulatory & Legal | High | High | **Severe** | Operating Expenses, Revenue | Not Assessed |\n| R2 | Loss of EV incentives | Competitive & Demand | Medium | High | **Severe** | Revenue | Not Assessed |\n| R3 | Battery cell supply | Supply Chain & Concentration | High | Medium | **Moderate** | Gross Margin, Capex & Working Capital | Not Assessed |\n| R4 | Autonomy and Robotaxi execution | Technological & Cybersecurity | High | Medium | **Moderate** | Revenue, Terminal Value | Not Assessed |\n| R5 | Dependence on Elon Musk | Operational | Medium | Medium | **Moderate** | Terminal Value | Not Assessed |\n| R6 | Vehicle market competition | Competitive & Demand | Medium | Medium | **Moderate** | Revenue | Not Assessed |",
    "ticker": "TSLA"
   },
   "routing_plan": {
@@ -126,7 +681,162 @@
    "year_requested": null,
    "year_substituted": false
   },
-  "sources": [],
+  "sources": [
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+      "chunk_id": "45a19053-3a2e-41e8-b6cd-1f1622eaa6be",
+      "chunk_index": 63,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 1A",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+    "n": 1,
+    "provider": null,
+    "quote": "We have experienced, and we expect to continue to face, claims and regulatory scrutiny arising from or related to misuse or claimed failures or alleged misrepresentations of the technologies that we are pioneering.",
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+      "chunk_id": "0d95bcbc-2e74-4824-8e19-3fcdf8aa2e64",
+      "chunk_index": 86,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 1A",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+    "n": 2,
+    "provider": null,
+    "quote": "previously available incentives favoring electric vehicles in certain areas have expired or were cancelled or temporarily unavailable, and in some cases were not eventually replaced or reinstituted, which may have negatively impacted sales.",
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+      "chunk_id": "c909ad16-10c0-487f-959d-de25aba49915",
+      "chunk_index": 53,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 1A",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+    "n": 3,
+    "provider": null,
+    "quote": "We are dependent on the continued supply of lithium-ion battery cells for our vehicles and energy storage products, and we will require substantially more cells to grow our business according to our plans.",
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+      "chunk_id": "7e9ac2a0-5437-44fa-93a6-814b9e084782",
+      "chunk_index": 52,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 1A",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+    "n": 4,
+    "provider": null,
+    "quote": "We will need to maintain and significantly grow our access to battery cells, including through the development and manufacture of our own cells, and control our related costs.",
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+      "chunk_id": "0f01ed4c-dbf2-4ace-9abb-9726562025c4",
+      "chunk_index": 45,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 1A",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+    "n": 5,
+    "provider": null,
+    "quote": "our future business depends on development of our driver assistance systems and autonomous driving solutions and increasing the production of mass-market vehicles, including Cybercab, our purpose-built Robotaxi product.",
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+      "chunk_id": "baf66bd4-7d64-4805-9025-53517d5286a8",
+      "chunk_index": 68,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 1A",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+    "n": 6,
+    "provider": null,
+    "quote": "In particular, we are highly dependent on the services of Elon Musk, Technoking of Tesla and our Chief Executive Officer.",
+    "ticker": "TSLA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+      "chunk_id": "21a45a2e-c0e9-471e-962c-d9ab05e7ef23",
+      "chunk_index": 55,
+      "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+      "fiscal_year": 2025,
+      "item": "Item 1A",
+      "ticker": "TSLA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "4dbd2c7e-92a7-40b0-8fd8-734aa493842b",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "Tesla, Inc. (TSLA) > 10-K FY2025 > PART I > Item 1A: RISK FACTORS",
+    "n": 7,
+    "provider": null,
+    "quote": "The target demographics for our vehicles are highly competitive.",
+    "ticker": "TSLA"
+   }
+  ],
   "updated_session_state": {
    "active_company": "Tesla, Inc.",
    "active_fiscal_year": 2025,

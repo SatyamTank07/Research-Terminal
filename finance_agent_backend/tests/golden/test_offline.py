@@ -10,6 +10,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from pydantic import BaseModel
 
 from tests.golden.offline import CLOCK_TARGETS, EMBEDDING_DIM, GOLDEN_DATE, FakeDate, offline
+from tests.golden.risk_replies import RISK_REPAIR_REPLIES, RISK_REPLIES
 from tests.golden.strategist_replies import STRATEGIST_REPLIES
 
 
@@ -85,3 +86,13 @@ class TestOfflineFakes(unittest.TestCase):
             other = _chat().invoke(unknown)
         self.assertEqual(json.loads(reply.content), STRATEGIST_REPLIES[("NVDA", 2026)])
         self.assertEqual(other.content, "{}")
+
+    def test_risk_inventory_and_repair_get_their_canned_replies(self):
+        inventory = "Build the risk inventory for TSLA from its fiscal year 2025 SEC 10-K.\n\nITEM 1A"
+        repair = "You are a Chief Risk Officer completing a risk inventory for NVDA from its fiscal year 2026 SEC 10-K."
+        no_repair = "You are a Chief Risk Officer completing a risk inventory for TSLA from its fiscal year 2025 SEC 10-K."
+        with offline({}):
+            replies = [_chat().invoke(prompt).content for prompt in (inventory, repair, no_repair)]
+        self.assertEqual(json.loads(replies[0]), RISK_REPLIES[("TSLA", 2025)])
+        self.assertEqual(json.loads(replies[1]), RISK_REPAIR_REPLIES[("NVDA", 2026)])
+        self.assertEqual(replies[2], "{}")
