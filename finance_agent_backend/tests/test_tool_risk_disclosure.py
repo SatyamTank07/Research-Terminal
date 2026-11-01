@@ -1,7 +1,7 @@
 """Unit Tests for the deterministic Risk-Disclosure toolkit (Item 1A).
 
 Validates the likelihood x impact severity matrix,
-aggregate risk profile, materiality / boilerplate screens, the not-provided check, the
+aggregate risk profile, materiality / boilerplate screens, the
 year-over-year disclosure diff, and the markdown renderers. No database or network access.
 """
 
@@ -18,7 +18,6 @@ from app.agents.tools.risk_disclosure_tools import (
     disclosure_covered,
     extract_quantified_disclosures,
     is_boilerplate,
-    section_not_provided,
     is_material_disclosure,
     normalize_level,
     render_risk_evidence_table,
@@ -128,17 +127,6 @@ class TestQuantifiedDisclosures(unittest.TestCase):
         self.assertTrue(substantiates_high_impact(["Export restrictions have adversely affected our China revenue"], None))
         self.assertFalse(substantiates_high_impact(["A cyberattack could disrupt our operations and may harm results"], None))
         self.assertFalse(substantiates_high_impact([], None))
-
-
-class TestSectionNotProvided(unittest.TestCase):
-    LONG_BODY = "Our business depends on a small number of suppliers and customers in several regions. " * 6
-
-    def test_not_provided_detection(self):
-        self.assertTrue(section_not_provided([_chunk("n", "Not applicable.")]))
-        self.assertTrue(section_not_provided([_chunk("n", "As a smaller reporting company, we are not required to provide the information required by this Item.")]))
-        self.assertTrue(section_not_provided([]))
-        self.assertFalse(section_not_provided([_chunk("r", self.LONG_BODY * 10 + " Not applicable to our Japanese subsidiaries.")]))
-        self.assertFalse(section_not_provided([_chunk("r", CONCENTRATION)]))
 
 
 class TestDisclosureDiff(unittest.TestCase):

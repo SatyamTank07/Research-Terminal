@@ -8,7 +8,6 @@ duplicates, derives severity from a fixed likelihood x impact matrix, re-points 
 threat when needed, and renders the verified risk matrix and evidence table.
 """
 
-import json
 import logging
 import re
 from typing import Any, Dict, List, Optional, Sequence, Tuple
@@ -17,11 +16,19 @@ from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.narrative_search import retrieve_10k_narrative_tool
-from app.agents.shared.filing.sections import build_section_context, locate_section_chunks
+from app.agents.shared.filing.sections import build_section_context
 from app.agents.shared.filing.sentences import normalize_text
 from app.agents.shared.llm_call import complete_once
 from app.agents.shared.prompts import render_prompt
 from app.agents.shared.quotes import find_quote_chunk, numbers_supported
+from app.agents.specialized.risk_analyst.context import (
+    RISK_SECTION_ITEM,
+    coverage_notes,
+    locate_item1a,
+    resolve_prior_year,
+    section_not_provided,
+    tool_chunks,
+)
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
     FINANCIAL_TRANSMISSIONS,
     RISK_CATEGORIES,
@@ -33,7 +40,6 @@ from app.agents.specialized.risk_analyst.state_risk_analyst import (
 from app.agents.tools.risk_disclosure_tools import (
     LEVEL_ORDER,
     QUANTIFIED_FIGURE,
-    RISK_SECTION_ITEM,
     SEVERITY_ORDER,
     build_prior_index,
     classify_disclosure_change,
@@ -47,7 +53,6 @@ from app.agents.tools.risk_disclosure_tools import (
     normalize_level,
     render_risk_evidence_table,
     render_risk_matrix_markdown,
-    section_not_provided,
     states_immaterial,
     substantiates_high_impact,
 )
@@ -127,12 +132,12 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
     ) -> RiskAuditOutput:
         """Analyzes the 10-K Item 1A for `ticker` / `fiscal_year` and returns a verified RiskAuditOutput."""
         ticker = ticker.upper()
-        current, located_by = self._safe_locate(ticker, fiscal_year)
+        current, located_by = locate_item1a(ticker, fiscal_year)
         if located_by != "not_found" and section_not_provided(current):
             return self._not_provided_output(ticker, fiscal_year, current, located_by)
 
-        prior_year = self._resolve_prior_year(fiscal_year, available_fiscal_years)
-        prior = self._safe_locate(ticker, prior_year)[0] if prior_year else []
+        prior_year = resolve_prior_year(fiscal_year, available_fiscal_years)
+        prior = locate_item1a(ticker, prior_year)[0] if prior_year else []
         if prior and section_not_provided(prior):
             prior = []
 
@@ -157,20 +162,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
             prior_fiscal_year=prior_year if diff else None,
             quantified_disclosures=len(quantified),
         )
-        if mode == "rag_fallback":
-            data_quality.notes.append(
-                f"Item 1A could not be located in the {ticker} FY{fiscal_year} 10-K (no section label or heading); "
-                "risks were sourced through hybrid retrieval across the filing and may be incomplete."
-            )
-        if located_by == "heading_boundary":
-            data_quality.notes.append(
-                "Item 1A was located from the filing's own section headings because the stored section labels were wrong; "
-                "consider re-ingesting this filing."
-            )
-        elif mode == "budgeted_section":
-            data_quality.notes.append("Item 1A exceeded the context budget; non-summary paragraphs were truncated to their lead text.")
-        if prior_year and not diff:
-            data_quality.notes.append(f"Prior-year (FY{prior_year}) Item 1A unavailable; year-over-year change not assessed.")
+        data_quality.notes.extend(coverage_notes(ticker, fiscal_year, mode, located_by, prior_year, diff is not None))
 
         self._run = {
             "pool": {c.chunk_id: c.model_dump() for c in current},
@@ -262,21 +254,6 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
     # ------------------------------------------------------------------
     # Setup helpers
     # ------------------------------------------------------------------
-    @staticmethod
-    def _resolve_prior_year(fiscal_year: int, available_fiscal_years: Optional[List[int]]) -> Optional[int]:
-        if available_fiscal_years is None:
-            return fiscal_year - 1
-        prior = [y for y in available_fiscal_years if y < fiscal_year]
-        return max(prior) if prior else None
-
-    @staticmethod
-    def _safe_locate(ticker: str, fiscal_year: int) -> Tuple[List[Any], str]:
-        try:
-            return locate_section_chunks(ticker, fiscal_year, RISK_SECTION_ITEM)
-        except Exception as e:
-            logger.warning(f"Item 1A pre-fetch failed for {ticker} FY{fiscal_year}: {e}")
-            return [], "not_found"
-
     def _not_provided_output(
         self, ticker: str, fiscal_year: int, chunks: List[Any], located_by: str
     ) -> RiskAuditOutput:
@@ -431,7 +408,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
             dq.notes.append("llm_output_missing: the model returned no parsable risk inventory.")
 
         pool: Dict[str, Dict[str, Any]] = dict(run["pool"])
-        for cid, chunk in self._tool_chunks(result.get("messages", [])).items():
+        for cid, chunk in tool_chunks(result.get("messages", [])).items():
             pool.setdefault(cid, chunk)
 
         risks = [r.model_copy(deep=True) for r in output.identified_risks]
@@ -546,23 +523,6 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
             breadcrumb=hit.get("breadcrumb"),
             verified=True,
         )
-
-    @staticmethod
-    def _tool_chunks(messages: Sequence[Any]) -> Dict[str, Dict[str, Any]]:
-        """Collects chunks (with content) returned by narrative-retrieval tool calls."""
-        chunks: Dict[str, Dict[str, Any]] = {}
-        for msg in messages:
-            raw = getattr(msg, "content", "")
-            if not isinstance(raw, str) or '"chunk_id"' not in raw or '"content"' not in raw:
-                continue
-            try:
-                parsed = json.loads(raw)
-            except Exception:
-                continue
-            for item in parsed if isinstance(parsed, list) else [parsed]:
-                if isinstance(item, dict) and item.get("chunk_id") and isinstance(item.get("content"), str):
-                    chunks.setdefault(str(item["chunk_id"]), item)
-        return chunks
 
     def _merge_duplicates(self, risks: List[RiskItem]) -> Tuple[List[RiskItem], Dict[int, RiskItem]]:
         """Folds duplicate risks into the higher-ranked one. Returns (survivors, {id(absorbed): survivor})."""

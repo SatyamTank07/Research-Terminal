@@ -20,8 +20,6 @@ from app.agents.shared.filing.sentences import normalize_text, split_sentences, 
 
 logger = logging.getLogger("finance_agent.tools.risk_disclosure")
 
-RISK_SECTION_ITEM = "Item 1A"
-
 UNCHANGED_SIMILARITY = 0.6
 MODIFIED_SIMILARITY = 0.3
 MAX_NEW_PASSAGES = 12
@@ -118,25 +116,6 @@ class RiskDisclosureDiff(BaseModel):
     change_ratio_pct: float = Field(..., description="(new + modified) / current sentences, in percent")
     new_passages: List[DisclosurePassage] = Field(default_factory=list)
     removed_passages: List[DisclosurePassage] = Field(default_factory=list)
-
-
-# ==============================================================================
-# 2. Section availability
-# ==============================================================================
-_NOT_PROVIDED = re.compile(
-    r"not\s+applicable|smaller\s+reporting\s+compan|not\s+required\s+to\s+(?:provide|include)|\bomitted\b",
-    re.IGNORECASE,
-)
-NOT_PROVIDED_MAX_CHARS = 2_500
-
-
-def section_not_provided(chunks: Sequence[NarrativeChunkResult]) -> bool:
-    """True when a located section is a short statement that no disclosure is provided
-    (e.g. "Not applicable" or the smaller-reporting-company exemption)."""
-    text = " ".join(c.content for c in chunks).strip()
-    if not text:
-        return True
-    return len(text) <= NOT_PROVIDED_MAX_CHARS and bool(_NOT_PROVIDED.search(text))
 
 
 # ==============================================================================
@@ -412,7 +391,6 @@ def render_risk_evidence_table(citations: Sequence[Dict[str, Any]]) -> str:
 
 
 __all__ = [
-    "RISK_SECTION_ITEM",
     "DisclosurePassage",
     "QuantifiedDisclosure",
     "RiskDisclosureDiff",
@@ -422,7 +400,6 @@ __all__ = [
     "is_material_disclosure",
     "substantiates_high_impact",
     "QUANTIFIED_FIGURE",
-    "section_not_provided",
     "build_prior_index",
     "diff_risk_disclosures",
     "classify_disclosure_change",

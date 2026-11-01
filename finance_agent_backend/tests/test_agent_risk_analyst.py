@@ -28,7 +28,7 @@ from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retr
 from app.agents.shared.filing.sections import fetch_section_chunks, locate_section_chunks
 from app.agents.tools.risk_disclosure_tools import diff_risk_disclosures
 
-LOCATE_PATH = "app.agents.specialized.risk_analyst.agent_risk_analyst.locate_section_chunks"
+LOCATE_PATH = "app.agents.specialized.risk_analyst.context.locate_section_chunks"
 
 
 def _as_locator(fetch, located_by: str = "item_label"):
