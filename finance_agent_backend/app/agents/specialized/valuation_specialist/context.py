@@ -141,6 +141,11 @@ class MarketInputs(BaseModel):
     risk_free_rate_source: str = "house_default_config"
     market_data_source: str = "fallback_offline"
 
+    @property
+    def valid_share_price(self) -> Optional[float]:
+        """The share price when it is positive, else None (then no upside and no stance)."""
+        return self.share_price if self.share_price and self.share_price > 0 else None
+
 
 
 def balance_sheet_date(ticker: str, fiscal_year: int) -> Optional[str]:

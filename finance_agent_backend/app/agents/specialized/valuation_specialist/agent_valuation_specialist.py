@@ -18,8 +18,16 @@ from app.agents.shared.llm_call import complete_once
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
-from app.agents.specialized.valuation_specialist.assemble import build_valuation
+from app.agents.specialized.valuation_specialist.assemble import assemble_valuation
 from app.agents.specialized.valuation_specialist.context import MarketInputs, balance_sheet_date, market_inputs
+from app.agents.specialized.valuation_specialist.modules import (
+    cost_of_capital,
+    intrinsic_value,
+    market_implied_expectations,
+    scenario_values,
+    sensitivity,
+    valuation_stance,
+)
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput, ValuationBuild
 
 
@@ -37,6 +45,48 @@ def trim_to_complete_sentence(text: str) -> str:
     if not ends or ends[-1].end() == len(text):
         return text
     return text[: ends[-1].end()].rstrip()
+
+
+def build_valuation(
+    ticker: str,
+    fiscal_year: int,
+    financial_audit: FinancialAuditOutput,
+    forecast: Optional[ForecastOutput],
+    market: MarketInputs,
+    *,
+    terminal_growth_rate: float,
+    wacc_override: Optional[float] = None,
+    valuation_date: Optional[date] = None,
+    balance_sheet_date: Optional[str] = None,
+) -> ValuationBuild:
+    """Every number of the valuation, module by module in MODULES order (no LLM)."""
+    valuation_date = valuation_date or date.today()
+    price = market.valid_share_price
+    capital = cost_of_capital.estimate_cost_of_capital(
+        cost_of_capital.gather_capital_inputs(financial_audit, market, wacc_override)
+    )
+    intrinsic = intrinsic_value.estimate_intrinsic_value(
+        intrinsic_value.gather_intrinsic_value_inputs(financial_audit, forecast, market, valuation_date, balance_sheet_date),
+        capital,
+        terminal_growth_rate,
+    )
+    scenarios = scenario_values.value_scenarios(forecast, intrinsic, capital, price)
+    implied = market_implied_expectations.solve_market_implied_expectations(forecast, intrinsic, capital, price)
+    grids = sensitivity.build_sensitivity_grids(intrinsic.dcf)
+    stance = valuation_stance.take_valuation_stance(intrinsic.dcf.fair_value_per_share, price)
+    build = assemble_valuation(
+        ticker=ticker, fiscal_year=fiscal_year, valuation_date=valuation_date,
+        terminal_growth_rate=terminal_growth_rate, market=market, price=price, capital=capital,
+        intrinsic=intrinsic, scenarios=scenarios, implied=implied, grids=grids, stance=stance,
+    )
+    logger.info(
+        f"build_valuation {build.ticker} FY{fiscal_year}: WACC {capital.wacc_audit.wacc_pct:.2f}% "
+        f"({capital.wacc_audit.wacc_source}), base ${build.implied_fair_value_per_share:.2f}, "
+        f"bear ${build.bear_fair_value}, bull ${build.bull_fair_value}, "
+        f"weighted ${build.probability_weighted_fair_value}, roll {intrinsic.terms.roll_forward_years:.2f}y, "
+        f"{len(build.data_quality.warnings)} warnings"
+    )
+    return build
 
 
 @AgentRegistry.register("valuation_specialist")
