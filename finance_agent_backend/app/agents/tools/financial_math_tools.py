@@ -29,13 +29,16 @@ from app.agents.specialized.financial_auditor.context.audit_inputs import (
     validate_audit_inputs,
 )
 from app.agents.specialized.financial_auditor.findings import ForensicFinding, Severity, rank_findings
+from app.agents.specialized.financial_auditor.modules.margins_and_costs import (
+    YearCostStructure,
+    measure_cost_structure,
+    screen_margins_and_costs,
+)
 from app.agents.specialized.financial_auditor.modules.financial_history import (
     YearFinancialsResult,
     build_financial_history,
     cost_of_revenue_of,
-    gross_profit_of,
     growth_pct,
-    operating_expenses_of,
     pct_of,
 )
 
@@ -54,9 +57,6 @@ SBC_TO_OCF_THRESHOLD_PCT = 15.0
 SBC_TO_EBIT_THRESHOLD_PCT = 40.0
 DILUTED_SHARE_GROWTH_THRESHOLD_PCT = 3.0
 PERIOD_END_SHARE_GROWTH_THRESHOLD_PCT = 5.0
-OPEX_VS_REVENUE_GROWTH_THRESHOLD_PP = 10.0
-MARGIN_SINGLE_YEAR_DROP_BPS = 300.0
-MARGIN_CUMULATIVE_DROP_BPS = 300.0
 SLOAN_ACCRUALS_THRESHOLD_PCT = 10.0
 WORKING_CAPITAL_DAYS_THRESHOLD_PCT = 15.0
 FCF_CONVERSION_WEAK_PCT = 70.0
@@ -181,16 +181,6 @@ class YearCapitalIntensity(BaseModel):
     fcf_change_from_capex_pct: Optional[float] = Field(
         None, description="Share of the FCF change explained by the change in capex"
     )
-
-
-class YearCostStructure(BaseModel):
-    fiscal_year: int
-    operating_expenses: Optional[float] = None
-    operating_expense_growth_pct: Optional[float] = None
-    revenue_growth_pct: Optional[float] = None
-    opex_growth_minus_revenue_growth_pp: Optional[float] = None
-    gross_margin_change_bps: Optional[float] = None
-    operating_margin_change_bps: Optional[float] = None
 
 
 class YearShareCount(BaseModel):
@@ -458,7 +448,6 @@ def calculate_quality_of_earnings(
     eq: List[YearEarningsQuality] = []
     wc: List[YearWorkingCapital] = []
     ci: List[YearCapitalIntensity] = []
-    cs: List[YearCostStructure] = []
     sh: List[YearShareCount] = []
 
     prev: Optional[AnnualFinancialInput] = None
@@ -548,27 +537,6 @@ def calculate_quality_of_earnings(
             fcf_change_from_capex_pct=from_capex,
         ))
 
-        # --- Cost structure
-        opex = operating_expenses_of(f)
-        opex_growth = rev_growth = gm_bps = om_bps = None
-        if prev is not None:
-            prev_h = hist_map[prev.fiscal_year]
-            opex_growth = growth_pct(opex, operating_expenses_of(prev))
-            rev_growth = h.revenue_growth_pct
-            if h.gross_margin_pct is not None and prev_h.gross_margin_pct is not None:
-                gm_bps = round((h.gross_margin_pct - prev_h.gross_margin_pct) * 100.0, 0)
-            om_bps = round((h.operating_margin_pct - prev_h.operating_margin_pct) * 100.0, 0)
-        cs.append(YearCostStructure(
-            fiscal_year=f.fiscal_year,
-            operating_expenses=opex,
-            operating_expense_growth_pct=opex_growth,
-            revenue_growth_pct=rev_growth,
-            opex_growth_minus_revenue_growth_pp=round(opex_growth - rev_growth, 2)
-            if opex_growth is not None and rev_growth is not None else None,
-            gross_margin_change_bps=gm_bps,
-            operating_margin_change_bps=om_bps,
-        ))
-
         # --- Share count drift
         sh.append(YearShareCount(
             fiscal_year=f.fiscal_year,
@@ -585,7 +553,7 @@ def calculate_quality_of_earnings(
         "earnings_quality": eq,
         "working_capital": wc,
         "capital_intensity": ci,
-        "cost_structure": cs,
+        "cost_structure": measure_cost_structure(annual_financials, history),
         "share_count_history": sh,
     }
 
@@ -605,7 +573,6 @@ def detect_forensic_findings(
     eq = {r.fiscal_year: r for r in analytics["earnings_quality"]}
     wc = {r.fiscal_year: r for r in analytics["working_capital"]}
     ci = {r.fiscal_year: r for r in analytics["capital_intensity"]}
-    cs = {r.fiscal_year: r for r in analytics["cost_structure"]}
     sh = {r.fiscal_year: r for r in analytics["share_count_history"]}
 
     def add(code, severity, year, metric, value, threshold, message):
@@ -751,29 +718,6 @@ def detect_forensic_findings(
                 f"{s.period_end_share_growth_pct:.2f}% to {s.period_end_shares_outstanding:,.1f}M; investigate "
                 f"equity awards, conversions or issuances, and use the period-end count for per-share value.")
 
-    for yr, c in cs.items():
-        if c.opex_growth_minus_revenue_growth_pp is not None and \
-                c.opex_growth_minus_revenue_growth_pp > OPEX_VS_REVENUE_GROWTH_THRESHOLD_PP:
-            add("NEGATIVE_OPERATING_LEVERAGE", "medium", yr, "opex_growth_minus_revenue_growth_pp",
-                c.opex_growth_minus_revenue_growth_pp, OPEX_VS_REVENUE_GROWTH_THRESHOLD_PP,
-                f"NEGATIVE OPERATING LEVERAGE (FY{yr}): Operating expenses grew {c.operating_expense_growth_pct:+.2f}% "
-                f"against revenue growth of {c.revenue_growth_pct:+.2f}% "
-                f"({c.opex_growth_minus_revenue_growth_pp:.1f}pp gap).")
-
-    margin_moves = [(yr, c.operating_margin_change_bps) for yr, c in sorted(cs.items())
-                    if c.operating_margin_change_bps is not None]
-    if margin_moves:
-        worst_yr, worst = min(margin_moves, key=lambda m: m[1])
-        cumulative = history[-1].operating_margin_pct - history[0].operating_margin_pct
-        all_down = all(m[1] < 0 for m in margin_moves)
-        if worst <= -MARGIN_SINGLE_YEAR_DROP_BPS or (all_down and cumulative * 100.0 <= -MARGIN_CUMULATIVE_DROP_BPS):
-            add("MARGIN_COMPRESSION", "medium", history[-1].fiscal_year, "operating_margin_change_bps",
-                round(cumulative * 100.0, 0), -MARGIN_CUMULATIVE_DROP_BPS,
-                f"MARGIN COMPRESSION: Operating margin moved from {history[0].operating_margin_pct:.2f}% "
-                f"(FY{history[0].fiscal_year}) to {history[-1].operating_margin_pct:.2f}% "
-                f"(FY{history[-1].fiscal_year}), {cumulative * 100.0:,.0f} bps; worst single year FY{worst_yr} "
-                f"({worst:,.0f} bps).")
-
     for yr, w in wc.items():
         for metric, change in (("dso", w.dso_change_pct), ("dio", w.dio_change_pct)):
             if change is not None and change > WORKING_CAPITAL_DAYS_THRESHOLD_PCT:
@@ -783,6 +727,7 @@ def detect_forensic_findings(
                     f"WORKING CAPITAL DETERIORATION (FY{yr}): {metric.upper()} lengthened {change:.1f}% to "
                     f"{days:.1f} days.")
 
+    findings.extend(screen_margins_and_costs(history, analytics["cost_structure"]))
     return rank_findings(findings)
 
 

@@ -3,4 +3,5 @@
 MODULES = (
     "statement_integrity",
     "financial_history",
+    "margins_and_costs",
 )

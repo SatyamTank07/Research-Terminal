@@ -6,13 +6,13 @@ from pydantic import BaseModel, Field
 
 from app.agents.specialized.financial_auditor.findings import ForensicFinding
 from app.agents.specialized.financial_auditor.modules.financial_history import YearFinancialsResult
+from app.agents.specialized.financial_auditor.modules.margins_and_costs import YearCostStructure
 from app.agents.specialized.financial_auditor.modules.statement_integrity import AuditDataQuality
 from app.agents.tools.financial_math_tools import (
     BalanceSheetResult,
     ProfitabilityRatiosResult,
     SolvencyRatiosResult,
     YearCapitalIntensity,
-    YearCostStructure,
     YearEarningsQuality,
     YearShareCount,
     YearWorkingCapital,

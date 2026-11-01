@@ -1,0 +1,5 @@
+"""When cost growth and margin moves become findings."""
+
+OPEX_VS_REVENUE_GROWTH_THRESHOLD_PP = 10.0
+MARGIN_SINGLE_YEAR_DROP_BPS = 300.0
+MARGIN_CUMULATIVE_DROP_BPS = 300.0
