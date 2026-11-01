@@ -9,7 +9,7 @@ threat when needed, and renders the verified risk matrix and evidence table.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Tuple
 
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
@@ -18,7 +18,7 @@ from app.agents.shared.filing.narrative_search import retrieve_10k_narrative_too
 from app.agents.shared.filing.sections import build_section_context
 from app.agents.shared.llm_call import complete_once
 from app.agents.shared.prompts import render_prompt
-from app.agents.specialized.risk_analyst.assemble import render_risk_evidence_table
+from app.agents.specialized.risk_analyst.assemble import Pool, assemble_not_provided, assemble_risk_audit
 from app.agents.specialized.risk_analyst.context import (
     RISK_SECTION_ITEM,
     coverage_notes,
@@ -28,22 +28,21 @@ from app.agents.specialized.risk_analyst.context import (
     tool_chunks,
 )
 from app.agents.specialized.risk_analyst.modules.disclosure_changes import (
+    RiskDisclosureDiff,
+    SentenceIndex,
     build_prior_index,
     classify_disclosure_change,
     diff_risk_disclosures,
 )
 from app.agents.specialized.risk_analyst.modules.quantified_exposures import (
+    QuantifiedCoverage,
+    QuantifiedDisclosure,
     check_quantified_coverage,
     extract_quantified_disclosures,
     repair_targets,
 )
 from app.agents.specialized.risk_analyst.modules.risk_inventory import sanitize_risk, verify_inventory
-from app.agents.specialized.risk_analyst.modules.risk_profile import (
-    derive_overall_profile,
-    rank_risks,
-    render_risk_matrix_markdown,
-    resolve_primary_threat,
-)
+from app.agents.specialized.risk_analyst.modules.risk_profile import rank_risks, resolve_primary_threat
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
     RiskAuditOutput,
     RiskDataQuality,
@@ -80,7 +79,9 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         ticker = ticker.upper()
         current, located_by = locate_item1a(ticker, fiscal_year)
         if located_by != "not_found" and section_not_provided(current):
-            return self._not_provided_output(ticker, fiscal_year, current, located_by)
+            self._run = {}
+            logger.info(f"RiskAnalyst {ticker} FY{fiscal_year}: Item 1A not provided; LLM skipped")
+            return assemble_not_provided(ticker, fiscal_year, current, located_by)
 
         prior_year = resolve_prior_year(fiscal_year, available_fiscal_years)
         prior = locate_item1a(ticker, prior_year)[0] if prior_year else []
@@ -200,37 +201,6 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
     # ------------------------------------------------------------------
     # Setup helpers
     # ------------------------------------------------------------------
-    def _not_provided_output(
-        self, ticker: str, fiscal_year: int, chunks: List[Any], located_by: str
-    ) -> RiskAuditOutput:
-        """Item 1A exists but discloses no risk factors (e.g. smaller reporting company): rate nothing, call no LLM."""
-        statement = " ".join(c.content for c in chunks).strip()
-        citations = [
-            {k: v for k, v in c.model_dump().items() if k in ("chunk_id", "ticker", "fiscal_year", "item", "breadcrumb", "sub_section")}
-            for c in chunks
-        ]
-        note = (
-            f"The FY{fiscal_year} 10-K provides no Item 1A risk factors"
-            + (f' (filing states: "{statement[:200]}")' if statement else "")
-            + "; no risks were rated."
-        )
-        self._run = {}
-        logger.info(f"RiskAnalyst {ticker} FY{fiscal_year}: Item 1A not provided; LLM skipped")
-        return RiskAuditOutput(
-            ticker=ticker,
-            fiscal_year=fiscal_year,
-            data_quality=RiskDataQuality(
-                coverage_mode="not_provided",
-                section_located_by=located_by,
-                item1a_chunks=len(chunks),
-                chars_read=len(statement),
-                notes=[note],
-            ),
-            risk_matrix_markdown="_The filing provides no Item 1A risk factors (not applicable / smaller reporting company); no risks were rated._",
-            evidence_table_markdown=render_risk_evidence_table(citations),
-            citations=citations,
-        )
-
     def _ensure_run(self) -> Dict[str, Any]:
         if not self._run:
             self._run = {
@@ -282,73 +252,44 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         for cid, chunk in tool_chunks(result.get("messages", [])).items():
             pool.setdefault(cid, chunk)
 
-        risks = [r.model_copy(deep=True) for r in output.identified_risks]
-        if not dq.risks_proposed:
-            dq.risks_proposed = len(risks)
-        by_llm_id = {r.risk_id: r for r in risks}
-        chosen = by_llm_id.get(output.primary_threat_risk_id or "")
-
-        inventory = verify_inventory(risks, pool)
-        dq.quotes_rejected += inventory.quotes_rejected
-        dq.risks_dropped_unverified += inventory.dropped_unverified
-        survivors, absorbed = inventory.survivors, inventory.absorbed
-        dq.risks_merged = len(absorbed)
-        profile = rank_risks(survivors)
-        ranked = profile.risks
-        dq.notes.extend(profile.notes)
-
-        for risk in ranked:
-            risk.disclosure_change = classify_disclosure_change(
-                [e.quote for e in risk.evidence if e.item == RISK_SECTION_ITEM], run["prior_index"]
-            )
-
-        output.identified_risks = ranked
-        self._check_quantified_coverage(ranked, run["quantified"], dq, run)
-        threat = resolve_primary_threat(
-            ranked, chosen, absorbed, output.primary_threat_risk_id, output.primary_existential_threat
-        )
-        output.primary_threat_risk_id = threat.risk_id
-        output.primary_existential_threat = threat.statement
-        if threat.note:
-            dq.notes.append(threat.note)
-        output.overall_risk_profile = derive_overall_profile([r.severity for r in ranked])
-        output.citations = self._build_citations(ranked, pool)
-        output.risk_matrix_markdown = render_risk_matrix_markdown(ranked)
-        output.evidence_table_markdown = render_risk_evidence_table(output.citations)
-        output.disclosure_changes = run["diff"]
-        output.data_quality = dq
+        output, coverage = build_risk_audit(output, pool, dq, run["quantified"], run["prior_index"], run["diff"])
+        run["uncovered"] = coverage.uncovered
         return output
 
-    @staticmethod
-    def _check_quantified_coverage(
-        risks: Sequence[RiskItem], quantified: Sequence[Any], dq: RiskDataQuality, run_state: Dict[str, Any]
-    ) -> None:
-        """Records checklist disclosures (stated figures) that no verified risk cites."""
-        quotes = [e.quote for r in risks for e in r.evidence]
-        quotes += [r.mitigation_evidence.quote for r in risks if r.mitigation_evidence]
-        coverage = check_quantified_coverage(quantified, quotes)
-        run_state["uncovered"] = coverage.uncovered
-        dq.quantified_uncovered = list(coverage.listed)
-        if coverage.note:
-            dq.notes.append(coverage.note)
 
-    @staticmethod
-    def _build_citations(risks: Sequence[RiskItem], pool: Dict[str, Dict[str, Any]]) -> List[Dict[str, Any]]:
-        citations: List[Dict[str, Any]] = []
-        seen = set()
-        for risk in risks:
-            evidence = list(risk.evidence) + ([risk.mitigation_evidence] if risk.mitigation_evidence else [])
-            for ev in evidence:
-                if ev.chunk_id in seen:
-                    continue
-                seen.add(ev.chunk_id)
-                chunk = pool.get(ev.chunk_id, {})
-                citation = {"chunk_id": ev.chunk_id}
-                for key in ("ticker", "fiscal_year", "item", "breadcrumb", "sub_section"):
-                    if chunk.get(key) is not None:
-                        citation[key] = chunk[key]
-                citations.append(citation)
-        return citations
+def build_risk_audit(
+    output: RiskAuditOutput,
+    pool: Pool,
+    dq: RiskDataQuality,
+    quantified: List[QuantifiedDisclosure],
+    prior_index: Optional[SentenceIndex],
+    diff: Optional[RiskDisclosureDiff],
+) -> Tuple[RiskAuditOutput, QuantifiedCoverage]:
+    """Verifies the judge's risk inventory module by module and assembles the output; also returns the coverage
+    check, whose uncited figures drive the repair pass.
+
+    Inventory, then profile (rank, cap, renumber), then the year-over-year label on each kept risk, then the
+    quantified coverage of the kept quotes, then the primary threat: each step reads only earlier results, and this
+    order keeps the data-quality notes in the order the report has always shown them.
+    """
+    risks = [r.model_copy(deep=True) for r in output.identified_risks]
+    if not dq.risks_proposed:
+        dq.risks_proposed = len(risks)
+    chosen = {r.risk_id: r for r in risks}.get(output.primary_threat_risk_id or "")
+
+    inventory = verify_inventory(risks, pool)
+    profile = rank_risks(inventory.survivors)
+    for risk in profile.risks:
+        risk.disclosure_change = classify_disclosure_change(
+            [e.quote for e in risk.evidence if e.item == RISK_SECTION_ITEM], prior_index
+        )
+    quotes = [e.quote for r in profile.risks for e in r.evidence]
+    quotes += [r.mitigation_evidence.quote for r in profile.risks if r.mitigation_evidence]
+    coverage = check_quantified_coverage(quantified, quotes)
+    threat = resolve_primary_threat(
+        profile.risks, chosen, inventory.absorbed, output.primary_threat_risk_id, output.primary_existential_threat
+    )
+    return assemble_risk_audit(output, inventory, profile, coverage, threat, pool, diff, dq), coverage
 
 
 def analyze_risks(run: RunContext, upstream: Upstream) -> RiskAuditOutput:
