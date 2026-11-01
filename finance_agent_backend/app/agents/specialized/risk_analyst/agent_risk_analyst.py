@@ -35,17 +35,17 @@ from app.agents.specialized.risk_analyst.modules.disclosure_changes import (
     diff_risk_disclosures,
 )
 from app.agents.specialized.risk_analyst.modules.disclosure_changes.calculate import (
-    QUANTIFIED_FIGURE,
     derive_overall_profile,
-    disclosure_covered,
-    extract_quantified_disclosures,
-    is_boilerplate,
-    is_material_disclosure,
     render_risk_evidence_table,
     render_risk_matrix_markdown,
-    states_immaterial,
-    substantiates_high_impact,
 )
+from app.agents.specialized.risk_analyst.modules.quantified_exposures import (
+    QUANTIFIED_FIGURE,
+    check_quantified_coverage,
+    extract_quantified_disclosures,
+    repair_targets,
+)
+from app.agents.specialized.risk_analyst.modules.risk_inventory import is_boilerplate, states_immaterial, substantiates_high_impact
 from app.agents.specialized.risk_analyst.ratings import derive_severity, higher_level, normalize_level, rank_key
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
     FINANCIAL_TRANSMISSIONS,
@@ -84,8 +84,6 @@ _NOTE_LEGAL_OUTSIDE = "Impact capped at Medium: legal matter sourced outside Ite
 _NOTE_BOILERPLATE = "Impact capped at Low: generic boilerplate risk without a company-specific exposure."
 _NOTE_UNSUBSTANTIATED = "Impact capped at Medium: no filing-stated magnitude or realized effect supports a High impact."
 _NOTE_EXPOSURE_UNIT = "Quantified exposure removed: not stated as a percentage or currency amount."
-MAX_UNCOVERED_LISTED = 5
-MAX_REPAIR_DISCLOSURES = 4
 _NOTE_EXPOSURE = "Quantified exposure removed: its figures do not appear in the cited filing text."
 _NOTE_MITIGATION = "Mitigation removed: no verified filing quote supports it."
 
@@ -196,7 +194,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         re-enforced, so repaired risks pass exactly the same verification, screens and ranking.
         """
         run = self._ensure_run()
-        targets = [d for d in run.get("uncovered", []) if is_material_disclosure(d.text)][:MAX_REPAIR_DISCLOSURES]
+        targets = repair_targets(run.get("uncovered", []))
         snapshot = run.get("pre_enforcement")
         if not targets or snapshot is None:
             return output
@@ -563,13 +561,11 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         """Records checklist disclosures (stated figures) that no verified risk cites."""
         quotes = [e.quote for r in risks for e in r.evidence]
         quotes += [r.mitigation_evidence.quote for r in risks if r.mitigation_evidence]
-        uncovered = [d for d in quantified if not disclosure_covered(d.text, quotes)]
-        run_state["uncovered"] = uncovered
-        dq.quantified_uncovered = [d.text for d in uncovered[:MAX_UNCOVERED_LISTED]]
-        if uncovered:
-            dq.notes.append(
-                f"{len(uncovered)} of {len(quantified)} quantified Item 1A disclosures are not cited by any verified risk."
-            )
+        coverage = check_quantified_coverage(quantified, quotes)
+        run_state["uncovered"] = coverage.uncovered
+        dq.quantified_uncovered = list(coverage.listed)
+        if coverage.note:
+            dq.notes.append(coverage.note)
 
     @staticmethod
     def _resolve_primary_threat(

@@ -1,19 +1,16 @@
 """Year-over-year Item 1A comparison: which sentences are unchanged, modified, new or removed, and whether a
 risk's quotes are new, expanded or unchanged versus the prior filing (3-word-shingle Jaccard / containment).
 
-Until their own modules take them, this file also holds the quantified-disclosure checklist, the materiality and
-boilerplate screens, the overall profile and the markdown renderers. Nothing here calls an LLM, and the screening
-helpers never raise on malformed LLM input.
+Until their own modules take them, this file also holds the overall profile and the markdown renderers. Nothing
+here calls an LLM.
 """
 
 import re
 from collections import defaultdict
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
-from pydantic import BaseModel
-
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
-from app.agents.shared.filing.sentences import normalize_text, split_sentences, split_words
+from app.agents.shared.filing.sentences import split_sentences, split_words
 from app.agents.specialized.risk_analyst.modules.disclosure_changes.schema import (
     DisclosurePassage,
     RiskDisclosureDiff,
@@ -25,41 +22,6 @@ from app.agents.specialized.risk_analyst.modules.disclosure_changes.thresholds i
     PASSAGE_MAX_CHARS,
     UNCHANGED_SIMILARITY,
 )
-
-IMMATERIALITY_PATTERNS = re.compile(
-    r"not\s+(?:currently\s+)?(?:expected|believed|anticipated|likely)\s+to\s+(?:have|result\s+in|be)\s+(?:a\s+)?material"
-    r"|(?:will|would|does|did|could)\s+not\s+(?:have|result\s+in)\s+(?:a\s+)?material\s+adverse"
-    r"|(?:do|does|did)\s+not\s+believe\s+[^.]{0,160}?material"
-    r"|\bimmaterial\b",
-    re.IGNORECASE,
-)
-
-BOILERPLATE_PATTERNS = re.compile(
-    r"(?:general|adverse|unfavorable|weak|deteriorating)\s+(?:macro)?economic\s+conditions"
-    r"|economic\s+(?:downturns?|slowdowns?|uncertainty|instability)"
-    r"|economic\s+conditions\s+and\s+market\s+volatility"
-    r"|stock\s+price\s+volatility"
-    r"|volatil\w*\s+(?:of|in)\s+(?:our\s+)?(?:stock|share)\s+price"
-    r"|(?:stock|share)\s+price\s+(?:may|could)\s+(?:be\s+)?(?:volatile|fluctuate)"
-    r"|\bmarket\s+volatility\b"
-    r"|forward-looking\s+statements",
-    re.IGNORECASE,
-)
-
-QUANTIFIED_FIGURE = re.compile(r"\d[\d,]*(?:\.\d+)?\s?%|[$€£]\s?\d")
-_QUANTIFIED_TOPIC = re.compile(
-    r"revenue|sales|customer|charge|inventor|purchase\s+obligation|impairment|write-?(?:down|off)"
-    r"|tariff|backlog|supply|capacity|export|licens",
-    re.IGNORECASE,
-)
-REALIZED_EFFECT_PATTERNS = re.compile(
-    r"\b(?:we|the\s+company)\s+(?:have\s+|has\s+|had\s+)?(?:incurred|recorded|recognized|experienced|lost)\b"
-    r"|\b(?:have|has|had)\s+(?:adversely\s+|negatively\s+|materially\s+)?(?:affected|impacted|harmed)\b"
-    r"|\bresulted\s+in\b|\bwrite-?(?:down|off)s?\b",
-    re.IGNORECASE,
-)
-MAX_QUANTIFIED_DISCLOSURES = 15
-COVERAGE_CONTAINMENT = 0.5
 
 _PREAMBLE_PATTERNS = re.compile(
     r"not\s+exhaustive|forward-looking|in\s+addition\s+to\s+the\s+other\s+information"
@@ -74,17 +36,7 @@ def is_preamble(sentence: str) -> bool:
 
 
 # ==============================================================================
-# 1. Schemas
-# ==============================================================================
-class QuantifiedDisclosure(BaseModel):
-    """An Item 1A sentence stating a magnitude (revenue share, charge, regional share...)."""
-
-    chunk_id: str
-    text: str
-
-
-# ==============================================================================
-# 2. Sentence shingles
+# 1. Sentence shingles
 # ==============================================================================
 def shingles(text: str, n: int = 3) -> Set[Tuple[str, ...]]:
     words = split_words(text)
@@ -202,58 +154,6 @@ def diff_risk_disclosures(
     )
 
 
-def extract_quantified_disclosures(
-    chunks: Sequence[NarrativeChunkResult],
-    max_items: int = MAX_QUANTIFIED_DISCLOSURES,
-) -> List[QuantifiedDisclosure]:
-    """Item 1A sentences that state a figure about revenue, customers, charges, supply or trade, in filing order."""
-    found: List[QuantifiedDisclosure] = []
-    seen = set()
-    for c in chunks:
-        for sentence in split_sentences(c.content):
-            key = normalize_text(sentence)
-            if key in seen or is_preamble(sentence):
-                continue
-            if QUANTIFIED_FIGURE.search(sentence) and _QUANTIFIED_TOPIC.search(sentence):
-                seen.add(key)
-                found.append(QuantifiedDisclosure(chunk_id=c.chunk_id, text=sentence[:PASSAGE_MAX_CHARS]))
-                if len(found) >= max_items:
-                    return found
-    return found
-
-
-_MATERIAL_DISCLOSURE = re.compile(
-    r"customer|revenue|net\s+sales|charge|write-?(?:down|off)|impairment|purchase\s+obligation|inventor",
-    re.IGNORECASE,
-)
-_STATUTORY_MAXIMUM = re.compile(r"penalt|fines?\b|whichever\s+is\s+greater|up\s+to\s+[$€£]?\d", re.IGNORECASE)
-
-
-def is_material_disclosure(text: str) -> bool:
-    """Checklist items worth a coverage repair: realized or stated revenue / customer / charge exposure,
-    excluding hypothetical statutory maximums (e.g. "penalties of up to 4% of worldwide revenue")."""
-    return bool(text) and bool(_MATERIAL_DISCLOSURE.search(text)) and not _STATUTORY_MAXIMUM.search(text)
-
-
-def disclosure_covered(text: str, quotes: Sequence[str]) -> bool:
-    """True if any quote overlaps the disclosure sentence (shingle overlap / smaller side >= 0.5)."""
-    target = shingles(text)
-    if not target:
-        return False
-    for quote in quotes:
-        q = shingles(quote)
-        if q and len(target & q) / min(len(target), len(q)) >= COVERAGE_CONTAINMENT:
-            return True
-    return False
-
-
-def substantiates_high_impact(quotes: Sequence[str], quantified_exposure: Optional[str]) -> bool:
-    """High impact needs a filing-stated magnitude or a realized (not hypothetical) effect in the quotes."""
-    if quantified_exposure:
-        return True
-    return any(QUANTIFIED_FIGURE.search(q) or REALIZED_EFFECT_PATTERNS.search(q) for q in quotes if q)
-
-
 def classify_disclosure_change(quotes: Sequence[str], prior_index: Optional[SentenceIndex]) -> str:
     """New if every quote is new vs the prior filing, Expanded if any is new/modified, else Unchanged.
 
@@ -271,18 +171,7 @@ def classify_disclosure_change(quotes: Sequence[str], prior_index: Optional[Sent
 
 
 # ==============================================================================
-# 3. Materiality screens
-# ==============================================================================
-def states_immaterial(text: str) -> bool:
-    return bool(text) and bool(IMMATERIALITY_PATTERNS.search(text))
-
-
-def is_boilerplate(text: str) -> bool:
-    return bool(text) and bool(BOILERPLATE_PATTERNS.search(text))
-
-
-# ==============================================================================
-# 4. Profile
+# 2. Profile
 # ==============================================================================
 def derive_overall_profile(severities: Sequence[str]) -> str:
     """Aggregate rating; "Not Assessed" when no verified risk exists (never a reassuring "Low")."""
@@ -298,7 +187,7 @@ def derive_overall_profile(severities: Sequence[str]) -> str:
 
 
 # ==============================================================================
-# 5. Markdown renderers
+# 3. Markdown renderers
 # ==============================================================================
 def _cell(text: Any) -> str:
     return str(text if text not in (None, "") else "—").replace("|", "/").replace("\n", " ")
@@ -333,20 +222,12 @@ def render_risk_evidence_table(citations: Sequence[Dict[str, Any]]) -> str:
 
 
 __all__ = [
-    "QuantifiedDisclosure",
     "SentenceIndex",
     "is_preamble",
     "shingles",
-    "extract_quantified_disclosures",
-    "disclosure_covered",
-    "is_material_disclosure",
-    "substantiates_high_impact",
-    "QUANTIFIED_FIGURE",
     "build_prior_index",
     "diff_risk_disclosures",
     "classify_disclosure_change",
-    "states_immaterial",
-    "is_boilerplate",
     "derive_overall_profile",
     "render_risk_matrix_markdown",
     "render_risk_evidence_table",
