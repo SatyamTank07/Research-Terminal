@@ -6,8 +6,9 @@
 2. revenue_mix: segment and product-line revenue parsed and reconciled from the 10-K tables.
 3. market_power gather: customer-concentration and pricing sentences from the rest of the filing.
 4. judge: one tool-free LLM call proposes the qualitative claims, each with verbatim quotes.
-5. verify (`build_strategy`): competition_and_moat, market_power and business_model keep only claims whose quotes
-   exist in the filing and evidence their mechanism; `assemble.py` builds the output, data quality and citations.
+5. verify (`build_strategy`): competition_and_moat and market_power keep only claims whose quotes exist in the
+   filing and evidence their mechanism, and business_model reconciles the judge's product lines to the extracted
+   names; `assemble.py` builds the output, data quality and citations.
 
 If the LLM fails or returns malformed JSON, the code-built parts are still returned and the qualitative fields are
 marked as not assessed.

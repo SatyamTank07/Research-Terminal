@@ -26,6 +26,8 @@ _NOT_DISCLOSED_HINTS = ("not explicitly disclosed", "not disclosed", "no disclos
 
 @dataclass(frozen=True)
 class MarketPower:
+    """Verified pricing-power and customer-concentration text, their evidence and what the checks dropped."""
+
     pricing_power_assessment: str
     customer_concentration: str
     evidence: List[StrategyEvidence]

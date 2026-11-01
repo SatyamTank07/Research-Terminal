@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import patch
 
-from app.agents.specialized.business_strategist.modules.market_power.gather import find_disclosure_sentences, gather_disclosures
+from app.agents.specialized.business_strategist.modules.market_power import find_disclosure_sentences, gather_disclosures
 from tests.business_strategist.filing_fixtures import text
 
 

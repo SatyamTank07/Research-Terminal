@@ -7,7 +7,7 @@ from app.agents.specialized.business_strategist.modules.competition_and_moat.ver
     not_assessed_competition,
     verify_competition_and_moat,
 )
-from app.agents.specialized.business_strategist.modules.revenue_mix import extract_segment_disclosures
+from app.agents.specialized.business_strategist.modules.revenue_mix import SegmentExtraction, extract_segment_disclosures
 from tests.business_strategist.filing_fixtures import filing
 
 POOL = {
@@ -20,6 +20,8 @@ POOL = {
     "i3": {"chunk_id": "i3", "item": "Item 1", "content": (
         "Our cloud customers build long-running workloads on our infrastructure, and migrating those workloads to "
         "another provider requires significant engineering effort.")},
+    "i4": {"chunk_id": "i4", "item": "Item 1", "content": (
+        "High capital requirements and barriers to entry limit the number of operators in our regional markets.")},
 }
 NETWORK = "each additional seller attracts more buyers to the platform"
 COST = "We operate a global logistics network that lowers our cost to serve each order."
@@ -81,6 +83,32 @@ class TestMoats(unittest.TestCase):
         ])
         self.assertEqual([(m.segment_name, m.moat_type) for m in out.segment_specific_moats], [("Cloud", "High Switching Costs")])
         self.assertIn("'Advertising' dropped", out.tally.notes[0])
+
+    def test_secondaries_skip_the_primary_type_and_stop_at_two(self):
+        brand = "Each additional seller attracts more buyers to the platform"
+        out = _run(primary_moat=_moat("Network Effects", "i1", NETWORK), secondary_moats=[
+            _moat("Network Effects", "i1", brand),
+            _moat("Cost Advantage", "i1", COST),
+            _moat("High Switching Costs", "i3", "migrating those workloads to another provider"),
+            _moat("Efficient Scale", "i4", "barriers to entry limit the number of operators"),
+        ])
+        self.assertEqual(out.secondary_moat_types, ["Cost Advantage", "High Switching Costs"])  # third one past the cap
+        self.assertEqual(out.tally.quotes_verified, 5)
+
+    def test_a_segment_moat_is_kept_once(self):
+        quote = "migrating those workloads to another provider requires significant engineering effort"
+        out = _run(primary_moat=_moat("Network Effects", "i1", NETWORK), segment_moats=[
+            _moat("High Switching Costs", "i3", quote) | {"segment_name": "Cloud"},
+            _moat("High Switching Costs", "i3", quote) | {"segment_name": "cloud segment"},
+        ])
+        self.assertEqual([m.segment_name for m in out.segment_specific_moats], ["Cloud"])
+
+    def test_without_extracted_names_the_judges_segment_name_stands(self):
+        quote = "migrating those workloads to another provider requires significant engineering effort"
+        data = {"primary_moat": _moat("Network Effects", "i1", NETWORK),
+                "segment_moats": [_moat("High Switching Costs", "i3", quote) | {"segment_name": "Cloud workloads"}]}
+        out = verify_competition_and_moat(data, POOL, SegmentExtraction())
+        self.assertEqual([m.segment_name for m in out.segment_specific_moats], ["Cloud workloads"])
 
     def test_coerce_moat(self):
         self.assertEqual(coerce_moat("network effect"), "Network Effects")

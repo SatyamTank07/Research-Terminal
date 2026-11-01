@@ -26,6 +26,8 @@ from app.agents.specialized.business_strategist.modules.revenue_mix import (
 
 @dataclass(frozen=True)
 class BusinessModel:
+    """The business description and product lines reconciled to the extracted tables, and the dropped names."""
+
     business_summary: str
     revenue_architecture: str
     segment_details: List[SegmentDetail]

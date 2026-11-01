@@ -3,10 +3,9 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
 from app.agents.specialized.business_strategist.evidence import StrategyEvidence
-from app.agents.specialized.business_strategist.modules.business_model.schema import SegmentDetail
-from app.agents.specialized.business_strategist.modules.competition_and_moat.schema import MoatType, SecondaryMoatType, SegmentMoat
-from app.agents.specialized.business_strategist.modules.revenue_mix.schema import RevenueLineFigure, SegmentFigure
-
+from app.agents.specialized.business_strategist.modules.business_model import SegmentDetail
+from app.agents.specialized.business_strategist.modules.competition_and_moat import MoatType, SecondaryMoatType, SegmentMoat
+from app.agents.specialized.business_strategist.modules.revenue_mix import RevenueLineFigure, SegmentFigure
 
 
 class StrategistDataQuality(BaseModel):

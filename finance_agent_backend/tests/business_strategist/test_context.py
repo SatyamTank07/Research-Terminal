@@ -8,6 +8,7 @@ from app.agents.shared.filing.sections import build_section_context
 from app.agents.specialized.business_strategist.context import (
     ITEM1_CHAR_BUDGET,
     RAG_FALLBACK_QUERIES,
+    coverage_notes,
     FilingChunk,
     filing_items,
     infer_section_items,
@@ -70,6 +71,10 @@ class TestReadItem1(unittest.TestCase):
         self.assertEqual(list(text.pool), ["i1", "i2"])
         self.assertEqual((text.context, text.chars_read), build_section_context(chunks, ITEM1_CHAR_BUDGET)[::2])
         self.assertEqual(text.notes, ())
+
+    def test_budgeted_section_is_noted(self):
+        notes = coverage_notes("item_label", "budgeted_section", "TEST", 2025)
+        self.assertEqual(notes, ["Item 1 exceeded the context budget; later paragraphs were truncated to their lead text."])
 
     def test_heading_boundary_is_noted(self):
         text = read_item1("TEST", 2025, [_chunk("i1", 0)], "heading_boundary")

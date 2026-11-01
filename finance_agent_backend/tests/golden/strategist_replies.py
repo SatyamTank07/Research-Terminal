@@ -6,6 +6,10 @@ near-verbatim quote, boilerplate and off-topic quotes, a promoted secondary, an 
 kept and Wide capped at Narrow, an explicit "None" moat, known and unknown segments, the threat cap, pricing kept /
 replaced / with unsupported figures, concentration kept / code fallback, and matched, fuzzy-matched and unknown
 product lines.
+
+Quotes cite the chunk ids of the golden DB as ingested on 2026-11-01. If the golden filings are re-ingested, the ids
+change: re-pick the chunk ids (the quotes stay) or the near-verbatim and claimed-chunk cases turn into rejections,
+which the golden diff shows.
 """
 
 from typing import Any, Dict, Tuple

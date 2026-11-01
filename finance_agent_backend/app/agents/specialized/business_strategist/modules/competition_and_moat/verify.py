@@ -54,6 +54,8 @@ _MOAT_ALIASES: Tuple[Tuple[str, str], ...] = (
 
 @dataclass(frozen=True)
 class CompetitionAndMoat:
+    """The verified moat fields and competitive threats, their evidence and what the checks dropped."""
+
     economic_moat_type: str
     secondary_moat_types: List[str]
     segment_specific_moats: List[SegmentMoat]

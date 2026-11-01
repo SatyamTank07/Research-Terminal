@@ -1,7 +1,8 @@
 """The judge's evidence rule: a claim keeps only quotes that exist in the filing and evidence its mechanism.
 
-Every judged module (business model, competition and moat, market power) checks its claims' quotes here and
-records what it proposed, kept and dropped in a `VerifyTally` that assembly adds to the data-quality record.
+competition_and_moat and market_power check their claims' quotes here. Every verify step records what it proposed,
+kept and dropped in a `VerifyTally` that assembly adds to the data-quality record, and reads the judge's text fields
+with `text_of` (`not_assessed` when no judgement ran).
 """
 
 from dataclasses import dataclass, field
