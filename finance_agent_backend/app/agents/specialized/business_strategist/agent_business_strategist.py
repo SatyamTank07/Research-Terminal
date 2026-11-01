@@ -53,16 +53,15 @@ from app.agents.specialized.business_strategist.state_business_strategist import
     MOAT_TYPES,
     NOT_DISCLOSED,
     BusinessMoatOutput,
-    SegmentDetail,
     SegmentMoat,
     StrategistDataQuality,
 )
+from app.agents.specialized.business_strategist.modules.business_model import verify_business_model
 from app.agents.specialized.business_strategist.modules.market_power import DisclosureSentence, gather_disclosures
 from app.agents.specialized.business_strategist.modules.revenue_mix import (
     SegmentExtraction,
     clean_name,
     extract_segment_disclosures,
-    latest_year_figures,
     match_name,
     name_key,
     render_revenue_mix_markdown,
@@ -246,11 +245,9 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         threats = self._enforce_threats(data, pool, evidence, tally) if assessed else []
         pricing = self._enforce_pricing(data, pool, evidence, tally) if assessed else not_assessed(reason)
         concentration = self._enforce_concentration(data, pool, disclosures, evidence, tally, assessed, reason)
-        details, products = self._reconcile_details(data, pool, extraction, line_names, segment_names, tally)
+        business = verify_business_model(data, pool, extraction, reason)
         self._record_tally(tally, dq)
-
-        business_summary = text_of(data.get("business_summary")) or not_assessed(reason)
-        revenue_architecture = text_of(data.get("revenue_architecture")) or self._deterministic_architecture(extraction, reason)
+        self._record_tally(business.tally, dq)
 
         if moat is None:
             moat = {
@@ -267,11 +264,11 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         return BusinessMoatOutput(
             ticker=ticker,
             fiscal_year=fiscal_year,
-            business_summary=business_summary,
-            revenue_architecture=revenue_architecture,
+            business_summary=business.business_summary,
+            revenue_architecture=business.revenue_architecture,
             reportable_segments=segment_names,
-            primary_product_segments=products,
-            segment_details=details,
+            primary_product_segments=business.primary_product_segments,
+            segment_details=business.segment_details,
             segment_financials=extraction.segments,
             revenue_lines=extraction.revenue_lines,
             segment_table_markdown=render_segment_table_markdown(extraction.segments),
@@ -557,90 +554,6 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
                 return f'Filing states: "{chosen.text}"'
             return f'{NOT_DISCLOSED} for revenue. Receivables: "{chosen.text}"'
         return NOT_DISCLOSED if assessed else not_assessed(reason)
-
-    # --- product lines ----------------------------------------------------
-    def _reconcile_details(
-        self,
-        data: Dict[str, Any],
-        pool: Pool,
-        extraction: SegmentExtraction,
-        line_names: List[str],
-        segment_names: List[str],
-        tally: VerifyTally,
-    ) -> Tuple[List[SegmentDetail], List[str]]:
-        """segment_details / primary_product_segments follow the code-extracted revenue lines, else the
-        (non-geographic) reportable segments.
-
-        Without either, a model-proposed product name is kept only if it appears in the filing text.
-        """
-        raw_details = data.get("segment_details")
-        proposed: List[Dict[str, Any]] = [d for d in raw_details if isinstance(d, dict)] if isinstance(raw_details, list) else []
-        targets = line_names or (segment_names if extraction.segment_basis != "geographic" else [])
-        if targets:
-            lookup = {name_key(n): n for n in targets}
-            by_target: Dict[str, Dict[str, Any]] = {}
-            unmatched = []
-            for d in proposed:
-                canonical = match_name(str(d.get("name") or ""), lookup)
-                if canonical is None:
-                    unmatched.append(str(d.get("name") or ""))
-                    continue
-                by_target.setdefault(canonical, d)
-            if unmatched:
-                tally.notes.append(
-                    f"{len(unmatched)} model-proposed product line(s) not in the extracted revenue table were dropped "
-                    f"({', '.join(n for n in unmatched[:3] if n)})."
-                )
-            figures = {name_key(f.name): f for f in latest_year_figures(extraction.revenue_lines)}
-            figures.update({name_key(f.segment_name): f for f in latest_year_figures(extraction.segments)})
-            details = []
-            for name in targets:
-                d = by_target.get(name, {})
-                details.append(
-                    SegmentDetail(
-                        name=name,
-                        description=text_of(d.get("description")) or self._figure_description(name, figures.get(name_key(name))),
-                        growth_drivers=self._drivers(d.get("growth_drivers")),
-                    )
-                )
-            return details, list(targets)
-
-        corpus = normalize_text(" ".join(c.get("content", "") for c in pool.values()))
-        details = []
-        for d in proposed:
-            name = clean_name(str(d.get("name") or ""))
-            if not name or normalize_text(name) not in corpus:
-                if name:
-                    tally.notes.append(f"Product line '{name}' dropped: not named in the filing text.")
-                continue
-            details.append(
-                SegmentDetail(name=name, description=text_of(d.get("description")) or name, growth_drivers=self._drivers(d.get("growth_drivers")))
-            )
-        return details, [d.name for d in details]
-
-    @staticmethod
-    def _drivers(value: Any) -> List[str]:
-        if isinstance(value, str):
-            value = [value]
-        if not isinstance(value, list):
-            return []
-        return [v.strip() for v in value if isinstance(v, str) and v.strip()][:4]
-
-    @staticmethod
-    def _figure_description(name: str, figure: Any) -> str:
-        if figure is None:
-            return f"{name} (reported revenue line)."
-        share = f", {figure.revenue_share_pct:.1f}% of revenue" if figure.revenue_share_pct is not None else ""
-        return f"{name}: FY{figure.fiscal_year} revenue ${figure.revenue:,.0f}M{share} (from the 10-K tables)."
-
-    def _deterministic_architecture(self, extraction: SegmentExtraction, reason: str) -> str:
-        lines = [f for f in latest_year_figures(extraction.revenue_lines) if f.parent is None]
-        if not lines:
-            return not_assessed(reason)
-        mix = ", ".join(
-            f"{f.name} {f.revenue_share_pct:.1f}%" for f in lines if f.revenue_share_pct is not None
-        )
-        return f"Revenue mix by product / service line (FY{lines[0].fiscal_year}, from the 10-K revenue disaggregation): {mix}."
 
     # --- citations --------------------------------------------------------
     @staticmethod

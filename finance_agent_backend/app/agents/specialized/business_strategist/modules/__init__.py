@@ -2,5 +2,6 @@
 
 MODULES = (
     "revenue_mix",
+    "business_model",
     "market_power",
 )

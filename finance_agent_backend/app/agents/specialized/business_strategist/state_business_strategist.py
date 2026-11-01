@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
 from app.agents.specialized.business_strategist.evidence import StrategyEvidence
+from app.agents.specialized.business_strategist.modules.business_model.schema import SegmentDetail
 from app.agents.specialized.business_strategist.modules.revenue_mix.schema import RevenueLineFigure, SegmentFigure
 
 MoatType = Literal[
@@ -22,16 +23,6 @@ SecondaryMoatType = Literal[
 ]
 MOAT_TYPES: List[str] = list(MoatType.__args__)
 NOT_DISCLOSED = "Not explicitly disclosed in 10-K"
-
-
-class SegmentDetail(BaseModel):
-    """Detailed breakdown of a primary business segment or product line (ASC 606 disaggregated revenue stream)."""
-
-    name: str = Field(..., description="Commercial product or revenue line name (e.g. 'iPhone', 'AWS', 'Data Center')")
-    description: str = Field(..., description="What the offering provides and how it monetizes")
-    growth_drivers: List[str] = Field(
-        default_factory=list, description="Key secular or product growth drivers disclosed in 10-K"
-    )
 
 
 class SegmentMoat(BaseModel):
