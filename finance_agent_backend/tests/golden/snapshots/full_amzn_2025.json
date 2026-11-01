@@ -48,7 +48,7 @@
    "type": "status"
   },
   {
-   "response": "# Institutional Equity Research Report: AMAZON.COM, INC. (AMZN)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$104.77** |\n| Bear / Bull Fair Value | $81.70 / $125.19 |\n| Probability-Weighted Fair Value | $104.11 |\n| Current Share Price[[2]](#cite-2) | $220.00 (yfinance_live) |\n| Base-Case Upside / Downside | -52.4% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 17.0% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 9.40% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 5.78% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 60.3% |\n| Enterprise Value | $998,280.3M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-57,381.0M |\n| Equity Value (as of 2026-10-28) | $1,134,389.6M |\n| Valuation Shares[[6]](#cite-6) | 10,827.0M |\n| Forecast | 10-year explicit horizon, 6.8% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business. Revenue reached $999,999 million last year[[1]](#cite-1).\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: North America, International, AWS\n- **Revenue lines (ASC 606)**: Online stores, Physical stores, Third-party seller services, Advertising services, Subscription services, AWS, Other\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| North America | 426,305 | 59.5% | 10.0% | 29,619 | 6.9% | 37.0% |\n| International | 161,894 | 22.6% | 13.3% | 4,750 | 2.9% | 5.9% |\n| AWS | 128,725 | 18.0% | 19.7% | 45,606 | 35.4% | 57.0% |\n\n_Source: 10-K segment note (chunk `a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Online stores | 269,287 | 37.6% | 9.0% |\n| Physical stores | 22,561 | 3.1% | 6.3% |\n| Third-party seller services | 172,162 | 24.0% | 10.3% |\n| Advertising services | 68,635 | 9.6% | 22.1% |\n| Subscription services | 49,619 | 6.9% | 11.8% |\n| AWS | 128,725 | 18.0% | 19.7% |\n| Other | 5,935 | 0.8% | 9.4% |\n\n_Source: 10-K revenue disaggregation (chunk `0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e`); figures in USD millions as reported._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (not assessed) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n\n**Moat rationale (filing-based)**: Not assessed: the model returned malformed output.\n\n**Business analysis data-quality notes**\n- The model returned no parsable JSON; moat and competitive fields not assessed.\n\n**Competitive threats**\n\n- No specific competitive threats were extracted from Item 1.\n\n- **Pricing power**: Not assessed: the model returned malformed output.\n- **Customer concentration**: Not assessed: the model returned malformed output.\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: | ---: | ---: |\n| Revenue[[9]](#cite-9) | 469,822.0 | 513,983.0 | 574,785.0 | 637,959.0 | 716,924.0 |\n| Revenue growth %[[9]](#cite-9) | N/A | +9.4% | +11.8% | +11.0% | +12.4% |\n| Gross margin %[[9]](#cite-9) | 42.03% | 43.81% | 46.98% | 48.85% | 50.29% |\n| Operating income[[9]](#cite-9) | 24,879.0 | 12,248.0 | 36,852.0 | 68,593.0 | 79,975.0 |\n| Operating margin %[[9]](#cite-9) | 5.30% | 2.38% | 6.41% | 10.75% | 11.16% |\n| Net income (attrib.)[[9]](#cite-9) | 33,364.0 | -2,722.0 | 30,425.0 | 59,248.0 | 77,670.0 |\n| Net margin %[[9]](#cite-9) | 7.10% | -0.53% | 5.29% | 9.29% | 10.83% |\n| Operating cash flow[[10]](#cite-10) | 46,327.0 | 46,752.0 | 84,946.0 | 115,877.0 | 139,514.0 |\n| Capex[[10]](#cite-10) | 61,053.0 | 63,645.0 | 52,729.0 | 82,999.0 | 131,819.0 |\n| Free cash flow[[10]](#cite-10) | -14,726.0 | -16,893.0 | 32,217.0 | 32,878.0 | 7,695.0 |\n| FCF conversion %[[11]](#cite-11) | -44.1% | 620.6% | 105.9% | 55.5% | 9.9% |\n| Stock-based comp.[[10]](#cite-10) | 12,757.0 | 19,621.0 | 24,023.0 | 22,011.0 | 19,467.0 |\n| SBC-adjusted FCF[[10]](#cite-10) | -27,483.0 | -36,514.0 | 8,194.0 | 10,867.0 | -11,772.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: | ---: | ---: |\n| Normalized operating income[[9]](#cite-9) | 24,879.0 | 12,248.0 | 36,852.0 | 68,593.0 | 79,975.0 |\n| Normalized operating margin %[[9]](#cite-9) | 5.30% | 2.38% | 6.41% | 10.75% | 11.16% |\n| Normalized net income[[9]](#cite-9) | 33,364.0 | -2,722.0 | 30,425.0 | 59,248.0 | 77,670.0 |\n| Adjustments % of EBIT[[9]](#cite-9) | N/A | N/A | N/A | N/A | N/A |\n| Non-operating income[[9]](#cite-9) | 13,272.0 | -18,184.0 | 705.0 | 21.0 | 17,336.0 |\n| Non-operating % of EBIT[[9]](#cite-9) | 53.4% | -148.5% | 1.9% | 0.0% | 21.7% |\n| Effective tax rate %[[9]](#cite-9) | 12.6% | 54.2% | 19.0% | 13.5% | 19.6% |\n| Deferred tax % of NI[[11]](#cite-11) | -0.9% | -299.3% | -19.3% | -7.8% | 14.8% |\n| Accruals (NI - OCF)[[11]](#cite-11) | -12,963.0 | -49,474.0 | -54,521.0 | -56,629.0 | -61,844.0 |\n| Sloan accruals ratio %[[12]](#cite-12) | N/A | -10.7% | -11.0% | -9.8% | -8.6% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2025)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $86,810.0M |\n| Marketable securities[[6]](#cite-6) | $36,219.0M |\n| Total liquid cash[[6]](#cite-6) | $123,029.0M |\n| Total debt[[6]](#cite-6) | $65,648.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-57,381.0M |\n| Stockholders' equity[[6]](#cite-6) | $411,065.0M |\n| Valuation share count[[6]](#cite-6) | 10,827.0M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 1.05x |\n| EBITDA[[13]](#cite-13) | $145,731.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.39x |\n| Debt / equity[[6]](#cite-6) | 0.16x |\n| Effective tax rate[[14]](#cite-14) | 19.6% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[15]](#cite-15) | 21.8% |\n| ROIC (average gross debt + equity)[[15]](#cite-15) | 15.8% |\n| ROE (average equity)[[15]](#cite-15) | 22.3% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2025 | NON-CORE INCOME DEPENDENCE (FY2025): Non-operating income of $17,336.0M equals 21.7% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2024 | STOCK-BASED COMPENSATION INTENSITY (FY2024): SBC of $22,011.0M equals 19.0% of operating cash flow and 32.1% of operating income; SBC-adjusted FCF is $10,867.0M. |\n| MEDIUM | SBC_INTENSITY | 2023 | STOCK-BASED COMPENSATION INTENSITY (FY2023): SBC of $24,023.0M equals 28.3% of operating cash flow and 65.2% of operating income; SBC-adjusted FCF is $8,194.0M. |\n| MEDIUM | TAX_ANOMALY | 2022 | TAX ANOMALY (FY2022): Reported earnings include a deferred tax adjustment of $-8,148.0M (-299.3% of net income). Net income and margins for this year are not comparable without normalization (e.g. valuation-allowance release). |\n| MEDIUM | SBC_INTENSITY | 2022 | STOCK-BASED COMPENSATION INTENSITY (FY2022): SBC of $19,621.0M equals 42.0% of operating cash flow and 160.2% of operating income; SBC-adjusted FCF is $-36,514.0M. |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2021 | NON-CORE INCOME DEPENDENCE (FY2021): Non-operating income of $13,272.0M equals 53.4% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2021 | STOCK-BASED COMPENSATION INTENSITY (FY2021): SBC of $12,757.0M equals 27.5% of operating cash flow and 51.3% of operating income; SBC-adjusted FCF is $-27,483.0M. |\n\n- **Restatement review**: No retrospective restatements identified: overlapping years agree across the FY2025, FY2024, FY2023 10-K filings for all extracted line items.\n- **Data quality**: extraction mode `deterministic`; 6/6 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 10-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 11.16%; tax 16.23% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 3 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 11.14% in year 1 to 2.50% in year 10, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 11.16% to 11.16% by year 10.\n- **Reinvestment**: CapEx starts at 15.06% of revenue from the recency-weighted 3-year audited level (latest year 18.39%, simple average 13.52%) and fades to a 10.89% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 14.1% return on new capital (base roic) = 17.8% of NOPAT; D&A is held at 9.17% (reported); working capital at -2.21% of incremental revenue (working_capital_days); SBC at 2.72% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2021A | FY2022A | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $469,822 | $513,983 | $574,785 | $637,959 | $716,924 | $796,789 | $877,902 | $958,845 | $1,038,046 | $1,113,823 | $1,184,439 | $1,248,162 | $1,303,331 | $1,348,426 | $1,382,137 |\n| Revenue Growth YoY | — | +9.4% | +11.8% | +11.0% | +12.4% | +11.1% | +10.2% | +9.2% | +8.3% | +7.3% | +6.3% | +5.4% | +4.4% | +3.5% | +2.5% |\n| Operating Income (EBIT) | — | — | — | — | — | $88,922 | $97,974 | $107,007 | $115,846 | $124,303 | $132,183 | $139,295 | $145,452 | $150,484 | $154,246 |\n| Operating Margin | 5.3% | 2.4% | 6.4% | 10.8% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% |\n| NOPAT (Effective Tax 16.2%) | — | — | — | — | — | $74,490 | $82,073 | $89,640 | $97,044 | $104,128 | $110,730 | $116,687 | $121,845 | $126,061 | $129,212 |\n| Capital Expenditures | — | — | — | — | — | $119,996 | $128,174 | $135,485 | $141,901 | $147,136 | $150,898 | $153,274 | $154,054 | $153,046 | $150,515 |\n| Depreciation & Amortization | — | — | — | — | — | $73,081 | $80,521 | $87,945 | $95,209 | $102,159 | $108,636 | $114,481 | $119,541 | $123,677 | $126,769 |\n| Change in Working Capital (ΔNWC) | — | — | — | — | — | $-1,762 | $-1,789 | $-1,786 | $-1,747 | $-1,672 | $-1,558 | $-1,406 | $-1,217 | $-995 | $-744 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | — | — | $21,636 | $23,838 | $26,036 | $28,187 | $30,244 | $32,162 | $33,892 | $35,390 | $36,614 | $37,530 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | — | — | **$29,336** | **$36,209** | **$43,886** | **$52,100** | **$60,823** | **$70,027** | **$79,300** | **$88,549** | **$97,686** | **$106,210** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 7.8% | $809,376M |\n| Base | 50% | 6.8% | $664,126M |\n| Bear | 25% | 5.8% | $495,048M |\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.20 | yfinance_raw (Blume-adjusted from raw 1.30) |\n| **Cost of Equity ($K_e$)** | **9.58%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 3.85% | 10-K interest expense $2,274.0M / average debt |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **2.88%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $2,300,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $65,648.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.40% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.40%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $396,261.3M |\n| PV of terminal value (value_driver) | $602,019.1M |\n| **Enterprise value** | **$998,280.4M** |\n| Plus: net cash | $57,381.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,055,661.4M |\n| Enterprise value rolled forward 0.82 yrs @ WACC 9.40% | $1,074,982.8M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $59,406.8M |\n| **Equity value at valuation date** | **$1,134,389.6M** |\n| Diluted shares | 10,827.00M |\n| **Fair value per share** | **$104.77** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 7.8% | $809,376M | $125.19 | -43.1% |\n| Base | 50% | 6.8% | $664,126M | $104.77 | -52.4% |\n| Bear | 25% | 5.8% | $495,048M | $81.70 | -62.9% |\n| **Probability-weighted** | 100% | | | **$104.11** | -52.7% |\n\n**Reverse DCF**: At $220.00 the market implies 17.0% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 6.8% modeled revenue CAGR. At modeled growth the price instead needs a +10.7 pp operating-margin shift in every year (final-year margin 21.8% versus 11.2% modeled). Holding the modeled cash flows, the price corresponds to a 5.78% discount rate versus the 9.40% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $118.56 | $120.40 | $122.41 | $124.63 | $127.08 |\n| **8.9%** | $109.94 | $111.35 | $112.88 | $114.56 | $116.40 |\n| **9.4%** *(Base)* | $102.48 | $103.57 | **$104.77** | $106.03 | $107.41 |\n| **9.9%** | $95.98 | $96.82 | $97.73 | $98.71 | $99.76 |\n| **10.4%** | $90.25 | $90.91 | $91.61 | $92.36 | $93.16 |\n\n| WACC \\ RONIC | 10.1% | 12.1% | 14.1% | 19.1% | 24.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $115.89 | $119.69 | $122.41 | $126.71 | $129.22 |\n| **8.9%** | $107.11 | $110.48 | $112.88 | $116.69 | $118.92 |\n| **9.4%** *(Base)* | $99.60 | $102.60 | **$104.77** | $108.15 | $110.13 |\n| **9.9%** | $93.12 | $95.81 | $97.73 | $100.77 | $102.55 |\n| **10.4%** | $87.45 | $89.88 | $91.61 | $94.35 | $95.95 |\n\n**Valuation data-quality warnings**\n- Reverse DCF: the share price implies 17.0% annual revenue growth for 10 years versus 6.8% modeled (+10.2 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: vs FY2024\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "response": "# Institutional Equity Research Report: AMAZON.COM, INC. (AMZN)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$104.77** |\n| Bear / Bull Fair Value | $81.70 / $125.19 |\n| Probability-Weighted Fair Value | $104.11 |\n| Current Share Price[[2]](#cite-2) | $220.00 (yfinance_live) |\n| Base-Case Upside / Downside | -52.4% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 17.0% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 9.40% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 5.78% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 60.3% |\n| Enterprise Value | $998,280.3M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-57,381.0M |\n| Equity Value (as of 2026-10-28) | $1,134,389.6M |\n| Valuation Shares[[6]](#cite-6) | 10,827.0M |\n| Forecast | 10-year explicit horizon, 6.8% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business. Revenue reached $999,999 million last year[[1]](#cite-1).\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: North America, International, AWS\n- **Revenue lines (ASC 606)**: Online stores, Physical stores, Third-party seller services, Advertising services, Subscription services, AWS, Other\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| North America | 426,305 | 59.5% | 10.0% | 29,619 | 6.9% | 37.0% |\n| International | 161,894 | 22.6% | 13.3% | 4,750 | 2.9% | 5.9% |\n| AWS | 128,725 | 18.0% | 19.7% | 45,606 | 35.4% | 57.0% |\n\n_Source: 10-K segment note (chunk `a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Online stores | 269,287 | 37.6% | 9.0% |\n| Physical stores | 22,561 | 3.1% | 6.3% |\n| Third-party seller services | 172,162 | 24.0% | 10.3% |\n| Advertising services | 68,635 | 9.6% | 22.1% |\n| Subscription services | 49,619 | 6.9% | 11.8% |\n| AWS | 128,725 | 18.0% | 19.7% |\n| Other | 5,935 | 0.8% | 9.4% |\n\n_Source: 10-K revenue disaggregation (chunk `0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e`); figures in USD millions as reported._\n\n- **AWS**: Cloud infrastructure and AI services. _Drivers: AI workloads._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (unsupported) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n| AWS[[9]](#cite-9) | Cost Advantage: Shared infrastructure serves internal and external demand. |\n\n**Moat rationale (filing-based)**: Not assessed: no proposed moat was supported by a verified filing quote that evidences its mechanism.\n\n**Business analysis data-quality notes**\n- Secondary moat 'Network Effects' dropped: no verified filing quote evidencing its mechanism.\n- Primary moat 'Cost Advantage' had no verified filing quote evidencing its mechanism; moat downgraded to None / Indeterminate.\n- Pricing-power text cited figures absent from its quotes; replaced by the verified quote.\n- Customer-concentration text lacked a verified quote or supported figures; replaced deterministically.\n\n**Competitive threats**\n\n- Technology lowers barriers for new and smaller competitors.[[10]](#cite-10)\n\n- **Pricing power**: Filing states: \"This guidance includes approximately $1 billion of higher year-over-year Amazon Leo costs as we scale in 2026, as well as investment in quick commerce and even sharper prices in our international stores business.\"[[11]](#cite-11)\n- **Customer concentration**: Not explicitly disclosed in 10-K\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: | ---: | ---: |\n| Revenue[[12]](#cite-12) | 469,822.0 | 513,983.0 | 574,785.0 | 637,959.0 | 716,924.0 |\n| Revenue growth %[[12]](#cite-12) | N/A | +9.4% | +11.8% | +11.0% | +12.4% |\n| Gross margin %[[12]](#cite-12) | 42.03% | 43.81% | 46.98% | 48.85% | 50.29% |\n| Operating income[[12]](#cite-12) | 24,879.0 | 12,248.0 | 36,852.0 | 68,593.0 | 79,975.0 |\n| Operating margin %[[12]](#cite-12) | 5.30% | 2.38% | 6.41% | 10.75% | 11.16% |\n| Net income (attrib.)[[12]](#cite-12) | 33,364.0 | -2,722.0 | 30,425.0 | 59,248.0 | 77,670.0 |\n| Net margin %[[12]](#cite-12) | 7.10% | -0.53% | 5.29% | 9.29% | 10.83% |\n| Operating cash flow[[13]](#cite-13) | 46,327.0 | 46,752.0 | 84,946.0 | 115,877.0 | 139,514.0 |\n| Capex[[13]](#cite-13) | 61,053.0 | 63,645.0 | 52,729.0 | 82,999.0 | 131,819.0 |\n| Free cash flow[[13]](#cite-13) | -14,726.0 | -16,893.0 | 32,217.0 | 32,878.0 | 7,695.0 |\n| FCF conversion %[[14]](#cite-14) | -44.1% | 620.6% | 105.9% | 55.5% | 9.9% |\n| Stock-based comp.[[13]](#cite-13) | 12,757.0 | 19,621.0 | 24,023.0 | 22,011.0 | 19,467.0 |\n| SBC-adjusted FCF[[13]](#cite-13) | -27,483.0 | -36,514.0 | 8,194.0 | 10,867.0 | -11,772.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: | ---: | ---: |\n| Normalized operating income[[12]](#cite-12) | 24,879.0 | 12,248.0 | 36,852.0 | 68,593.0 | 79,975.0 |\n| Normalized operating margin %[[12]](#cite-12) | 5.30% | 2.38% | 6.41% | 10.75% | 11.16% |\n| Normalized net income[[12]](#cite-12) | 33,364.0 | -2,722.0 | 30,425.0 | 59,248.0 | 77,670.0 |\n| Adjustments % of EBIT[[12]](#cite-12) | N/A | N/A | N/A | N/A | N/A |\n| Non-operating income[[12]](#cite-12) | 13,272.0 | -18,184.0 | 705.0 | 21.0 | 17,336.0 |\n| Non-operating % of EBIT[[12]](#cite-12) | 53.4% | -148.5% | 1.9% | 0.0% | 21.7% |\n| Effective tax rate %[[12]](#cite-12) | 12.6% | 54.2% | 19.0% | 13.5% | 19.6% |\n| Deferred tax % of NI[[14]](#cite-14) | -0.9% | -299.3% | -19.3% | -7.8% | 14.8% |\n| Accruals (NI - OCF)[[14]](#cite-14) | -12,963.0 | -49,474.0 | -54,521.0 | -56,629.0 | -61,844.0 |\n| Sloan accruals ratio %[[15]](#cite-15) | N/A | -10.7% | -11.0% | -9.8% | -8.6% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2025)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $86,810.0M |\n| Marketable securities[[6]](#cite-6) | $36,219.0M |\n| Total liquid cash[[6]](#cite-6) | $123,029.0M |\n| Total debt[[6]](#cite-6) | $65,648.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-57,381.0M |\n| Stockholders' equity[[6]](#cite-6) | $411,065.0M |\n| Valuation share count[[6]](#cite-6) | 10,827.0M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 1.05x |\n| EBITDA[[16]](#cite-16) | $145,731.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.39x |\n| Debt / equity[[6]](#cite-6) | 0.16x |\n| Effective tax rate[[17]](#cite-17) | 19.6% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[18]](#cite-18) | 21.8% |\n| ROIC (average gross debt + equity)[[18]](#cite-18) | 15.8% |\n| ROE (average equity)[[18]](#cite-18) | 22.3% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2025 | NON-CORE INCOME DEPENDENCE (FY2025): Non-operating income of $17,336.0M equals 21.7% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2024 | STOCK-BASED COMPENSATION INTENSITY (FY2024): SBC of $22,011.0M equals 19.0% of operating cash flow and 32.1% of operating income; SBC-adjusted FCF is $10,867.0M. |\n| MEDIUM | SBC_INTENSITY | 2023 | STOCK-BASED COMPENSATION INTENSITY (FY2023): SBC of $24,023.0M equals 28.3% of operating cash flow and 65.2% of operating income; SBC-adjusted FCF is $8,194.0M. |\n| MEDIUM | TAX_ANOMALY | 2022 | TAX ANOMALY (FY2022): Reported earnings include a deferred tax adjustment of $-8,148.0M (-299.3% of net income). Net income and margins for this year are not comparable without normalization (e.g. valuation-allowance release). |\n| MEDIUM | SBC_INTENSITY | 2022 | STOCK-BASED COMPENSATION INTENSITY (FY2022): SBC of $19,621.0M equals 42.0% of operating cash flow and 160.2% of operating income; SBC-adjusted FCF is $-36,514.0M. |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2021 | NON-CORE INCOME DEPENDENCE (FY2021): Non-operating income of $13,272.0M equals 53.4% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2021 | STOCK-BASED COMPENSATION INTENSITY (FY2021): SBC of $12,757.0M equals 27.5% of operating cash flow and 51.3% of operating income; SBC-adjusted FCF is $-27,483.0M. |\n\n- **Restatement review**: No retrospective restatements identified: overlapping years agree across the FY2025, FY2024, FY2023 10-K filings for all extracted line items.\n- **Data quality**: extraction mode `deterministic`; 6/6 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 10-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 11.16%; tax 16.23% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 3 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 11.14% in year 1 to 2.50% in year 10, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 11.16% to 11.16% by year 10.\n- **Reinvestment**: CapEx starts at 15.06% of revenue from the recency-weighted 3-year audited level (latest year 18.39%, simple average 13.52%) and fades to a 10.89% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 14.1% return on new capital (base roic) = 17.8% of NOPAT; D&A is held at 9.17% (reported); working capital at -2.21% of incremental revenue (working_capital_days); SBC at 2.72% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2021A | FY2022A | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $469,822 | $513,983 | $574,785 | $637,959 | $716,924 | $796,789 | $877,902 | $958,845 | $1,038,046 | $1,113,823 | $1,184,439 | $1,248,162 | $1,303,331 | $1,348,426 | $1,382,137 |\n| Revenue Growth YoY | — | +9.4% | +11.8% | +11.0% | +12.4% | +11.1% | +10.2% | +9.2% | +8.3% | +7.3% | +6.3% | +5.4% | +4.4% | +3.5% | +2.5% |\n| Operating Income (EBIT) | — | — | — | — | — | $88,922 | $97,974 | $107,007 | $115,846 | $124,303 | $132,183 | $139,295 | $145,452 | $150,484 | $154,246 |\n| Operating Margin | 5.3% | 2.4% | 6.4% | 10.8% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% |\n| NOPAT (Effective Tax 16.2%) | — | — | — | — | — | $74,490 | $82,073 | $89,640 | $97,044 | $104,128 | $110,730 | $116,687 | $121,845 | $126,061 | $129,212 |\n| Capital Expenditures | — | — | — | — | — | $119,996 | $128,174 | $135,485 | $141,901 | $147,136 | $150,898 | $153,274 | $154,054 | $153,046 | $150,515 |\n| Depreciation & Amortization | — | — | — | — | — | $73,081 | $80,521 | $87,945 | $95,209 | $102,159 | $108,636 | $114,481 | $119,541 | $123,677 | $126,769 |\n| Change in Working Capital (ΔNWC) | — | — | — | — | — | $-1,762 | $-1,789 | $-1,786 | $-1,747 | $-1,672 | $-1,558 | $-1,406 | $-1,217 | $-995 | $-744 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | — | — | $21,636 | $23,838 | $26,036 | $28,187 | $30,244 | $32,162 | $33,892 | $35,390 | $36,614 | $37,530 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | — | — | **$29,336** | **$36,209** | **$43,886** | **$52,100** | **$60,823** | **$70,027** | **$79,300** | **$88,549** | **$97,686** | **$106,210** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 7.8% | $809,376M |\n| Base | 50% | 6.8% | $664,126M |\n| Bear | 25% | 5.8% | $495,048M |\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.20 | yfinance_raw (Blume-adjusted from raw 1.30) |\n| **Cost of Equity ($K_e$)** | **9.58%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 3.85% | 10-K interest expense $2,274.0M / average debt |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **2.88%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $2,300,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $65,648.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.40% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.40%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $396,261.3M |\n| PV of terminal value (value_driver) | $602,019.1M |\n| **Enterprise value** | **$998,280.4M** |\n| Plus: net cash | $57,381.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,055,661.4M |\n| Enterprise value rolled forward 0.82 yrs @ WACC 9.40% | $1,074,982.8M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $59,406.8M |\n| **Equity value at valuation date** | **$1,134,389.6M** |\n| Diluted shares | 10,827.00M |\n| **Fair value per share** | **$104.77** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 7.8% | $809,376M | $125.19 | -43.1% |\n| Base | 50% | 6.8% | $664,126M | $104.77 | -52.4% |\n| Bear | 25% | 5.8% | $495,048M | $81.70 | -62.9% |\n| **Probability-weighted** | 100% | | | **$104.11** | -52.7% |\n\n**Reverse DCF**: At $220.00 the market implies 17.0% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 6.8% modeled revenue CAGR. At modeled growth the price instead needs a +10.7 pp operating-margin shift in every year (final-year margin 21.8% versus 11.2% modeled). Holding the modeled cash flows, the price corresponds to a 5.78% discount rate versus the 9.40% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $118.56 | $120.40 | $122.41 | $124.63 | $127.08 |\n| **8.9%** | $109.94 | $111.35 | $112.88 | $114.56 | $116.40 |\n| **9.4%** *(Base)* | $102.48 | $103.57 | **$104.77** | $106.03 | $107.41 |\n| **9.9%** | $95.98 | $96.82 | $97.73 | $98.71 | $99.76 |\n| **10.4%** | $90.25 | $90.91 | $91.61 | $92.36 | $93.16 |\n\n| WACC \\ RONIC | 10.1% | 12.1% | 14.1% | 19.1% | 24.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $115.89 | $119.69 | $122.41 | $126.71 | $129.22 |\n| **8.9%** | $107.11 | $110.48 | $112.88 | $116.69 | $118.92 |\n| **9.4%** *(Base)* | $99.60 | $102.60 | **$104.77** | $108.15 | $110.13 |\n| **9.9%** | $93.12 | $95.81 | $97.73 | $100.77 | $102.55 |\n| **10.4%** | $87.45 | $89.88 | $91.61 | $94.35 | $95.95 |\n\n**Valuation data-quality warnings**\n- Reverse DCF: the share price implies 17.0% annual revenue growth for 10 years versus 6.8% modeled (+10.2 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: vs FY2024\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
    "sources": [
     {
      "chunks": [
@@ -207,6 +207,72 @@
     {
      "chunks": [
       {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+       "chunk_id": "49c8d9f0-edff-4abc-a54b-0d3dcf0db6e5",
+       "chunk_index": 101,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 7",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "n": 9,
+     "provider": null,
+     "quote": "Costs to operate our AWS segment are primarily classified as “Technology and infrastructure” as we leverage a shared infrastructure that supports both our internal technology requirements and external sales to AWS customers.",
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART I > Item 1: Business",
+       "chunk_id": "df55e5fa-7077-4431-a6ec-dee1bc3a5291",
+       "chunk_index": 15,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 1",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART I > Item 1: Business",
+     "n": 10,
+     "provider": null,
+     "quote": "The internet and other technologies including artificial intelligence facilitate competitive entry and comparison shopping, which enhances the ability of new, smaller, or lesser-known businesses to compete against us.",
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+       "chunk_id": "30ed127a-3b0c-413e-a178-78443de3cf2a",
+       "chunk_index": 115,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 7",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "n": 11,
+     "provider": null,
+     "quote": "This guidance includes approximately $1 billion of higher year-over-year Amazon Leo costs as we scale in 2026, as well as investment in quick commerce and even sharper prices in our international stores business.",
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
        "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
        "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
        "chunk_index": 130,
@@ -239,7 +305,7 @@
      "fiscal_year": 2023,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 9,
+     "n": 12,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -279,7 +345,7 @@
      "fiscal_year": 2023,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 10,
+     "n": 13,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -346,7 +412,7 @@
      "fiscal_year": 2023,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 11,
+     "n": 14,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -440,7 +506,7 @@
      "fiscal_year": 2023,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 12,
+     "n": 15,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -471,7 +537,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 13,
+     "n": 16,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -493,7 +559,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 14,
+     "n": 17,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -524,7 +590,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 15,
+     "n": 18,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -548,8 +614,32 @@
  ],
  "outputs": {
   "business_moat": {
-   "business_summary": "Not assessed: the model returned malformed output.",
+   "business_summary": "Amazon runs online and physical stores, a third-party seller marketplace, advertising, Prime subscriptions and AWS cloud services.",
    "citations": [
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "chunk_id": "49c8d9f0-edff-4abc-a54b-0d3dcf0db6e5",
+     "fiscal_year": 2025,
+     "item": "Item 7",
+     "sub_section": "Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "ticker": "AMZN"
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART I > Item 1: Business",
+     "chunk_id": "df55e5fa-7077-4431-a6ec-dee1bc3a5291",
+     "fiscal_year": 2025,
+     "item": "Item 1",
+     "sub_section": "Business",
+     "ticker": "AMZN"
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "chunk_id": "30ed127a-3b0c-413e-a178-78443de3cf2a",
+     "fiscal_year": 2025,
+     "item": "Item 7",
+     "sub_section": "Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "ticker": "AMZN"
+    },
     {
      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
      "chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6",
@@ -567,23 +657,28 @@
      "ticker": "AMZN"
     }
    ],
-   "competitive_threats": [],
-   "customer_concentration": "Not assessed: the model returned malformed output.",
+   "competitive_threats": [
+    "Technology lowers barriers for new and smaller competitors."
+   ],
+   "customer_concentration": "Not explicitly disclosed in 10-K",
    "data_quality": {
     "chars_read": 12668,
-    "claims_dropped": 0,
-    "claims_proposed": 0,
-    "claims_verified": 0,
+    "claims_dropped": 4,
+    "claims_proposed": 7,
+    "claims_verified": 3,
     "consolidated_revenue": 716924.0,
     "coverage_mode": "full_section",
     "item1_chunks": 8,
-    "llm_status": "malformed",
+    "llm_status": "ok",
     "notes": [
-     "The model returned no parsable JSON; moat and competitive fields not assessed."
+     "Secondary moat 'Network Effects' dropped: no verified filing quote evidencing its mechanism.",
+     "Primary moat 'Cost Advantage' had no verified filing quote evidencing its mechanism; moat downgraded to None / Indeterminate.",
+     "Pricing-power text cited figures absent from its quotes; replaced by the verified quote.",
+     "Customer-concentration text lacked a verified quote or supported figures; replaced deterministically."
     ],
-    "quotes_off_topic": 0,
-    "quotes_rejected": 0,
-    "quotes_verified": 0,
+    "quotes_off_topic": 2,
+    "quotes_rejected": 2,
+    "quotes_verified": 3,
     "revenue_lines_reconciliation": "income_statement",
     "revenue_tables_found": 2,
     "section_located_by": "item_label",
@@ -595,13 +690,38 @@
     "units": "USD millions"
    },
    "economic_moat_type": "None",
-   "evidence": [],
+   "evidence": [
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "chunk_id": "49c8d9f0-edff-4abc-a54b-0d3dcf0db6e5",
+     "claim": "segment_moat",
+     "item": "Item 7",
+     "quote": "Costs to operate our AWS segment are primarily classified as “Technology and infrastructure” as we leverage a shared infrastructure that supports both our internal technology requirements and external sales to AWS customers.",
+     "subject": "AWS"
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART I > Item 1: Business",
+     "chunk_id": "df55e5fa-7077-4431-a6ec-dee1bc3a5291",
+     "claim": "competitive_threat",
+     "item": "Item 1",
+     "quote": "The internet and other technologies including artificial intelligence facilitate competitive entry and comparison shopping, which enhances the ability of new, smaller, or lesser-known businesses to compete against us.",
+     "subject": "Technology lowers barriers for new and smaller competitors."
+    },
+    {
+     "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "chunk_id": "30ed127a-3b0c-413e-a178-78443de3cf2a",
+     "claim": "pricing_power",
+     "item": "Item 7",
+     "quote": "This guidance includes approximately $1 billion of higher year-over-year Amazon Leo costs as we scale in 2026, as well as investment in quick commerce and even sharper prices in our international stores business.",
+     "subject": null
+    }
+   ],
    "fiscal_year": 2025,
-   "moat_assessment": "not_assessed",
+   "moat_assessment": "unsupported",
    "moat_durability": "Indeterminate",
-   "moat_rationale": "Not assessed: the model returned malformed output.",
+   "moat_rationale": "Not assessed: no proposed moat was supported by a verified filing quote that evidences its mechanism.",
    "moat_trajectory": "Indeterminate",
-   "pricing_power_assessment": "Not assessed: the model returned malformed output.",
+   "pricing_power_assessment": "Filing states: \"This guidance includes approximately $1 billion of higher year-over-year Amazon Leo costs as we scale in 2026, as well as investment in quick commerce and even sharper prices in our international stores business.\"",
    "primary_product_segments": [
     "Online stores",
     "Physical stores",
@@ -616,7 +736,7 @@
     "International",
     "AWS"
    ],
-   "revenue_architecture": "Revenue mix by product / service line (FY2025, from the 10-K revenue disaggregation): Online stores 37.6%, Physical stores 3.1%, Third-party seller services 24.0%, Advertising services 9.6%, Subscription services 6.9%, AWS 18.0%, Other 0.8%.",
+   "revenue_architecture": "Retail product sales, seller fees, advertising, subscriptions and AWS usage fees.",
    "revenue_lines": [
     {
      "fiscal_year": 2025,
@@ -827,7 +947,7 @@
      "name": "Third-party seller services"
     },
     {
-     "description": "Advertising services: FY2025 revenue $68,635M, 9.6% of revenue (from the 10-K tables).",
+     "description": "Sponsored, display and video ads.",
      "growth_drivers": [],
      "name": "Advertising services"
     },
@@ -837,8 +957,10 @@
      "name": "Subscription services"
     },
     {
-     "description": "AWS: FY2025 revenue $128,725M, 18.0% of revenue (from the 10-K tables).",
-     "growth_drivers": [],
+     "description": "Cloud infrastructure and AI services.",
+     "growth_drivers": [
+      "AI workloads"
+     ],
      "name": "AWS"
     },
     {
@@ -966,7 +1088,13 @@
      "source_chunk_id": "a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6"
     }
    ],
-   "segment_specific_moats": [],
+   "segment_specific_moats": [
+    {
+     "moat_rationale": "Shared infrastructure serves internal and external demand.",
+     "moat_type": "Cost Advantage",
+     "segment_name": "AWS"
+    }
+   ],
    "segment_table_markdown": "| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| North America | 426,305 | 59.5% | 10.0% | 29,619 | 6.9% | 37.0% |\n| International | 161,894 | 22.6% | 13.3% | 4,750 | 2.9% | 5.9% |\n| AWS | 128,725 | 18.0% | 19.7% | 45,606 | 35.4% | 57.0% |\n\n_Source: 10-K segment note (chunk `a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6`); figures in USD millions as reported._",
    "ticker": "AMZN"
   },
@@ -1101,7 +1229,7 @@
    "current_share_price": 220.0,
    "executive_summary": "The filing supports a balanced view of the business. Revenue reached $999,999 million last year.",
    "fiscal_year": 2025,
-   "full_markdown_report": "# Institutional Equity Research Report: AMAZON.COM, INC. (AMZN)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$104.77** |\n| Bear / Bull Fair Value | $81.70 / $125.19 |\n| Probability-Weighted Fair Value | $104.11 |\n| Current Share Price[[2]](#cite-2) | $220.00 (yfinance_live) |\n| Base-Case Upside / Downside | -52.4% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 17.0% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 9.40% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 5.78% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 60.3% |\n| Enterprise Value | $998,280.3M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-57,381.0M |\n| Equity Value (as of 2026-10-28) | $1,134,389.6M |\n| Valuation Shares[[6]](#cite-6) | 10,827.0M |\n| Forecast | 10-year explicit horizon, 6.8% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business. Revenue reached $999,999 million last year[[1]](#cite-1).\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: North America, International, AWS\n- **Revenue lines (ASC 606)**: Online stores, Physical stores, Third-party seller services, Advertising services, Subscription services, AWS, Other\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| North America | 426,305 | 59.5% | 10.0% | 29,619 | 6.9% | 37.0% |\n| International | 161,894 | 22.6% | 13.3% | 4,750 | 2.9% | 5.9% |\n| AWS | 128,725 | 18.0% | 19.7% | 45,606 | 35.4% | 57.0% |\n\n_Source: 10-K segment note (chunk `a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Online stores | 269,287 | 37.6% | 9.0% |\n| Physical stores | 22,561 | 3.1% | 6.3% |\n| Third-party seller services | 172,162 | 24.0% | 10.3% |\n| Advertising services | 68,635 | 9.6% | 22.1% |\n| Subscription services | 49,619 | 6.9% | 11.8% |\n| AWS | 128,725 | 18.0% | 19.7% |\n| Other | 5,935 | 0.8% | 9.4% |\n\n_Source: 10-K revenue disaggregation (chunk `0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e`); figures in USD millions as reported._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (not assessed) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n\n**Moat rationale (filing-based)**: Not assessed: the model returned malformed output.\n\n**Business analysis data-quality notes**\n- The model returned no parsable JSON; moat and competitive fields not assessed.\n\n**Competitive threats**\n\n- No specific competitive threats were extracted from Item 1.\n\n- **Pricing power**: Not assessed: the model returned malformed output.\n- **Customer concentration**: Not assessed: the model returned malformed output.\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: | ---: | ---: |\n| Revenue[[9]](#cite-9) | 469,822.0 | 513,983.0 | 574,785.0 | 637,959.0 | 716,924.0 |\n| Revenue growth %[[9]](#cite-9) | N/A | +9.4% | +11.8% | +11.0% | +12.4% |\n| Gross margin %[[9]](#cite-9) | 42.03% | 43.81% | 46.98% | 48.85% | 50.29% |\n| Operating income[[9]](#cite-9) | 24,879.0 | 12,248.0 | 36,852.0 | 68,593.0 | 79,975.0 |\n| Operating margin %[[9]](#cite-9) | 5.30% | 2.38% | 6.41% | 10.75% | 11.16% |\n| Net income (attrib.)[[9]](#cite-9) | 33,364.0 | -2,722.0 | 30,425.0 | 59,248.0 | 77,670.0 |\n| Net margin %[[9]](#cite-9) | 7.10% | -0.53% | 5.29% | 9.29% | 10.83% |\n| Operating cash flow[[10]](#cite-10) | 46,327.0 | 46,752.0 | 84,946.0 | 115,877.0 | 139,514.0 |\n| Capex[[10]](#cite-10) | 61,053.0 | 63,645.0 | 52,729.0 | 82,999.0 | 131,819.0 |\n| Free cash flow[[10]](#cite-10) | -14,726.0 | -16,893.0 | 32,217.0 | 32,878.0 | 7,695.0 |\n| FCF conversion %[[11]](#cite-11) | -44.1% | 620.6% | 105.9% | 55.5% | 9.9% |\n| Stock-based comp.[[10]](#cite-10) | 12,757.0 | 19,621.0 | 24,023.0 | 22,011.0 | 19,467.0 |\n| SBC-adjusted FCF[[10]](#cite-10) | -27,483.0 | -36,514.0 | 8,194.0 | 10,867.0 | -11,772.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: | ---: | ---: |\n| Normalized operating income[[9]](#cite-9) | 24,879.0 | 12,248.0 | 36,852.0 | 68,593.0 | 79,975.0 |\n| Normalized operating margin %[[9]](#cite-9) | 5.30% | 2.38% | 6.41% | 10.75% | 11.16% |\n| Normalized net income[[9]](#cite-9) | 33,364.0 | -2,722.0 | 30,425.0 | 59,248.0 | 77,670.0 |\n| Adjustments % of EBIT[[9]](#cite-9) | N/A | N/A | N/A | N/A | N/A |\n| Non-operating income[[9]](#cite-9) | 13,272.0 | -18,184.0 | 705.0 | 21.0 | 17,336.0 |\n| Non-operating % of EBIT[[9]](#cite-9) | 53.4% | -148.5% | 1.9% | 0.0% | 21.7% |\n| Effective tax rate %[[9]](#cite-9) | 12.6% | 54.2% | 19.0% | 13.5% | 19.6% |\n| Deferred tax % of NI[[11]](#cite-11) | -0.9% | -299.3% | -19.3% | -7.8% | 14.8% |\n| Accruals (NI - OCF)[[11]](#cite-11) | -12,963.0 | -49,474.0 | -54,521.0 | -56,629.0 | -61,844.0 |\n| Sloan accruals ratio %[[12]](#cite-12) | N/A | -10.7% | -11.0% | -9.8% | -8.6% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2025)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $86,810.0M |\n| Marketable securities[[6]](#cite-6) | $36,219.0M |\n| Total liquid cash[[6]](#cite-6) | $123,029.0M |\n| Total debt[[6]](#cite-6) | $65,648.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-57,381.0M |\n| Stockholders' equity[[6]](#cite-6) | $411,065.0M |\n| Valuation share count[[6]](#cite-6) | 10,827.0M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 1.05x |\n| EBITDA[[13]](#cite-13) | $145,731.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.39x |\n| Debt / equity[[6]](#cite-6) | 0.16x |\n| Effective tax rate[[14]](#cite-14) | 19.6% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[15]](#cite-15) | 21.8% |\n| ROIC (average gross debt + equity)[[15]](#cite-15) | 15.8% |\n| ROE (average equity)[[15]](#cite-15) | 22.3% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2025 | NON-CORE INCOME DEPENDENCE (FY2025): Non-operating income of $17,336.0M equals 21.7% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2024 | STOCK-BASED COMPENSATION INTENSITY (FY2024): SBC of $22,011.0M equals 19.0% of operating cash flow and 32.1% of operating income; SBC-adjusted FCF is $10,867.0M. |\n| MEDIUM | SBC_INTENSITY | 2023 | STOCK-BASED COMPENSATION INTENSITY (FY2023): SBC of $24,023.0M equals 28.3% of operating cash flow and 65.2% of operating income; SBC-adjusted FCF is $8,194.0M. |\n| MEDIUM | TAX_ANOMALY | 2022 | TAX ANOMALY (FY2022): Reported earnings include a deferred tax adjustment of $-8,148.0M (-299.3% of net income). Net income and margins for this year are not comparable without normalization (e.g. valuation-allowance release). |\n| MEDIUM | SBC_INTENSITY | 2022 | STOCK-BASED COMPENSATION INTENSITY (FY2022): SBC of $19,621.0M equals 42.0% of operating cash flow and 160.2% of operating income; SBC-adjusted FCF is $-36,514.0M. |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2021 | NON-CORE INCOME DEPENDENCE (FY2021): Non-operating income of $13,272.0M equals 53.4% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2021 | STOCK-BASED COMPENSATION INTENSITY (FY2021): SBC of $12,757.0M equals 27.5% of operating cash flow and 51.3% of operating income; SBC-adjusted FCF is $-27,483.0M. |\n\n- **Restatement review**: No retrospective restatements identified: overlapping years agree across the FY2025, FY2024, FY2023 10-K filings for all extracted line items.\n- **Data quality**: extraction mode `deterministic`; 6/6 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 10-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 11.16%; tax 16.23% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 3 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 11.14% in year 1 to 2.50% in year 10, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 11.16% to 11.16% by year 10.\n- **Reinvestment**: CapEx starts at 15.06% of revenue from the recency-weighted 3-year audited level (latest year 18.39%, simple average 13.52%) and fades to a 10.89% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 14.1% return on new capital (base roic) = 17.8% of NOPAT; D&A is held at 9.17% (reported); working capital at -2.21% of incremental revenue (working_capital_days); SBC at 2.72% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2021A | FY2022A | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $469,822 | $513,983 | $574,785 | $637,959 | $716,924 | $796,789 | $877,902 | $958,845 | $1,038,046 | $1,113,823 | $1,184,439 | $1,248,162 | $1,303,331 | $1,348,426 | $1,382,137 |\n| Revenue Growth YoY | — | +9.4% | +11.8% | +11.0% | +12.4% | +11.1% | +10.2% | +9.2% | +8.3% | +7.3% | +6.3% | +5.4% | +4.4% | +3.5% | +2.5% |\n| Operating Income (EBIT) | — | — | — | — | — | $88,922 | $97,974 | $107,007 | $115,846 | $124,303 | $132,183 | $139,295 | $145,452 | $150,484 | $154,246 |\n| Operating Margin | 5.3% | 2.4% | 6.4% | 10.8% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% |\n| NOPAT (Effective Tax 16.2%) | — | — | — | — | — | $74,490 | $82,073 | $89,640 | $97,044 | $104,128 | $110,730 | $116,687 | $121,845 | $126,061 | $129,212 |\n| Capital Expenditures | — | — | — | — | — | $119,996 | $128,174 | $135,485 | $141,901 | $147,136 | $150,898 | $153,274 | $154,054 | $153,046 | $150,515 |\n| Depreciation & Amortization | — | — | — | — | — | $73,081 | $80,521 | $87,945 | $95,209 | $102,159 | $108,636 | $114,481 | $119,541 | $123,677 | $126,769 |\n| Change in Working Capital (ΔNWC) | — | — | — | — | — | $-1,762 | $-1,789 | $-1,786 | $-1,747 | $-1,672 | $-1,558 | $-1,406 | $-1,217 | $-995 | $-744 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | — | — | $21,636 | $23,838 | $26,036 | $28,187 | $30,244 | $32,162 | $33,892 | $35,390 | $36,614 | $37,530 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | — | — | **$29,336** | **$36,209** | **$43,886** | **$52,100** | **$60,823** | **$70,027** | **$79,300** | **$88,549** | **$97,686** | **$106,210** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 7.8% | $809,376M |\n| Base | 50% | 6.8% | $664,126M |\n| Bear | 25% | 5.8% | $495,048M |\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.20 | yfinance_raw (Blume-adjusted from raw 1.30) |\n| **Cost of Equity ($K_e$)** | **9.58%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 3.85% | 10-K interest expense $2,274.0M / average debt |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **2.88%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $2,300,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $65,648.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.40% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.40%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $396,261.3M |\n| PV of terminal value (value_driver) | $602,019.1M |\n| **Enterprise value** | **$998,280.4M** |\n| Plus: net cash | $57,381.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,055,661.4M |\n| Enterprise value rolled forward 0.82 yrs @ WACC 9.40% | $1,074,982.8M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $59,406.8M |\n| **Equity value at valuation date** | **$1,134,389.6M** |\n| Diluted shares | 10,827.00M |\n| **Fair value per share** | **$104.77** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 7.8% | $809,376M | $125.19 | -43.1% |\n| Base | 50% | 6.8% | $664,126M | $104.77 | -52.4% |\n| Bear | 25% | 5.8% | $495,048M | $81.70 | -62.9% |\n| **Probability-weighted** | 100% | | | **$104.11** | -52.7% |\n\n**Reverse DCF**: At $220.00 the market implies 17.0% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 6.8% modeled revenue CAGR. At modeled growth the price instead needs a +10.7 pp operating-margin shift in every year (final-year margin 21.8% versus 11.2% modeled). Holding the modeled cash flows, the price corresponds to a 5.78% discount rate versus the 9.40% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $118.56 | $120.40 | $122.41 | $124.63 | $127.08 |\n| **8.9%** | $109.94 | $111.35 | $112.88 | $114.56 | $116.40 |\n| **9.4%** *(Base)* | $102.48 | $103.57 | **$104.77** | $106.03 | $107.41 |\n| **9.9%** | $95.98 | $96.82 | $97.73 | $98.71 | $99.76 |\n| **10.4%** | $90.25 | $90.91 | $91.61 | $92.36 | $93.16 |\n\n| WACC \\ RONIC | 10.1% | 12.1% | 14.1% | 19.1% | 24.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $115.89 | $119.69 | $122.41 | $126.71 | $129.22 |\n| **8.9%** | $107.11 | $110.48 | $112.88 | $116.69 | $118.92 |\n| **9.4%** *(Base)* | $99.60 | $102.60 | **$104.77** | $108.15 | $110.13 |\n| **9.9%** | $93.12 | $95.81 | $97.73 | $100.77 | $102.55 |\n| **10.4%** | $87.45 | $89.88 | $91.61 | $94.35 | $95.95 |\n\n**Valuation data-quality warnings**\n- Reverse DCF: the share price implies 17.0% annual revenue growth for 10 years versus 6.8% modeled (+10.2 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: vs FY2024\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "full_markdown_report": "# Institutional Equity Research Report: AMAZON.COM, INC. (AMZN)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2025) | **Valuation Stance**: **Overvalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$104.77** |\n| Bear / Bull Fair Value | $81.70 / $125.19 |\n| Probability-Weighted Fair Value | $104.11 |\n| Current Share Price[[2]](#cite-2) | $220.00 (yfinance_live) |\n| Base-Case Upside / Downside | -52.4% |\n| Valuation Stance | Overvalued |\n| Market-Implied Revenue Growth (reverse DCF) | 17.0% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 9.40% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 5.78% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 60.3% |\n| Enterprise Value | $998,280.3M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-57,381.0M |\n| Equity Value (as of 2026-10-28) | $1,134,389.6M |\n| Valuation Shares[[6]](#cite-6) | 10,827.0M |\n| Forecast | 10-year explicit horizon, 6.8% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business. Revenue reached $999,999 million last year[[1]](#cite-1).\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: North America, International, AWS\n- **Revenue lines (ASC 606)**: Online stores, Physical stores, Third-party seller services, Advertising services, Subscription services, AWS, Other\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2025 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| North America | 426,305 | 59.5% | 10.0% | 29,619 | 6.9% | 37.0% |\n| International | 161,894 | 22.6% | 13.3% | 4,750 | 2.9% | 5.9% |\n| AWS | 128,725 | 18.0% | 19.7% | 45,606 | 35.4% | 57.0% |\n\n_Source: 10-K segment note (chunk `a2dfd056-6ab0-4b5f-ad0f-c00a5278f8c6`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2025 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Online stores | 269,287 | 37.6% | 9.0% |\n| Physical stores | 22,561 | 3.1% | 6.3% |\n| Third-party seller services | 172,162 | 24.0% | 10.3% |\n| Advertising services | 68,635 | 9.6% | 22.1% |\n| Subscription services | 49,619 | 6.9% | 11.8% |\n| AWS | 128,725 | 18.0% | 19.7% |\n| Other | 5,935 | 0.8% | 9.4% |\n\n_Source: 10-K revenue disaggregation (chunk `0fb7888e-f88c-4fb4-ada9-fb69d15bcc0e`); figures in USD millions as reported._\n\n- **AWS**: Cloud infrastructure and AI services. _Drivers: AI workloads._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat | **None** (unsupported) |\n| Secondary moats | None identified |\n| Durability / trajectory | Indeterminate / Indeterminate |\n| AWS[[9]](#cite-9) | Cost Advantage: Shared infrastructure serves internal and external demand. |\n\n**Moat rationale (filing-based)**: Not assessed: no proposed moat was supported by a verified filing quote that evidences its mechanism.\n\n**Business analysis data-quality notes**\n- Secondary moat 'Network Effects' dropped: no verified filing quote evidencing its mechanism.\n- Primary moat 'Cost Advantage' had no verified filing quote evidencing its mechanism; moat downgraded to None / Indeterminate.\n- Pricing-power text cited figures absent from its quotes; replaced by the verified quote.\n- Customer-concentration text lacked a verified quote or supported figures; replaced deterministically.\n\n**Competitive threats**\n\n- Technology lowers barriers for new and smaller competitors.[[10]](#cite-10)\n\n- **Pricing power**: Filing states: \"This guidance includes approximately $1 billion of higher year-over-year Amazon Leo costs as we scale in 2026, as well as investment in quick commerce and even sharper prices in our international stores business.\"[[11]](#cite-11)\n- **Customer concentration**: Not explicitly disclosed in 10-K\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: | ---: | ---: |\n| Revenue[[12]](#cite-12) | 469,822.0 | 513,983.0 | 574,785.0 | 637,959.0 | 716,924.0 |\n| Revenue growth %[[12]](#cite-12) | N/A | +9.4% | +11.8% | +11.0% | +12.4% |\n| Gross margin %[[12]](#cite-12) | 42.03% | 43.81% | 46.98% | 48.85% | 50.29% |\n| Operating income[[12]](#cite-12) | 24,879.0 | 12,248.0 | 36,852.0 | 68,593.0 | 79,975.0 |\n| Operating margin %[[12]](#cite-12) | 5.30% | 2.38% | 6.41% | 10.75% | 11.16% |\n| Net income (attrib.)[[12]](#cite-12) | 33,364.0 | -2,722.0 | 30,425.0 | 59,248.0 | 77,670.0 |\n| Net margin %[[12]](#cite-12) | 7.10% | -0.53% | 5.29% | 9.29% | 10.83% |\n| Operating cash flow[[13]](#cite-13) | 46,327.0 | 46,752.0 | 84,946.0 | 115,877.0 | 139,514.0 |\n| Capex[[13]](#cite-13) | 61,053.0 | 63,645.0 | 52,729.0 | 82,999.0 | 131,819.0 |\n| Free cash flow[[13]](#cite-13) | -14,726.0 | -16,893.0 | 32,217.0 | 32,878.0 | 7,695.0 |\n| FCF conversion %[[14]](#cite-14) | -44.1% | 620.6% | 105.9% | 55.5% | 9.9% |\n| Stock-based comp.[[13]](#cite-13) | 12,757.0 | 19,621.0 | 24,023.0 | 22,011.0 | 19,467.0 |\n| SBC-adjusted FCF[[13]](#cite-13) | -27,483.0 | -36,514.0 | 8,194.0 | 10,867.0 | -11,772.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |\n| :--- | ---: | ---: | ---: | ---: | ---: |\n| Normalized operating income[[12]](#cite-12) | 24,879.0 | 12,248.0 | 36,852.0 | 68,593.0 | 79,975.0 |\n| Normalized operating margin %[[12]](#cite-12) | 5.30% | 2.38% | 6.41% | 10.75% | 11.16% |\n| Normalized net income[[12]](#cite-12) | 33,364.0 | -2,722.0 | 30,425.0 | 59,248.0 | 77,670.0 |\n| Adjustments % of EBIT[[12]](#cite-12) | N/A | N/A | N/A | N/A | N/A |\n| Non-operating income[[12]](#cite-12) | 13,272.0 | -18,184.0 | 705.0 | 21.0 | 17,336.0 |\n| Non-operating % of EBIT[[12]](#cite-12) | 53.4% | -148.5% | 1.9% | 0.0% | 21.7% |\n| Effective tax rate %[[12]](#cite-12) | 12.6% | 54.2% | 19.0% | 13.5% | 19.6% |\n| Deferred tax % of NI[[14]](#cite-14) | -0.9% | -299.3% | -19.3% | -7.8% | 14.8% |\n| Accruals (NI - OCF)[[14]](#cite-14) | -12,963.0 | -49,474.0 | -54,521.0 | -56,629.0 | -61,844.0 |\n| Sloan accruals ratio %[[15]](#cite-15) | N/A | -10.7% | -11.0% | -9.8% | -8.6% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2025)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $86,810.0M |\n| Marketable securities[[6]](#cite-6) | $36,219.0M |\n| Total liquid cash[[6]](#cite-6) | $123,029.0M |\n| Total debt[[6]](#cite-6) | $65,648.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-57,381.0M |\n| Stockholders' equity[[6]](#cite-6) | $411,065.0M |\n| Valuation share count[[6]](#cite-6) | 10,827.0M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 1.05x |\n| EBITDA[[16]](#cite-16) | $145,731.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.39x |\n| Debt / equity[[6]](#cite-6) | 0.16x |\n| Effective tax rate[[17]](#cite-17) | 19.6% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[18]](#cite-18) | 21.8% |\n| ROIC (average gross debt + equity)[[18]](#cite-18) | 15.8% |\n| ROE (average equity)[[18]](#cite-18) | 22.3% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2025 | NON-CORE INCOME DEPENDENCE (FY2025): Non-operating income of $17,336.0M equals 21.7% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2024 | STOCK-BASED COMPENSATION INTENSITY (FY2024): SBC of $22,011.0M equals 19.0% of operating cash flow and 32.1% of operating income; SBC-adjusted FCF is $10,867.0M. |\n| MEDIUM | SBC_INTENSITY | 2023 | STOCK-BASED COMPENSATION INTENSITY (FY2023): SBC of $24,023.0M equals 28.3% of operating cash flow and 65.2% of operating income; SBC-adjusted FCF is $8,194.0M. |\n| MEDIUM | TAX_ANOMALY | 2022 | TAX ANOMALY (FY2022): Reported earnings include a deferred tax adjustment of $-8,148.0M (-299.3% of net income). Net income and margins for this year are not comparable without normalization (e.g. valuation-allowance release). |\n| MEDIUM | SBC_INTENSITY | 2022 | STOCK-BASED COMPENSATION INTENSITY (FY2022): SBC of $19,621.0M equals 42.0% of operating cash flow and 160.2% of operating income; SBC-adjusted FCF is $-36,514.0M. |\n| MEDIUM | NON_CORE_INCOME_DEPENDENCE | 2021 | NON-CORE INCOME DEPENDENCE (FY2021): Non-operating income of $13,272.0M equals 53.4% of operating income; pre-tax earnings lean on interest and other income rather than the core business. |\n| MEDIUM | SBC_INTENSITY | 2021 | STOCK-BASED COMPENSATION INTENSITY (FY2021): SBC of $12,757.0M equals 27.5% of operating cash flow and 51.3% of operating income; SBC-adjusted FCF is $-27,483.0M. |\n\n- **Restatement review**: No retrospective restatements identified: overlapping years agree across the FY2025, FY2024, FY2023 10-K filings for all extracted line items.\n- **Data quality**: extraction mode `deterministic`; 6/6 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 10-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 11.16%; tax 16.23% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 3 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 11.14% in year 1 to 2.50% in year 10, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 11.16% to 11.16% by year 10.\n- **Reinvestment**: CapEx starts at 15.06% of revenue from the recency-weighted 3-year audited level (latest year 18.39%, simple average 13.52%) and fades to a 10.89% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 14.1% return on new capital (base roic) = 17.8% of NOPAT; D&A is held at 9.17% (reported); working capital at -2.21% of incremental revenue (working_capital_days); SBC at 2.72% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2021A | FY2022A | FY2023A | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $469,822 | $513,983 | $574,785 | $637,959 | $716,924 | $796,789 | $877,902 | $958,845 | $1,038,046 | $1,113,823 | $1,184,439 | $1,248,162 | $1,303,331 | $1,348,426 | $1,382,137 |\n| Revenue Growth YoY | — | +9.4% | +11.8% | +11.0% | +12.4% | +11.1% | +10.2% | +9.2% | +8.3% | +7.3% | +6.3% | +5.4% | +4.4% | +3.5% | +2.5% |\n| Operating Income (EBIT) | — | — | — | — | — | $88,922 | $97,974 | $107,007 | $115,846 | $124,303 | $132,183 | $139,295 | $145,452 | $150,484 | $154,246 |\n| Operating Margin | 5.3% | 2.4% | 6.4% | 10.8% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% | 11.2% |\n| NOPAT (Effective Tax 16.2%) | — | — | — | — | — | $74,490 | $82,073 | $89,640 | $97,044 | $104,128 | $110,730 | $116,687 | $121,845 | $126,061 | $129,212 |\n| Capital Expenditures | — | — | — | — | — | $119,996 | $128,174 | $135,485 | $141,901 | $147,136 | $150,898 | $153,274 | $154,054 | $153,046 | $150,515 |\n| Depreciation & Amortization | — | — | — | — | — | $73,081 | $80,521 | $87,945 | $95,209 | $102,159 | $108,636 | $114,481 | $119,541 | $123,677 | $126,769 |\n| Change in Working Capital (ΔNWC) | — | — | — | — | — | $-1,762 | $-1,789 | $-1,786 | $-1,747 | $-1,672 | $-1,558 | $-1,406 | $-1,217 | $-995 | $-744 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | — | — | $21,636 | $23,838 | $26,036 | $28,187 | $30,244 | $32,162 | $33,892 | $35,390 | $36,614 | $37,530 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | — | — | **$29,336** | **$36,209** | **$43,886** | **$52,100** | **$60,823** | **$70,027** | **$79,300** | **$88,549** | **$97,686** | **$106,210** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 7.8% | $809,376M |\n| Base | 50% | 6.8% | $664,126M |\n| Bear | 25% | 5.8% | $495,048M |\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.20 | yfinance_raw (Blume-adjusted from raw 1.30) |\n| **Cost of Equity ($K_e$)** | **9.58%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 3.85% | 10-K interest expense $2,274.0M / average debt |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **2.88%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $2,300,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $65,648.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 97.22% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 2.78% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 9.40% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **9.40%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $396,261.3M |\n| PV of terminal value (value_driver) | $602,019.1M |\n| **Enterprise value** | **$998,280.4M** |\n| Plus: net cash | $57,381.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $1,055,661.4M |\n| Enterprise value rolled forward 0.82 yrs @ WACC 9.40% | $1,074,982.8M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $59,406.8M |\n| **Equity value at valuation date** | **$1,134,389.6M** |\n| Diluted shares | 10,827.00M |\n| **Fair value per share** | **$104.77** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 7.8% | $809,376M | $125.19 | -43.1% |\n| Base | 50% | 6.8% | $664,126M | $104.77 | -52.4% |\n| Bear | 25% | 5.8% | $495,048M | $81.70 | -62.9% |\n| **Probability-weighted** | 100% | | | **$104.11** | -52.7% |\n\n**Reverse DCF**: At $220.00 the market implies 17.0% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 6.8% modeled revenue CAGR. At modeled growth the price instead needs a +10.7 pp operating-margin shift in every year (final-year margin 21.8% versus 11.2% modeled). Holding the modeled cash flows, the price corresponds to a 5.78% discount rate versus the 9.40% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $118.56 | $120.40 | $122.41 | $124.63 | $127.08 |\n| **8.9%** | $109.94 | $111.35 | $112.88 | $114.56 | $116.40 |\n| **9.4%** *(Base)* | $102.48 | $103.57 | **$104.77** | $106.03 | $107.41 |\n| **9.9%** | $95.98 | $96.82 | $97.73 | $98.71 | $99.76 |\n| **10.4%** | $90.25 | $90.91 | $91.61 | $92.36 | $93.16 |\n\n| WACC \\ RONIC | 10.1% | 12.1% | 14.1% | 19.1% | 24.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **8.4%** | $115.89 | $119.69 | $122.41 | $126.71 | $129.22 |\n| **8.9%** | $107.11 | $110.48 | $112.88 | $116.69 | $118.92 |\n| **9.4%** *(Base)* | $99.60 | $102.60 | **$104.77** | $108.15 | $110.13 |\n| **9.9%** | $93.12 | $95.81 | $97.73 | $100.77 | $102.55 |\n| **10.4%** | $87.45 | $89.88 | $91.61 | $94.35 | $95.95 |\n\n**Valuation data-quality warnings**\n- Reverse DCF: the share price implies 17.0% annual revenue growth for 10 years versus 6.8% modeled (+10.2 pp); the market is pricing materially more growth, or different margins and returns, than the base case.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: vs FY2024\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
    "implied_fair_value_per_share": 104.77,
    "sources": [
     {
@@ -1261,6 +1389,72 @@
     {
      "chunks": [
       {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+       "chunk_id": "49c8d9f0-edff-4abc-a54b-0d3dcf0db6e5",
+       "chunk_index": 101,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 7",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "n": 9,
+     "provider": null,
+     "quote": "Costs to operate our AWS segment are primarily classified as “Technology and infrastructure” as we leverage a shared infrastructure that supports both our internal technology requirements and external sales to AWS customers.",
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART I > Item 1: Business",
+       "chunk_id": "df55e5fa-7077-4431-a6ec-dee1bc3a5291",
+       "chunk_index": 15,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 1",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART I > Item 1: Business",
+     "n": 10,
+     "provider": null,
+     "quote": "The internet and other technologies including artificial intelligence facilitate competitive entry and comparison shopping, which enhances the ability of new, smaller, or lesser-known businesses to compete against us.",
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+       "chunk_id": "30ed127a-3b0c-413e-a178-78443de3cf2a",
+       "chunk_index": 115,
+       "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+       "fiscal_year": 2025,
+       "item": "Item 7",
+       "ticker": "AMZN"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+     "fiscal_year": 2025,
+     "kind": "verbatim",
+     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+     "n": 11,
+     "provider": null,
+     "quote": "This guidance includes approximately $1 billion of higher year-over-year Amazon Leo costs as we scale in 2026, as well as investment in quick commerce and even sharper prices in our international stores business.",
+     "ticker": "AMZN"
+    },
+    {
+     "chunks": [
+      {
        "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
        "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
        "chunk_index": 130,
@@ -1293,7 +1487,7 @@
      "fiscal_year": 2023,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 9,
+     "n": 12,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -1333,7 +1527,7 @@
      "fiscal_year": 2023,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 10,
+     "n": 13,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -1400,7 +1594,7 @@
      "fiscal_year": 2023,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 11,
+     "n": 14,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -1494,7 +1688,7 @@
      "fiscal_year": 2023,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 12,
+     "n": 15,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -1525,7 +1719,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 13,
+     "n": 16,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -1547,7 +1741,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 14,
+     "n": 17,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -1578,7 +1772,7 @@
      "fiscal_year": 2025,
      "kind": "derived",
      "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-     "n": 15,
+     "n": 18,
      "provider": null,
      "quote": null,
      "ticker": "AMZN"
@@ -3997,6 +4191,72 @@
    {
     "chunks": [
      {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+      "chunk_id": "49c8d9f0-edff-4abc-a54b-0d3dcf0db6e5",
+      "chunk_index": 101,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 7",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+    "n": 9,
+    "provider": null,
+    "quote": "Costs to operate our AWS segment are primarily classified as “Technology and infrastructure” as we leverage a shared infrastructure that supports both our internal technology requirements and external sales to AWS customers.",
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART I > Item 1: Business",
+      "chunk_id": "df55e5fa-7077-4431-a6ec-dee1bc3a5291",
+      "chunk_index": 15,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 1",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART I > Item 1: Business",
+    "n": 10,
+    "provider": null,
+    "quote": "The internet and other technologies including artificial intelligence facilitate competitive entry and comparison shopping, which enhances the ability of new, smaller, or lesser-known businesses to compete against us.",
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+      "chunk_id": "30ed127a-3b0c-413e-a178-78443de3cf2a",
+      "chunk_index": 115,
+      "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+      "fiscal_year": 2025,
+      "item": "Item 7",
+      "ticker": "AMZN"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "84c64d8d-ad01-4266-a65f-ad1425841e95",
+    "fiscal_year": 2025,
+    "kind": "verbatim",
+    "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 7: Management’s Discussion and Analysis of Financial Condition and Results of Operations",
+    "n": 11,
+    "provider": null,
+    "quote": "This guidance includes approximately $1 billion of higher year-over-year Amazon Leo costs as we scale in 2026, as well as investment in quick commerce and even sharper prices in our international stores business.",
+    "ticker": "AMZN"
+   },
+   {
+    "chunks": [
+     {
       "breadcrumb": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
       "chunk_id": "0c4720db-c7db-42e8-a686-ab0ee8ba691c",
       "chunk_index": 130,
@@ -4029,7 +4289,7 @@
     "fiscal_year": 2023,
     "kind": "derived",
     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
-    "n": 9,
+    "n": 12,
     "provider": null,
     "quote": null,
     "ticker": "AMZN"
@@ -4069,7 +4329,7 @@
     "fiscal_year": 2023,
     "kind": "derived",
     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
-    "n": 10,
+    "n": 13,
     "provider": null,
     "quote": null,
     "ticker": "AMZN"
@@ -4136,7 +4396,7 @@
     "fiscal_year": 2023,
     "kind": "derived",
     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
-    "n": 11,
+    "n": 14,
     "provider": null,
     "quote": null,
     "ticker": "AMZN"
@@ -4230,7 +4490,7 @@
     "fiscal_year": 2023,
     "kind": "derived",
     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2023 > PART II > Item 8: Financial Statements and Supplementary Data",
-    "n": 12,
+    "n": 15,
     "provider": null,
     "quote": null,
     "ticker": "AMZN"
@@ -4261,7 +4521,7 @@
     "fiscal_year": 2025,
     "kind": "derived",
     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-    "n": 13,
+    "n": 16,
     "provider": null,
     "quote": null,
     "ticker": "AMZN"
@@ -4283,7 +4543,7 @@
     "fiscal_year": 2025,
     "kind": "derived",
     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-    "n": 14,
+    "n": 17,
     "provider": null,
     "quote": null,
     "ticker": "AMZN"
@@ -4314,7 +4574,7 @@
     "fiscal_year": 2025,
     "kind": "derived",
     "label": "AMAZON.COM, INC. (AMZN) > 10-K FY2025 > PART II > Item 8: Financial Statements and Supplementary Data",
-    "n": 15,
+    "n": 18,
     "provider": null,
     "quote": null,
     "ticker": "AMZN"

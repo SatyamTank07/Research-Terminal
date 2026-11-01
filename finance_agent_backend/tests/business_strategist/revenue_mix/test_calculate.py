@@ -1,88 +1,32 @@
-"""Unit tests for the deterministic business-disclosure toolkit (segment note, revenue
-disaggregation, units, sentence screens, section inference, renderers).
+"""Segment note and revenue disaggregation parsed from the filing tables, units and label vocabulary.
 
 Synthetic markdown tables mirror the layouts found in real filings; no DB or network access.
 """
 
 import unittest
-from typing import List, Optional, Sequence
 
-from app.agents.tools.business_disclosure_tools import (
-    FilingChunk,
+from app.agents.specialized.business_strategist.context import FilingChunk
+from app.agents.specialized.business_strategist.modules.revenue_mix.calculate import (
     extract_segment_disclosures,
-    find_disclosure_sentences,
-    infer_section_items,
     is_geographic,
+    latest_year_figures,
+    match_name,
     name_key,
     profit_rank,
-    render_revenue_mix_markdown,
-    render_segment_table_markdown,
+    reportable_segment_names,
     scale_from_caption,
     segment_basis,
+    top_level_line_names,
 )
-
-
-def md(rows: Sequence[Sequence[str]], header: Sequence[str] = ("", "2025", "2024"), title: Optional[str] = None) -> str:
-    lines: List[str] = []
-    if title:
-        lines += [f"### {title}", ""]
-    lines.append("| " + " | ".join(header) + " |")
-    lines.append("| " + " | ".join([":---"] * len(header)) + " |")
-    lines += ["| " + " | ".join(r) + " |" for r in rows]
-    return "\n".join(lines)
-
-
-def table(idx: int, content: str, item: str = "Item 8") -> FilingChunk:
-    return FilingChunk(chunk_id=f"t{idx}", chunk_index=idx, chunk_type="table", item=item, content=content)
-
-
-def text(idx: int, content: str, item: str = "Item 8") -> FilingChunk:
-    return FilingChunk(chunk_id=f"n{idx}", chunk_index=idx, chunk_type="narrative", item=item, content=content)
-
-
-INCOME_STATEMENT = md([
-    ("Total net sales", "1,000", "850"),
-    ("Cost of sales", "600", "520"),
-    ("Operating income", "110", "80"),
-    ("Net income", "90", "60"),
-    ("Diluted earnings per share", "1.00", "0.70"),
-])
-
-STACKED_SEGMENTS = md(
-    [
-        ("Retail", "", ""),
-        ("Net sales", "700", "800"),
-        ("Operating expenses", "670", "760"),
-        ("Operating income", "30", "40"),
-        ("Cloud", "", ""),
-        ("Net sales", "150", "200"),
-        ("Operating expenses", "100", "130"),
-        ("Operating income (loss)", "50", "70"),
-        ("Consolidated", "", ""),
-        ("Net sales", "850", "1,000"),
-        ("Operating income", "80", "110"),
-    ],
-    header=("", "2024", "2025"),  # ascending period columns
+from tests.business_strategist.filing_fixtures import (
+    DISAGGREGATION,
+    INCOME_STATEMENT,
+    STACKED_SEGMENTS,
+    filing,
+    md,
+    table,
+    text,
 )
-
-DISAGGREGATION = md([
-    ("Net sales:", "", ""),
-    ("Online stores (1)", "500", "450"),
-    ("Seller services (2)", "300", "250"),
-    ("Cloud services", "200", "150"),
-    ("Consolidated", "1,000", "850"),
-])
-
-
-def filing(*extra: FilingChunk, segments: str = STACKED_SEGMENTS, disaggregation: str = DISAGGREGATION) -> List[FilingChunk]:
-    chunks = [
-        table(1, INCOME_STATEMENT),
-        text(2, "Note 10 — Segment Information. We have two reportable segments reviewed by our CODM."),
-        table(3, segments),
-        text(4, "Net sales by groups of similar products and services is as follows:"),
-        table(5, disaggregation),
-    ]
-    return chunks + list(extra)
 
 
 class TestSegmentExtraction(unittest.TestCase):
@@ -311,44 +255,21 @@ class TestHelpers(unittest.TestCase):
         self.assertEqual(scale_from_caption("(in thousands)"), (1000.0, True))
         self.assertEqual(scale_from_caption("Deliveries (in thousands of units)"), (1.0, False))
 
-    def test_sentence_screens(self):
-        chunks = [
-            text(1, "Sales to one customer represented 22% of total revenue in fiscal 2025. Prices rose 5%.", item="Item 7"),
-            text(2, "As of year end, no entity represented 10% or more of our total receivables balance.", item="Item 8"),
-            text(3, "We purchase components from suppliers at competitive pricing to lower our costs.", item="Item 1A"),
-            text(4, "We reduced average selling prices on our older products due to competitive pressure.", item="Item 7"),
-            text(5, "The tax credit ranges from 6% to 50% for eligible customers installing systems.", item="Item 1"),
-        ]
-        found = find_disclosure_sentences(chunks, {}, exclude_chunk_ids={"n5"})
-        kinds = [(d.kind, d.chunk_id) for d in found]
-        self.assertEqual(kinds[0], ("revenue_concentration", "n1"))
-        self.assertIn(("receivables_concentration", "n2"), kinds)
-        self.assertIn(("pricing", "n4"), kinds)
-        self.assertNotIn(("pricing", "n3"), kinds)  # input-cost sentence
-        self.assertFalse(any(cid == "n5" for _, cid in kinds))
-
-    def test_infer_section_items_moves_forward_only(self):
-        chunks = [
-            FilingChunk(chunk_id="a", chunk_index=0, chunk_type="table", content="| Item 1. | Business |"),
-            text(1, "We sell things."),
-            FilingChunk(chunk_id="b", chunk_index=2, chunk_type="table", content="| Item 7. | Management's Discussion |"),
-            text(3, "As described in Item 1, revenue grew."),
-            FilingChunk(chunk_id="c", chunk_index=4, chunk_type="table", content="| Item 1A. | Risk Factors |"),
-        ]
-        items = infer_section_items(chunks)
-        self.assertEqual(items["n1"], "Item 1")
-        self.assertEqual(items["n3"], "Item 7")
-        self.assertEqual(items["c"], "Item 7")  # a backward heading never re-opens an earlier section
-
-    def test_renderers(self):
+    def test_extracted_names_are_the_latest_year(self):
         ex = extract_segment_disclosures(filing(), 2025)
-        seg_md = render_segment_table_markdown(ex.segments)
-        self.assertIn("| Cloud | 200 | 20.0% | 33.3% | 70 | 35.0% | 63.6% |", seg_md)
-        self.assertIn("Operating income ($M)", seg_md)
-        mix_md = render_revenue_mix_markdown(ex.revenue_lines)
-        self.assertIn("| Online stores | 500 | 50.0% | 11.1% |", mix_md)
-        self.assertIn("No reportable-segment", render_segment_table_markdown([]))
-        self.assertIn("No product", render_revenue_mix_markdown([]))
+        self.assertEqual({f.fiscal_year for f in latest_year_figures(ex.segments)}, {2025})
+        self.assertEqual(latest_year_figures([]), [])
+        self.assertEqual(reportable_segment_names(ex), ["Retail", "Cloud"])
+        self.assertEqual(top_level_line_names(ex), ["Online stores", "Seller services", "Cloud services"])
+
+    def test_match_name(self):
+        lookup = {name_key(n): n for n in ["Wearables, Home and Accessories", "Services", "Mac"]}
+        self.assertEqual(match_name("services", lookup), "Services")
+        self.assertEqual(match_name("Wearables", lookup), "Wearables, Home and Accessories")
+        self.assertIsNone(match_name("Vision Pro", lookup))
+        both = {name_key(n): n for n in ["Cloud services", "Cloud storage"]}
+        self.assertIsNone(match_name("Cloud", both))  # ambiguous: two names contain it
+
 
 
 if __name__ == "__main__":

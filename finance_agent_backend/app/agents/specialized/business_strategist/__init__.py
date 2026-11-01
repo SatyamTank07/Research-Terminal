@@ -4,12 +4,14 @@ from app.agents.specialized.business_strategist.agent_business_strategist import
     analyze_business,
     summarize_moat,
 )
+from app.agents.specialized.business_strategist.context import FilingChunk
+from app.agents.specialized.business_strategist.evidence import StrategyEvidence
+from app.agents.specialized.business_strategist.modules.business_model import SegmentDetail
+from app.agents.specialized.business_strategist.modules.competition_and_moat import SegmentMoat
+from app.agents.specialized.business_strategist.modules.revenue_mix import RevenueLineFigure, SegmentFigure
 from app.agents.specialized.business_strategist.state_business_strategist import (
     BusinessMoatOutput,
-    SegmentDetail,
-    SegmentMoat,
     StrategistDataQuality,
-    StrategyEvidence,
 )
 
 AGENT = AgentSpec(
@@ -24,7 +26,10 @@ __all__ = [
     "AGENT",
     "BusinessStrategistAgent",
     "BusinessMoatOutput",
+    "FilingChunk",
+    "RevenueLineFigure",
     "SegmentDetail",
+    "SegmentFigure",
     "SegmentMoat",
     "StrategistDataQuality",
     "StrategyEvidence",

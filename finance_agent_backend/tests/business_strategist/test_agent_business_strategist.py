@@ -1,4 +1,4 @@
-"""Unit and integration tests for the deterministic-first Business & Moat Strategist.
+"""Whole-run tests for the Business Strategist checklist (context, revenue mix, judge, verify, assemble).
 
 The Item 1 pre-fetch, the filing loader and the single LLM call (`_run_judgement_llm`) are
 patched, so every test is hermetic. Covered:
@@ -19,13 +19,13 @@ from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, patch
 
 from app.agents.registry import AgentRegistry
-from app.agents.specialized.business_strategist import BusinessMoatOutput, BusinessStrategistAgent
+from app.agents.specialized.business_strategist import BusinessMoatOutput, BusinessStrategistAgent, FilingChunk
 from app.agents.shared.prompts import render_prompt
-from app.agents.tools.business_disclosure_tools import FilingChunk
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
-from tests.test_tool_business_disclosure import DISAGGREGATION, INCOME_STATEMENT, STACKED_SEGMENTS
+from tests.business_strategist.filing_fixtures import DISAGGREGATION, INCOME_STATEMENT, STACKED_SEGMENTS
 
 MODULE = "app.agents.specialized.business_strategist.agent_business_strategist"
+CONTEXT = "app.agents.specialized.business_strategist.context"
 
 ITEM_1 = {
     "i1": (
@@ -144,9 +144,9 @@ def _run(
         content = payload if isinstance(payload, str) else json.dumps(payload if payload is not None else _llm_payload())
         llm = MagicMock(return_value=content)
     rag_mock = MagicMock(return_value=rag or [])
-    with patch(f"{MODULE}.locate_section_chunks", return_value=(item1, located_by if item1 else "not_found")), \
-            patch(f"{MODULE}.load_filing_chunks", return_value=filing), \
-            patch(f"{MODULE}.retrieve_10k_narrative", rag_mock), \
+    with patch(f"{CONTEXT}.locate_section_chunks", return_value=(item1, located_by if item1 else "not_found")), \
+            patch(f"{CONTEXT}.load_filing_chunks", return_value=filing), \
+            patch(f"{CONTEXT}.retrieve_10k_narrative", rag_mock), \
             patch.object(BusinessStrategistAgent, "_run_judgement_llm", llm):
         out = BusinessStrategistAgent().analyze("test", 2025)
     return out, llm, rag_mock
@@ -365,8 +365,8 @@ class TestGracefulDegradation(unittest.TestCase):
         self.assertEqual(out.customer_concentration, "Not assessed: no filing text was available.")
 
     def test_filing_load_failure_still_returns(self):
-        with patch(f"{MODULE}.locate_section_chunks", return_value=(_item1_chunks(), "item_label")), \
-                patch(f"{MODULE}.load_filing_chunks", side_effect=RuntimeError("db down")), \
+        with patch(f"{CONTEXT}.locate_section_chunks", return_value=(_item1_chunks(), "item_label")), \
+                patch(f"{CONTEXT}.load_filing_chunks", side_effect=RuntimeError("db down")), \
                 patch.object(BusinessStrategistAgent, "_run_judgement_llm", return_value=json.dumps(_llm_payload())):
             out = BusinessStrategistAgent().analyze("TEST", 2025)
         self.assertEqual(out.segment_financials, [])
@@ -391,7 +391,7 @@ class TestRealFilingSmoke(unittest.TestCase):
     """Deterministic (no LLM) run on the ingested AAPL FY2025 10-K, skipped when not ingested."""
 
     def test_aapl_segments_and_revenue_lines(self):
-        from app.agents.tools.business_disclosure_tools import load_filing_chunks
+        from app.agents.specialized.business_strategist.context import load_filing_chunks
 
         try:
             chunks = load_filing_chunks("AAPL", 2025)

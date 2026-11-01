@@ -1,8 +1,5 @@
-"""Deterministic Business-Disclosure Toolkit (Item 1 + segment note + revenue disaggregation).
+"""Where does revenue come from, in numbers? Segment and product-line revenue parsed from the 10-K tables.
 
-Pure-Python helpers backing the evidence-first Business Strategist:
-- Whole-filing chunk loading in filing order and heading-based section inference, so citations
-  carry the true 10-K item even when the stored section labels are wrong.
 - Segment-note extraction (ASC 280): revenue and the segment profit measure by reportable segment,
   multi-year, from the three common table layouts:
     * "stacked_by_segment":  a header row per segment, metric rows below it, years as columns;
@@ -14,8 +11,6 @@ Pure-Python helpers backing the evidence-first Business Strategist:
   table total and to consolidated revenue.
 - Unit handling (thousands / millions / billions captions, cross-checked against the income
   statement) and period columns in either order.
-- Sentence screens for customer-concentration and pricing disclosures anywhere in the filing.
-- Markdown renderers for the verified segment and revenue-mix tables.
 
 Every extractor returns empty results plus notes instead of guessing when a table does not
 parse cleanly or does not reconcile. Nothing here calls an LLM, and nothing raises on odd input.
@@ -26,11 +21,24 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
-from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
-
-from app.agents.shared.filing.sections import TEN_K_ITEM_ORDER, heading_item
-from app.agents.shared.filing.sentences import normalize_text, split_sentences
+from app.agents.shared.filing.sentences import normalize_text
+from app.agents.specialized.business_strategist.context import FilingChunk
+from app.agents.specialized.business_strategist.modules.revenue_mix.schema import (
+    UNITS_MILLIONS,
+    RevenueLineFigure,
+    SegmentExtraction,
+    SegmentFigure,
+)
+from app.agents.specialized.business_strategist.modules.revenue_mix.thresholds import (
+    CAPTION_TAIL_CHARS,
+    CONTEXT_TAIL_CHARS,
+    GEOGRAPHIC_SHARE,
+    MIN_REVENUE_LINES,
+    MIN_SEGMENTS,
+    RECONCILE_ABS_UNITS_PER_ROW,
+    RECONCILE_REL_TOLERANCE,
+    SCALE_MATCH_TOLERANCE,
+)
 from app.services.financial_tables import (
     StatementGrid,
     StatementRow,
@@ -40,157 +48,11 @@ from app.services.financial_tables import (
     parse_value_token,
 )
 
-logger = logging.getLogger("finance_agent.tools.business_disclosure")
-
-# Reconciliation tolerances: relative share of the reference value, plus an absolute floor in
-# table units to absorb per-row rounding (each row is rounded to the table's unit).
-RECONCILE_REL_TOLERANCE = 0.01
-RECONCILE_ABS_UNITS_PER_ROW = 1.0
-SCALE_MATCH_TOLERANCE = 0.02
-
-MIN_SEGMENTS = 2
-MIN_REVENUE_LINES = 2
-GEOGRAPHIC_SHARE = 0.5
-MAX_CONCENTRATION_SENTENCES = 6
-MAX_PRICING_SENTENCES = 6
-MAX_SENTENCE_CHARS = 420
-CONTEXT_TAIL_CHARS = 500
-CAPTION_TAIL_CHARS = 200  # statement unit captions sit directly above the table
-
-UNITS_MILLIONS = "USD millions"
+logger = logging.getLogger("finance_agent.agents.business_strategist")
 
 
 # ==============================================================================
-# 1. Schemas
-# ==============================================================================
-class FilingChunk(BaseModel):
-    """One stored chunk of the 10-K (narrative or table) in filing order."""
-
-    chunk_id: str
-    chunk_index: int
-    chunk_type: str
-    item: Optional[str] = None
-    breadcrumb: Optional[str] = None
-    sub_section: Optional[str] = None
-    content: str = ""
-
-
-class SegmentFigure(BaseModel):
-    """Revenue and segment profit for one reportable segment and fiscal year (USD millions)."""
-
-    segment_name: str
-    fiscal_year: int
-    revenue: float
-    segment_profit: Optional[float] = None
-    profit_measure: Optional[str] = None
-    revenue_share_pct: Optional[float] = None
-    profit_margin_pct: Optional[float] = None
-    profit_share_pct: Optional[float] = None
-    revenue_growth_pct: Optional[float] = None
-    reportable: bool = True
-    source_chunk_id: str
-
-
-class RevenueLineFigure(BaseModel):
-    """Net sales of one disaggregated product / service line for one fiscal year (USD millions)."""
-
-    name: str
-    fiscal_year: int
-    revenue: float
-    revenue_share_pct: Optional[float] = None
-    revenue_growth_pct: Optional[float] = None
-    parent: Optional[str] = None
-    source_chunk_id: str
-
-
-class DisclosureSentence(BaseModel):
-    """A filing sentence surfaced by a deterministic screen, with its chunk and (inferred) item."""
-
-    chunk_id: str
-    item: Optional[str] = None
-    text: str
-    kind: str = Field(..., description="'revenue_concentration' | 'receivables_concentration' | 'pricing'")
-
-
-class SegmentExtraction(BaseModel):
-    """Result of the deterministic segment / revenue-line extraction for one filing."""
-
-    segments: List[SegmentFigure] = Field(default_factory=list)
-    revenue_lines: List[RevenueLineFigure] = Field(default_factory=list)
-    segment_layout: Optional[str] = None
-    segment_basis: str = "not_found"
-    segment_reconciliation: str = "not_applicable"
-    segment_source_chunk_ids: List[str] = Field(default_factory=list)
-    revenue_lines_source_chunk_id: Optional[str] = None
-    revenue_lines_reconciliation: str = "not_applicable"
-    consolidated_revenue: Optional[float] = None
-    consolidated_revenue_year: Optional[int] = None
-    latest_fiscal_year: Optional[int] = None
-    units: str = UNITS_MILLIONS
-    segment_tables_found: int = 0
-    revenue_tables_found: int = 0
-    notes: List[str] = Field(default_factory=list)
-
-
-# ==============================================================================
-# 2. Filing loading & section inference
-# ==============================================================================
-def load_filing_chunks(ticker: str, fiscal_year: int, db: Optional[Session] = None) -> List[FilingChunk]:
-    """Returns every chunk of the 10-K for `ticker` / `fiscal_year` in filing order."""
-    from app.database import SessionLocal
-    from app.models import ANNUAL_REPORT_FILING_TYPE, Document, DocumentChunk
-
-    owns_db = db is None
-    if owns_db:
-        db = SessionLocal()
-    try:
-        rows = (
-            db.query(DocumentChunk)
-            .join(Document, Document.id == DocumentChunk.document_id)
-            .filter(
-                Document.ticker == ticker.strip().upper(),
-                Document.fiscal_year == fiscal_year,
-                Document.filing_type == ANNUAL_REPORT_FILING_TYPE,
-            )
-            .order_by(DocumentChunk.chunk_index.asc())
-            .all()
-        )
-        return [
-            FilingChunk(
-                chunk_id=str(c.id),
-                chunk_index=c.chunk_index,
-                chunk_type=c.chunk_type or "narrative",
-                item=c.item,
-                breadcrumb=c.breadcrumb,
-                sub_section=c.sub_section,
-                content=c.content or "",
-            )
-            for c in rows
-        ]
-    finally:
-        if owns_db:
-            db.close()
-
-
-def infer_section_items(chunks: Sequence[FilingChunk]) -> Dict[str, str]:
-    """Maps chunk_id -> 10-K item inferred from the filing's own section headings.
-
-    Headings only move forward through the standard item order, so cross-references and stray
-    backward mentions never re-open an earlier section. Chunks before the first heading are
-    mapped to "Cover Page".
-    """
-    mapping: Dict[str, str] = {}
-    current: Optional[str] = None
-    for chunk in chunks:
-        found = heading_item(chunk.content)
-        if found is not None and (current is None or TEN_K_ITEM_ORDER.index(found) > TEN_K_ITEM_ORDER.index(current)):
-            current = found
-        mapping[chunk.chunk_id] = f"Item {current}" if current else "Cover Page"
-    return mapping
-
-
-# ==============================================================================
-# 3. Label vocabulary
+# 1. Label vocabulary
 # ==============================================================================
 _LOSS_SUFFIX = re.compile(
     r"\s*/?\s*\((?:loss|losses|deficit)\)|\s+(?:and|or)\s+loss(?:es)?\b|\s*/\s*loss\b", re.IGNORECASE
@@ -298,7 +160,7 @@ def segment_basis(names: Sequence[str]) -> str:
 
 
 # ==============================================================================
-# 4. Units
+# 2. Units
 # ==============================================================================
 _UNIT_CAPTIONS: List[Tuple[re.Pattern, float]] = [
     (re.compile(r"in\s+thousands(?!\s+of\s+(?:units|shares|vehicles|customers|employees|square))|\$\s*in\s+000s?\b"), 1000.0),
@@ -336,7 +198,7 @@ def _close(a: float, b: float, rows: int = 1) -> bool:
 
 
 # ==============================================================================
-# 5. Table parsing helpers
+# 3. Table parsing helpers
 # ==============================================================================
 @dataclass
 class _Table:
@@ -418,7 +280,7 @@ def _build_tables(chunks: Sequence[FilingChunk], items: Dict[str, str]) -> List[
 
 
 # ==============================================================================
-# 6. Consolidated revenue (income statement)
+# 4. Consolidated revenue (income statement)
 # ==============================================================================
 def find_consolidated_revenue(tables: Sequence[_Table]) -> Tuple[Dict[int, float], Optional[_Table]]:
     """Consolidated revenue by year (USD millions) from the income statement, and its table.
@@ -450,7 +312,7 @@ def find_consolidated_revenue(tables: Sequence[_Table]) -> Tuple[Dict[int, float
 
 
 # ==============================================================================
-# 7. Segment note extraction
+# 5. Segment note extraction
 # ==============================================================================
 def _entity(label: str) -> str:
     return _SEGMENT_SUFFIX.sub("", clean_name(label)).strip()
@@ -678,7 +540,7 @@ def _segment_figures(result: _SegmentResult) -> List[SegmentFigure]:
 
 
 # ==============================================================================
-# 8. Revenue disaggregation extraction
+# 6. Revenue disaggregation extraction
 # ==============================================================================
 @dataclass
 class _RevenueResult:
@@ -830,7 +692,7 @@ def _revenue_figures(result: _RevenueResult) -> List[RevenueLineFigure]:
 
 
 # ==============================================================================
-# 9. Orchestration
+# 7. Orchestration
 # ==============================================================================
 def extract_segment_disclosures(
     chunks: Sequence[FilingChunk],
@@ -946,167 +808,28 @@ def _extract_into(out: SegmentExtraction, chunks: Sequence[FilingChunk], fiscal_
 
 
 # ==============================================================================
-# 10. Sentence screens (customer concentration, pricing)
+# 8. Extracted names (what the judge's names are matched against)
 # ==============================================================================
-_CUSTOMER_WORD = re.compile(
-    r"\bcustomers?\b|\bclients?\b|\bentit(?:y|ies)\b|\bdistributors?\b|\bpurchasers?\b|\bresellers?\b|\bwholesalers?\b|\bretailers?\b",
-    re.IGNORECASE,
-)
-# A customer's share must be asserted with a verb ("accounted for 12%", "represented 22%",
-# "no entity represented 10% or more"), not merely co-occur with a percentage in the sentence.
-_SHARE_CLAIM = re.compile(
-    r"(?:accounted\s+for|represent(?:ed|s|ing)?|comprised|constituted|made\s+up|amounted\s+to|exceed(?:ed|s)?"
-    r"|more\s+than|in\s+excess\s+of)[^.;]{0,40}?(?:\d+(?:\.\d+)?\s?%|ten\s+percent)",
-    re.IGNORECASE,
-)
-_REVENUE_WORD = re.compile(r"revenue|net\s+sales|\bsales\b", re.IGNORECASE)
-_RECEIVABLE_WORD = re.compile(r"receivable", re.IGNORECASE)
-_PRICING_WORD = re.compile(
-    r"\bpric(?:e|es|ing)\b|average\s+selling\s+prices?|\basps?\b|pass(?:ed|ing)?\s+(?:through|on)\b", re.IGNORECASE
-)
-_PRICING_MOVE = re.compile(
-    r"increas|decreas|reduc|higher|lower|premium|pressure|discount|raise|declin|pass|power|competitive|promotion|markdown",
-    re.IGNORECASE,
-)
-_PRICING_EXCLUDE = re.compile(
-    r"stock\s+price|share\s+price|price\s+of\s+our\s+(?:common\s+)?stock|exercise\s+price|purchase\s+price|strike\s+price"
-    r"|transaction\s+price|selling\s+price\s+(?:basis|method)|standalone\s+selling|stand-alone\s+selling|fair\s+value"
-    r"|forward-looking|price\s+risk|interest\s+rate|commodity\s+price|conversion\s+price|repurchase|offering\s+price",
-    re.IGNORECASE,
-)
-# Input-cost sentences ("competitive pricing" from suppliers) are not about the company's own pricing,
-# unless they say whether costs can be passed on to customers.
-_INPUT_COST = re.compile(r"supplier|vendor|component|raw\s+material|wafer|commodit|procure", re.IGNORECASE)
-_PASS_THROUGH = re.compile(r"pass(?:ed|ing)?\s+(?:through|on|along)|to\s+(?:our\s+)?customers", re.IGNORECASE)
+def latest_year_figures(figures: Sequence[Any]) -> List[Any]:
+    """The figures of the latest fiscal year present."""
+    if not figures:
+        return []
+    year = max(f.fiscal_year for f in figures)
+    return [f for f in figures if f.fiscal_year == year]
 
 
-def _is_pricing_sentence(sentence: str) -> bool:
-    if not (_PRICING_WORD.search(sentence) and _PRICING_MOVE.search(sentence)) or _PRICING_EXCLUDE.search(sentence):
-        return False
-    return not _INPUT_COST.search(sentence) or bool(_PASS_THROUGH.search(sentence))
+def reportable_segment_names(extraction: SegmentExtraction) -> List[str]:
+    return [f.segment_name for f in latest_year_figures(extraction.segments) if f.reportable]
 
 
-def _sentence_key(text: str) -> str:
-    return re.sub(r"\s+%", "%", normalize_text(text))
+def top_level_line_names(extraction: SegmentExtraction) -> List[str]:
+    return [f.name for f in latest_year_figures(extraction.revenue_lines) if f.parent is None]
 
 
-def find_disclosure_sentences(
-    chunks: Sequence[FilingChunk],
-    items: Dict[str, str],
-    exclude_chunk_ids: Optional[set] = None,
-) -> List[DisclosureSentence]:
-    """Customer-concentration and pricing sentences from narrative chunks outside `exclude_chunk_ids`.
-
-    Concentration sentences are ranked revenue-based first, then receivables; within each kind
-    sentences outside Item 1A (MD&A, notes) are preferred over risk-factor language.
-    """
-    exclude = exclude_chunk_ids or set()
-    seen: set = set()
-    found: List[Tuple[int, int, int, DisclosureSentence]] = []
-    for chunk in chunks:
-        if chunk.chunk_type != "narrative" or chunk.chunk_id in exclude:
-            continue
-        item = items.get(chunk.chunk_id) or chunk.item
-        risk_rank = 1 if item == "Item 1A" else 0
-        for sentence in split_sentences(chunk.content):
-            key = _sentence_key(sentence)
-            if key in seen:
-                continue
-            text = sentence[:MAX_SENTENCE_CHARS]
-            if _CUSTOMER_WORD.search(sentence) and _SHARE_CLAIM.search(sentence):
-                if _REVENUE_WORD.search(sentence):
-                    kind, rank = "revenue_concentration", 0
-                elif _RECEIVABLE_WORD.search(sentence):
-                    kind, rank = "receivables_concentration", 1
-                else:
-                    kind = ""
-                if kind:
-                    seen.add(key)
-                    found.append((rank, risk_rank, chunk.chunk_index, DisclosureSentence(chunk_id=chunk.chunk_id, item=item, text=text, kind=kind)))
-                    continue
-            if _is_pricing_sentence(sentence):
-                seen.add(key)
-                found.append((2, risk_rank, chunk.chunk_index, DisclosureSentence(chunk_id=chunk.chunk_id, item=item, text=text, kind="pricing")))
-    found.sort(key=lambda x: (x[0], x[1], x[2]))
-    concentration = [d for r, _, _, d in found if r < 2][:MAX_CONCENTRATION_SENTENCES]
-    pricing = [d for r, _, _, d in found if r == 2][:MAX_PRICING_SENTENCES]
-    return concentration + pricing
-
-
-# ==============================================================================
-# 11. Markdown renderers
-# ==============================================================================
-def _money(value: Optional[float]) -> str:
-    if value is None:
-        return "—"
-    return f"({abs(value):,.0f})" if value < 0 else f"{value:,.0f}"
-
-
-def _pct_cell(value: Optional[float]) -> str:
-    return "—" if value is None else f"{value:.1f}%"
-
-
-def _cell(text: Any) -> str:
-    return str(text).replace("|", "/").replace("\n", " ")
-
-
-def render_segment_table_markdown(segments: Sequence[SegmentFigure]) -> str:
-    """Latest-year segment table (revenue, share, profit, margin, profit share, YoY) for verbatim embedding."""
-    if not segments:
-        return "_No reportable-segment financials were extracted from the filing._"
-    latest = max(f.fiscal_year for f in segments)
-    rows = [f for f in segments if f.fiscal_year == latest]
-    measures = {f.profit_measure for f in rows if f.profit_measure}
-    measure = measures.pop() if len(measures) == 1 else "Segment profit"
-    lines = [
-        f"| Segment | FY{latest} revenue ($M) | % of revenue | YoY growth | {_cell(measure)} ($M) | Margin | % of segment profit |",
-        "| :--- | ---: | ---: | ---: | ---: | ---: | ---: |",
-    ]
-    for f in rows:
-        name = f.segment_name if f.reportable else f"{f.segment_name} (not a reportable segment)"
-        lines.append(
-            f"| {_cell(name)} | {_money(f.revenue)} | {_pct_cell(f.revenue_share_pct)} | {_pct_cell(f.revenue_growth_pct)} | "
-            f"{_money(f.segment_profit)} | {_pct_cell(f.profit_margin_pct)} | {_pct_cell(f.profit_share_pct)} |"
-        )
-    lines.append(f"\n_Source: 10-K segment note (chunk `{rows[0].source_chunk_id}`); figures in USD millions as reported._")
-    return "\n".join(lines)
-
-
-def render_revenue_mix_markdown(lines_: Sequence[RevenueLineFigure]) -> str:
-    """Latest-year product / service revenue mix with sub-lines indented, for verbatim embedding."""
-    if not lines_:
-        return "_No product / service revenue disaggregation was extracted from the filing._"
-    latest = max(f.fiscal_year for f in lines_)
-    rows = [f for f in lines_ if f.fiscal_year == latest]
-    out = [
-        f"| Revenue line | FY{latest} revenue ($M) | % of revenue | YoY growth |",
-        "| :--- | ---: | ---: | ---: |",
-    ]
-    for f in rows:
-        name = f"&nbsp;&nbsp;↳ {f.name}" if f.parent else f.name
-        out.append(f"| {_cell(name)} | {_money(f.revenue)} | {_pct_cell(f.revenue_share_pct)} | {_pct_cell(f.revenue_growth_pct)} |")
-    out.append(f"\n_Source: 10-K revenue disaggregation (chunk `{rows[0].source_chunk_id}`); figures in USD millions as reported._")
-    return "\n".join(out)
-
-
-__all__ = [
-    "FilingChunk",
-    "SegmentFigure",
-    "RevenueLineFigure",
-    "DisclosureSentence",
-    "SegmentExtraction",
-    "load_filing_chunks",
-    "infer_section_items",
-    "extract_segment_disclosures",
-    "find_consolidated_revenue",
-    "find_disclosure_sentences",
-    "render_segment_table_markdown",
-    "render_revenue_mix_markdown",
-    "clean_name",
-    "name_key",
-    "is_geographic",
-    "segment_basis",
-    "scale_from_caption",
-    "is_revenue_label",
-    "profit_rank",
-]
+def match_name(name: str, lookup: Dict[str, str]) -> Optional[str]:
+    """The extracted name a judge-proposed name refers to: same key, else the one name containing (or contained in) it."""
+    key = name_key(name)
+    if key in lookup:
+        return lookup[key]
+    candidates = [v for k, v in lookup.items() if k and (k in key or key in k)]
+    return candidates[0] if len(candidates) == 1 else None

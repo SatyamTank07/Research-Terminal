@@ -2,58 +2,10 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from app.agents.tools.business_disclosure_tools import RevenueLineFigure, SegmentFigure
-
-MoatType = Literal[
-    "Network Effects",
-    "Cost Advantage",
-    "High Switching Costs",
-    "Intangible Assets / Brand",
-    "Efficient Scale",
-    "None",
-]
-SecondaryMoatType = Literal[
-    "Network Effects",
-    "Cost Advantage",
-    "High Switching Costs",
-    "Intangible Assets / Brand",
-    "Efficient Scale",
-]
-MOAT_TYPES: List[str] = list(MoatType.__args__)
-NOT_DISCLOSED = "Not explicitly disclosed in 10-K"
-
-
-class SegmentDetail(BaseModel):
-    """Detailed breakdown of a primary business segment or product line (ASC 606 disaggregated revenue stream)."""
-
-    name: str = Field(..., description="Commercial product or revenue line name (e.g. 'iPhone', 'AWS', 'Data Center')")
-    description: str = Field(..., description="What the offering provides and how it monetizes")
-    growth_drivers: List[str] = Field(
-        default_factory=list, description="Key secular or product growth drivers disclosed in 10-K"
-    )
-
-
-class SegmentMoat(BaseModel):
-    """Competitive economic moat evaluation for a discrete business segment or division."""
-
-    segment_name: str = Field(..., description="Operating segment or division name")
-    moat_type: MoatType = Field(..., description="Moat classification for this specific segment")
-    moat_rationale: str = Field(
-        ..., description="Evidence-backed rationale for this segment's competitive defense cited from 10-K"
-    )
-
-
-class StrategyEvidence(BaseModel):
-    """A verbatim filing quote that survived verification, attached to the claim it supports."""
-
-    claim: Literal[
-        "primary_moat", "secondary_moat", "segment_moat", "competitive_threat", "pricing_power", "customer_concentration"
-    ]
-    subject: Optional[str] = Field(None, description="Moat type, segment name or threat the quote supports")
-    chunk_id: str
-    quote: str
-    item: Optional[str] = Field(None, description="True 10-K item of the quoted chunk")
-    breadcrumb: Optional[str] = None
+from app.agents.specialized.business_strategist.evidence import StrategyEvidence
+from app.agents.specialized.business_strategist.modules.business_model import SegmentDetail
+from app.agents.specialized.business_strategist.modules.competition_and_moat import MoatType, SecondaryMoatType, SegmentMoat
+from app.agents.specialized.business_strategist.modules.revenue_mix import RevenueLineFigure, SegmentFigure
 
 
 class StrategistDataQuality(BaseModel):
