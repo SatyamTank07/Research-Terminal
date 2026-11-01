@@ -18,7 +18,7 @@ from app.agents.tools.financial_math_tools import (
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
 from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
 from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import historical_fade_drivers
-from app.agents.tools.forecast_model import build_forecast
+from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import build_forecast
 from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 

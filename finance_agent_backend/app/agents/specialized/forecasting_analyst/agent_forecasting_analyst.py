@@ -35,23 +35,23 @@ from app.agents.specialized.forecasting_analyst.assemble import (
     resolve_forecast_citations,
 )
 from app.agents.specialized.forecasting_analyst.context import fetch_mdna_chunks
-from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
-from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
-from app.agents.specialized.forecasting_analyst.modules.audited_baseline import (
-    ForecastBaseline,
-    build_forecast_baseline,
-    render_history_table,
-)
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import ForecastBaseline, build_forecast_baseline, render_history_table
+from app.agents.specialized.forecasting_analyst.modules.forecast_consistency import compute_diagnostics
+from app.agents.specialized.forecasting_analyst.modules.free_cash_flow_schedule import run_schedule
+from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment, assess_mdna_guidance, margin_evidence_chunk_ids
+from app.agents.specialized.forecasting_analyst.modules.reinvestment_path import apply_reinvestment_path
 from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import (
     DriverAdjustment,
     ForecastDriverProposal,
     ForecastDrivers,
+    extend_fade,
     historical_fade_drivers,
     screen_forecast_drivers,
     unsupported_margin_corridor,
 )
-from app.agents.tools.forecast_model import build_forecast
-from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment, assess_mdna_guidance, margin_evidence_chunk_ids
+from app.agents.specialized.forecasting_analyst.modules.scenarios import build_scenarios
+from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastBuild, ForecastOutput
+from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
 
 logger = logging.getLogger("finance_agent.agents.forecasting_analyst")
 
@@ -88,6 +88,28 @@ Args:
 Returns status "accepted" (applied drivers, clamps, schedule preview, diagnostics warnings) or
 "rejected" (errors to fix before calling again).
 """
+
+
+def build_forecast(
+    baseline: ForecastBaseline,
+    drivers: ForecastDrivers,
+    terminal_growth: float,
+    risk_profile: Optional[str] = None,
+) -> ForecastBuild:
+    """The forecast checklist: every number after the drivers, built in code from the screened (or faded) path."""
+    growth, margins, extended = extend_fade(drivers.revenue_growth, drivers.operating_margin, terminal_growth)
+    applied, reinvestment_warnings = apply_reinvestment_path(
+        baseline, drivers.model_copy(update={"revenue_growth": growth, "operating_margin": margins}), terminal_growth
+    )
+    schedule = run_schedule(baseline, applied)
+    diagnostics = compute_diagnostics(baseline, applied, schedule, terminal_growth, extended)
+    diagnostics.warnings.extend(reinvestment_warnings)
+    return ForecastBuild(
+        drivers=applied,
+        schedule=schedule,
+        scenarios=build_scenarios(baseline, applied, schedule, risk_profile, terminal_growth),
+        diagnostics=diagnostics,
+    )
 
 
 def _risk_lines(risk_audit: Optional[RiskAuditOutput]) -> List[str]:

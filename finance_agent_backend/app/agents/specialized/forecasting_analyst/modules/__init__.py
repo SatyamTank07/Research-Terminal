@@ -7,4 +7,5 @@ MODULES = (
     "reinvestment_path",
     "free_cash_flow_schedule",
     "scenarios",
+    "forecast_consistency",
 )
