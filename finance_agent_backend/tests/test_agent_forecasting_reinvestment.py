@@ -18,7 +18,7 @@ from tests.forecast_fixtures import (
     make_chunk,
 )
 
-RETRIEVE = "app.agents.specialized.forecasting_analyst.agent_forecasting_analyst.retrieve_10k_narrative"
+RETRIEVE = "app.agents.specialized.forecasting_analyst.context.retrieve_10k_narrative"
 CHUNKS = [make_chunk("c1", GUIDANCE_CHUNK), make_chunk("m1", MARGIN_OUTLOOK_CHUNK)]
 REVERSAL = {"revenue_growth_pct": [6.0, 5.5, 5.0, 4.0, 3.0], "operating_margin_pct": [31.0, 29.0, 27.0, 26.0, 25.0]}
 FINAL = json.dumps({"growth_rationale": "g", "margin_rationale": "m", "citations": []})

@@ -31,7 +31,7 @@ from tests.forecast_fixtures import (
 )
 from tests.valuation_fixtures import make_market
 
-RETRIEVE = "app.agents.specialized.forecasting_analyst.agent_forecasting_analyst.retrieve_10k_narrative"
+RETRIEVE = "app.agents.specialized.forecasting_analyst.context.retrieve_10k_narrative"
 INFORMATIVE = [make_chunk("c1", GUIDANCE_CHUNK), make_chunk("c2", HISTORY_CHUNK)]
 BOILERPLATE = [make_chunk("b1", BOILERPLATE_CHUNK)]
 RATIONALES: Dict[str, Any] = {

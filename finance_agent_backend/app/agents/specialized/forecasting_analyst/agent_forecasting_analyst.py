@@ -23,15 +23,12 @@ from pydantic import ValidationError
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
-from app.agents.shared.filing.narrative_search import (
-    NarrativeChunkResult,
-    retrieve_10k_narrative,
-    retrieve_10k_narrative_tool,
-)
+from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative_tool
 from app.agents.shared.filing.table_search import retrieve_10k_tables_tool
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
+from app.agents.specialized.forecasting_analyst.context import fetch_mdna_chunks
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import (
     ForecastOutput,
     GuidanceSource,
@@ -57,8 +54,6 @@ from app.agents.tools.mdna_guidance import MdnaAssessment, assess_mdna_guidance,
 logger = logging.getLogger("finance_agent.agents.forecasting_analyst")
 
 PROPOSE_TOOL_NAME = "propose_forecast_drivers_tool"
-MDNA_QUERY = "outlook expect demand growth pricing margins costs capital expenditures guidance"
-MDNA_CHUNK_LIMIT = 6
 EXCERPT_CHARS = 700
 MAX_PROMPT_RISKS = 3
 RISK_TRANSMISSIONS = {"Revenue", "Gross Margin", "Operating Expenses"}
@@ -255,7 +250,7 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
     ) -> ForecastOutput:
         ticker = ticker.upper()
         baseline = build_forecast_baseline(financial_audit)
-        chunks = self._fetch_mdna(ticker, fiscal_year)
+        chunks = fetch_mdna_chunks(ticker, fiscal_year)
         mdna = assess_mdna_guidance(chunks)
         risk_profile = risk_audit.overall_risk_profile if risk_audit is not None else None
 
@@ -299,17 +294,6 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
     # ------------------------------------------------------------------
     # Setup helpers
     # ------------------------------------------------------------------
-    @staticmethod
-    def _fetch_mdna(ticker: str, fiscal_year: int) -> List[NarrativeChunkResult]:
-        try:
-            return retrieve_10k_narrative(
-                ticker=ticker, fiscal_year=fiscal_year, query=MDNA_QUERY,
-                section_item="Item 7", limit=MDNA_CHUNK_LIMIT,
-            )
-        except Exception as e:
-            logger.warning(f"MD&A retrieval failed for {ticker} FY{fiscal_year}: {e}")
-            return []
-
     def _render_query(
         self,
         ticker: str,
