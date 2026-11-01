@@ -4,7 +4,7 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from app.agents.tools.wacc_tools import WACCCalculationResult
+from app.agents.specialized.valuation_specialist.modules.cost_of_capital.schema import WACCCalculationResult
 
 WACCAudit = WACCCalculationResult
 

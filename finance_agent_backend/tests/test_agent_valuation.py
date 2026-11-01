@@ -13,10 +13,10 @@ from app.agents.query_parameters import parse_valuation_overrides
 from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
-from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
-from app.agents.specialized.valuation_specialist.context import MarketInputs
 from app.agents.specialized.valuation_specialist.assemble import build_valuation
-from app.agents.tools.wacc_tools import blume_adjust
+from app.agents.specialized.valuation_specialist.context import MarketInputs
+from app.agents.specialized.valuation_specialist.modules.cost_of_capital import blume_adjust
+from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
 from app.config import settings
 from tests.forecast_fixtures import make_aapl_audit, make_audit, make_forecast_output
 from tests.valuation_fixtures import AAPL_BALANCE_SHEET_DATE, VALUATION_DATE, make_market, make_valuation_output

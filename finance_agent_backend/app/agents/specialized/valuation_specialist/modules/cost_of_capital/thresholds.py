@@ -1,0 +1,13 @@
+"""Cut-offs for the cost of capital: debt-cost band, Blume weight, input sanity bounds and house defaults."""
+
+KD_CEILING = 0.15
+KD_FLOOR_BELOW_RF = 0.01
+BLUME_RAW_WEIGHT = 0.67
+
+MAX_BETA = 5.0
+MAX_COST_OF_DEBT_RATE = 0.30
+MAX_DILUTED_SHARES_MILLIONS = 100_000.0
+WACC_WARNING_CEILING_RATE = 0.50
+DEFAULT_TAX_RATE = 0.21
+DEFAULT_MARKET_BETA = 1.0
+MARGINAL_TAX_RATE_BOUNDS = (0.0, 0.5)

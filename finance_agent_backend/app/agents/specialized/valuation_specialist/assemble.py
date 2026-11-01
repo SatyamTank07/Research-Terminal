@@ -14,6 +14,10 @@ from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 
 from app.agents.specialized.forecasting_analyst import MARGIN_FLOOR, SCENARIO_PROBABILITIES, project_with_overrides
 from app.agents.specialized.valuation_specialist.context import MarketInputs
+from app.agents.specialized.valuation_specialist.modules.cost_of_capital import (
+    estimate_cost_of_capital,
+    gather_capital_inputs,
+)
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import (
     ScenarioValuation,
     ValuationBuild,
@@ -21,8 +25,6 @@ from app.agents.specialized.valuation_specialist.state_valuation_specialist impo
     ValuationStance,
 )
 from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity, dcf_fair_value_per_share
-from app.agents.tools.wacc_tools import WACCCalculationResult, calculate_wacc
-from app.config import settings
 
 if TYPE_CHECKING:  # runtime import would cycle through app.agents.specialized
     from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
@@ -344,47 +346,10 @@ def build_valuation(
         forecast_source = "naive_5pct_fallback"
         warnings.append("No forecast available: UFCF is the last audited FCF grown 5% a year (placeholder).")
 
-    # Explicit years keep the normalized effective rate; the perpetuity and the debt tax shield use the
-    # marginal rate, since tax deferrals and credits behind a low effective rate do not last forever.
-    terminal_tax = min(max(settings.DEFAULT_MARGINAL_TAX_RATE, 0.0), 0.5)
-
-    # 2. Market inputs and capital-structure equity value
-    beta, beta_source, blume = market.beta, market.beta_source, market.beta_source == "yfinance_raw"
-    if beta is None:
-        beta, beta_source, blume = 1.0, "default_market_beta", False
-        warnings.append("No beta available; CAPM uses a market beta of 1.0.")
-    if market.risk_free_rate_source != "us_10y_treasury_live":
-        warnings.append(f"Risk-free rate {market.risk_free_rate * 100:.2f}% is the configured default, not a live yield.")
-
-    equity_value_for_weights = market.market_cap
-    if equity_value_for_weights is None and market.share_price is not None:
-        equity_value_for_weights = round(market.share_price * shares, 2)
-    equity_value_source = "market_value"
-    if equity_value_for_weights is None:
-        if bs.stockholders_equity > 0:
-            equity_value_for_weights, equity_value_source = bs.stockholders_equity, "book_equity_fallback"
-            warnings.append("No market price: WACC weights use book equity, which understates the equity weight.")
-        else:
-            warnings.append("No market price and non-positive book equity: WACC weighted 100% equity.")
-
-    wacc_audit = WACCCalculationResult.model_validate(calculate_wacc(
-        beta=beta,
-        total_debt=bs.total_debt,
-        prior_total_debt=bs.prior_total_debt,
-        market_cap=equity_value_for_weights,
-        risk_free_rate=market.risk_free_rate,
-        equity_risk_premium=settings.DEFAULT_EQUITY_RISK_PREMIUM,
-        tax_rate=terminal_tax,
-        interest_expense=latest.interest_expense,
-        apply_blume_adjustment=blume,
-        beta_source=beta_source,
-        risk_free_rate_source=market.risk_free_rate_source,
-        equity_risk_premium_source=settings.EQUITY_RISK_PREMIUM_SOURCE,
-        equity_value_source=equity_value_source,
-        wacc_override=wacc_override,
-    ))
-    if wacc_audit.cost_of_debt_note:
-        warnings.append(wacc_audit.cost_of_debt_note)
+    # 2. Cost of capital
+    capital = estimate_cost_of_capital(gather_capital_inputs(financial_audit, market, wacc_override))
+    wacc_audit, terminal_tax = capital.wacc_audit, capital.marginal_tax_rate
+    warnings.extend(capital.warnings)
     wacc = wacc_audit.wacc
 
     # 3. Valuation date roll-forward

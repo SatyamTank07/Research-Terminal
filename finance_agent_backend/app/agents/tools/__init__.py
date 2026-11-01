@@ -23,12 +23,6 @@ from app.agents.tools.statement_extraction import (
     build_statement_grids,
     extract_audit_inputs,
 )
-from app.agents.tools.wacc_tools import (
-    WACCInput,
-    WACCCalculationResult,
-    calculate_wacc,
-    calculate_wacc_tool,
-)
 from app.agents.tools.forecast_tools import (
     ForecastYearResult,
     ForecastScheduleResult,
@@ -56,10 +50,6 @@ __all__ = [
     "extract_audit_inputs",
     "audit_financial_metrics",
     "audit_financial_metrics_tool",
-    "WACCInput",
-    "WACCCalculationResult",
-    "calculate_wacc",
-    "calculate_wacc_tool",
     "ForecastYearResult",
     "ForecastScheduleResult",
     "calculate_forecast_schedule",
