@@ -8,6 +8,7 @@ from app.agents.specialized.financial_auditor.findings import ForensicFinding
 from app.agents.specialized.financial_auditor.modules.financial_history import YearFinancialsResult
 from app.agents.specialized.financial_auditor.modules.margins_and_costs import YearCostStructure
 from app.agents.specialized.financial_auditor.modules.statement_integrity import AuditDataQuality
+from app.agents.specialized.financial_auditor.modules.working_capital import YearWorkingCapital
 from app.agents.tools.financial_math_tools import (
     BalanceSheetResult,
     ProfitabilityRatiosResult,
@@ -15,7 +16,6 @@ from app.agents.tools.financial_math_tools import (
     YearCapitalIntensity,
     YearEarningsQuality,
     YearShareCount,
-    YearWorkingCapital,
 )
 
 # Ergonomic aliases mapping architectural specification names to calculation engine results

@@ -29,6 +29,12 @@ from app.agents.specialized.financial_auditor.context.audit_inputs import (
     validate_audit_inputs,
 )
 from app.agents.specialized.financial_auditor.findings import ForensicFinding, Severity, rank_findings
+from app.agents.specialized.financial_auditor.modules.revenue_quality import screen_revenue_quality
+from app.agents.specialized.financial_auditor.modules.working_capital import (
+    YearWorkingCapital,
+    measure_working_capital,
+    screen_working_capital,
+)
 from app.agents.specialized.financial_auditor.modules.margins_and_costs import (
     YearCostStructure,
     measure_cost_structure,
@@ -37,7 +43,6 @@ from app.agents.specialized.financial_auditor.modules.margins_and_costs import (
 from app.agents.specialized.financial_auditor.modules.financial_history import (
     YearFinancialsResult,
     build_financial_history,
-    cost_of_revenue_of,
     growth_pct,
     pct_of,
 )
@@ -58,7 +63,6 @@ SBC_TO_EBIT_THRESHOLD_PCT = 40.0
 DILUTED_SHARE_GROWTH_THRESHOLD_PCT = 3.0
 PERIOD_END_SHARE_GROWTH_THRESHOLD_PCT = 5.0
 SLOAN_ACCRUALS_THRESHOLD_PCT = 10.0
-WORKING_CAPITAL_DAYS_THRESHOLD_PCT = 15.0
 FCF_CONVERSION_WEAK_PCT = 70.0
 
 
@@ -159,16 +163,6 @@ class YearEarningsQuality(BaseModel):
     normalized_operating_margin_pct: float
     normalized_net_income: float
     normalized_net_margin_pct: float
-
-
-class YearWorkingCapital(BaseModel):
-    fiscal_year: int
-    dso_days: Optional[float] = None
-    dio_days: Optional[float] = None
-    dpo_days: Optional[float] = None
-    cash_conversion_cycle_days: Optional[float] = None
-    dso_change_pct: Optional[float] = None
-    dio_change_pct: Optional[float] = None
 
 
 class YearCapitalIntensity(BaseModel):
@@ -446,12 +440,10 @@ def calculate_quality_of_earnings(
         adj_by_year.setdefault(adj.fiscal_year, []).append(adj)
 
     eq: List[YearEarningsQuality] = []
-    wc: List[YearWorkingCapital] = []
     ci: List[YearCapitalIntensity] = []
     sh: List[YearShareCount] = []
 
     prev: Optional[AnnualFinancialInput] = None
-    prev_wc: Optional[YearWorkingCapital] = None
     for f in inputs:
         h = hist_map[f.fiscal_year]
         rev = f.revenue
@@ -501,23 +493,6 @@ def calculate_quality_of_earnings(
             normalized_net_margin_pct=pct_of(norm_ni, rev) or 0.0,
         ))
 
-        # --- Working capital days (ending-balance basis)
-        cogs = cost_of_revenue_of(f)
-        dso = round(f.accounts_receivable / rev * 365.0, 1) if f.accounts_receivable is not None and rev > 0 else None
-        dio = round(f.inventories / cogs * 365.0, 1) if f.inventories is not None and cogs and cogs > 0 else None
-        dpo = round(f.accounts_payable / cogs * 365.0, 1) if f.accounts_payable is not None and cogs and cogs > 0 else None
-        ccc = round((dso or 0.0) + (dio or 0.0) - (dpo or 0.0), 1) if None not in (dso, dpo) else None
-        year_wc = YearWorkingCapital(
-            fiscal_year=f.fiscal_year,
-            dso_days=dso,
-            dio_days=dio,
-            dpo_days=dpo,
-            cash_conversion_cycle_days=ccc,
-            dso_change_pct=growth_pct(dso, prev_wc.dso_days) if prev_wc else None,
-            dio_change_pct=growth_pct(dio, prev_wc.dio_days) if prev_wc else None,
-        )
-        wc.append(year_wc)
-
         # --- Capital intensity & FCF bridge
         ocf_chg = capex_chg = fcf_chg = from_capex = None
         if prev is not None:
@@ -547,11 +522,11 @@ def calculate_quality_of_earnings(
             if prev else None,
         ))
 
-        prev, prev_wc = f, year_wc
+        prev = f
 
     return {
         "earnings_quality": eq,
-        "working_capital": wc,
+        "working_capital": measure_working_capital(annual_financials),
         "capital_intensity": ci,
         "cost_structure": measure_cost_structure(annual_financials, history),
         "share_count_history": sh,
@@ -571,7 +546,6 @@ def detect_forensic_findings(
     findings: List[ForensicFinding] = []
     inputs = {f.fiscal_year: f for f in annual_inputs}
     eq = {r.fiscal_year: r for r in analytics["earnings_quality"]}
-    wc = {r.fiscal_year: r for r in analytics["working_capital"]}
     ci = {r.fiscal_year: r for r in analytics["capital_intensity"]}
     sh = {r.fiscal_year: r for r in analytics["share_count_history"]}
 
@@ -613,26 +587,6 @@ def detect_forensic_findings(
             f"NEGATIVE BOOK EQUITY WARNING: Stockholders' equity is negative "
             f"(${balance_sheet.stockholders_equity:,.1f}M). ROE, ROIC and Debt-to-Equity are suppressed as "
             f"uninterpretable.")
-
-    for prev, cur in zip(history, history[1:]):
-        p_in, c_in = inputs[prev.fiscal_year], inputs[cur.fiscal_year]
-        rev_g = cur.revenue_growth_pct or 0.0
-        if p_in.accounts_receivable and c_in.accounts_receivable is not None:
-            ar_g = growth_pct(c_in.accounts_receivable, p_in.accounts_receivable)
-            if ar_g is not None and ar_g - rev_g > 15.0 and ar_g > 5.0:
-                add("RECEIVABLES_DIVERGENCE", "medium", cur.fiscal_year, "ar_growth_minus_revenue_growth_pp",
-                    ar_g - rev_g, 15.0,
-                    f"RECEIVABLES DIVERGENCE (FY{cur.fiscal_year}): Accounts receivable grew {ar_g:+.2f}% "
-                    f"(${p_in.accounts_receivable:,.1f}M -> ${c_in.accounts_receivable:,.1f}M) versus revenue "
-                    f"growth of {rev_g:+.2f}%, which may signal aggressive revenue recognition or collection delays.")
-        if p_in.inventories and c_in.inventories:
-            inv_g = growth_pct(c_in.inventories, p_in.inventories)
-            if inv_g is not None and inv_g - rev_g > 20.0 and inv_g > 10.0:
-                add("INVENTORY_ACCUMULATION", "medium", cur.fiscal_year, "inventory_growth_minus_revenue_growth_pp",
-                    inv_g - rev_g, 20.0,
-                    f"INVENTORY ACCUMULATION WARNING (FY{cur.fiscal_year}): Inventory increased {inv_g:+.2f}% "
-                    f"(${p_in.inventories:,.1f}M -> ${c_in.inventories:,.1f}M), substantially exceeding revenue "
-                    f"growth of {rev_g:+.2f}%; this may indicate obsolescence risk or slowing sell-through.")
 
     for yr, q in eq.items():
         if q.non_operating_to_operating_income_pct is not None and \
@@ -718,16 +672,9 @@ def detect_forensic_findings(
                 f"{s.period_end_share_growth_pct:.2f}% to {s.period_end_shares_outstanding:,.1f}M; investigate "
                 f"equity awards, conversions or issuances, and use the period-end count for per-share value.")
 
-    for yr, w in wc.items():
-        for metric, change in (("dso", w.dso_change_pct), ("dio", w.dio_change_pct)):
-            if change is not None and change > WORKING_CAPITAL_DAYS_THRESHOLD_PCT:
-                days = w.dso_days if metric == "dso" else w.dio_days
-                add("WORKING_CAPITAL_DETERIORATION", "low", yr, f"{metric}_change_pct", change,
-                    WORKING_CAPITAL_DAYS_THRESHOLD_PCT,
-                    f"WORKING CAPITAL DETERIORATION (FY{yr}): {metric.upper()} lengthened {change:.1f}% to "
-                    f"{days:.1f} days.")
-
     findings.extend(screen_margins_and_costs(history, analytics["cost_structure"]))
+    findings.extend(screen_working_capital(annual_inputs, history, analytics["working_capital"]))
+    findings.extend(screen_revenue_quality(annual_inputs, history))
     return rank_findings(findings)
 
 
