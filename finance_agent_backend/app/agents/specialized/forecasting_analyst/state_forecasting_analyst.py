@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Literal
 from pydantic import BaseModel, Field
 
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import ForecastBaseline
-from app.agents.tools.forecast_drivers import DriverAdjustment, ForecastDrivers
+from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import DriverAdjustment, ForecastDrivers
 from app.agents.tools.forecast_model import ForecastDiagnostics, ForecastScenario
 from app.agents.tools.forecast_tools import ForecastYearResult
 from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment

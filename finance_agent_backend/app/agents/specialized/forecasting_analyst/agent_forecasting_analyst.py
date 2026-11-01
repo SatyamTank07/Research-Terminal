@@ -42,8 +42,7 @@ from app.agents.specialized.forecasting_analyst.modules.audited_baseline import 
     build_forecast_baseline,
     render_history_table,
 )
-from app.agents.tools.forecast_drivers import (
-    DEFAULT_TERMINAL_GROWTH,
+from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import (
     DriverAdjustment,
     ForecastDriverProposal,
     ForecastDrivers,
@@ -129,9 +128,9 @@ class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
         ticker: str,
         fiscal_year: int,
         financial_audit: FinancialAuditOutput,
+        terminal_growth: float,
         business_moat: Optional[BusinessMoatOutput] = None,
         risk_audit: Optional[RiskAuditOutput] = None,
-        terminal_growth: float = DEFAULT_TERMINAL_GROWTH,
         callbacks: Optional[List[Any]] = None,
     ) -> ForecastOutput:
         ticker = ticker.upper()

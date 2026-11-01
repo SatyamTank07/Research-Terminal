@@ -19,7 +19,7 @@ from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
-from app.agents.tools.forecast_drivers import DEFAULT_TERMINAL_GROWTH
+from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
 from app.agents.specialized.forecasting_analyst.modules.management_guidance import assess_mdna_guidance
 from tests.forecast_fixtures import (
     BOILERPLATE_CHUNK,
@@ -75,7 +75,7 @@ class TestForecastingAnalystAgent(unittest.TestCase):
         llm = _mock_llm(forecaster, proposals, final_content)
         with patch(RETRIEVE, return_value=INFORMATIVE), \
                 patch.object(ForecastingAnalystAgent, "_get_or_create_agent", return_value=llm):
-            return forecaster.forecast(ticker="AAPL", fiscal_year=2025, financial_audit=self.audit, **kwargs)
+            return forecaster.forecast(ticker="AAPL", fiscal_year=2025, financial_audit=self.audit, terminal_growth=DEFAULT_TERMINAL_GROWTH, **kwargs)
 
     def test_registry_and_system_prompt(self):
         self.assertIsInstance(AgentRegistry.get("forecasting_analyst"), ForecastingAnalystAgent)
@@ -105,7 +105,7 @@ class TestForecastingAnalystAgent(unittest.TestCase):
         forecaster = ForecastingAnalystAgent()
         with patch(RETRIEVE, return_value=BOILERPLATE), \
                 patch.object(ForecastingAnalystAgent, "_get_or_create_agent") as get_agent:
-            out = forecaster.forecast(ticker="AAPL", fiscal_year=2025, financial_audit=self.audit)
+            out = forecaster.forecast(ticker="AAPL", fiscal_year=2025, financial_audit=self.audit, terminal_growth=DEFAULT_TERMINAL_GROWTH)
         get_agent.assert_not_called()
         self.assertEqual(out.guidance_source, "historical_fade")
         self.assertEqual(out.forecast_horizon_years, 5)
@@ -164,7 +164,7 @@ class TestForecastingAnalystAgent(unittest.TestCase):
         llm.invoke.side_effect = invoke
         with patch(RETRIEVE, return_value=INFORMATIVE), \
                 patch.object(ForecastingAnalystAgent, "_get_or_create_agent", return_value=llm):
-            return forecaster.forecast(ticker="AAPL", fiscal_year=2025, financial_audit=self.audit)
+            return forecaster.forecast(ticker="AAPL", fiscal_year=2025, financial_audit=self.audit, terminal_growth=DEFAULT_TERMINAL_GROWTH)
 
     def test_llm_failure_after_accepted_call_keeps_screened_drivers(self):
         out = self._run_failing([GOOD_PROPOSAL])
@@ -182,9 +182,9 @@ class TestForecastingAnalystAgent(unittest.TestCase):
     def test_high_risk_profile_deepens_bear_case(self):
         forecaster = ForecastingAnalystAgent()
         with patch(RETRIEVE, return_value=BOILERPLATE):
-            calm = forecaster.forecast(ticker="AAPL", fiscal_year=2025, financial_audit=self.audit)
+            calm = forecaster.forecast(ticker="AAPL", fiscal_year=2025, financial_audit=self.audit, terminal_growth=DEFAULT_TERMINAL_GROWTH)
             risky = forecaster.forecast(
-                ticker="AAPL", fiscal_year=2025, financial_audit=self.audit,
+                ticker="AAPL", fiscal_year=2025, financial_audit=self.audit, terminal_growth=DEFAULT_TERMINAL_GROWTH,
                 risk_audit=SimpleNamespace(overall_risk_profile="High", identified_risks=[]),
             )
         self.assertLess(risky.scenarios[2].cumulative_fcf, calm.scenarios[2].cumulative_fcf)
@@ -193,7 +193,9 @@ class TestForecastingAnalystAgent(unittest.TestCase):
     @patch.object(ValuationSpecialistAgent, "_run_commentary_llm", side_effect=RuntimeError("offline"))
     def test_forecast_feeds_valuation(self, _llm):
         with patch(RETRIEVE, return_value=BOILERPLATE):
-            forecast = ForecastingAnalystAgent().forecast(ticker="AAPL", fiscal_year=2025, financial_audit=self.audit)
+            forecast = ForecastingAnalystAgent().forecast(
+                ticker="AAPL", fiscal_year=2025, financial_audit=self.audit, terminal_growth=DEFAULT_TERMINAL_GROWTH,
+            )
         val = ValuationSpecialistAgent().value(
             ticker="AAPL", fiscal_year=2025, financial_audit=self.audit, forecast=forecast,
             market=make_market(share_price=230.0, beta=1.24), terminal_growth_rate=DEFAULT_TERMINAL_GROWTH,
