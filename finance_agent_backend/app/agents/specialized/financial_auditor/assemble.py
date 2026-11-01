@@ -1,16 +1,26 @@
-"""Assembles the Financial Auditor's output: the authoritative audit numbers, data quality, statement tables, citations."""
+"""Assembles the Financial Auditor's output: the rows several modules feed, then the authoritative audit, data
+quality, statement tables and citations."""
 
 import json
 from typing import Any, Dict, List, Optional
 
 from app.agents.specialized.financial_auditor.context import STATEMENT_TYPES, ExtractionResult, build_statement_grids
 from app.agents.specialized.financial_auditor.findings import SEVERITY_RANK, ForensicFinding
+from app.agents.specialized.financial_auditor.modules.capital_allocation import CapitalReturns
+from app.agents.specialized.financial_auditor.modules.cash_conversion import CashConversionYear
+from app.agents.specialized.financial_auditor.modules.earnings_normalization import NormalizedYear
+from app.agents.specialized.financial_auditor.modules.financial_history import YearFinancialsResult
 from app.agents.specialized.financial_auditor.modules.statement_integrity import (
     AuditDataQuality,
     StatementIntegrity,
     flag_data_quality,
     note_restatements,
     record_data_quality,
+)
+from app.agents.specialized.financial_auditor.modules.tax_quality import LatestTaxRate, TaxYear
+from app.agents.specialized.financial_auditor.state_financial_auditor import (
+    ProfitabilityRatiosResult,
+    YearEarningsQuality,
 )
 from app.services.financial_tables import is_well_formed, render_clean_statement
 
@@ -26,6 +36,64 @@ ANALYTIC_KEYS = (
     "share_count_history",
     "forensic_findings",
 )
+
+
+def assemble_profitability(
+    latest_tax: LatestTaxRate,
+    equity_status: str,
+    returns: CapitalReturns,
+    latest: YearFinancialsResult,
+) -> ProfitabilityRatiosResult:
+    """The latest year's tax rate (tax_quality), returns on capital (capital_allocation) and margins (history)."""
+    return ProfitabilityRatiosResult(
+        effective_tax_rate_pct=round(latest_tax.rate * 100.0, 2),
+        tax_rate_source=latest_tax.source,
+        equity_status=equity_status,
+        nopat=returns.nopat,
+        invested_capital=returns.invested_capital,
+        capital_basis=returns.capital_basis,
+        roic_pct=returns.roic_pct,
+        roic_on_gross_capital_pct=returns.roic_on_gross_capital_pct,
+        roe_pct=returns.roe_pct,
+        latest_gross_margin_pct=latest.gross_margin_pct,
+        latest_operating_margin_pct=latest.operating_margin_pct,
+        latest_net_margin_pct=latest.net_margin_pct,
+    )
+
+
+def assemble_earnings_quality(
+    cash_conversion: List[CashConversionYear],
+    tax_years: List[TaxYear],
+    normalized: List[NormalizedYear],
+) -> List[YearEarningsQuality]:
+    """One earnings-quality row per year from cash_conversion, tax_quality and earnings_normalization."""
+    tax_by_year = {r.fiscal_year: r for r in tax_years}
+    normalized_by_year = {r.fiscal_year: r for r in normalized}
+    rows: List[YearEarningsQuality] = []
+    for cc in cash_conversion:
+        tx, nz = tax_by_year[cc.fiscal_year], normalized_by_year[cc.fiscal_year]
+        rows.append(YearEarningsQuality(
+            fiscal_year=cc.fiscal_year,
+            accruals=cc.accruals,
+            sloan_accruals_ratio_pct=cc.sloan_accruals_ratio_pct,
+            stock_based_compensation=cc.stock_based_compensation,
+            sbc_to_ocf_pct=cc.sbc_to_ocf_pct,
+            sbc_to_operating_income_pct=cc.sbc_to_operating_income_pct,
+            sbc_adjusted_fcf=cc.sbc_adjusted_fcf,
+            non_operating_income=nz.non_operating_income,
+            non_operating_to_operating_income_pct=nz.non_operating_to_operating_income_pct,
+            effective_tax_rate_pct=tx.effective_tax_rate_pct,
+            deferred_tax_to_net_income_pct=tx.deferred_tax_to_net_income_pct,
+            adjustments=nz.adjustments,
+            operating_income_adjustments_total=nz.operating_income_adjustments_total,
+            net_income_adjustments_total=nz.net_income_adjustments_total,
+            adjustments_pct_of_operating_income=nz.adjustments_pct_of_operating_income,
+            normalized_operating_income=nz.normalized_operating_income,
+            normalized_operating_margin_pct=nz.normalized_operating_margin_pct,
+            normalized_net_income=nz.normalized_net_income,
+            normalized_net_margin_pct=nz.normalized_net_margin_pct,
+        ))
+    return rows
 
 
 def assemble_audit(

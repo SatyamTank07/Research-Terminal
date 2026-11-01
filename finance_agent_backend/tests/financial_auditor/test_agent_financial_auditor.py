@@ -17,11 +17,11 @@ from unittest.mock import MagicMock, patch
 from langchain_core.messages import AIMessage, ToolMessage
 
 from app.agents.registry import AgentRegistry
+from app.agents.shared.filing.table_search import retrieve_multiyear_financial_series_tool
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.financial_auditor import FinancialAuditOutput, FinancialAuditorAgent
+from app.agents.specialized.financial_auditor.agent_financial_auditor import build_audit_from_inputs
 from app.agents.specialized.financial_auditor.context import build_statement_grids, extract_audit_inputs
-from app.agents.tools.financial_math_tools import run_audit_from_inputs
-from app.agents.shared.filing.table_search import retrieve_multiyear_financial_series_tool
 from tests.statement_fixtures import tsla_payloads
 
 FETCH = "app.agents.specialized.financial_auditor.agent_financial_auditor.fetch_statement_tables"
@@ -179,7 +179,7 @@ class TestFinancialAuditorAgent(unittest.TestCase):
                               "short_term_debt": 1640.0, "long_term_debt": 6736.0,
                               "stockholders_equity": 82137.0, "weighted_diluted_shares": 3528.0},
         }
-        llm_result = run_audit_from_inputs(llm_args)
+        llm_result = build_audit_from_inputs(llm_args)
         self.assertEqual(llm_result["balance_sheet"]["net_debt"], -8137.0)  # the original defect
 
         mock_get_agent.return_value = _mock_agent([
@@ -219,7 +219,7 @@ class TestFinancialAuditorAgent(unittest.TestCase):
         }
         mock_get_agent.return_value = _mock_agent([
             AIMessage(content="", tool_calls=[{"name": "audit_financial_metrics_tool", "args": llm_args, "id": "a1"}]),
-            ToolMessage(name="audit_financial_metrics_tool", content=json.dumps(run_audit_from_inputs(llm_args)),
+            ToolMessage(name="audit_financial_metrics_tool", content=json.dumps(build_audit_from_inputs(llm_args)),
                         tool_call_id="a1"),
             AIMessage(content=SUMMARY_JSON),
         ])

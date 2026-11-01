@@ -27,11 +27,8 @@ from app.agents.specialized.risk_analyst import RiskAnalystAgent, RiskAuditOutpu
 from app.agents.specialized.supervisor import SupervisorAgent
 from app.agents.specialized.supervisor.agent_supervisor import SupervisorExtraction
 from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
-from app.agents.tools.financial_math_tools import (
-    AnnualFinancialInput,
-    BalanceSheetInput,
-    audit_financial_metrics,
-)
+from app.agents.specialized.financial_auditor.agent_financial_auditor import build_audit
+from app.agents.specialized.financial_auditor.context.audit_inputs import AnnualFinancialInput, BalanceSheetInput
 from app.database import SessionLocal
 from app.models import ChatMessage, Conversation, User
 from app.schemas.chat import ChatRequest, ChatResponse
@@ -134,7 +131,7 @@ class TestMilestone6FullPipeline(unittest.TestCase):
             current_assets=154388.0,
             current_liabilities=145308.0,
         )
-        math_res = audit_financial_metrics(annual_financials, balance_sheet_in)
+        math_res = build_audit(annual_financials, balance_sheet_in)
         math_res["ticker"] = ticker.upper()
         math_res["fiscal_year"] = fiscal_year
         math_res["auditor_summary"] = f"Audited financial statements for {ticker.upper()} FY{fiscal_year}."

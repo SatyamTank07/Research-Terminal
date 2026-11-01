@@ -75,7 +75,7 @@ def classify_book_equity(equity: float) -> str:
     """Positive book equity, or why equity-based ratios (ROIC, ROE, D/E) are suppressed."""
     if equity < 0:
         logger.warning(
-            f"calculate_financial_ratios: Stockholders' equity is negative (${equity:,.1f}M). "
+            f"classify_book_equity: Stockholders' equity is negative (${equity:,.1f}M). "
             f"Suppressing ROIC, ROE, and Debt/Equity."
         )
         return "negative_book_equity_ratios_suppressed"

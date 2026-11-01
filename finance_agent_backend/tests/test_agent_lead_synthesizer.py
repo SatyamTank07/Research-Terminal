@@ -35,11 +35,8 @@ from app.agents.tools.risk_disclosure_tools import (
     render_risk_evidence_table,
     render_risk_matrix_markdown,
 )
-from app.agents.tools.financial_math_tools import (
-    AnnualFinancialInput,
-    BalanceSheetInput,
-    audit_financial_metrics,
-)
+from app.agents.specialized.financial_auditor.agent_financial_auditor import build_audit
+from app.agents.specialized.financial_auditor.context.audit_inputs import AnnualFinancialInput, BalanceSheetInput
 from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import (
     LeadSynthesizerAgent,
     ResearchSynthesisPayload,
@@ -97,7 +94,7 @@ def _create_mock_audit() -> FinancialAuditOutput:
         current_assets=154388.0,
         current_liabilities=145308.0,
     )
-    math_res = audit_financial_metrics(annual_financials, balance_sheet_in)
+    math_res = build_audit(annual_financials, balance_sheet_in)
     math_res["ticker"] = "AAPL"
     math_res["fiscal_year"] = 2025
     math_res["auditor_summary"] = "Audited financial statements for Apple Inc. FY2025."

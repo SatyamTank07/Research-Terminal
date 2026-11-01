@@ -1,4 +1,4 @@
-"""Unit tests for financial_math_tools.py (Milestone 2).
+"""Whole-audit tests for the build_audit checklist (every module, real 10-K benchmarks).
 
 Validates:
 1. Deterministic calculation of multi-year profitability margins and Free Cash Flow.
@@ -12,20 +12,18 @@ Validates:
 """
 
 import unittest
-from app.agents.tools.financial_math_tools import (
-    AnnualFinancialInput,
-    BalanceSheetInput,
-    NormalizationAdjustment,
-    PriorBalanceSheetInput,
-    calculate_financial_ratios,
-    audit_financial_metrics,
+
+from app.agents.specialized.financial_auditor import NormalizationAdjustment
+from app.agents.specialized.financial_auditor.agent_financial_auditor import (
     audit_financial_metrics_tool,
-    run_audit_from_inputs,
+    build_audit,
+    build_audit_from_inputs,
 )
+from app.agents.specialized.financial_auditor.context.audit_inputs import AnnualFinancialInput, BalanceSheetInput
 
 
-class TestFinancialMathTools(unittest.TestCase):
-    """Test suite for deterministic financial math and forensic audit engine."""
+class TestBuildAudit(unittest.TestCase):
+    """The whole deterministic audit on real filings, guards and the transcription tool."""
 
     def test_01_apple_fy2025_audit(self):
         """
@@ -82,7 +80,7 @@ class TestFinancialMathTools(unittest.TestCase):
             current_liabilities=165631.0,
         )
 
-        result = audit_financial_metrics(annual_financials, balance_sheet)
+        result = build_audit(annual_financials, balance_sheet)
 
         # 1. Multi-year history checks
         hist = result["multi_year_history"]
@@ -166,7 +164,7 @@ class TestFinancialMathTools(unittest.TestCase):
             current_liabilities=31714.0,
         )
 
-        result = audit_financial_metrics(annual_financials, balance_sheet)
+        result = build_audit(annual_financials, balance_sheet)
 
         # Tax rate derived ~14.20%
         prof = result["profitability_and_return_ratios"]
@@ -237,7 +235,7 @@ class TestFinancialMathTools(unittest.TestCase):
             weighted_diluted_shares=24514.0,
         )
 
-        result = audit_financial_metrics(annual_financials, balance_sheet)
+        result = build_audit(annual_financials, balance_sheet)
 
         # Revenue growth
         fy26 = result["multi_year_history"][2]
@@ -295,9 +293,9 @@ class TestFinancialMathTools(unittest.TestCase):
                 capital_expenditures=2.0,
             )
         ]
-        res_loss = calculate_financial_ratios(annual_loss, base_bs)
-        self.assertEqual(res_loss["profitability_and_return_ratios"].effective_tax_rate_pct, 21.0)
-        self.assertEqual(res_loss["profitability_and_return_ratios"].tax_rate_source, "statutory_fallback_due_to_pretax_loss")
+        res_loss = build_audit(annual_loss, base_bs)
+        self.assertEqual(res_loss["profitability_and_return_ratios"]["effective_tax_rate_pct"], 21.0)
+        self.assertEqual(res_loss["profitability_and_return_ratios"]["tax_rate_source"], "statutory_fallback_due_to_pretax_loss")
 
         # Case B: Tax benefit (income_tax_expense < 0)
         annual_benefit = [
@@ -313,9 +311,9 @@ class TestFinancialMathTools(unittest.TestCase):
                 capital_expenditures=3.0,
             )
         ]
-        res_benefit = calculate_financial_ratios(annual_benefit, base_bs)
-        self.assertEqual(res_benefit["profitability_and_return_ratios"].effective_tax_rate_pct, 21.0)
-        self.assertEqual(res_benefit["profitability_and_return_ratios"].tax_rate_source, "statutory_fallback_due_to_tax_benefit")
+        res_benefit = build_audit(annual_benefit, base_bs)
+        self.assertEqual(res_benefit["profitability_and_return_ratios"]["effective_tax_rate_pct"], 21.0)
+        self.assertEqual(res_benefit["profitability_and_return_ratios"]["tax_rate_source"], "statutory_fallback_due_to_tax_benefit")
 
         # Case C: Missing tax data
         annual_missing = [
@@ -329,9 +327,9 @@ class TestFinancialMathTools(unittest.TestCase):
                 capital_expenditures=3.0,
             )
         ]
-        res_missing = calculate_financial_ratios(annual_missing, base_bs)
-        self.assertEqual(res_missing["profitability_and_return_ratios"].effective_tax_rate_pct, 21.0)
-        self.assertEqual(res_missing["profitability_and_return_ratios"].tax_rate_source, "statutory_default_not_provided")
+        res_missing = build_audit(annual_missing, base_bs)
+        self.assertEqual(res_missing["profitability_and_return_ratios"]["effective_tax_rate_pct"], 21.0)
+        self.assertEqual(res_missing["profitability_and_return_ratios"]["tax_rate_source"], "statutory_default_not_provided")
 
     def test_05_share_count_validation_guard(self):
         """Confirm ValueError is raised with clear instructions when shares > 100,000 (thousands/raw units)."""
@@ -433,7 +431,7 @@ class TestFinancialMathTools(unittest.TestCase):
             weighted_diluted_shares=50.0,
         )
 
-        result = audit_financial_metrics(annual_financials, balance_sheet)
+        result = build_audit(annual_financials, balance_sheet)
         flags = [f["message"] for f in result["forensic_findings"]]
 
         self.assertTrue(
@@ -467,7 +465,7 @@ class TestFinancialMathTools(unittest.TestCase):
             weighted_diluted_shares=50.0,
         )
 
-        result = audit_financial_metrics(annual_financials, balance_sheet)
+        result = build_audit(annual_financials, balance_sheet)
         prof = result["profitability_and_return_ratios"]
         solv = result["solvency_and_liquidity_ratios"]
         flags = [f["message"] for f in result["forensic_findings"]]
@@ -517,7 +515,7 @@ class TestFinancialMathTools(unittest.TestCase):
         )
 
         with self.assertRaises(ValueError) as ctx_gap:
-            calculate_financial_ratios(non_contiguous_annuals, valid_bs)
+            build_audit(non_contiguous_annuals, valid_bs)
         self.assertIn("contiguous fiscal years with no gaps", str(ctx_gap.exception))
 
         # Case B: Temporal mismatch (2023 income statement paired with 2025 balance sheet)
@@ -540,7 +538,7 @@ class TestFinancialMathTools(unittest.TestCase):
         )
 
         with self.assertRaises(ValueError) as ctx_mismatch:
-            calculate_financial_ratios(contiguous_annuals, mismatched_bs)
+            build_audit(contiguous_annuals, mismatched_bs)
         self.assertIn("must match the latest annual_financials fiscal year", str(ctx_mismatch.exception))
 
     def test_10_negative_capex_validation_guard(self):
@@ -582,9 +580,9 @@ class TestFinancialMathTools(unittest.TestCase):
             current_assets=50.0,
             current_liabilities=0.0,  # Zero liabilities
         )
-        res = calculate_financial_ratios(annuals, bs_zero_liab)
+        res = build_audit(annuals, bs_zero_liab)
         # Should be None (not divide by zero or raise unhandled exception)
-        self.assertIsNone(res["solvency_and_liquidity_ratios"].current_ratio)
+        self.assertIsNone(res["solvency_and_liquidity_ratios"]["current_ratio"])
 
     def test_12_negative_balance_sheet_fields_guard(self):
         """
@@ -747,7 +745,7 @@ class TestInstitutionalQualityOfEarnings(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.audit = run_audit_from_inputs(_tsla_fy2025_inputs())
+        cls.audit = build_audit_from_inputs(_tsla_fy2025_inputs())
         cls.codes = {(f["code"], f["fiscal_year"]) for f in cls.audit["forensic_findings"]}
 
     def test_01_expected_findings_fire(self):
@@ -812,7 +810,7 @@ class TestInstitutionalQualityOfEarnings(unittest.TestCase):
         self.assertAlmostEqual(shares["period_end_share_growth_pct"], 16.64, places=2)
 
     def test_07_normalization_adjustments(self):
-        audit = run_audit_from_inputs(_tsla_fy2025_inputs(), [
+        audit = build_audit_from_inputs(_tsla_fy2025_inputs(), [
             NormalizationAdjustment(fiscal_year=2025, label="Automotive regulatory credits", amount=1993.0,
                                     direction="inflated_reported_earnings", affects="operating_income",
                                     rationale="Non-core credit sales"),
@@ -836,7 +834,7 @@ class TestInstitutionalQualityOfEarnings(unittest.TestCase):
                                     direction="depressed_reported_earnings")
 
     def test_07b_restructuring_charge_raises_normalized_earnings(self):
-        audit = run_audit_from_inputs(_tsla_fy2025_inputs(), [
+        audit = build_audit_from_inputs(_tsla_fy2025_inputs(), [
             {"fiscal_year": 2025, "label": "Restructuring and other", "amount": 494.0,
              "direction": "depressed_reported_earnings"},
             {"fiscal_year": 2023, "label": "Valuation allowance release", "amount": 5927.0,
@@ -848,7 +846,7 @@ class TestInstitutionalQualityOfEarnings(unittest.TestCase):
         self.assertEqual(fy23["normalized_net_income"], 14997.0 - 5927.0)
 
     def test_07c_disallowed_adjustments_are_rejected_not_applied(self):
-        audit = run_audit_from_inputs(_tsla_fy2025_inputs(), [
+        audit = build_audit_from_inputs(_tsla_fy2025_inputs(), [
             {"fiscal_year": 2025, "label": "Non-operating income", "amount": 923.0,
              "direction": "inflated_reported_earnings", "affects": "net_income"},
             {"fiscal_year": 2025, "label": "Gain on investments", "amount": 923.0,
@@ -869,7 +867,7 @@ class TestInstitutionalQualityOfEarnings(unittest.TestCase):
 
     def test_07d_recurring_tax_provision_is_rejected_discrete_tax_events_pass(self):
         # Live AMZN run: the LLM "normalized" the full tax provision of every year as a tax benefit.
-        audit = run_audit_from_inputs(_tsla_fy2025_inputs(), [
+        audit = build_audit_from_inputs(_tsla_fy2025_inputs(), [
             {"fiscal_year": 2025, "label": "Income Tax Normalization", "amount": 1423.0,
              "direction": "inflated_reported_earnings", "affects": "net_income",
              "rationale": "Income tax benefit presented as positive; normalized to expense-positive."},
@@ -900,10 +898,10 @@ class TestInstitutionalQualityOfEarnings(unittest.TestCase):
         inputs = _tsla_fy2025_inputs()
         inputs["prior_balance_sheet"]["fiscal_year"] = 2023
         with self.assertRaises(ValueError):
-            run_audit_from_inputs(inputs)
+            build_audit_from_inputs(inputs)
         inputs = _tsla_fy2025_inputs()
         inputs["prior_balance_sheet"] = None
-        ending = run_audit_from_inputs(inputs)
+        ending = build_audit_from_inputs(inputs)
         self.assertEqual(ending["profitability_and_return_ratios"]["capital_basis"], "ending")
 
 

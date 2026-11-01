@@ -12,11 +12,11 @@ import unittest
 from bs4 import BeautifulSoup
 
 from app.agents.shared.prompts import render_prompt
+from app.agents.specialized.financial_auditor.agent_financial_auditor import build_audit_from_inputs
 from app.agents.specialized.financial_auditor.context import build_statement_grids, extract_audit_inputs
 from app.agents.specialized.financial_auditor.modules.statement_integrity import assess_statement_integrity
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.lead_synthesizer.report_citations import NullCiter
-from app.agents.tools.financial_math_tools import run_audit_from_inputs
 from app.services.ingestion.sec_parser import SECParser
 from tests.statement_fixtures import tsla_payloads
 
@@ -24,7 +24,7 @@ from tests.statement_fixtures import tsla_payloads
 def _tsla_audit_output() -> FinancialAuditOutput:
     extraction = extract_audit_inputs(build_statement_grids(tsla_payloads()), 2025, [2023, 2024, 2025])
     integrity = assess_statement_integrity(extraction)
-    data = run_audit_from_inputs(extraction.to_tool_kwargs())
+    data = build_audit_from_inputs(extraction.to_tool_kwargs())
     data.update({
         "ticker": "TSLA",
         "fiscal_year": 2025,

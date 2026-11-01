@@ -14,6 +14,7 @@ Validates:
 import re
 import unittest
 
+from app.agents.specialized.financial_auditor.agent_financial_auditor import build_audit_from_inputs
 from app.agents.specialized.financial_auditor.context.extract import (
     INCOME_STATEMENT_SYNONYMS,
     build_statement_grids,
@@ -23,7 +24,6 @@ from app.agents.specialized.financial_auditor.modules.statement_integrity import
     assess_statement_integrity,
     summarize_for_judge,
 )
-from app.agents.tools.financial_math_tools import run_audit_from_inputs
 from tests.statement_fixtures import (
     TSLA_FY2025_INCOME_STATEMENT,
     aapl_payloads,
@@ -60,7 +60,7 @@ class TestTeslaExtraction(unittest.TestCase):
         self.assertEqual(self.result.annual[2023]["interest_expense"], 156.0)
         record = next(r for r in self.result.to_annual_inputs() if r["fiscal_year"] == 2025)
         self.assertEqual(record["interest_expense"], 338.0)
-        audit = run_audit_from_inputs(self.result.to_tool_kwargs())
+        audit = build_audit_from_inputs(self.result.to_tool_kwargs())
         self.assertEqual(audit["multi_year_history"][-1]["interest_expense"], 338.0)
         self.assertIsNotNone(audit["balance_sheet"]["prior_total_debt"])
 
@@ -106,7 +106,7 @@ class TestTeslaExtraction(unittest.TestCase):
         self.assertNotIn("accounts_receivable", annual[2023])
 
     def test_06_baseline_audit_matches_filing(self):
-        audit = run_audit_from_inputs(self.result.to_tool_kwargs())
+        audit = build_audit_from_inputs(self.result.to_tool_kwargs())
         bs = audit["balance_sheet"]
         self.assertEqual(bs["total_liquid_cash"], 44059.0)
         self.assertEqual(bs["net_debt"], -35683.0)
@@ -205,7 +205,7 @@ class TestLayoutVariants(unittest.TestCase):
         self.assertEqual(self.result.annual[2025]["income_tax_expense"], 19087.0)
         self.assertEqual(self.result.annual[2023]["income_tax_expense"], 7120.0)
         self.assertTrue(any("benefit-positive" in w for w in self.result.warnings))
-        audit = run_audit_from_inputs(self.result.to_tool_kwargs())
+        audit = build_audit_from_inputs(self.result.to_tool_kwargs())
         self.assertAlmostEqual(audit["profitability_and_return_ratios"]["effective_tax_rate_pct"], 19.61, places=2)
         self.assertNotIn("TAX_ANOMALY", {f["code"] for f in audit["forensic_findings"]})
 
@@ -242,7 +242,7 @@ class TestSecondFilerVocabulary(unittest.TestCase):
         self.assertAlmostEqual(bs["period_end_shares_outstanding"], 14773.26, places=2)
         self.assertEqual(integrity.failed_identity_checks, [])
 
-        audit = run_audit_from_inputs(result.to_tool_kwargs())
+        audit = build_audit_from_inputs(result.to_tool_kwargs())
         self.assertEqual(audit["balance_sheet"]["net_debt"], -33763.0)
         self.assertEqual(audit["balance_sheet"]["share_count_source"], "weighted_average_diluted")
 

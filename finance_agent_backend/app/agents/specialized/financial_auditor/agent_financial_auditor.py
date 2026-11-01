@@ -19,22 +19,54 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from langchain_core.tools import StructuredTool
+from langchain_core.tools import StructuredTool, tool
 
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.table_search import retrieve_10k_tables_tool, retrieve_multiyear_financial_series_tool
 from app.agents.shared.prompts import render_prompt
-from app.agents.specialized.financial_auditor.assemble import assemble_audit
+from app.agents.specialized.financial_auditor.assemble import (
+    assemble_audit,
+    assemble_earnings_quality,
+    assemble_profitability,
+)
 from app.agents.specialized.financial_auditor.context import (
+    AnnualFinancialInput,
+    BalanceSheetInput,
     ExtractionResult,
+    PriorBalanceSheetInput,
     build_statement_grids,
+    check_audit_window,
     extract_audit_inputs,
     fetch_statement_tables,
     gap_fill_transcribed_inputs,
     resolve_audit_window,
+    validate_audit_inputs,
 )
+from app.agents.specialized.financial_auditor.findings import rank_findings
+from app.agents.specialized.financial_auditor.modules.balance_sheet_strength import (
+    classify_book_equity,
+    measure_balance_sheet,
+    measure_solvency,
+    screen_balance_sheet_strength,
+)
+from app.agents.specialized.financial_auditor.modules.capital_allocation import (
+    measure_capital_intensity,
+    measure_capital_returns,
+    measure_share_count,
+    screen_capital_allocation,
+)
+from app.agents.specialized.financial_auditor.modules.cash_conversion import measure_cash_conversion, screen_cash_conversion
+from app.agents.specialized.financial_auditor.modules.earnings_normalization import (
+    NormalizationAdjustment,
+    normalize_earnings,
+    screen_earnings_normalization,
+    screen_normalization_adjustments,
+)
+from app.agents.specialized.financial_auditor.modules.financial_history import build_financial_history
+from app.agents.specialized.financial_auditor.modules.margins_and_costs import measure_cost_structure, screen_margins_and_costs
+from app.agents.specialized.financial_auditor.modules.revenue_quality import screen_revenue_quality
 from app.agents.specialized.financial_auditor.modules.statement_integrity import (
     InputCorrection,
     StatementIntegrity,
@@ -42,12 +74,13 @@ from app.agents.specialized.financial_auditor.modules.statement_integrity import
     assess_statement_integrity,
     summarize_for_judge,
 )
-from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
-from app.agents.tools.financial_math_tools import (
-    NormalizationAdjustment,
-    audit_financial_metrics_tool,
-    run_audit_from_inputs,
+from app.agents.specialized.financial_auditor.modules.tax_quality import (
+    latest_tax_rate,
+    measure_tax_quality,
+    screen_tax_quality,
 )
+from app.agents.specialized.financial_auditor.modules.working_capital import measure_working_capital, screen_working_capital
+from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput, FinancialAuditResult
 
 logger = logging.getLogger("finance_agent.agents.financial_auditor")
 
@@ -69,6 +102,130 @@ Args:
     corrections: Cited overrides of extracted values: target ("annual" | "balance_sheet" |
         "prior_balance_sheet"), fiscal_year, field (input field name), value, reason, source_chunk_id.
 """
+
+
+def build_audit(
+    annual_financials: List[AnnualFinancialInput],
+    balance_sheet: BalanceSheetInput,
+    prior_balance_sheet: Optional[PriorBalanceSheetInput] = None,
+    normalization_adjustments: Optional[List[NormalizationAdjustment]] = None,
+) -> Dict[str, Any]:
+    """The audit checklist: every module after statement_integrity, in MODULES order; returns a FinancialAuditResult dict."""
+    check_audit_window(annual_financials, balance_sheet, prior_balance_sheet)
+
+    # financial_history
+    history = build_financial_history(annual_financials)
+    latest_input = sorted(annual_financials, key=lambda x: x.fiscal_year)[-1]
+    latest = history[-1]
+
+    # margins_and_costs, working_capital, revenue_quality
+    cost_structure = measure_cost_structure(annual_financials, history)
+    working_capital = measure_working_capital(annual_financials)
+
+    # cash_conversion
+    prior_total_assets = prior_balance_sheet.total_assets if prior_balance_sheet else None
+    cash_conversion = measure_cash_conversion(annual_financials, history, prior_total_assets)
+
+    # tax_quality
+    tax_years = measure_tax_quality(annual_financials)
+    latest_tax = latest_tax_rate(latest_input)
+
+    # earnings_normalization
+    screened = screen_normalization_adjustments(annual_financials, normalization_adjustments)
+    normalized = normalize_earnings(annual_financials, history, screened["accepted"])
+
+    # balance_sheet_strength
+    balance = measure_balance_sheet(balance_sheet, prior_balance_sheet)
+    equity_status = classify_book_equity(balance_sheet.stockholders_equity)
+    solvency = measure_solvency(balance, latest, latest_input, equity_status)
+
+    # capital_allocation
+    returns = measure_capital_returns(latest, balance, prior_balance_sheet, latest_tax.rate, equity_status)
+    capital_intensity = measure_capital_intensity(annual_financials, history)
+    share_count = measure_share_count(annual_financials)
+
+    findings = rank_findings([
+        *screen_margins_and_costs(history, cost_structure),
+        *screen_working_capital(annual_financials, history, working_capital),
+        *screen_revenue_quality(annual_financials, history),
+        *screen_cash_conversion(history, cash_conversion),
+        *screen_tax_quality(annual_financials, tax_years),
+        *screen_earnings_normalization(normalized),
+        *screen_balance_sheet_strength(balance_sheet),
+        *screen_capital_allocation(history, capital_intensity, share_count),
+    ])
+
+    result = FinancialAuditResult(
+        multi_year_history=history,
+        balance_sheet=balance,
+        profitability_and_return_ratios=assemble_profitability(latest_tax, equity_status, returns, latest),
+        solvency_and_liquidity_ratios=solvency,
+        earnings_quality=assemble_earnings_quality(cash_conversion, tax_years, normalized),
+        working_capital=working_capital,
+        capital_intensity=capital_intensity,
+        cost_structure=cost_structure,
+        share_count_history=share_count,
+        forensic_findings=findings,
+        rejected_normalization_adjustments=screened["rejected"],
+    )
+    logger.info(
+        f"build_audit: FY{balance_sheet.fiscal_year} net debt ${result.balance_sheet.net_debt:,.2f}M | "
+        f"ROIC {result.profitability_and_return_ratios.roic_pct}% | findings {len(findings)}"
+    )
+    return result.model_dump()
+
+
+def build_audit_from_inputs(
+    inputs: Dict[str, Any],
+    normalization_adjustments: Optional[List[Any]] = None,
+) -> Dict[str, Any]:
+    """Validates plain-dict audit inputs (extraction, corrections, gap-fill) and runs `build_audit`."""
+    annual_financials, balance_sheet, prior_balance_sheet = validate_audit_inputs(inputs)
+    return build_audit(
+        annual_financials=annual_financials,
+        balance_sheet=balance_sheet,
+        prior_balance_sheet=prior_balance_sheet,
+        normalization_adjustments=[
+            a if isinstance(a, NormalizationAdjustment) else NormalizationAdjustment.model_validate(a)
+            for a in (normalization_adjustments or [])
+        ],
+    )
+
+
+@tool
+def audit_financial_metrics_tool(
+    annual_financials: List[AnnualFinancialInput],
+    balance_sheet: BalanceSheetInput,
+    prior_balance_sheet: Optional[PriorBalanceSheetInput] = None,
+    normalization_adjustments: Optional[List[NormalizationAdjustment]] = None,
+) -> Dict[str, Any]:
+    """
+    Audit 10-K financial statements: deterministic ratios, quality-of-earnings analytics and forensic findings.
+
+    All dollar amounts in $ MILLIONS, shares in MILLIONS, CapEx as a POSITIVE magnitude.
+
+    Args:
+        annual_financials: Contiguous fiscal years. Required per year: fiscal_year, revenue, operating_income,
+            net_income (attributable to common), operating_cash_flow, capital_expenditures. Supply every other
+            line item that exists in the statements: gross_profit or cost_of_revenue, operating_expenses,
+            pretax_income, income_tax_expense, net_income_total, depreciation_amortization,
+            stock_based_compensation, deferred_income_taxes, accounts_receivable, inventories, accounts_payable,
+            total_assets, diluted_weighted_shares, period_end_shares_outstanding.
+        balance_sheet: Latest-year snapshot: cash_and_equivalents, marketable_securities (ALL short-term
+            investments + non-current marketable securities), short_term_debt, long_term_debt,
+            stockholders_equity, weighted_diluted_shares and/or period_end_shares_outstanding, current_assets,
+            current_liabilities, total_assets.
+        prior_balance_sheet: Prior-year snapshot (enables average-capital ROIC/ROE and accruals).
+        normalization_adjustments: Non-recurring / non-core items: positive `amount` plus `direction`
+            ("inflated_reported_earnings" for gains/credits/tax benefits, "depressed_reported_earnings"
+            for impairments/restructuring/litigation charges).
+    """
+    return build_audit(
+        annual_financials=annual_financials,
+        balance_sheet=balance_sheet,
+        prior_balance_sheet=prior_balance_sheet,
+        normalization_adjustments=normalization_adjustments,
+    )
 
 
 @AgentRegistry.register("financial_auditor")
@@ -115,7 +272,7 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
         if extraction is not None and integrity.is_usable:
             baseline_inputs = extraction.to_tool_kwargs()
             try:
-                baseline = run_audit_from_inputs(baseline_inputs)
+                baseline = build_audit_from_inputs(baseline_inputs)
             except Exception as e:
                 extraction.warnings.append(f"Baseline audit rejected extracted inputs: {e}")
                 logger.warning(f"Baseline audit failed for {ticker} FY{fiscal_year}: {e}")
@@ -193,7 +350,7 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
             corrections: Optional[List[InputCorrection]] = None,
         ) -> Dict[str, Any]:
             corrected = apply_input_corrections(baseline_inputs, corrections)
-            audit = run_audit_from_inputs(corrected["inputs"], normalization_adjustments)
+            audit = build_audit_from_inputs(corrected["inputs"], normalization_adjustments)
             audit["applied_corrections"] = corrected["applied"]
             audit["rejected_corrections"] = corrected["rejected"]
             return audit
@@ -248,7 +405,7 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
                     gap_fill = gap_fill_transcribed_inputs(args, extraction)
                     log.extend(gap_fill["log"])
                     if gap_fill["changed"]:
-                        audit = run_audit_from_inputs(gap_fill["inputs"], gap_fill["adjustments"])
+                        audit = build_audit_from_inputs(gap_fill["inputs"], gap_fill["adjustments"])
                         stale = True
 
         return assemble_audit(
