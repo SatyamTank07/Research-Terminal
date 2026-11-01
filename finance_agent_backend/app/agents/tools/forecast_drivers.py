@@ -21,7 +21,7 @@ from typing import AbstractSet, List, Literal, Optional, Set, Tuple
 from pydantic import BaseModel, Field
 
 from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH  # one house default for g (PR 5 removes the defaults)
-from app.agents.tools.forecast_baseline import MARGIN_FLOOR, ForecastBaseline
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import MARGIN_FLOOR, ForecastBaseline
 
 BASE_HORIZON_YEARS = 5
 EXTENDED_HORIZON_YEARS = 10

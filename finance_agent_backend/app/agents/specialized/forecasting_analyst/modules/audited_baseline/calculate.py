@@ -1,4 +1,4 @@
-"""Deterministic forecast baseline derived from the Financial Auditor's output.
+"""The audited starting point of the forecast, derived from the Financial Auditor's output.
 
 Every auditor field ending in `_pct` is a whole percent; this module converts each one to a decimal
 exactly once, so the forecast engine never guesses units.
@@ -22,72 +22,25 @@ Code-owned assumptions (chosen to hold for any company, not tuned to one ticker)
 from __future__ import annotations
 
 import statistics
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
-from pydantic import BaseModel, Field
-
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline.schema import ForecastBaseline, HistoricalRow
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline.thresholds import (
+    CAPEX_AVERAGE_YEARS,
+    CAPEX_RECENCY_WEIGHTS,
+    MARGIN_FLOOR,
+    MARGIN_TREND_MIN_CHANGE,
+    MARGIN_TREND_YEARS,
+    MAX_PLAUSIBLE_TAX_RATE_PCT,
+    NWC_INTENSITY_BOUND,
+    STEADY_STATE_RONIC_CAP,
+    STEADY_STATE_RONIC_DEFAULT,
+    STEADY_STATE_RONIC_FLOOR,
+)
 from app.agents.tools.financial_math_tools import STATUTORY_TAX_RATE
-from app.agents.tools.forecast_tools import HistoricalRow
 
 if TYPE_CHECKING:  # runtime import would cycle through app.agents.specialized
     from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
-
-CAPEX_AVERAGE_YEARS = 3
-CAPEX_RECENCY_WEIGHTS = (1.0, 2.0, 3.0)  # oldest -> latest over the last CAPEX_AVERAGE_YEARS audited years
-STEADY_STATE_RONIC_FLOOR = 0.08
-STEADY_STATE_RONIC_CAP = 0.30
-STEADY_STATE_RONIC_DEFAULT = 0.10
-MARGIN_TREND_YEARS = 3
-MARGIN_TREND_MIN_CHANGE = 0.01
-MAX_PLAUSIBLE_TAX_RATE_PCT = 50.0
-MARGIN_FLOOR = -2.0
-NWC_INTENSITY_BOUND = 0.5
-
-
-class ForecastBaseline(BaseModel):
-    """Audited starting point and reinvestment intensities for the forecast (ratios are decimals)."""
-
-    base_year: int
-    base_revenue: float = Field(..., description="Base-year revenue ($M)")
-    base_operating_margin: float = Field(..., description="Base-year EBIT margin (decimal)")
-    margin_source: Literal["normalized", "reported"]
-    latest_revenue_growth: Optional[float] = None
-    historical_cagr: Optional[float] = None
-    history_years: int
-    growth_volatility: Optional[float] = Field(None, description="Population std-dev of yearly revenue growth")
-    tax_rate: float
-    tax_source: Literal["median_effective", "statutory_default"]
-    capex_pct_of_revenue: float = Field(
-        ..., description="Starting (year-1) CapEx intensity: recency-weighted (1:2:3) average of the audited years"
-    )
-    capex_average_pct_of_revenue: float = Field(..., description="Simple average CapEx intensity, same years")
-    latest_capex_pct_of_revenue: float = Field(..., description="Base-year CapEx / revenue")
-    capex_years: int
-    da_pct_of_revenue: float
-    da_source: Literal["reported", "ebitda_bridge", "capex_parity_proxy"]
-    nwc_pct_of_incremental_revenue: float
-    nwc_source: Literal["working_capital_days", "not_available"]
-    sbc_pct_of_revenue: float
-    sbc_source: Literal["reported", "not_reported"]
-    base_invested_capital: Optional[float] = Field(None, description="Total debt + stockholders' equity ($M)")
-    base_roic: Optional[float] = Field(
-        None, description="Base-year NOPAT / invested capital (decimal); None when invested capital is not positive"
-    )
-    steady_state_ronic: float = Field(
-        ..., description="Return on new invested capital that sizes final-year net reinvestment (decimal)"
-    )
-    steady_state_ronic_source: Literal[
-        "base_roic", "base_roic_floored", "base_roic_capped", "default_no_positive_roic"
-    ]
-    margin_trend: Literal["expanding", "contracting", "mixed", "insufficient_history"] = Field(
-        ..., description="Direction of the last three audited (reported) operating margins"
-    )
-    historical_average_margin: Optional[float] = Field(
-        None, description="Mean audited operating margin over the history (decimal); None with one year"
-    )
-    historical_rows: List[HistoricalRow] = Field(default_factory=list)
-    warnings: List[str] = Field(default_factory=list)
-
 
 def build_forecast_baseline(audit: FinancialAuditOutput) -> ForecastBaseline:
     history = sorted(audit.multi_year_history, key=lambda h: h.fiscal_year)
@@ -164,15 +117,6 @@ def build_forecast_baseline(audit: FinancialAuditOutput) -> ForecastBaseline:
         ],
         warnings=warnings,
     )
-
-
-def render_history_table(rows: List[HistoricalRow]) -> str:
-    lines = ["| Fiscal year | Revenue ($M) | Growth | Operating margin |", "|:---|---:|---:|---:|"]
-    for r in rows:
-        growth = "—" if r.revenue_growth_pct is None else f"{r.revenue_growth_pct:+.2f}%"
-        margin = "—" if r.operating_margin_pct is None else f"{r.operating_margin_pct:.2f}%"
-        lines.append(f"| FY{r.fiscal_year} | {r.revenue:,.0f} | {growth} | {margin} |")
-    return "\n".join(lines)
 
 
 def _base_margin(latest, latest_eq) -> Tuple[float, str]:

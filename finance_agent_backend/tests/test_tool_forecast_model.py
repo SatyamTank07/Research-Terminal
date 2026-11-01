@@ -2,7 +2,7 @@
 
 import unittest
 
-from app.agents.tools.forecast_baseline import build_forecast_baseline
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
 from app.agents.tools.forecast_drivers import DEFAULT_TERMINAL_GROWTH, ForecastDrivers, historical_fade_drivers
 from app.agents.tools.forecast_model import build_forecast, project_with_overrides
 from tests.forecast_fixtures import (

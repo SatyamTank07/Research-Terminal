@@ -2,7 +2,7 @@
 
 import unittest
 
-from app.agents.tools.forecast_baseline import build_forecast_baseline
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
 from app.agents.tools.forecast_drivers import (
     BASE_HORIZON_YEARS,
     DEFAULT_TERMINAL_GROWTH,

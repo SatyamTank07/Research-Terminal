@@ -37,7 +37,7 @@ from app.agents.specialized.forecasting_analyst.assemble import (
 from app.agents.specialized.forecasting_analyst.context import fetch_mdna_chunks
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
 from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
-from app.agents.tools.forecast_baseline import (
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import (
     ForecastBaseline,
     build_forecast_baseline,
     render_history_table,

@@ -17,19 +17,12 @@ from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline.schema import HistoricalRow
+
 logger = logging.getLogger("finance_agent.tools.forecast")
 
 MAX_HORIZON_YEARS = 10
 Ratio = Union[float, List[float]]
-
-
-class HistoricalRow(BaseModel):
-    """Audited year shown as an 'A' column in the forecast table (percentages are whole percents, display only)."""
-
-    fiscal_year: int
-    revenue: float
-    revenue_growth_pct: Optional[float] = None
-    operating_margin_pct: Optional[float] = None
 
 
 class ForecastYearResult(BaseModel):

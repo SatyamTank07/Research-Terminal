@@ -18,7 +18,7 @@ from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import
 )
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
-from app.agents.tools.forecast_baseline import build_forecast_baseline
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
 from app.agents.tools.forecast_drivers import DEFAULT_TERMINAL_GROWTH
 from app.agents.tools.mdna_guidance import assess_mdna_guidance
 from tests.forecast_fixtures import (

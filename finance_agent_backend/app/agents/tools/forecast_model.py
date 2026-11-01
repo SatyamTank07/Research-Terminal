@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from pydantic import BaseModel, Field
 
-from app.agents.tools.forecast_baseline import ForecastBaseline
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import ForecastBaseline
 from app.agents.tools.forecast_drivers import ForecastDrivers, extend_fade, linear_fade
 from app.agents.tools.forecast_tools import calculate_forecast_schedule, project_forecast_years
 

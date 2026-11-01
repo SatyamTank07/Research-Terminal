@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Sequence, Set
 
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput, GuidanceSource
-from app.agents.tools.forecast_baseline import ForecastBaseline
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import ForecastBaseline
 from app.agents.tools.forecast_drivers import DriverAdjustment, ForecastDrivers
 from app.agents.tools.forecast_model import ForecastBuild
 from app.agents.tools.mdna_guidance import MdnaAssessment

@@ -9,7 +9,7 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
 from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
 from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import PROPOSE_TOOL_NAME
-from app.agents.tools.forecast_baseline import build_forecast_baseline
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
 from tests.forecast_fixtures import (
     AMZN_GUIDANCE_CHUNK,
     GUIDANCE_CHUNK,

@@ -9,7 +9,7 @@ from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import
     ForecastYear,
     GuidanceSource,
 )
-from app.agents.tools.forecast_baseline import MARGIN_FLOOR
+from app.agents.specialized.forecasting_analyst.modules.audited_baseline import MARGIN_FLOOR
 from app.agents.tools.forecast_model import SCENARIO_PROBABILITIES, project_with_overrides
 
 AGENT = AgentSpec(
