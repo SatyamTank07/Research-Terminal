@@ -29,6 +29,7 @@ from app.agents.specialized.financial_auditor.context.audit_inputs import (
     validate_audit_inputs,
 )
 from app.agents.specialized.financial_auditor.findings import ForensicFinding, Severity, rank_findings
+from app.agents.specialized.financial_auditor.modules.cash_conversion import measure_cash_conversion, screen_cash_conversion
 from app.agents.specialized.financial_auditor.modules.revenue_quality import screen_revenue_quality
 from app.agents.specialized.financial_auditor.modules.working_capital import (
     YearWorkingCapital,
@@ -58,12 +59,8 @@ ETR_LOW_PCT = 5.0
 ETR_HIGH_PCT = 40.0
 DEFERRED_TAX_TO_NI_THRESHOLD_PCT = 25.0
 CAPEX_DRIVEN_FCF_THRESHOLD_PCT = 75.0
-SBC_TO_OCF_THRESHOLD_PCT = 15.0
-SBC_TO_EBIT_THRESHOLD_PCT = 40.0
 DILUTED_SHARE_GROWTH_THRESHOLD_PCT = 3.0
 PERIOD_END_SHARE_GROWTH_THRESHOLD_PCT = 5.0
-SLOAN_ACCRUALS_THRESHOLD_PCT = 10.0
-FCF_CONVERSION_WEAK_PCT = 70.0
 
 
 
@@ -439,6 +436,7 @@ def calculate_quality_of_earnings(
             )
         adj_by_year.setdefault(adj.fiscal_year, []).append(adj)
 
+    cash_by_year = {r.fiscal_year: r for r in measure_cash_conversion(annual_financials, history, prior_total_assets)}
     eq: List[YearEarningsQuality] = []
     ci: List[YearCapitalIntensity] = []
     sh: List[YearShareCount] = []
@@ -449,13 +447,7 @@ def calculate_quality_of_earnings(
         rev = f.revenue
 
         # --- Earnings quality
-        ni_for_accruals = f.net_income_total if f.net_income_total is not None else f.net_income
-        accruals = round(ni_for_accruals - f.operating_cash_flow, 2)
-        ta_prev = prev.total_assets if prev is not None else prior_total_assets
-        avg_ta = None
-        if f.total_assets is not None:
-            avg_ta = (f.total_assets + ta_prev) / 2.0 if ta_prev is not None else f.total_assets
-        sbc = f.stock_based_compensation
+        cc = cash_by_year[f.fiscal_year]
         non_op = round(f.pretax_income - f.operating_income, 2) if f.pretax_income is not None else None
         year_rate = _year_tax_rate(f)
         etr_pct = pct_of(f.income_tax_expense, f.pretax_income) if (
@@ -473,12 +465,12 @@ def calculate_quality_of_earnings(
 
         eq.append(YearEarningsQuality(
             fiscal_year=f.fiscal_year,
-            accruals=accruals,
-            sloan_accruals_ratio_pct=pct_of(accruals, avg_ta),
-            stock_based_compensation=sbc,
-            sbc_to_ocf_pct=pct_of(sbc, f.operating_cash_flow) if f.operating_cash_flow > 0 else None,
-            sbc_to_operating_income_pct=pct_of(sbc, f.operating_income) if f.operating_income > 0 else None,
-            sbc_adjusted_fcf=round(h.free_cash_flow - sbc, 2) if sbc is not None else None,
+            accruals=cc.accruals,
+            sloan_accruals_ratio_pct=cc.sloan_accruals_ratio_pct,
+            stock_based_compensation=cc.stock_based_compensation,
+            sbc_to_ocf_pct=cc.sbc_to_ocf_pct,
+            sbc_to_operating_income_pct=cc.sbc_to_operating_income_pct,
+            sbc_adjusted_fcf=cc.sbc_adjusted_fcf,
             non_operating_income=non_op,
             non_operating_to_operating_income_pct=pct_of(non_op, f.operating_income) if f.operating_income > 0 else None,
             effective_tax_rate_pct=etr_pct,
@@ -555,32 +547,6 @@ def detect_forensic_findings(
             value=round(value, 2) if value is not None else None, threshold=threshold, message=message,
         ))
 
-    # Net income up while OCF down
-    for prev, cur in zip(history, history[1:]):
-        ni_g = growth_pct(cur.net_income, prev.net_income)
-        ocf_g = growth_pct(cur.operating_cash_flow, prev.operating_cash_flow)
-        if ni_g is not None and ocf_g is not None and ni_g > 0.0 and ocf_g < 0.0:
-            add("EARNINGS_QUALITY_DIVERGENCE", "high", cur.fiscal_year, "net_income_vs_ocf_growth_pct", ni_g, 0.0,
-                f"EARNINGS QUALITY DIVERGENCE (FY{cur.fiscal_year}): Net income increased by +{ni_g:.2f}% "
-                f"(${prev.net_income:,.1f}M -> ${cur.net_income:,.1f}M) while operating cash flow declined by "
-                f"{ocf_g:.2f}% (${prev.operating_cash_flow:,.1f}M -> ${cur.operating_cash_flow:,.1f}M), indicating "
-                f"accrual expansion, non-operating gains, or tax/working-capital cash timing outflows.")
-
-    profitable = [h for h in history if h.net_income > 0 and h.fcf_conversion_pct is not None]
-    if len(profitable) >= 2 and all(h.fcf_conversion_pct < FCF_CONVERSION_WEAK_PCT for h in profitable):
-        avg_conv = sum(h.fcf_conversion_pct for h in profitable) / len(profitable)
-        add("WEAK_CASH_CONVERSION", "medium", history[-1].fiscal_year, "avg_fcf_conversion_pct", avg_conv,
-            FCF_CONVERSION_WEAK_PCT,
-            f"WEAK CASH CONVERSION WARNING: Free cash flow conversion (FCF / Net Income) has been chronically "
-            f"weak (< 70%) across all reported years with positive earnings (averaging {avg_conv:.1f}%), "
-            f"signaling high capital intensity or poor earnings-to-cash realization.")
-
-    if len(history) >= 2 and all(h.operating_cash_flow < h.net_income for h in history):
-        add("CHRONIC_ACCRUAL_DEFICIT", "high", history[-1].fiscal_year, "ocf_below_net_income_years",
-            float(len(history)), None,
-            "CHRONIC ACCRUAL DEFICIT: Operating cash flow was strictly lower than net income in every "
-            "reported fiscal year, signaling persistently low cash conversion quality.")
-
     if balance_sheet is not None and balance_sheet.stockholders_equity < 0:
         add("NEGATIVE_BOOK_EQUITY", "high", balance_sheet.fiscal_year, "stockholders_equity",
             balance_sheet.stockholders_equity, 0.0,
@@ -626,22 +592,6 @@ def detect_forensic_findings(
                 f"TAX ANOMALY (FY{yr}): Reported earnings include {'; '.join(tax_reasons)}. Net income and margins "
                 f"for this year are not comparable without normalization (e.g. valuation-allowance release).")
 
-        if q.sbc_to_ocf_pct is not None and (
-            q.sbc_to_ocf_pct > SBC_TO_OCF_THRESHOLD_PCT
-            or (q.sbc_to_operating_income_pct or 0.0) > SBC_TO_EBIT_THRESHOLD_PCT
-        ):
-            add("SBC_INTENSITY", "medium", yr, "sbc_to_ocf_pct", q.sbc_to_ocf_pct, SBC_TO_OCF_THRESHOLD_PCT,
-                f"STOCK-BASED COMPENSATION INTENSITY (FY{yr}): SBC of ${q.stock_based_compensation:,.1f}M equals "
-                f"{q.sbc_to_ocf_pct:.1f}% of operating cash flow and "
-                f"{q.sbc_to_operating_income_pct or 0.0:.1f}% of operating income; SBC-adjusted FCF is "
-                f"${q.sbc_adjusted_fcf:,.1f}M.")
-
-        if q.sloan_accruals_ratio_pct is not None and q.sloan_accruals_ratio_pct > SLOAN_ACCRUALS_THRESHOLD_PCT:
-            add("HIGH_ACCRUALS", "medium", yr, "sloan_accruals_ratio_pct", q.sloan_accruals_ratio_pct,
-                SLOAN_ACCRUALS_THRESHOLD_PCT,
-                f"HIGH ACCRUALS (FY{yr}): Sloan accruals ratio of {q.sloan_accruals_ratio_pct:.1f}% of average total "
-                f"assets; earnings are running materially ahead of operating cash flow.")
-
     for yr, c in ci.items():
         if c.fcf_change is not None and c.fcf_change > 0 and (c.ocf_change or 0.0) <= 0 \
                 and (c.capex_change or 0.0) < 0 and (c.fcf_change_from_capex_pct or 0.0) > CAPEX_DRIVEN_FCF_THRESHOLD_PCT:
@@ -672,6 +622,7 @@ def detect_forensic_findings(
                 f"{s.period_end_share_growth_pct:.2f}% to {s.period_end_shares_outstanding:,.1f}M; investigate "
                 f"equity awards, conversions or issuances, and use the period-end count for per-share value.")
 
+    findings.extend(screen_cash_conversion(history, analytics["earnings_quality"]))
     findings.extend(screen_margins_and_costs(history, analytics["cost_structure"]))
     findings.extend(screen_working_capital(annual_inputs, history, analytics["working_capital"]))
     findings.extend(screen_revenue_quality(annual_inputs, history))

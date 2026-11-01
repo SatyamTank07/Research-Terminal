@@ -1,0 +1,6 @@
+"""When the gap between profits and cash becomes a finding."""
+
+SBC_TO_OCF_THRESHOLD_PCT = 15.0
+SBC_TO_EBIT_THRESHOLD_PCT = 40.0
+SLOAN_ACCRUALS_THRESHOLD_PCT = 10.0
+FCF_CONVERSION_WEAK_PCT = 70.0

@@ -6,4 +6,5 @@ MODULES = (
     "margins_and_costs",
     "working_capital",
     "revenue_quality",
+    "cash_conversion",
 )
