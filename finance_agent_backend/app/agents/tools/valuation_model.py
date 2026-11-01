@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Callable, List, Literal, Optional, Tuple
 
 from pydantic import BaseModel, Field
 
+from app.agents.specialized.valuation_specialist.context import MarketInputs
 from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity, dcf_fair_value_per_share
 from app.agents.tools.forecast_baseline import MARGIN_FLOOR
 from app.agents.tools.forecast_model import SCENARIO_PROBABILITIES, project_with_overrides
@@ -50,19 +51,6 @@ ValuationStance = Literal["Undervalued", "Fairly Valued", "Overvalued"]
 ReverseDCFStatus = Literal[
     "solved", "price_above_range", "price_below_range", "no_solution", "price_unavailable", "forecast_unavailable"
 ]
-
-
-class MarketInputs(BaseModel):
-    """Market data resolved by the orchestrator (live yfinance and/or user overrides) with provenance."""
-
-    share_price: Optional[float] = None
-    share_price_source: str = "unavailable"
-    market_cap: Optional[float] = Field(None, description="$ Millions")
-    beta: Optional[float] = None
-    beta_source: str = Field("unavailable", description="'user_provided' | 'yfinance_raw' | 'unavailable'")
-    risk_free_rate: float = settings.DEFAULT_RISK_FREE_RATE
-    risk_free_rate_source: str = "house_default_config"
-    market_data_source: str = "fallback_offline"
 
 
 class ScenarioValuation(BaseModel):

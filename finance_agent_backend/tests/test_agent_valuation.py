@@ -14,7 +14,8 @@ from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
 from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
-from app.agents.tools.valuation_model import MarketInputs, build_valuation
+from app.agents.specialized.valuation_specialist.context import MarketInputs
+from app.agents.tools.valuation_model import build_valuation
 from app.agents.tools.wacc_tools import blume_adjust
 from app.config import settings
 from tests.forecast_fixtures import make_aapl_audit, make_audit, make_forecast_output

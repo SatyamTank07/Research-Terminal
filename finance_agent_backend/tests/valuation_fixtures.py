@@ -7,7 +7,8 @@ from app.agents.specialized.financial_auditor.state_financial_auditor import Fin
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
 from app.agents.specialized.valuation_specialist.agent_valuation_specialist import ValuationSpecialistAgent
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
-from app.agents.tools.valuation_model import MarketInputs, build_valuation
+from app.agents.specialized.valuation_specialist.context import MarketInputs
+from app.agents.tools.valuation_model import build_valuation
 from tests.forecast_fixtures import make_aapl_audit, make_forecast_output
 
 VALUATION_DATE = date(2026, 10, 11)
