@@ -9,8 +9,8 @@ Design rules:
 - Latest Filing Precedence: grids are supplied newest filing first, and the first
   filing that reports a value for a (field, year) wins. Divergent values reported
   by older filings are surfaced as `cross_filing_differences` (restatement candidates).
-- Accounting identities (balance sheet, gross profit, net income tie-out) are checked
-  and reported, never silently "fixed".
+- Values are never silently "fixed": accounting identities are checked by the
+  statement_integrity module.
 """
 
 import logging
@@ -29,7 +29,6 @@ logger = logging.getLogger("finance_agent.agents.financial_auditor")
 
 # Share counts above this are assumed to be reported in thousands (normalized to millions).
 SHARE_THOUSANDS_THRESHOLD = 100_000.0
-IDENTITY_TOLERANCE_PCT = 0.5
 CROSS_FILING_TOLERANCE_PCT = 0.5
 
 REQUIRED_ANNUAL_FIELDS = [
@@ -42,18 +41,6 @@ REQUIRED_ANNUAL_FIELDS = [
 REQUIRED_BALANCE_FIELDS = ["cash_and_equivalents", "stockholders_equity"]
 SHARE_COUNT_FIELDS = ["weighted_diluted_shares", "period_end_shares_outstanding"]
 
-# Fields that an institutional audit expects to find; drives the completeness score.
-EXPECTED_LATEST_FIELDS = REQUIRED_ANNUAL_FIELDS + [
-    "gross_profit_or_cost_of_revenue",
-    "pretax_income",
-    "income_tax_expense",
-    "depreciation_amortization",
-    "stock_based_compensation",
-    "diluted_weighted_shares",
-    "current_assets",
-    "current_liabilities",
-    "total_assets",
-]
 
 
 # ==============================================================================
@@ -150,7 +137,7 @@ DILUTED_SHARE_LABEL = re.compile(r"^diluted( shares)?$|weighted.average.*diluted
 # ==============================================================================
 @dataclass
 class ExtractionResult:
-    """Deterministically extracted audit inputs with provenance and quality diagnostics."""
+    """Deterministically extracted audit inputs with provenance, missing fields and cross-filing differences."""
 
     fiscal_year: int
     years: List[int] = field(default_factory=list)
@@ -158,41 +145,10 @@ class ExtractionResult:
     balance: Dict[int, Dict[str, float]] = field(default_factory=dict)
     field_provenance: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     missing_fields: List[str] = field(default_factory=list)
-    identity_checks: List[Dict[str, Any]] = field(default_factory=list)
     cross_filing_differences: List[Dict[str, Any]] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
     clean_tables: Dict[str, str] = field(default_factory=dict)
     citations: List[Dict[str, Any]] = field(default_factory=list)
-
-    # ------------------------------------------------------------------
-    @property
-    def failed_identity_checks(self) -> List[Dict[str, Any]]:
-        return [c for c in self.identity_checks if c.get("status") == "failed"]
-
-    @property
-    def is_usable(self) -> bool:
-        """True when every required field exists for >= 2 contiguous years ending at the target year."""
-        if len(self.years) < 2 or self.years[-1] != self.fiscal_year:
-            return False
-        latest_bs = self.balance.get(self.fiscal_year, {})
-        if any(latest_bs.get(f) is None for f in REQUIRED_BALANCE_FIELDS):
-            return False
-        if all(latest_bs.get(f) is None for f in SHARE_COUNT_FIELDS):
-            return False
-        return not any(c.get("critical") for c in self.failed_identity_checks)
-
-    @property
-    def completeness_score(self) -> float:
-        latest = self.annual.get(self.fiscal_year, {})
-        bs = self.balance.get(self.fiscal_year, {})
-        found = 0
-        for f in EXPECTED_LATEST_FIELDS:
-            if f == "gross_profit_or_cost_of_revenue":
-                present = latest.get("gross_profit") is not None or latest.get("cost_of_revenue") is not None
-            else:
-                present = latest.get(f) is not None or bs.get(f) is not None
-            found += 1 if present else 0
-        return round(found / len(EXPECTED_LATEST_FIELDS), 3)
 
     # ------------------------------------------------------------------
     def to_annual_inputs(self) -> List[Dict[str, Any]]:
@@ -261,15 +217,6 @@ class ExtractionResult:
             "prior_balance_sheet": self.to_prior_balance_sheet_input(),
         }
 
-    def summary_for_prompt(self) -> Dict[str, Any]:
-        return {
-            "years": self.years,
-            "completeness_score": self.completeness_score,
-            "missing_fields": self.missing_fields,
-            "failed_identity_checks": self.failed_identity_checks,
-            "cross_filing_differences": self.cross_filing_differences,
-            "warnings": self.warnings,
-        }
 
 
 # ==============================================================================
@@ -319,7 +266,7 @@ def _find_diluted_shares_row(grid: StatementGrid, year: int) -> Optional[Stateme
     return None
 
 
-def _pct_diff(a: float, b: float) -> float:
+def percent_difference(a: float, b: float) -> float:
     base = max(abs(a), abs(b), 1e-9)
     return abs(a - b) / base * 100.0
 
@@ -447,7 +394,7 @@ def _record(
     key = f"FY{year}.{fname}"
     if fname in bucket:
         prior = provenance.get(key, {})
-        if _pct_diff(bucket[fname], value) > CROSS_FILING_TOLERANCE_PCT:
+        if percent_difference(bucket[fname], value) > CROSS_FILING_TOLERANCE_PCT:
             differences.append({
                 "statement": statement,
                 "field": fname,
@@ -456,7 +403,7 @@ def _record(
                 "latest_value": bucket[fname],
                 "older_filing_year": grid.filing_year,
                 "older_value": value,
-                "difference_pct": round(_pct_diff(bucket[fname], value), 2),
+                "difference_pct": round(percent_difference(bucket[fname], value), 2),
             })
         return
     bucket[fname] = value
@@ -569,8 +516,6 @@ def extract_audit_inputs(
             "No short-term investment / marketable securities row detected; liquid securities treated as 0."
         )
 
-    result.identity_checks = _run_identity_checks(annual, balance, years, fiscal_year)
-
     # Clean presentation tables and citations from the newest filing of each statement.
     for statement, grids in statements.items():
         if grids:
@@ -585,58 +530,6 @@ def extract_audit_inputs(
                     "statement_type": statement,
                 })
     return result
-
-
-def _identity(name: str, lhs: float, rhs: float, critical: bool, detail: str) -> Dict[str, Any]:
-    diff = _pct_diff(lhs, rhs)
-    return {
-        "name": name,
-        "status": "passed" if diff <= IDENTITY_TOLERANCE_PCT else "failed",
-        "critical": critical,
-        "lhs": round(lhs, 2),
-        "rhs": round(rhs, 2),
-        "difference_pct": round(diff, 3),
-        "detail": detail,
-    }
-
-
-def _run_identity_checks(
-    annual: Dict[int, Dict[str, float]],
-    balance: Dict[int, Dict[str, float]],
-    years: List[int],
-    fiscal_year: int,
-) -> List[Dict[str, Any]]:
-    checks: List[Dict[str, Any]] = []
-    bs = balance.get(fiscal_year, {})
-    ta = bs.get("total_assets")
-    if ta is not None and bs.get("total_liabilities_and_equity") is not None:
-        checks.append(_identity(
-            f"FY{fiscal_year} balance sheet: total assets = total liabilities and equity",
-            ta, bs["total_liabilities_and_equity"], True,
-            "Validates that the balance sheet grid was parsed with correct period alignment.",
-        ))
-    if ta is not None and bs.get("total_liabilities") is not None and bs.get("stockholders_equity") is not None:
-        rhs = bs["total_liabilities"] + bs["stockholders_equity"] + (bs.get("noncontrolling_interests") or 0.0)
-        checks.append(_identity(
-            f"FY{fiscal_year} balance sheet: assets = liabilities + mezzanine + equity (incl. NCI)",
-            ta, rhs, False,
-            "Validates the stockholders' equity and liabilities rows used for ROE / invested capital.",
-        ))
-    for yr in years:
-        vals = annual.get(yr, {})
-        if None not in (vals.get("revenue"), vals.get("cost_of_revenue"), vals.get("gross_profit")):
-            checks.append(_identity(
-                f"FY{yr} gross profit = revenue - cost of revenue",
-                vals["gross_profit"], vals["revenue"] - vals["cost_of_revenue"], False,
-                "Validates revenue and cost of revenue row selection.",
-            ))
-        if vals.get("net_income_total") is not None and vals.get("net_income_cf") is not None:
-            checks.append(_identity(
-                f"FY{yr} net income: income statement = cash flow statement",
-                vals["net_income_total"], vals["net_income_cf"], False,
-                "Validates that the income statement and cash flow statement describe the same periods.",
-            ))
-    return checks
 
 
 def build_statement_grids(tables: Dict[str, List[Dict[str, Any]]]) -> Dict[str, List[StatementGrid]]:

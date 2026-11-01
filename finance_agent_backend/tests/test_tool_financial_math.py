@@ -15,10 +15,8 @@ import unittest
 from app.agents.tools.financial_math_tools import (
     AnnualFinancialInput,
     BalanceSheetInput,
-    InputCorrection,
     NormalizationAdjustment,
     PriorBalanceSheetInput,
-    apply_input_corrections,
     calculate_financial_ratios,
     audit_financial_metrics,
     audit_financial_metrics_tool,
@@ -907,21 +905,6 @@ class TestInstitutionalQualityOfEarnings(unittest.TestCase):
         inputs["prior_balance_sheet"] = None
         ending = run_audit_from_inputs(inputs)
         self.assertEqual(ending["profitability_and_return_ratios"]["capital_basis"], "ending")
-
-    def test_09_apply_input_corrections(self):
-        inputs = _tsla_fy2025_inputs()
-        inputs["balance_sheet"]["marketable_securities"] = 0.0
-        out = apply_input_corrections(inputs, [
-            InputCorrection(target="balance_sheet", fiscal_year=2025, field="marketable_securities",
-                            value=27546.0, reason="Short-term investments row", source_chunk_id="bs"),
-            InputCorrection(target="balance_sheet", fiscal_year=2025, field="not_a_field", value=1.0, reason="x"),
-            InputCorrection(target="annual", fiscal_year=2019, field="revenue", value=1.0, reason="x"),
-        ])
-        self.assertEqual(out["inputs"]["balance_sheet"]["marketable_securities"], 27546.0)
-        self.assertEqual(inputs["balance_sheet"]["marketable_securities"], 0.0)  # original untouched
-        self.assertEqual(len(out["applied"]), 1)
-        self.assertEqual(out["applied"][0]["previous_value"], 0.0)
-        self.assertEqual(len(out["rejected"]), 2)
 
 
 if __name__ == "__main__":

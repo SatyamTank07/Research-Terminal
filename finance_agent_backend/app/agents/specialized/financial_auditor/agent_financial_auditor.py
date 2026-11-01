@@ -35,15 +35,21 @@ from app.agents.specialized.financial_auditor.context import (
     gap_fill_transcribed_inputs,
     resolve_audit_window,
 )
-from app.agents.specialized.financial_auditor.state_financial_auditor import (
+from app.agents.specialized.financial_auditor.findings import SEVERITY_RANK, ForensicFinding
+from app.agents.specialized.financial_auditor.modules.statement_integrity import (
     AuditDataQuality,
-    FinancialAuditOutput,
-)
-from app.agents.tools.financial_math_tools import (
-    ForensicFinding,
     InputCorrection,
-    NormalizationAdjustment,
+    StatementIntegrity,
     apply_input_corrections,
+    assess_statement_integrity,
+    flag_data_quality,
+    note_restatements,
+    record_data_quality,
+    summarize_for_judge,
+)
+from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
+from app.agents.tools.financial_math_tools import (
+    NormalizationAdjustment,
     audit_financial_metrics_tool,
     run_audit_from_inputs,
 )
@@ -64,7 +70,6 @@ ANALYTIC_KEYS = (
     "share_count_history",
     "forensic_findings",
 )
-_SEVERITY_RANK = {"high": 0, "medium": 1, "low": 2, "info": 3}
 
 REFINE_TOOL_DESCRIPTION = """Re-run the deterministic audit on the extracted 10-K inputs with cited corrections and/or normalization adjustments.
 
@@ -121,10 +126,11 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
                 extraction = extract_audit_inputs(build_statement_grids(tables), fiscal_year, target_years)
             except Exception as e:
                 logger.warning(f"Statement extraction failed for {ticker} FY{fiscal_year}: {e}")
+        integrity = assess_statement_integrity(extraction) if extraction is not None else None
 
         baseline_inputs: Optional[Dict[str, Any]] = None
         baseline: Optional[Dict[str, Any]] = None
-        if extraction is not None and extraction.is_usable:
+        if extraction is not None and integrity.is_usable:
             baseline_inputs = extraction.to_tool_kwargs()
             try:
                 baseline = run_audit_from_inputs(baseline_inputs)
@@ -137,7 +143,7 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
         self._configure_tools(mode, baseline_inputs)
         logger.info(
             f"FinancialAuditor {ticker} FY{fiscal_year}: mode={mode}, "
-            f"completeness={extraction.completeness_score if extraction else None}"
+            f"completeness={integrity.completeness_score if integrity else None}"
         )
 
         query = render_prompt(
@@ -148,12 +154,13 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
             audit_years=extraction.years if mode == "deterministic" else target_years,
             available_years_str=", ".join(map(str, sorted(available_fiscal_years))) if available_fiscal_years else None,
             baseline_json=json.dumps(baseline, default=str) if baseline else None,
-            extraction_json=json.dumps(extraction.summary_for_prompt(), default=str) if extraction else None,
+            extraction_json=json.dumps(summarize_for_judge(extraction, integrity), default=str) if extraction else None,
             clean_tables=extraction.clean_tables if extraction else {},
         )
 
         resolution = dict(
             extraction=extraction,
+            integrity=integrity,
             extraction_mode=mode,
             baseline=baseline,
             baseline_inputs=baseline_inputs,
@@ -232,6 +239,7 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
         data: Dict[str, Any],
         result: Dict[str, Any],
         extraction: Optional[ExtractionResult] = None,
+        integrity: Optional[StatementIntegrity] = None,
         extraction_mode: str = "llm_fallback",
         baseline: Optional[Dict[str, Any]] = None,
         baseline_inputs: Optional[Dict[str, Any]] = None,
@@ -266,7 +274,7 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
                 if key in audit:
                     data[key] = audit[key]
 
-        dq = self._build_data_quality(extraction, extraction_mode, log, stale)
+        dq = record_data_quality(extraction, integrity, extraction_mode, log, stale)
         data["data_quality"] = dq.model_dump()
         if "forensic_findings" in data:
             data["forensic_findings"] = self._merge_data_quality_findings(data["forensic_findings"], dq)
@@ -281,7 +289,7 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
                 data[field] = tables[statement]
 
         if not data.get("restatement_notes") and extraction is not None:
-            data["restatement_notes"] = self._deterministic_restatement_notes(extraction, prefetched_tables)
+            data["restatement_notes"] = note_restatements(extraction, prefetched_tables)
 
         data["citations"] = self._merge_citations(data.get("citations") or [], prefetched_tables)
         return data
@@ -337,47 +345,11 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
         return log
 
     @staticmethod
-    def _build_data_quality(
-        extraction: Optional[ExtractionResult], mode: str, log: List[str], stale: bool
-    ) -> AuditDataQuality:
-        if extraction is None:
-            return AuditDataQuality(
-                extraction_mode=mode,
-                reconciliation_log=log,
-                warnings=["Primary statements could not be retrieved or parsed; inputs transcribed by the LLM."],
-                summary_may_be_stale=stale,
-            )
-        return AuditDataQuality(
-            extraction_mode=mode,
-            completeness_score=extraction.completeness_score,
-            missing_fields=extraction.missing_fields,
-            identity_checks=extraction.identity_checks,
-            cross_filing_differences=extraction.cross_filing_differences,
-            reconciliation_log=log,
-            field_provenance=extraction.field_provenance,
-            warnings=extraction.warnings,
-            summary_may_be_stale=stale,
-        )
-
-    @staticmethod
     def _merge_data_quality_findings(findings: List[Any], dq: AuditDataQuality) -> List[Dict[str, Any]]:
         merged = [f.model_dump() if isinstance(f, ForensicFinding) else dict(f) for f in findings]
         merged = [f for f in merged if f.get("code") != "DATA_QUALITY"]
-        for check in dq.identity_checks:
-            if check.get("status") == "failed":
-                merged.append(ForensicFinding(
-                    code="DATA_QUALITY", severity="high" if check.get("critical") else "medium",
-                    metric="identity_check_difference_pct", value=check.get("difference_pct"),
-                    threshold=None, message=f"DATA QUALITY: Identity check failed — {check['name']} "
-                    f"({check['lhs']:,.1f} vs {check['rhs']:,.1f}, {check['difference_pct']:.2f}% apart).",
-                ).model_dump())
-        if dq.extraction_mode == "llm_fallback":
-            merged.append(ForensicFinding(
-                code="DATA_QUALITY", severity="info", metric="extraction_mode", threshold=None,
-                message="DATA QUALITY: Statements were not machine-parsed; inputs were transcribed by the LLM "
-                        "and gap-filled where parsed values existed. Verify key figures against the filing.",
-            ).model_dump())
-        merged.sort(key=lambda f: (_SEVERITY_RANK.get(f.get("severity"), 9), -(f.get("fiscal_year") or 0)))
+        merged.extend(f.model_dump() for f in flag_data_quality(dq))
+        merged.sort(key=lambda f: (SEVERITY_RANK.get(f.get("severity"), 9), -(f.get("fiscal_year") or 0)))
         return merged
 
     @staticmethod
@@ -413,30 +385,6 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
             else:
                 tables[st] = newest[0]["table_markdown"]
         return tables
-
-    @staticmethod
-    def _deterministic_restatement_notes(
-        extraction: ExtractionResult,
-        prefetched_tables: Optional[Dict[str, List[Dict[str, Any]]]],
-    ) -> List[str]:
-        notes = [
-            f"FY{d['fiscal_year']} {d['field'].replace('_', ' ')} ({d['statement']}): "
-            f"{d['older_value']:,.1f} in the FY{d['older_filing_year']} 10-K vs {d['latest_value']:,.1f} in the "
-            f"FY{d['latest_filing_year']} 10-K ({d['difference_pct']:.2f}% difference); latest filing figure used."
-            for d in extraction.cross_filing_differences
-        ]
-        if notes:
-            return notes
-        filings = sorted(
-            {p.get("fiscal_year") for items in (prefetched_tables or {}).values() for p in items if p.get("fiscal_year")},
-            reverse=True,
-        )
-        if len(filings) > 1:
-            return [
-                "No retrospective restatements identified: overlapping years agree across the "
-                + ", ".join(f"FY{y}" for y in filings) + " 10-K filings for all extracted line items."
-            ]
-        return ["Single filing available; cross-filing restatement review not possible."]
 
     @staticmethod
     def _merge_citations(

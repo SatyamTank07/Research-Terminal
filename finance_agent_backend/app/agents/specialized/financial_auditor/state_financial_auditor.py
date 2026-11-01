@@ -1,12 +1,13 @@
 """State and Output Schemas for Financial Auditor Agent."""
 
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
 
+from app.agents.specialized.financial_auditor.findings import ForensicFinding
+from app.agents.specialized.financial_auditor.modules.statement_integrity import AuditDataQuality
 from app.agents.tools.financial_math_tools import (
     BalanceSheetResult,
-    ForensicFinding,
     ProfitabilityRatiosResult,
     SolvencyRatiosResult,
     YearCapitalIntensity,
@@ -20,37 +21,6 @@ from app.agents.tools.financial_math_tools import (
 # Ergonomic aliases mapping architectural specification names to calculation engine results
 YearFinancials = YearFinancialsResult
 BalanceSheetSnapshot = BalanceSheetResult
-
-ExtractionMode = Literal["deterministic", "llm_fallback"]
-
-
-class AuditDataQuality(BaseModel):
-    """Provenance and integrity diagnostics for the numbers in the audit."""
-
-    extraction_mode: ExtractionMode = Field(
-        ..., description="deterministic = Python-parsed statements; llm_fallback = LLM-transcribed inputs"
-    )
-    completeness_score: Optional[float] = Field(
-        None, description="Share of institutionally expected latest-year line items that were found (0-1)"
-    )
-    missing_fields: List[str] = Field(default_factory=list)
-    identity_checks: List[Dict[str, Any]] = Field(
-        default_factory=list, description="Accounting identity checks (balance sheet, gross profit, NI tie-out)"
-    )
-    cross_filing_differences: List[Dict[str, Any]] = Field(
-        default_factory=list, description="Same field/year reported differently by consecutive filings"
-    )
-    reconciliation_log: List[str] = Field(
-        default_factory=list, description="Every correction, gap-fill or override applied to extracted inputs"
-    )
-    field_provenance: Dict[str, Dict[str, Any]] = Field(
-        default_factory=dict, description="FY<year>.<field> -> source statement, row labels, chunk_id"
-    )
-    warnings: List[str] = Field(default_factory=list)
-    summary_may_be_stale: bool = Field(
-        False, description="True when inputs were corrected after the LLM wrote the auditor summary"
-    )
-
 
 class FinancialAuditOutput(BaseModel):
     """Structured artifact emitted by the Financial Auditor Agent."""

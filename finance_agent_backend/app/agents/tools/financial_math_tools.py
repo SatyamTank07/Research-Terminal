@@ -29,6 +29,7 @@ from app.agents.specialized.financial_auditor.context.audit_inputs import (
     check_audit_window,
     validate_audit_inputs,
 )
+from app.agents.specialized.financial_auditor.findings import ForensicFinding, Severity, rank_findings
 
 logger = logging.getLogger("finance_agent.tools.financial_math")
 
@@ -52,8 +53,6 @@ SLOAN_ACCRUALS_THRESHOLD_PCT = 10.0
 WORKING_CAPITAL_DAYS_THRESHOLD_PCT = 15.0
 FCF_CONVERSION_WEAK_PCT = 70.0
 
-Severity = Literal["high", "medium", "low", "info"]
-_SEVERITY_RANK = {"high": 0, "medium": 1, "low": 2, "info": 3}
 
 
 class NormalizationAdjustment(BaseModel):
@@ -212,16 +211,6 @@ class YearShareCount(BaseModel):
     diluted_share_growth_pct: Optional[float] = None
     period_end_shares_outstanding: Optional[float] = None
     period_end_share_growth_pct: Optional[float] = None
-
-
-class ForensicFinding(BaseModel):
-    code: str
-    severity: Severity
-    fiscal_year: Optional[int] = None
-    metric: str
-    value: Optional[float] = None
-    threshold: Optional[float] = None
-    message: str
 
 
 class FinancialAuditResult(BaseModel):
@@ -881,8 +870,7 @@ def detect_forensic_findings(
                     f"WORKING CAPITAL DETERIORATION (FY{yr}): {metric.upper()} lengthened {change:.1f}% to "
                     f"{days:.1f} days.")
 
-    findings.sort(key=lambda f: (_SEVERITY_RANK[f.severity], -(f.fiscal_year or 0)))
-    return findings
+    return rank_findings(findings)
 
 
 # ==============================================================================
@@ -950,57 +938,6 @@ def audit_financial_metrics_tool(
         prior_balance_sheet=prior_balance_sheet,
         normalization_adjustments=normalization_adjustments,
     )
-
-
-class InputCorrection(BaseModel):
-    """A cited override of one deterministically extracted line item."""
-
-    target: Literal["annual", "balance_sheet", "prior_balance_sheet"]
-    fiscal_year: int
-    field: str
-    value: float
-    reason: str
-    source_chunk_id: Optional[str] = None
-
-
-_CORRECTION_MODELS = {
-    "annual": AnnualFinancialInput,
-    "balance_sheet": BalanceSheetInput,
-    "prior_balance_sheet": PriorBalanceSheetInput,
-}
-
-
-def apply_input_corrections(
-    base_inputs: Dict[str, Any],
-    corrections: Optional[List[InputCorrection]],
-) -> Dict[str, Any]:
-    """
-    Applies cited corrections to extracted audit inputs (deep-copied).
-
-    Returns {"inputs": corrected kwargs, "applied": [...], "rejected": [...]}.
-    """
-    import copy
-
-    inputs = copy.deepcopy(base_inputs)
-    applied, rejected = [], []
-    for corr in corrections or []:
-        model = _CORRECTION_MODELS[corr.target]
-        if corr.field not in model.model_fields or corr.field == "fiscal_year":
-            rejected.append({**corr.model_dump(), "rejection": f"unknown field '{corr.field}'"})
-            continue
-        if corr.target == "annual":
-            record = next((r for r in inputs["annual_financials"] if r.get("fiscal_year") == corr.fiscal_year), None)
-        else:
-            record = inputs.get(corr.target)
-            if record is not None and record.get("fiscal_year") != corr.fiscal_year:
-                record = None
-        if record is None:
-            rejected.append({**corr.model_dump(), "rejection": f"no {corr.target} record for FY{corr.fiscal_year}"})
-            continue
-        previous = record.get(corr.field)
-        record[corr.field] = corr.value
-        applied.append({**corr.model_dump(), "previous_value": previous})
-    return {"inputs": inputs, "applied": applied, "rejected": rejected}
 
 
 def run_audit_from_inputs(
