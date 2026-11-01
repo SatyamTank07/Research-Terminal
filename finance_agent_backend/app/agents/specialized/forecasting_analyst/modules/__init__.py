@@ -2,4 +2,5 @@
 
 MODULES = (
     "audited_baseline",
+    "management_guidance",
 )

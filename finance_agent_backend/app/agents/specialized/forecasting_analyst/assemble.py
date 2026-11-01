@@ -7,7 +7,7 @@ from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import ForecastBaseline
 from app.agents.tools.forecast_drivers import DriverAdjustment, ForecastDrivers
 from app.agents.tools.forecast_model import ForecastBuild
-from app.agents.tools.mdna_guidance import MdnaAssessment
+from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment
 
 
 def driver_rationales(baseline: ForecastBaseline, drivers: ForecastDrivers, terminal_growth: float) -> Dict[str, str]:

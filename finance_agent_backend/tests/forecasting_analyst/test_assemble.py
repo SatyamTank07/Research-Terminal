@@ -6,7 +6,7 @@ from app.agents.specialized.forecasting_analyst.assemble import assemble_forecas
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
 from app.agents.tools.forecast_drivers import DEFAULT_TERMINAL_GROWTH, historical_fade_drivers
 from app.agents.tools.forecast_model import build_forecast
-from app.agents.tools.mdna_guidance import MdnaAssessment
+from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment
 from tests.forecast_fixtures import GUIDANCE_CHUNK, make_aapl_audit, make_chunk
 
 

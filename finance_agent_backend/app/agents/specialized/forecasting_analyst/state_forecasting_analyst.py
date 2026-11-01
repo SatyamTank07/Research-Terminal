@@ -8,7 +8,7 @@ from app.agents.specialized.forecasting_analyst.modules.audited_baseline import 
 from app.agents.tools.forecast_drivers import DriverAdjustment, ForecastDrivers
 from app.agents.tools.forecast_model import ForecastDiagnostics, ForecastScenario
 from app.agents.tools.forecast_tools import ForecastYearResult
-from app.agents.tools.mdna_guidance import MdnaAssessment
+from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment
 
 ForecastYear = ForecastYearResult
 GuidanceSource = Literal["mdna_informed", "historical_fade"]

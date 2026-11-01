@@ -18,7 +18,7 @@ from app.agents.tools.financial_math_tools import (
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
 from app.agents.tools.forecast_drivers import DEFAULT_TERMINAL_GROWTH, historical_fade_drivers
 from app.agents.tools.forecast_model import build_forecast
-from app.agents.tools.mdna_guidance import MdnaAssessment
+from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 
 AAPL_ROWS: List[Dict[str, Any]] = [

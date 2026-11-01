@@ -52,7 +52,7 @@ from app.agents.tools.forecast_drivers import (
     unsupported_margin_corridor,
 )
 from app.agents.tools.forecast_model import build_forecast
-from app.agents.tools.mdna_guidance import MdnaAssessment, assess_mdna_guidance, margin_evidence_chunk_ids
+from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment, assess_mdna_guidance, margin_evidence_chunk_ids
 
 logger = logging.getLogger("finance_agent.agents.forecasting_analyst")
 

@@ -1,4 +1,4 @@
-"""Deterministic Item 7 (MD&A) guidance screen for the Forecasting Analyst.
+"""What management says about the future: the deterministic Item 7 (MD&A) guidance screen.
 
 Counts forward-looking sentences (excluding safe-harbor and disclosure boilerplate) and extracts the
 quantified ones. The agent only asks the LLM for a guided forecast when the filing has at least one
@@ -19,11 +19,12 @@ blank lines and on bullets, so a heading or bullet list cannot glue boilerplate 
 import re
 from typing import List, Sequence, Set
 
-from pydantic import BaseModel, Field
-
-MIN_FORWARD_LOOKING_SENTENCES = 2
-MAX_GUIDANCE_SENTENCES = 8
-MAX_SENTENCE_CHARS = 400
+from app.agents.specialized.forecasting_analyst.modules.management_guidance.schema import GuidanceSentence, MdnaAssessment
+from app.agents.specialized.forecasting_analyst.modules.management_guidance.thresholds import (
+    MAX_GUIDANCE_SENTENCES,
+    MAX_SENTENCE_CHARS,
+    MIN_FORWARD_LOOKING_SENTENCES,
+)
 
 FORWARD_LOOKING = re.compile(
     r"\b(?:expects?|expected to|anticipates?|anticipated|outlook|(?<!accounting )guidance|intends? to|"
@@ -71,18 +72,6 @@ MARGIN_LANGUAGE = re.compile(
 SENTENCE_SPLIT = re.compile(
     r"(?:(?<=[.!?])|(?<=[.!?][\"'”’)\]]))\s+(?=[\"'“‘(\[]?[A-Z])|\n\s*\n|\s*[•●▪]\s*"
 )
-
-
-class GuidanceSentence(BaseModel):
-    chunk_id: str
-    sentence: str
-
-
-class MdnaAssessment(BaseModel):
-    chunk_count: int = 0
-    forward_looking_count: int = 0
-    quantified_guidance: List[GuidanceSentence] = Field(default_factory=list)
-    is_informative: bool = False
 
 
 def split_sentences(text: str) -> List[str]:
