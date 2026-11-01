@@ -28,6 +28,22 @@ from app.agents.specialized.financial_auditor.context.audit_inputs import (
     validate_audit_inputs,
 )
 from app.agents.specialized.financial_auditor.findings import ForensicFinding, rank_findings
+from app.agents.specialized.financial_auditor.modules.balance_sheet_strength import (
+    BalanceSheetResult,
+    SolvencyRatiosResult,
+    classify_book_equity,
+    measure_balance_sheet,
+    measure_solvency,
+    screen_balance_sheet_strength,
+)
+from app.agents.specialized.financial_auditor.modules.capital_allocation import (
+    YearCapitalIntensity,
+    YearShareCount,
+    measure_capital_intensity,
+    measure_capital_returns,
+    measure_share_count,
+    screen_capital_allocation,
+)
 from app.agents.specialized.financial_auditor.modules.cash_conversion import measure_cash_conversion, screen_cash_conversion
 from app.agents.specialized.financial_auditor.modules.earnings_normalization import (
     NormalizationAdjustment,
@@ -54,47 +70,18 @@ from app.agents.specialized.financial_auditor.modules.margins_and_costs import (
 from app.agents.specialized.financial_auditor.modules.financial_history import (
     YearFinancialsResult,
     build_financial_history,
-    growth_pct,
-    pct_of,
 )
 
 logger = logging.getLogger("finance_agent.tools.financial_math")
 
 
 # Forensic thresholds (institutional quality-of-earnings screens)
-CAPEX_DRIVEN_FCF_THRESHOLD_PCT = 75.0
-DILUTED_SHARE_GROWTH_THRESHOLD_PCT = 3.0
-PERIOD_END_SHARE_GROWTH_THRESHOLD_PCT = 5.0
 
 
 
 # ==============================================================================
 # 2. Output Schemas
 # ==============================================================================
-class BalanceSheetResult(BaseModel):
-    fiscal_year: int
-    cash_and_equivalents: float
-    marketable_securities: float
-    total_liquid_cash: float
-    short_term_debt: float
-    long_term_debt: float
-    total_debt: float
-    prior_total_debt: Optional[float] = Field(None, description="Prior-year gross debt (for average-debt Kd)")
-    net_debt: float
-    net_cash_position: bool
-    stockholders_equity: float
-    noncontrolling_interests: Optional[float] = None
-    valuation_shares_outstanding: float = Field(
-        ..., description="Share count used for per-share valuation (millions)"
-    )
-    share_count_source: str
-    weighted_diluted_shares: Optional[float] = None
-    period_end_shares_outstanding: Optional[float] = None
-    current_assets: Optional[float] = None
-    current_liabilities: Optional[float] = None
-    total_assets: Optional[float] = None
-
-
 class ProfitabilityRatiosResult(BaseModel):
     effective_tax_rate_pct: float
     tax_rate_source: str
@@ -110,14 +97,6 @@ class ProfitabilityRatiosResult(BaseModel):
     latest_gross_margin_pct: Optional[float] = None
     latest_operating_margin_pct: float
     latest_net_margin_pct: float
-
-
-class SolvencyRatiosResult(BaseModel):
-    ebitda: Optional[float] = None
-    net_debt_to_ebitda: Optional[float] = None
-    net_debt_to_ebitda_interpretation: str
-    current_ratio: Optional[float] = None
-    total_debt_to_equity: Optional[float] = None
 
 
 class YearEarningsQuality(BaseModel):
@@ -140,26 +119,6 @@ class YearEarningsQuality(BaseModel):
     normalized_operating_margin_pct: float
     normalized_net_income: float
     normalized_net_margin_pct: float
-
-
-class YearCapitalIntensity(BaseModel):
-    fiscal_year: int
-    capex_to_revenue_pct: Optional[float] = None
-    capex_to_depreciation: Optional[float] = None
-    ocf_change: Optional[float] = None
-    capex_change: Optional[float] = None
-    fcf_change: Optional[float] = None
-    fcf_change_from_capex_pct: Optional[float] = Field(
-        None, description="Share of the FCF change explained by the change in capex"
-    )
-
-
-class YearShareCount(BaseModel):
-    fiscal_year: int
-    diluted_weighted_shares: Optional[float] = None
-    diluted_share_growth_pct: Optional[float] = None
-    period_end_shares_outstanding: Optional[float] = None
-    period_end_share_growth_pct: Optional[float] = None
 
 
 class FinancialAuditResult(BaseModel):
@@ -198,130 +157,30 @@ def calculate_financial_ratios(
     latest_input = sorted_years[-1]
     latest = history[-1]
 
-    # Effective tax rate with provenance
     latest_tax = latest_tax_rate(latest_input)
-    tax_rate, tax_source = latest_tax.rate, latest_tax.source
-
-    # Liquidity bridge
-    sec = balance_sheet.marketable_securities or 0.0
-    st_debt = balance_sheet.short_term_debt or 0.0
-    lt_debt = balance_sheet.long_term_debt or 0.0
-    total_liquid = round(balance_sheet.cash_and_equivalents + sec, 2)
-    total_debt = round(st_debt + lt_debt, 2)
-    net_debt = round(total_debt - total_liquid, 2)
-    net_cash_pos = bool(net_debt < 0)
-
-    # Valuation share count: never below the shares actually outstanding at period end.
-    wd = balance_sheet.weighted_diluted_shares
-    pe = balance_sheet.period_end_shares_outstanding
-    if wd is not None and pe is not None:
-        if pe > wd:
-            valuation_shares, share_source = pe, "period_end_basic_exceeds_weighted_diluted"
-        else:
-            valuation_shares, share_source = wd, "weighted_average_diluted"
-    elif wd is not None:
-        valuation_shares, share_source = wd, "weighted_average_diluted"
-    else:
-        valuation_shares, share_source = pe, "period_end_basic_only"
-
-    # Returns on (average) capital
-    nopat = round(latest.operating_income * (1.0 - tax_rate), 2)
-    equity = balance_sheet.stockholders_equity
-    invested_capital = round(total_debt + equity - total_liquid, 2)
-    gross_capital = total_debt + equity
-    avg_equity = equity
-    capital_basis: Literal["average", "ending"] = "ending"
-    if prior_balance_sheet is not None:
-        prior_liquid = prior_balance_sheet.cash_and_equivalents + (prior_balance_sheet.marketable_securities or 0.0)
-        prior_debt = (prior_balance_sheet.short_term_debt or 0.0) + (prior_balance_sheet.long_term_debt or 0.0)
-        prior_ic = prior_debt + prior_balance_sheet.stockholders_equity - prior_liquid
-        if prior_ic > 0 and invested_capital > 0 and prior_balance_sheet.stockholders_equity > 0 and equity > 0:
-            invested_capital = round((invested_capital + prior_ic) / 2.0, 2)
-            gross_capital = (gross_capital + prior_debt + prior_balance_sheet.stockholders_equity) / 2.0
-            avg_equity = (equity + prior_balance_sheet.stockholders_equity) / 2.0
-            capital_basis = "average"
-
-    equity_status = "positive_book_equity"
-    roic_pct = roic_gross_pct = roe_pct = total_debt_equity = None
-    if equity < 0:
-        equity_status = "negative_book_equity_ratios_suppressed"
-        logger.warning(
-            f"calculate_financial_ratios: Stockholders' equity is negative (${equity:,.1f}M). "
-            f"Suppressing ROIC, ROE, and Debt/Equity."
-        )
-    elif equity == 0:
-        equity_status = "zero_book_equity_ratios_suppressed"
-    else:
-        if invested_capital > 0:
-            roic_pct = round(nopat / invested_capital * 100.0, 2)
-        if gross_capital > 0:
-            roic_gross_pct = round(nopat / gross_capital * 100.0, 2)
-        roe_pct = round(latest.net_income / avg_equity * 100.0, 2)
-        total_debt_equity = round(total_debt / equity, 2)
-
-    ebitda = net_debt_ebitda = None
-    ebitda_interp = "ebitda_not_available"
-    if latest_input.depreciation_amortization is not None:
-        ebitda = round(latest.operating_income + latest_input.depreciation_amortization, 2)
-        if ebitda > 0:
-            net_debt_ebitda = round(net_debt / ebitda, 2)
-            ebitda_interp = "net_cash_surplus" if net_cash_pos else "leverage_ratio"
-        elif ebitda < 0:
-            ebitda_interp = "negative_ebitda"
-
-    current_ratio = None
-    if balance_sheet.current_assets is not None and balance_sheet.current_liabilities:
-        current_ratio = round(balance_sheet.current_assets / balance_sheet.current_liabilities, 2)
+    balance = measure_balance_sheet(balance_sheet, prior_balance_sheet)
+    equity_status = classify_book_equity(balance_sheet.stockholders_equity)
+    returns = measure_capital_returns(latest, balance, prior_balance_sheet, latest_tax.rate, equity_status)
 
     return {
         "multi_year_history": history,
-        "balance_sheet": BalanceSheetResult(
-            fiscal_year=balance_sheet.fiscal_year,
-            cash_and_equivalents=balance_sheet.cash_and_equivalents,
-            marketable_securities=sec,
-            total_liquid_cash=total_liquid,
-            short_term_debt=st_debt,
-            long_term_debt=lt_debt,
-            total_debt=total_debt,
-            prior_total_debt=(
-                round((prior_balance_sheet.short_term_debt or 0.0) + (prior_balance_sheet.long_term_debt or 0.0), 2)
-                if prior_balance_sheet is not None else None
-            ),
-            net_debt=net_debt,
-            net_cash_position=net_cash_pos,
-            stockholders_equity=equity,
-            noncontrolling_interests=balance_sheet.noncontrolling_interests,
-            valuation_shares_outstanding=valuation_shares,
-            share_count_source=share_source,
-            weighted_diluted_shares=wd,
-            period_end_shares_outstanding=pe,
-            current_assets=balance_sheet.current_assets,
-            current_liabilities=balance_sheet.current_liabilities,
-            total_assets=balance_sheet.total_assets,
-        ),
+        "balance_sheet": balance,
         "profitability_and_return_ratios": ProfitabilityRatiosResult(
-            effective_tax_rate_pct=round(tax_rate * 100.0, 2),
-            tax_rate_source=tax_source,
+            effective_tax_rate_pct=round(latest_tax.rate * 100.0, 2),
+            tax_rate_source=latest_tax.source,
             equity_status=equity_status,
-            nopat=nopat,
-            invested_capital=invested_capital,
-            capital_basis=capital_basis,
-            roic_pct=roic_pct,
-            roic_on_gross_capital_pct=roic_gross_pct,
-            roe_pct=roe_pct,
+            nopat=returns.nopat,
+            invested_capital=returns.invested_capital,
+            capital_basis=returns.capital_basis,
+            roic_pct=returns.roic_pct,
+            roic_on_gross_capital_pct=returns.roic_on_gross_capital_pct,
+            roe_pct=returns.roe_pct,
             latest_gross_margin_pct=latest.gross_margin_pct,
             latest_operating_margin_pct=latest.operating_margin_pct,
             latest_net_margin_pct=latest.net_margin_pct,
         ),
-        "solvency_and_liquidity_ratios": SolvencyRatiosResult(
-            ebitda=ebitda,
-            net_debt_to_ebitda=net_debt_ebitda,
-            net_debt_to_ebitda_interpretation=ebitda_interp,
-            current_ratio=current_ratio,
-            total_debt_to_equity=total_debt_equity,
-        ),
+        "solvency_and_liquidity_ratios": measure_solvency(balance, latest, latest_input, equity_status),
     }
-
 
 # ==============================================================================
 # 5. Quality-of-Earnings & Operating Analytics
@@ -334,20 +193,12 @@ def calculate_quality_of_earnings(
 ) -> Dict[str, List[BaseModel]]:
     """Earnings quality, working capital, capital intensity, cost structure and share-count analytics."""
     inputs = sorted(annual_financials, key=lambda x: x.fiscal_year)
-    hist_map = {h.fiscal_year: h for h in history}
     normalized_by_year = {r.fiscal_year: r for r in normalize_earnings(annual_financials, history, adjustments)}
     cash_by_year = {r.fiscal_year: r for r in measure_cash_conversion(annual_financials, history, prior_total_assets)}
     tax_by_year = {r.fiscal_year: r for r in measure_tax_quality(annual_financials)}
     eq: List[YearEarningsQuality] = []
-    ci: List[YearCapitalIntensity] = []
-    sh: List[YearShareCount] = []
 
-    prev: Optional[AnnualFinancialInput] = None
     for f in inputs:
-        h = hist_map[f.fiscal_year]
-        rev = f.revenue
-
-        # --- Earnings quality
         cc, tx, nz = cash_by_year[f.fiscal_year], tax_by_year[f.fiscal_year], normalized_by_year[f.fiscal_year]
 
         eq.append(YearEarningsQuality(
@@ -372,43 +223,12 @@ def calculate_quality_of_earnings(
             normalized_net_margin_pct=nz.normalized_net_margin_pct,
         ))
 
-        # --- Capital intensity & FCF bridge
-        ocf_chg = capex_chg = fcf_chg = from_capex = None
-        if prev is not None:
-            prev_h = hist_map[prev.fiscal_year]
-            ocf_chg = round(f.operating_cash_flow - prev.operating_cash_flow, 2)
-            capex_chg = round(f.capital_expenditures - prev.capital_expenditures, 2)
-            fcf_chg = round(h.free_cash_flow - prev_h.free_cash_flow, 2)
-            from_capex = pct_of(-capex_chg, fcf_chg) if fcf_chg else None
-        ci.append(YearCapitalIntensity(
-            fiscal_year=f.fiscal_year,
-            capex_to_revenue_pct=pct_of(f.capital_expenditures, rev),
-            capex_to_depreciation=round(f.capital_expenditures / f.depreciation_amortization, 2)
-            if f.depreciation_amortization else None,
-            ocf_change=ocf_chg,
-            capex_change=capex_chg,
-            fcf_change=fcf_chg,
-            fcf_change_from_capex_pct=from_capex,
-        ))
-
-        # --- Share count drift
-        sh.append(YearShareCount(
-            fiscal_year=f.fiscal_year,
-            diluted_weighted_shares=f.diluted_weighted_shares,
-            diluted_share_growth_pct=growth_pct(f.diluted_weighted_shares, prev.diluted_weighted_shares) if prev else None,
-            period_end_shares_outstanding=f.period_end_shares_outstanding,
-            period_end_share_growth_pct=growth_pct(f.period_end_shares_outstanding, prev.period_end_shares_outstanding)
-            if prev else None,
-        ))
-
-        prev = f
-
     return {
         "earnings_quality": eq,
         "working_capital": measure_working_capital(annual_financials),
-        "capital_intensity": ci,
+        "capital_intensity": measure_capital_intensity(annual_financials, history),
         "cost_structure": measure_cost_structure(annual_financials, history),
-        "share_count_history": sh,
+        "share_count_history": measure_share_count(annual_financials),
     }
 
 
@@ -423,8 +243,6 @@ def detect_forensic_findings(
 ) -> List[ForensicFinding]:
     """Severity-ranked institutional quality-of-earnings and forensic accounting screens."""
     findings: List[ForensicFinding] = []
-    ci = {r.fiscal_year: r for r in analytics["capital_intensity"]}
-    sh = {r.fiscal_year: r for r in analytics["share_count_history"]}
 
     def add(code, severity, year, metric, value, threshold, message):
         findings.append(ForensicFinding(
@@ -432,49 +250,15 @@ def detect_forensic_findings(
             value=round(value, 2) if value is not None else None, threshold=threshold, message=message,
         ))
 
-    if balance_sheet is not None and balance_sheet.stockholders_equity < 0:
-        add("NEGATIVE_BOOK_EQUITY", "high", balance_sheet.fiscal_year, "stockholders_equity",
-            balance_sheet.stockholders_equity, 0.0,
-            f"NEGATIVE BOOK EQUITY WARNING: Stockholders' equity is negative "
-            f"(${balance_sheet.stockholders_equity:,.1f}M). ROE, ROIC and Debt-to-Equity are suppressed as "
-            f"uninterpretable.")
-
-    for yr, c in ci.items():
-        if c.fcf_change is not None and c.fcf_change > 0 and (c.ocf_change or 0.0) <= 0 \
-                and (c.capex_change or 0.0) < 0 and (c.fcf_change_from_capex_pct or 0.0) > CAPEX_DRIVEN_FCF_THRESHOLD_PCT:
-            add("CAPEX_DRIVEN_FCF", "medium", yr, "fcf_change_from_capex_pct", c.fcf_change_from_capex_pct,
-                CAPEX_DRIVEN_FCF_THRESHOLD_PCT,
-                f"CAPEX-DRIVEN FCF (FY{yr}): Free cash flow rose ${c.fcf_change:,.1f}M while operating cash flow "
-                f"changed ${c.ocf_change:,.1f}M; a ${abs(c.capex_change):,.1f}M capex reduction explains "
-                f"{c.fcf_change_from_capex_pct:.1f}% of the improvement, so it reflects lower reinvestment rather "
-                f"than stronger cash generation.")
-
-    capex_da = [ci[h.fiscal_year].capex_to_depreciation for h in history[-2:]]
-    if len(capex_da) == 2 and all(v is not None and v < 1.0 for v in capex_da):
-        add("UNDERINVESTMENT", "info", history[-1].fiscal_year, "capex_to_depreciation", capex_da[-1], 1.0,
-            f"UNDERINVESTMENT SIGNAL: Capex has run below depreciation for two consecutive years "
-            f"(latest {capex_da[-1]:.2f}x), implying a shrinking asset base.")
-
-    for yr, s in sh.items():
-        if s.diluted_share_growth_pct is not None and s.diluted_share_growth_pct > DILUTED_SHARE_GROWTH_THRESHOLD_PCT:
-            add("SHARE_DILUTION", "medium", yr, "diluted_share_growth_pct", s.diluted_share_growth_pct,
-                DILUTED_SHARE_GROWTH_THRESHOLD_PCT,
-                f"SHARE DILUTION (FY{yr}): Weighted diluted shares grew {s.diluted_share_growth_pct:.2f}% "
-                f"to {s.diluted_weighted_shares:,.1f}M.")
-        if s.period_end_share_growth_pct is not None and \
-                s.period_end_share_growth_pct > PERIOD_END_SHARE_GROWTH_THRESHOLD_PCT:
-            add("SHARE_DILUTION", "high", yr, "period_end_share_growth_pct", s.period_end_share_growth_pct,
-                PERIOD_END_SHARE_GROWTH_THRESHOLD_PCT,
-                f"SHARE COUNT EXPANSION (FY{yr}): Shares outstanding at year end rose "
-                f"{s.period_end_share_growth_pct:.2f}% to {s.period_end_shares_outstanding:,.1f}M; investigate "
-                f"equity awards, conversions or issuances, and use the period-end count for per-share value.")
-
     findings.extend(screen_cash_conversion(history, analytics["earnings_quality"]))
     findings.extend(screen_tax_quality(annual_inputs, analytics["earnings_quality"]))
     findings.extend(screen_earnings_normalization(analytics["earnings_quality"]))
     findings.extend(screen_margins_and_costs(history, analytics["cost_structure"]))
     findings.extend(screen_working_capital(annual_inputs, history, analytics["working_capital"]))
     findings.extend(screen_revenue_quality(annual_inputs, history))
+    findings.extend(screen_balance_sheet_strength(balance_sheet))
+    findings.extend(screen_capital_allocation(
+        history, analytics["capital_intensity"], analytics["share_count_history"]))
     return rank_findings(findings)
 
 

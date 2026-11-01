@@ -9,4 +9,6 @@ MODULES = (
     "cash_conversion",
     "tax_quality",
     "earnings_normalization",
+    "balance_sheet_strength",
+    "capital_allocation",
 )
