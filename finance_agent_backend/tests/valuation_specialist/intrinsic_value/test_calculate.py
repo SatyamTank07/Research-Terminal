@@ -1,4 +1,4 @@
-﻿"""Unit tests for dcf_tools.py (Milestone 1, Tool 2).
+"""intrinsic_value calculate: the DCF engine and its equity bridge.
 
 Validates the deterministic DCF calculation engine, Gordon Growth discounting,
 institutional Mid-Year Discounting vs. Year-End conventions, negative net debt (cash cushion),
@@ -7,13 +7,13 @@ whole-percentage WACC detection, and 5x5 sensitivity matrix generation.
 """
 
 import unittest
-from app.agents.tools.dcf_tools import (
+from app.agents.specialized.valuation_specialist.modules.intrinsic_value.calculate import (
+    calculate_dcf_with_sensitivity,
+    dcf_fair_value_per_share,
+)
+from app.agents.specialized.valuation_specialist.modules.intrinsic_value.thresholds import (
     TERMINAL_EV_EBITDA_BAND,
     TERMINAL_EV_NOPAT_BAND,
-    calculate_dcf_with_sensitivity,
-    calculate_dcf_tool,
-    dcf_fair_value_per_share,
-    DCFCalculationResult,
 )
 
 
@@ -39,20 +39,20 @@ class TestDCFTools(unittest.TestCase):
 
         # Mathematical verification under year-end convention:
         # PV FCFs = 100/1.1 + 110/1.21 + 120/1.331 + 130/1.4641 + 140/1.61051 = 447.70
-        self.assertAlmostEqual(result["pv_explicit_fcfs"], 447.70, places=1)
+        self.assertAlmostEqual(result.pv_explicit_fcfs, 447.70, places=1)
 
         # TV = 140 * 1.02 / 0.08 = 1785.0; PV(TV) = 1785 / 1.61051 = 1108.35
-        self.assertAlmostEqual(result["pv_terminal_value"], 1108.35, places=1)
+        self.assertAlmostEqual(result.pv_terminal_value, 1108.35, places=1)
 
         # EV = 447.70 + 1108.35 = 1556.05
-        self.assertAlmostEqual(result["enterprise_value"], 1556.05, places=1)
+        self.assertAlmostEqual(result.enterprise_value, 1556.05, places=1)
 
         # Equity Value = 1556.05 - 50.0 = 1506.05
-        self.assertAlmostEqual(result["equity_value"], 1506.05, places=1)
+        self.assertAlmostEqual(result.equity_value, 1506.05, places=1)
 
         # Fair Value Per Share = 1506.05 / 10 = 150.60
-        self.assertAlmostEqual(result["fair_value_per_share"], 150.60, places=1)
-        self.assertEqual(result["discounting_convention"], "year_end")
+        self.assertAlmostEqual(result.fair_value_per_share, 150.60, places=1)
+        self.assertEqual(result.discounting_convention, "year_end")
 
     def test_01b_mid_year_convention_uplift(self):
         """Verify institutional Mid-Year Discounting provides expected half-year cash flow uplift."""
@@ -66,15 +66,15 @@ class TestDCFTools(unittest.TestCase):
         res_mid_year = calculate_dcf_with_sensitivity(fcfs, wacc, g, net_debt, shares, mid_year_convention=True)
 
         # Explicit cash flows under mid-year convention are discounted at (t - 0.5), so PV must be higher
-        self.assertGreater(res_mid_year["pv_explicit_fcfs"], res_year_end["pv_explicit_fcfs"])
+        self.assertGreater(res_mid_year.pv_explicit_fcfs, res_year_end.pv_explicit_fcfs)
 
         # Ratio of mid-year to year-end PV of explicit cash flows should equal sqrt(1 + wacc) = sqrt(1.10) ~ 1.0488
-        uplift_ratio = res_mid_year["pv_explicit_fcfs"] / res_year_end["pv_explicit_fcfs"]
+        uplift_ratio = res_mid_year.pv_explicit_fcfs / res_year_end.pv_explicit_fcfs
         self.assertAlmostEqual(uplift_ratio, (1.0 + wacc) ** 0.5, places=2)
 
         # Resulting fair value per share is higher under mid-year convention
-        self.assertGreater(res_mid_year["fair_value_per_share"], res_year_end["fair_value_per_share"])
-        self.assertIn("mid_year", res_mid_year["discounting_convention"])
+        self.assertGreater(res_mid_year.fair_value_per_share, res_year_end.fair_value_per_share)
+        self.assertIn("mid_year", res_mid_year.discounting_convention)
 
     def test_02_negative_net_debt_cash_cushion(self):
         """Verify negative net debt (cash surplus) correctly adds to equity value."""
@@ -89,14 +89,14 @@ class TestDCFTools(unittest.TestCase):
         res_neg = calculate_dcf_with_sensitivity(fcfs, wacc, g, negative_debt, shares)
 
         # Enterprise values must be identical (operational cash flows unchanged)
-        self.assertEqual(res_pos["enterprise_value"], res_neg["enterprise_value"])
+        self.assertEqual(res_pos.enterprise_value, res_neg.enterprise_value)
 
         # Equity value with net cash should be exactly $400M higher ($200M debt vs -$200M cash)
-        diff = res_neg["equity_value"] - res_pos["equity_value"]
+        diff = res_neg.equity_value - res_pos.equity_value
         self.assertAlmostEqual(diff, 400.0, places=1)
 
         # Fair value per share must be $40.0 higher ($400M / 10M shares)
-        self.assertAlmostEqual(res_neg["fair_value_per_share"] - res_pos["fair_value_per_share"], 40.0, places=1)
+        self.assertAlmostEqual(res_neg.fair_value_per_share - res_pos.fair_value_per_share, 40.0, places=1)
 
     def test_03_boundary_and_validation_errors(self):
         """Verify strict error raising for invalid economic parameters."""
@@ -167,7 +167,7 @@ class TestDCFTools(unittest.TestCase):
         shares = 50.0
 
         result = calculate_dcf_with_sensitivity(fcfs, wacc, g, net_debt, shares)
-        matrix = result["sensitivity_matrix_markdown"]
+        matrix = result.sensitivity_matrix_markdown
 
         self.assertIn("| WACC \\ Growth |", matrix)
         self.assertIn("*(Base)*", matrix)
@@ -177,92 +177,73 @@ class TestDCFTools(unittest.TestCase):
         # For wacc - 0.010 (2.5%) and growth + 0.006 (3.1%), w <= g => must contain N/A
         self.assertIn("N/A", matrix)
 
-    def test_05_langchain_tool_wrapper(self):
-        """Verify LangChain @tool calculate_dcf_tool execution."""
-        output = calculate_dcf_tool.invoke({
-            "projected_fcfs": [1000.0, 1100.0, 1200.0, 1300.0, 1400.0],
-            "wacc": 0.09,
-            "terminal_growth_rate": 0.025,
-            "net_debt": -500.0,
-            "diluted_shares": 100.0,
-            "mid_year_convention": True,
-        })
-        self.assertIsInstance(output, dict)
-        self.assertIn("enterprise_value", output)
-        self.assertIn("equity_value", output)
-        self.assertIn("fair_value_per_share", output)
-        self.assertIn("discounting_convention", output)
-        self.assertIn("mid_year", output["discounting_convention"])
-        self.assertIn("sensitivity_matrix_markdown", output)
-        self.assertGreater(output["fair_value_per_share"], 0)
-
     def test_07_mid_year_terminal_value_discounted_at_n_minus_half(self):
         """Perpetuity TV under mid-year convention is discounted at N - 0.5 (Rosenbaum & Pearl / McKinsey)."""
         fcfs = [100.0, 110.0, 120.0, 130.0, 140.0]
         mid = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 0.0, 10.0, mid_year_convention=True)
         end = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 0.0, 10.0, mid_year_convention=False)
         # TV = 140 * 1.02 / 0.08 = 1785; PV = 1785 / 1.1^4.5 = 1162.44
-        self.assertAlmostEqual(mid["terminal_value"], 1785.0, places=2)
-        self.assertAlmostEqual(mid["pv_terminal_value"], 1785.0 / 1.1 ** 4.5, places=1)
-        self.assertAlmostEqual(mid["pv_terminal_value"] / end["pv_terminal_value"], 1.1 ** 0.5, places=4)
-        self.assertEqual(mid["terminal_method"], "last_fcf_growth")
+        self.assertAlmostEqual(mid.terminal_value, 1785.0, places=2)
+        self.assertAlmostEqual(mid.pv_terminal_value, 1785.0 / 1.1 ** 4.5, places=1)
+        self.assertAlmostEqual(mid.pv_terminal_value / end.pv_terminal_value, 1.1 ** 0.5, places=4)
+        self.assertEqual(mid.terminal_method, "last_fcf_growth")
 
     def test_08_value_driver_terminal_cash_flow(self):
         fcfs = [100.0, 110.0, 120.0, 130.0, 140.0]
         res = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 0.0, 10.0, terminal_nopat=200.0, ronic=0.20)
         # NOPAT x (1+g) x (1 - g/RONIC) = 200 x 1.02 x 0.9 = 183.6; TV = 183.6 / 0.08 = 2295
-        self.assertEqual(res["terminal_method"], "value_driver")
-        self.assertAlmostEqual(res["terminal_fcf"], 183.6, places=2)
-        self.assertAlmostEqual(res["terminal_value"], 2295.0, places=1)
-        self.assertEqual(res["ronic"], 0.2)
+        self.assertEqual(res.terminal_method, "value_driver")
+        self.assertAlmostEqual(res.terminal_fcf, 183.6, places=2)
+        self.assertAlmostEqual(res.terminal_value, 2295.0, places=1)
+        self.assertEqual(res.ronic, 0.2)
 
         # RONIC = WACC makes growth value-neutral: TV = NOPAT_{N+1} / WACC
         neutral = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 0.0, 10.0, terminal_nopat=200.0, ronic=0.10)
-        self.assertAlmostEqual(neutral["terminal_value"], 200.0 * 1.02 / 0.10, places=1)
+        self.assertAlmostEqual(neutral.terminal_value, 200.0 * 1.02 / 0.10, places=1)
 
         # Non-positive NOPAT falls back to growing the final UFCF, with a warning
         loss = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 0.0, 10.0, terminal_nopat=-5.0, ronic=0.2)
-        self.assertEqual(loss["terminal_method"], "last_fcf_growth")
-        self.assertTrue(any("NOPAT is not positive" in w for w in loss["warnings"]))
+        self.assertEqual(loss.terminal_method, "last_fcf_growth")
+        self.assertTrue(any("NOPAT is not positive" in w for w in loss.warnings))
 
     def test_09_bridge_deducts_nci_and_rolls_forward(self):
         fcfs = [100.0, 110.0, 120.0, 130.0, 140.0]
         plain = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 50.0, 10.0)
         with_nci = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, 50.0, 10.0, noncontrolling_interests=30.0)
-        self.assertAlmostEqual(plain["equity_value"] - with_nci["equity_value"], 30.0, places=1)
-        self.assertIn("Less: noncontrolling interests | $30.0M", with_nci["equity_bridge_markdown"])
-        self.assertIn("Less: net debt | $50.0M", with_nci["equity_bridge_markdown"])
+        self.assertAlmostEqual(plain.equity_value - with_nci.equity_value, 30.0, places=1)
+        self.assertIn("Less: noncontrolling interests | $30.0M", with_nci.equity_bridge_markdown)
+        self.assertIn("Less: net debt | $50.0M", with_nci.equity_bridge_markdown)
         cash_rich = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, -50.0, 10.0)
-        self.assertIn("Plus: net cash | $50.0M", cash_rich["equity_bridge_markdown"])
+        self.assertIn("Plus: net cash | $50.0M", cash_rich.equity_bridge_markdown)
 
         # EV rolls forward at WACC; net debt and NCI at the risk-free rate (not the equity value at Ke).
         rolled = calculate_dcf_with_sensitivity(
             fcfs, 0.10, 0.02, 50.0, 10.0, roll_forward_years=0.5, risk_free_rate=0.04, noncontrolling_interests=30.0,
         )
-        self.assertEqual(rolled["enterprise_value"], plain["enterprise_value"])
-        expected = plain["enterprise_value"] * 1.10 ** 0.5 - (50.0 + 30.0) * 1.04 ** 0.5
-        self.assertAlmostEqual(rolled["equity_value"], expected, places=1)
-        self.assertAlmostEqual(rolled["roll_forward_factor"], 1.10 ** 0.5, places=5)
-        self.assertAlmostEqual(rolled["claims_roll_forward_factor"], 1.04 ** 0.5, places=5)
-        self.assertIn("Enterprise value rolled forward 0.50 yrs @ WACC 10.00%", rolled["equity_bridge_markdown"])
-        self.assertIn("Net debt and NCI rolled forward @ Rf 4.00%", rolled["equity_bridge_markdown"])
+        self.assertEqual(rolled.enterprise_value, plain.enterprise_value)
+        expected = plain.enterprise_value * 1.10 ** 0.5 - (50.0 + 30.0) * 1.04 ** 0.5
+        self.assertAlmostEqual(rolled.equity_value, expected, places=1)
+        self.assertAlmostEqual(rolled.roll_forward_factor, 1.10 ** 0.5, places=5)
+        self.assertAlmostEqual(rolled.claims_roll_forward_factor, 1.04 ** 0.5, places=5)
+        self.assertIn("Enterprise value rolled forward 0.50 yrs @ WACC 10.00%", rolled.equity_bridge_markdown)
+        self.assertIn("Net debt and NCI rolled forward @ Rf 4.00%", rolled.equity_bridge_markdown)
 
         # A net-cash company: the cash pile earns Rf, so it no longer compounds at the cost of equity.
         cash = calculate_dcf_with_sensitivity(fcfs, 0.10, 0.02, -500.0, 10.0, roll_forward_years=1.0, risk_free_rate=0.04)
-        self.assertAlmostEqual(cash["equity_value"], cash["enterprise_value"] * 1.10 + 500.0 * 1.04, places=1)
+        self.assertAlmostEqual(cash.equity_value, cash.enterprise_value * 1.10 + 500.0 * 1.04, places=1)
 
     def test_10_sanity_warnings_do_not_raise(self):
         concentrated = calculate_dcf_with_sensitivity([10.0, 10.0, 10.0], 0.04, 0.035, 0.0, 1.0, risk_free_rate=0.03)
-        joined = " ".join(concentrated["warnings"])
+        joined = " ".join(concentrated.warnings)
         self.assertIn("of enterprise value", joined)
         self.assertIn("exceeds the risk-free rate", joined)
 
         negative = calculate_dcf_with_sensitivity([50.0, 20.0, -40.0], 0.09, 0.02, 0.0, 10.0)
-        self.assertLess(negative["terminal_value"], 0)
-        self.assertTrue(any("Terminal value is not positive" in w for w in negative["warnings"]))
+        self.assertLess(negative.terminal_value, 0)
+        self.assertTrue(any("Terminal value is not positive" in w for w in negative.warnings))
 
         stale = calculate_dcf_with_sensitivity([100.0] * 5, 0.09, 0.02, 0.0, 10.0, roll_forward_years=2.0)
-        self.assertTrue(any("stale" in w for w in stale["warnings"]))
+        self.assertTrue(any("stale" in w for w in stale.warnings))
 
     def test_11_base_cell_equals_headline_and_tv_multiple(self):
         res = calculate_dcf_with_sensitivity(
@@ -270,8 +251,8 @@ class TestDCFTools(unittest.TestCase):
             terminal_nopat=150.0, ronic=0.25, noncontrolling_interests=5.0, roll_forward_years=0.3,
             risk_free_rate=0.04, terminal_ebitda=180.0,
         )
-        self.assertIn(f"**${res['fair_value_per_share']:.2f}**", res["sensitivity_matrix_markdown"])
-        self.assertAlmostEqual(res["implied_terminal_ev_ebitda"], round(res["terminal_value"] / 180.0, 2))
+        self.assertIn(f"**${res.fair_value_per_share:.2f}**", res.sensitivity_matrix_markdown)
+        self.assertAlmostEqual(res.implied_terminal_ev_ebitda, round(res.terminal_value / 180.0, 2))
 
     def test_06_real_world_aapl_valuation(self):
         """Verify DCF calculation using real Apple FY2025 audited 10-K figures."""
@@ -286,9 +267,9 @@ class TestDCFTools(unittest.TestCase):
         result = calculate_dcf_with_sensitivity(aapl_fcfs, wacc, g, net_debt, shares, mid_year_convention=True)
 
         # Implied fair value should be in sound institutional range ($100 - $260)
-        self.assertGreater(result["fair_value_per_share"], 100.0)
-        self.assertLess(result["fair_value_per_share"], 260.0)
-        self.assertGreater(result["enterprise_value"], 1_500_000.0)  # > $1.5 Trillion EV
+        self.assertGreater(result.fair_value_per_share, 100.0)
+        self.assertLess(result.fair_value_per_share, 260.0)
+        self.assertGreater(result.enterprise_value, 1_500_000.0)  # > $1.5 Trillion EV
 
 
 class TestImpliedMultiplesAndRonicGrid(unittest.TestCase):
@@ -299,10 +280,10 @@ class TestImpliedMultiplesAndRonicGrid(unittest.TestCase):
         res = calculate_dcf_with_sensitivity(
             [10.0] * 5, 0.12, 0.025, 0.0, 10.0, terminal_nopat=60.0, terminal_ebitda=80.0,
         )
-        self.assertEqual(res["terminal_method"], "last_fcf_growth")
-        self.assertLess(res["implied_terminal_ev_ebitda"], TERMINAL_EV_EBITDA_BAND[0])
-        self.assertLess(res["implied_terminal_ev_nopat"], TERMINAL_EV_NOPAT_BAND[0])
-        joined = " ".join(res["warnings"])
+        self.assertEqual(res.terminal_method, "last_fcf_growth")
+        self.assertLess(res.implied_terminal_ev_ebitda, TERMINAL_EV_EBITDA_BAND[0])
+        self.assertLess(res.implied_terminal_ev_nopat, TERMINAL_EV_NOPAT_BAND[0])
+        joined = " ".join(res.warnings)
         self.assertIn("EV/EBITDA", joined)
         self.assertIn("EV/NOPAT", joined)
         self.assertIn("below", joined)
@@ -311,33 +292,33 @@ class TestImpliedMultiplesAndRonicGrid(unittest.TestCase):
         res = calculate_dcf_with_sensitivity(
             [100.0] * 5, 0.06, 0.035, 0.0, 10.0, terminal_nopat=100.0, ronic=0.30, terminal_ebitda=60.0,
         )
-        self.assertGreater(res["implied_terminal_ev_ebitda"], TERMINAL_EV_EBITDA_BAND[1])
-        self.assertIn("above", " ".join(res["warnings"]))
+        self.assertGreater(res.implied_terminal_ev_ebitda, TERMINAL_EV_EBITDA_BAND[1])
+        self.assertIn("above", " ".join(res.warnings))
 
     def test_plausible_multiples_are_silent(self):
         res = calculate_dcf_with_sensitivity(
             self.FCFS, 0.09, 0.025, 0.0, 10.0, terminal_nopat=180.0, ronic=0.15, terminal_ebitda=260.0,
         )
-        self.assertTrue(TERMINAL_EV_NOPAT_BAND[0] <= res["implied_terminal_ev_nopat"] <= TERMINAL_EV_NOPAT_BAND[1])
-        self.assertFalse(any("plausibility band" in w for w in res["warnings"]))
+        self.assertTrue(TERMINAL_EV_NOPAT_BAND[0] <= res.implied_terminal_ev_nopat <= TERMINAL_EV_NOPAT_BAND[1])
+        self.assertFalse(any("plausibility band" in w for w in res.warnings))
 
     def test_multiples_none_when_terminal_value_not_positive(self):
         res = calculate_dcf_with_sensitivity([50.0, 20.0, -40.0], 0.09, 0.02, 0.0, 10.0,
                                              terminal_nopat=-5.0, ronic=0.2, terminal_ebitda=10.0)
-        self.assertIsNone(res["implied_terminal_ev_ebitda"])
-        self.assertIsNone(res["implied_terminal_ev_nopat"])
+        self.assertIsNone(res.implied_terminal_ev_ebitda)
+        self.assertIsNone(res.implied_terminal_ev_nopat)
 
     def test_ronic_grid_is_informative_when_ronic_equals_wacc(self):
         res = calculate_dcf_with_sensitivity(self.FCFS, 0.10, 0.025, 0.0, 10.0, terminal_nopat=180.0, ronic=0.10)
-        growth_grid = res["sensitivity_matrix_markdown"]
+        growth_grid = res.sensitivity_matrix_markdown
         self.assertIn("growth beyond the horizon creates no value", growth_grid)
         base_row = next(line for line in growth_grid.splitlines() if "*(Base)*" in line)
         cells = [float(c.strip().strip("*$")) for c in base_row.split("|")[2:-1]]
         self.assertLess(max(cells) / min(cells), 1.01)  # TV = NOPAT x (1 + g) / WACC: nearly flat in g
 
-        grid = res["ronic_sensitivity_matrix_markdown"]
+        grid = res.ronic_sensitivity_matrix_markdown
         self.assertIn("WACC \\ RONIC", grid)
-        self.assertIn(f"**${res['fair_value_per_share']:.2f}**", grid)
+        self.assertIn(f"**${res.fair_value_per_share:.2f}**", grid)
         ronic_row = next(line for line in grid.splitlines() if "*(Base)*" in line)
         values = [float(c.strip().strip("*$")) for c in ronic_row.split("|")[2:-1]]
         self.assertEqual(values, sorted(values))  # higher RONIC, higher value
@@ -345,14 +326,14 @@ class TestImpliedMultiplesAndRonicGrid(unittest.TestCase):
 
     def test_ronic_grid_columns_floor_above_growth(self):
         res = calculate_dcf_with_sensitivity(self.FCFS, 0.10, 0.025, 0.0, 10.0, terminal_nopat=180.0, ronic=0.04)
-        header = res["ronic_sensitivity_matrix_markdown"].splitlines()[0]
+        header = res.ronic_sensitivity_matrix_markdown.splitlines()[0]
         self.assertIn("3.5%", header)  # 4% - 4 pp floored at g + 1 pp
-        self.assertNotIn("N/A", res["ronic_sensitivity_matrix_markdown"])
+        self.assertNotIn("N/A", res.ronic_sensitivity_matrix_markdown)
 
     def test_no_ronic_grid_without_value_driver(self):
         res = calculate_dcf_with_sensitivity(self.FCFS, 0.10, 0.025, 0.0, 10.0)
-        self.assertEqual(res["ronic_sensitivity_matrix_markdown"], "")
-        self.assertNotIn("creates no value", res["sensitivity_matrix_markdown"])
+        self.assertEqual(res.ronic_sensitivity_matrix_markdown, "")
+        self.assertNotIn("creates no value", res.sensitivity_matrix_markdown)
 
 
 class TestDcfFairValuePerShare(unittest.TestCase):
@@ -361,10 +342,10 @@ class TestDcfFairValuePerShare(unittest.TestCase):
                       roll_forward_years=0.75, risk_free_rate=0.04)
         full = calculate_dcf_with_sensitivity([100.0, 110.0, 120.0], 0.09, 0.025, 50.0, 10.0, **kwargs)
         quick = dcf_fair_value_per_share([100.0, 110.0, 120.0], 0.09, 0.025, 50.0, 10.0, **kwargs)
-        self.assertAlmostEqual(quick, full["fair_value_per_share"], places=2)
+        self.assertAlmostEqual(quick, full.fair_value_per_share, places=2)
         last = dcf_fair_value_per_share([100.0, 110.0, 120.0], 0.09, 0.025, -50.0, 10.0)
         self.assertAlmostEqual(
-            last, calculate_dcf_with_sensitivity([100.0, 110.0, 120.0], 0.09, 0.025, -50.0, 10.0)["fair_value_per_share"],
+            last, calculate_dcf_with_sensitivity([100.0, 110.0, 120.0], 0.09, 0.025, -50.0, 10.0).fair_value_per_share,
             places=2,
         )
 

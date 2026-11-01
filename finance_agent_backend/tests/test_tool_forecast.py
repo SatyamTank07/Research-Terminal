@@ -2,7 +2,7 @@
 
 import unittest
 
-from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
+from app.agents.specialized.valuation_specialist.modules.intrinsic_value.calculate import calculate_dcf_with_sensitivity
 from app.agents.tools.forecast_tools import HistoricalRow, calculate_forecast_schedule
 
 BASE = dict(base_revenue=1000.0, base_year=2025, tax_rate=0.25, capex_pct_of_revenue=0.05, depreciation_pct_of_revenue=0.04)
@@ -101,7 +101,7 @@ class TestForecastSchedule(unittest.TestCase):
             projected_fcfs=res["projected_fcfs"], wacc=0.09, terminal_growth_rate=0.025,
             net_debt=0.0, diluted_shares=100.0, mid_year_convention=True,
         )
-        self.assertGreater(dcf["fair_value_per_share"], 0.0)
+        self.assertGreater(dcf.fair_value_per_share, 0.0)
 
 
 if __name__ == "__main__":

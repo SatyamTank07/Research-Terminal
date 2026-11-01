@@ -21,7 +21,7 @@ from app.agents.specialized.valuation_specialist.modules.cost_of_capital.calcula
     calculate_wacc,
 )
 from app.agents.specialized.valuation_specialist.modules.cost_of_capital.schema import WACCCalculationResult
-from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
+from app.agents.specialized.valuation_specialist.modules.intrinsic_value.calculate import calculate_dcf_with_sensitivity
 
 
 class TestWACCTools(unittest.TestCase):
@@ -258,10 +258,10 @@ class TestWACCTools(unittest.TestCase):
             mid_year_convention=True,
         )
 
-        self.assertGreater(dcf_out["enterprise_value"], 0)
-        self.assertGreater(dcf_out["equity_value"], dcf_out["enterprise_value"])  # Cash cushion
-        self.assertGreater(dcf_out["fair_value_per_share"], 100.0)
-        self.assertIn("| WACC \\ Growth |", dcf_out["sensitivity_matrix_markdown"])
+        self.assertGreater(dcf_out.enterprise_value, 0)
+        self.assertGreater(dcf_out.equity_value, dcf_out.enterprise_value)  # Cash cushion
+        self.assertGreater(dcf_out.fair_value_per_share, 100.0)
+        self.assertIn("| WACC \\ Growth |", dcf_out.sensitivity_matrix_markdown)
 
     def test_11_beta_boundary_enforcement(self):
         """Verify strict economic boundary on beta (0.0 < beta <= 5.0)."""

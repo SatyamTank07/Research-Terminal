@@ -16,7 +16,7 @@ from app.agents.specialized.valuation_specialist import DCFValuationOutput, Valu
 from app.agents.specialized.valuation_specialist.assemble import build_valuation
 from app.agents.specialized.valuation_specialist.context import MarketInputs
 from app.agents.specialized.valuation_specialist.modules.cost_of_capital import blume_adjust
-from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity
+from app.agents.specialized.valuation_specialist.modules.intrinsic_value.calculate import calculate_dcf_with_sensitivity
 from app.config import settings
 from tests.forecast_fixtures import make_aapl_audit, make_audit, make_forecast_output
 from tests.valuation_fixtures import AAPL_BALANCE_SHEET_DATE, VALUATION_DATE, make_market, make_valuation_output
@@ -89,8 +89,8 @@ class TestValuationSpecialistAgent(unittest.TestCase):
             terminal_nopat=round(forecast.forecast_schedule[-1].projected_ebit * (1.0 - settings.DEFAULT_MARGINAL_TAX_RATE), 2),
             ronic=out.ronic_used_pct / 100.0, roll_forward_years=roll, risk_free_rate=w.risk_free_rate_pct / 100.0,
         )
-        self.assertAlmostEqual(out.implied_fair_value_per_share, expected["fair_value_per_share"], delta=0.05)
-        self.assertAlmostEqual(out.enterprise_value, expected["enterprise_value"], delta=0.0005 * expected["enterprise_value"])
+        self.assertAlmostEqual(out.implied_fair_value_per_share, expected.fair_value_per_share, delta=0.05)
+        self.assertAlmostEqual(out.enterprise_value, expected.enterprise_value, delta=0.0005 * expected.enterprise_value)
         self.assertEqual(out.projected_fcfs, forecast.projected_fcfs)
         self.assertEqual(out.terminal_method, "value_driver")
         self.assertGreaterEqual(out.ronic_used_pct, w.wacc_pct - 0.01)

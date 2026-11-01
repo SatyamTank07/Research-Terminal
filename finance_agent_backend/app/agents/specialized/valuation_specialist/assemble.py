@@ -18,13 +18,18 @@ from app.agents.specialized.valuation_specialist.modules.cost_of_capital import 
     estimate_cost_of_capital,
     gather_capital_inputs,
 )
+from app.agents.specialized.valuation_specialist.modules.intrinsic_value import (
+    calculate_dcf_with_sensitivity,
+    dcf_fair_value_per_share,
+    estimate_intrinsic_value,
+    gather_intrinsic_value_inputs,
+)
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import (
     ScenarioValuation,
     ValuationBuild,
     ValuationDataQuality,
     ValuationStance,
 )
-from app.agents.tools.dcf_tools import calculate_dcf_with_sensitivity, dcf_fair_value_per_share
 
 if TYPE_CHECKING:  # runtime import would cycle through app.agents.specialized
     from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
@@ -33,10 +38,6 @@ if TYPE_CHECKING:  # runtime import would cycle through app.agents.specialized
 logger = logging.getLogger("finance_agent.agents.valuation_specialist")
 
 STANCE_BAND_PCT = 10.0
-RONIC_CAP = 0.30
-NAIVE_FALLBACK_GROWTH = 0.05
-NAIVE_FALLBACK_YEARS = 5
-DAYS_PER_YEAR = 365.25
 
 # Reverse DCF: constant explicit-period revenue growth that makes the base DCF equal the share price, with
 # margins, tax, the CapEx/D&A/working-capital logic, WACC, terminal growth, terminal RONIC and the equity
@@ -56,15 +57,6 @@ IMPLIED_WACC_MIN_SPREAD_OVER_G = 0.005
 # ==============================================================================
 # Helpers
 # ==============================================================================
-def _parse_date(value: Optional[str]) -> Optional[date]:
-    if not value:
-        return None
-    try:
-        return date.fromisoformat(str(value)[:10])
-    except ValueError:
-        return None
-
-
 def _upside(fair: float, price: Optional[float]) -> Optional[float]:
     if price is None or price <= 0:
         return None
@@ -79,36 +71,6 @@ def _stance(upside: Optional[float]) -> Optional[ValuationStance]:
     if upside < -STANCE_BAND_PCT:
         return "Overvalued"
     return "Fairly Valued"
-
-
-def _resolve_ronic(forecast: Optional["ForecastOutput"], wacc: float, warnings: List[str]) -> Optional[float]:
-    """RONIC for the value-driver TV, clamped to [WACC, 30%].
-
-    Prefers the forecast's steady-state RONIC, which already sized the final explicit year's reinvestment,
-    so the terminal value continues the same reinvestment identity; falls back to the horizon RONIC, then
-    base ROIC.
-    """
-    if forecast is None:
-        return None
-    diag = forecast.diagnostics
-    raw_pct = next(
-        (p for p in (diag.steady_state_ronic_pct, diag.ronic_pct, diag.base_roic_pct) if p is not None), None
-    )
-    if raw_pct is None:
-        warnings.append("No RONIC or base ROIC available; terminal value grows the final UFCF instead.")
-        return None
-    raw = raw_pct / 100.0
-    clamped = min(max(raw, wacc), RONIC_CAP)
-    if clamped != raw:
-        if raw < wacc:
-            warnings.append(
-                f"Terminal RONIC {raw * 100:.1f}% clamped to {clamped * 100:.1f}% (WACC: growth beyond the horizon "
-                f"creates no value). The final explicit year still reinvests at the {raw * 100:.1f}% steady-state "
-                f"return, so the explicit period is more conservative than the terminal value."
-            )
-        else:
-            warnings.append(f"Terminal RONIC {raw * 100:.1f}% clamped to {clamped * 100:.1f}% ({RONIC_CAP:.0%} cap).")
-    return clamped
 
 
 def solve_reverse_dcf(
@@ -257,15 +219,6 @@ def _reverse_dcf(
     return {**base, "reverse_dcf_status": status, "reverse_dcf_summary": summary}
 
 
-def _terminal_nopat(final_year, terminal_tax: float) -> Optional[float]:
-    """Final-year NOPAT re-taxed at the marginal rate; a loss year keeps its scheduled NOPAT."""
-    if final_year is None:
-        return None
-    if final_year.projected_ebit <= 0:
-        return final_year.projected_nopat
-    return round(final_year.projected_ebit * (1.0 - terminal_tax), 2)
-
-
 def _scenario_terminal_nopat(forecast: "ForecastOutput", scenario, tax: float) -> Optional[float]:
     """Final-year NOPAT of a scenario rebuilt from its growth and margin path (same formula as the schedule)."""
     if not scenario.revenue_growth_pct or not scenario.operating_margin_pct:
@@ -328,82 +281,37 @@ def build_valuation(
     valuation_date: Optional[date] = None,
     balance_sheet_date: Optional[str] = None,
 ) -> ValuationBuild:
-    warnings: List[str] = []
-    bs = financial_audit.balance_sheet
-    latest = financial_audit.multi_year_history[-1]
-    shares = bs.valuation_shares_outstanding
     valuation_date = valuation_date or date.today()
 
-    # 1. Cash flows
-    if forecast is not None and forecast.projected_fcfs:
-        projected_fcfs = list(forecast.projected_fcfs)
-        forecast_source = "forecasting_analyst"
-    else:
-        projected_fcfs = [
-            round(latest.free_cash_flow * (1.0 + NAIVE_FALLBACK_GROWTH) ** i, 2)
-            for i in range(1, NAIVE_FALLBACK_YEARS + 1)
-        ]
-        forecast_source = "naive_5pct_fallback"
-        warnings.append("No forecast available: UFCF is the last audited FCF grown 5% a year (placeholder).")
-
-    # 2. Cost of capital
+    # 1. Cost of capital
     capital = estimate_cost_of_capital(gather_capital_inputs(financial_audit, market, wacc_override))
     wacc_audit, terminal_tax = capital.wacc_audit, capital.marginal_tax_rate
-    warnings.extend(capital.warnings)
     wacc = wacc_audit.wacc
 
-    # 3. Valuation date roll-forward
-    bs_date = _parse_date(balance_sheet_date)
-    roll_years = 0.0
-    if bs_date is None:
-        warnings.append("Balance-sheet date unknown; value is stated at the fiscal year-end (no roll-forward).")
-    else:
-        roll_years = max(0.0, (valuation_date - bs_date).days / DAYS_PER_YEAR)
-
-    # 4. Base DCF
-    ronic = _resolve_ronic(forecast, wacc, warnings)
-    final_year = forecast.forecast_schedule[-1] if forecast is not None and forecast.forecast_schedule else None
-    common = dict(
-        wacc=wacc,
-        terminal_growth_rate=terminal_growth_rate,
-        net_debt=bs.net_debt,
-        diluted_shares=shares,
-        mid_year_convention=True,
-        ronic=ronic,
-        noncontrolling_interests=bs.noncontrolling_interests or 0.0,
-        roll_forward_years=roll_years,
-        risk_free_rate=market.risk_free_rate,
+    # 2. Intrinsic value: base-case DCF rolled forward to the valuation date
+    intrinsic = estimate_intrinsic_value(
+        gather_intrinsic_value_inputs(financial_audit, forecast, market, valuation_date, balance_sheet_date),
+        capital,
+        terminal_growth_rate,
     )
-    base = calculate_dcf_with_sensitivity(
-        projected_fcfs=projected_fcfs,
-        terminal_nopat=_terminal_nopat(final_year, terminal_tax),
-        terminal_ebitda=(final_year.projected_ebit + final_year.projected_depreciation) if final_year else None,
-        **common,
-    )
-    warnings.extend(base["warnings"])
-    fair = base["fair_value_per_share"]
+    dcf, projected_fcfs, forecast_source = intrinsic.dcf, intrinsic.projected_fcfs, intrinsic.forecast_source
+    common = intrinsic.terms.as_kwargs()
+    warnings: List[str] = [*intrinsic.cash_flow_warnings, *capital.warnings, *intrinsic.warnings]
+    fair = dcf.fair_value_per_share
     price = market.share_price if market.share_price and market.share_price > 0 else None
     upside = _upside(fair, price)
 
-    # 4b. Reverse DCF (market-implied explicit-period growth), same WACC / TV / bridge as the headline
+    # 3. Reverse DCF (market-implied explicit-period growth), same WACC / TV / bridge as the headline
     reverse = _reverse_dcf(
         forecast if forecast_source == "forecasting_analyst" else None, price, terminal_growth_rate,
-        dict(
-            wacc=wacc, terminal_growth_rate=terminal_growth_rate, net_debt=bs.net_debt, diluted_shares=shares,
-            ronic=ronic, noncontrolling_interests=bs.noncontrolling_interests or 0.0,
-            roll_forward_years=roll_years, risk_free_rate=market.risk_free_rate, mid_year_convention=True,
-        ),
+        intrinsic.terms.as_kwargs(),
         warnings,
         terminal_tax,
     )
 
     implied_wacc = _implied_discount_rate(
         projected_fcfs, price, terminal_growth_rate,
-        dict(
-            net_debt=bs.net_debt, diluted_shares=shares, terminal_nopat=_terminal_nopat(final_year, terminal_tax),
-            ronic=ronic, noncontrolling_interests=bs.noncontrolling_interests or 0.0, roll_forward_years=roll_years,
-            risk_free_rate=market.risk_free_rate, mid_year_convention=True,
-        ),
+        {**intrinsic.terms.as_kwargs(without=("wacc", "terminal_growth_rate")), "terminal_nopat": intrinsic.terminal_nopat},
         wacc,
     )
     if implied_wacc is not None:
@@ -412,19 +320,19 @@ def build_valuation(
             f"{implied_wacc:.2f}% discount rate versus the {wacc * 100:.2f}% applied."
         ).strip()
 
-    # 5. Scenario valuations (same WACC, growth and bridge; base reuses the headline DCF)
+    # 4. Scenario valuations (same WACC, growth and bridge; base reuses the headline DCF)
     scenario_vals: List[ScenarioValuation] = []
     if forecast is not None:
         for sc in forecast.scenarios:
             if sc.name == "base":
-                ev, per_share = base["enterprise_value"], fair
+                ev, per_share = dcf.enterprise_value, fair
             else:
                 res = calculate_dcf_with_sensitivity(
                     projected_fcfs=sc.projected_fcfs,
                     terminal_nopat=_scenario_terminal_nopat(forecast, sc, terminal_tax),
                     **common,
                 )
-                ev, per_share = res["enterprise_value"], res["fair_value_per_share"]
+                ev, per_share = res.enterprise_value, res.fair_value_per_share
             scenario_vals.append(ScenarioValuation(
                 name=sc.name,
                 probability=SCENARIO_PROBABILITIES.get(sc.name, sc.probability),
@@ -440,49 +348,44 @@ def build_valuation(
         if {"bull", "base", "bear"} <= set(by_name) else None
     )
 
-    base_ebitda = financial_audit.solvency_and_liquidity_ratios.ebitda
-    implied_ev_ebitda = (
-        round(base["enterprise_value"] / base_ebitda, 2) if base_ebitda is not None and base_ebitda > 0 else None
-    )
-
     build = ValuationBuild(
         ticker=ticker.upper(),
         fiscal_year=fiscal_year,
         valuation_date=valuation_date.isoformat(),
-        balance_sheet_date=bs_date.isoformat() if bs_date else None,
-        roll_forward_years=base["roll_forward_years"],
+        balance_sheet_date=intrinsic.balance_sheet_date.isoformat() if intrinsic.balance_sheet_date else None,
+        roll_forward_years=dcf.roll_forward_years,
         wacc_audit=wacc_audit,
         terminal_growth_rate=terminal_growth_rate,
         terminal_tax_rate_pct=round(terminal_tax * 100.0, 2),
-        discounting_convention=base["discounting_convention"],
-        terminal_method=base["terminal_method"],
-        terminal_fcf=base["terminal_fcf"],
-        ronic_used_pct=round(base["ronic"] * 100.0, 2) if base["ronic"] is not None else None,
-        implied_terminal_ev_ebitda=base["implied_terminal_ev_ebitda"],
-        implied_terminal_ev_nopat=base["implied_terminal_ev_nopat"],
+        discounting_convention=dcf.discounting_convention,
+        terminal_method=dcf.terminal_method,
+        terminal_fcf=dcf.terminal_fcf,
+        ronic_used_pct=round(dcf.ronic * 100.0, 2) if dcf.ronic is not None else None,
+        implied_terminal_ev_ebitda=dcf.implied_terminal_ev_ebitda,
+        implied_terminal_ev_nopat=dcf.implied_terminal_ev_nopat,
         projected_fcfs=projected_fcfs,
-        pv_explicit_fcfs=base["pv_explicit_fcfs"],
-        pv_terminal_value=base["pv_terminal_value"],
-        terminal_value_pct_of_ev=base["terminal_value_pct_of_ev"],
-        enterprise_value=base["enterprise_value"],
-        net_debt=base["net_debt"],
-        noncontrolling_interests=base["noncontrolling_interests"],
-        equity_value=base["equity_value"],
-        diluted_shares=base["diluted_shares"],
+        pv_explicit_fcfs=dcf.pv_explicit_fcfs,
+        pv_terminal_value=dcf.pv_terminal_value,
+        terminal_value_pct_of_ev=dcf.terminal_value_pct_of_ev,
+        enterprise_value=dcf.enterprise_value,
+        net_debt=dcf.net_debt,
+        noncontrolling_interests=dcf.noncontrolling_interests,
+        equity_value=dcf.equity_value,
+        diluted_shares=dcf.diluted_shares,
         implied_fair_value_per_share=fair,
         current_share_price=price,
         upside_downside_pct=upside,
         valuation_stance=_stance(upside),
-        implied_ev_ebitda=implied_ev_ebitda,
+        implied_ev_ebitda=intrinsic.implied_ev_ebitda,
         scenario_valuations=scenario_vals,
         probability_weighted_fair_value=weighted,
         bear_fair_value=by_name["bear"].fair_value_per_share if "bear" in by_name else None,
         bull_fair_value=by_name["bull"].fair_value_per_share if "bull" in by_name else None,
         **reverse,
         market_implied_wacc_pct=implied_wacc,
-        sensitivity_matrix_markdown=base["sensitivity_matrix_markdown"],
-        ronic_sensitivity_matrix_markdown=base["ronic_sensitivity_matrix_markdown"],
-        equity_bridge_markdown=base["equity_bridge_markdown"],
+        sensitivity_matrix_markdown=dcf.sensitivity_matrix_markdown,
+        ronic_sensitivity_matrix_markdown=dcf.ronic_sensitivity_matrix_markdown,
+        equity_bridge_markdown=dcf.equity_bridge_markdown,
         scenario_table_markdown=_scenario_table(scenario_vals, weighted, price) if scenario_vals else "",
         data_quality=ValuationDataQuality(
             forecast_source=forecast_source,
@@ -494,6 +397,6 @@ def build_valuation(
     logger.info(
         f"build_valuation {build.ticker} FY{fiscal_year}: WACC {wacc_audit.wacc_pct:.2f}% ({wacc_audit.wacc_source}), "
         f"base ${fair:.2f}, bear ${build.bear_fair_value}, bull ${build.bull_fair_value}, "
-        f"weighted ${weighted}, roll {roll_years:.2f}y, {len(warnings)} warnings"
+        f"weighted ${weighted}, roll {intrinsic.terms.roll_forward_years:.2f}y, {len(warnings)} warnings"
     )
     return build
