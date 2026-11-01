@@ -34,7 +34,7 @@ MARKET: Dict[str, Dict[str, float]] = {
 # future?" checks on user-supplied years. Each module's `date` is replaced by FakeDate.
 CLOCK_TARGETS = (
     "app.agents.pipeline.orchestrator.date",
-    "app.agents.tools.valuation_model.date",
+    "app.agents.specialized.valuation_specialist.agent_valuation_specialist.date",
     "app.agents.query_parameters.date",
     "app.agents.specialized.supervisor.agent_supervisor.date",
 )

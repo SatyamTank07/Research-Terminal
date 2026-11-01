@@ -1,32 +1,36 @@
-"""Deterministic Weighted Average Cost of Capital (WACC) & CAPM Engine.
-
-Enforces Architectural Principle #2: Zero Mathematical Hallucination.
-Offloads all discount rate derivations to pure, deterministic Python functions.
-Computes Cost of Equity (Ke) via the Capital Asset Pricing Model (CAPM) with an optional
-Blume beta adjustment, evaluates pre-tax and after-tax Cost of Debt (Kd) from interest
-expense over average debt (with a sanity band and a credit-spread fallback), weights the
-capital structure, and records the provenance of every input.
+"""What return do investors require? CAPM cost of equity (optional Blume beta), cost of debt from interest
+over average debt inside a sanity band (else Rf + spread), capital-structure weights, and the provenance of
+every input. A user override replaces the blended rate but every CAPM component is still computed.
 """
 
 import logging
 import math
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Optional
 
-from langchain_core.tools import tool
 from pydantic import AliasChoices, BaseModel, Field, model_validator
 
+from app.agents.specialized.valuation_specialist.modules.cost_of_capital.render import render_wacc_build_up
+from app.agents.specialized.valuation_specialist.modules.cost_of_capital.schema import (
+    CostOfCapital,
+    CostOfCapitalInputs,
+    WACCCalculationResult,
+    WACCComponents,
+)
+from app.agents.specialized.valuation_specialist.modules.cost_of_capital.thresholds import (
+    BLUME_RAW_WEIGHT,
+    DEFAULT_TAX_RATE,
+    KD_CEILING,
+    KD_FLOOR_BELOW_RF,
+    MAX_BETA,
+    MAX_COST_OF_DEBT_RATE,
+    MAX_DILUTED_SHARES_MILLIONS,
+    WACC_WARNING_CEILING_RATE,
+)
 from app.config import settings
 
-logger = logging.getLogger("finance_agent.tools.wacc")
-
-KD_CEILING = 0.15
-KD_FLOOR_BELOW_RF = 0.01
-BLUME_RAW_WEIGHT = 0.67
+logger = logging.getLogger("finance_agent.agents.valuation_specialist")
 
 
-# ==============================================================================
-# 1. Validation Helpers
-# ==============================================================================
 def _validate_finite_float(val: Any, name: str) -> float:
     """Strictly validates that a numeric input is a real, finite number (not NaN or Inf)."""
     if val is None:
@@ -64,20 +68,6 @@ def blume_adjust(raw_beta: float) -> float:
     return BLUME_RAW_WEIGHT * raw_beta + (1.0 - BLUME_RAW_WEIGHT)
 
 
-# ==============================================================================
-# 2. Input and Output Schemas
-# ==============================================================================
-CostOfDebtSource = Literal[
-    "explicit_provided",
-    "derived_from_10k_interest_expense",
-    "interest_expense_out_of_band_fallback",
-    "institutional_credit_spread_fallback",
-    "zero_debt_exemption",
-]
-CapitalStructureSource = Literal["market_value", "book_equity_fallback", "all_equity_no_equity_value"]
-WACCSource = Literal["capm_blended", "user_override"]
-
-
 class WACCInput(BaseModel):
     """
     Structured input container for WACC calculation.
@@ -94,7 +84,7 @@ class WACCInput(BaseModel):
     equity_risk_premium: float = Field(
         settings.DEFAULT_EQUITY_RISK_PREMIUM, validation_alias=AliasChoices("equity_risk_premium", "erp")
     )
-    tax_rate: float = Field(0.21, validation_alias=AliasChoices("tax_rate", "effective_tax_rate"))
+    tax_rate: float = Field(DEFAULT_TAX_RATE, validation_alias=AliasChoices("tax_rate", "effective_tax_rate"))
     cost_of_debt: Optional[float] = Field(None, validation_alias=AliasChoices("cost_of_debt", "kd"))
     interest_expense: Optional[float] = Field(None, validation_alias=AliasChoices("interest_expense", "interest"))
     credit_spread_fallback: float = Field(settings.DEFAULT_CREDIT_SPREAD)
@@ -113,7 +103,7 @@ class WACCInput(BaseModel):
             data["prior_total_debt"] = _validate_finite_float(data["prior_total_debt"], "prior_total_debt")
 
         beta_val = data.get("beta", 0.0)
-        if beta_val <= 0.0 or beta_val > 5.0:
+        if beta_val <= 0.0 or beta_val > MAX_BETA:
             raise ValueError(
                 f"beta ({beta_val:.2f}) is outside realistic equity market bounds (0.0 < beta <= 5.0). "
                 f"Real-world public equity betas virtually never exceed 3.5-4.0. "
@@ -126,14 +116,14 @@ class WACCInput(BaseModel):
         for name, default in (
             ("risk_free_rate", settings.DEFAULT_RISK_FREE_RATE),
             ("equity_risk_premium", settings.DEFAULT_EQUITY_RISK_PREMIUM),
-            ("tax_rate", 0.21),
+            ("tax_rate", DEFAULT_TAX_RATE),
             ("credit_spread_fallback", settings.DEFAULT_CREDIT_SPREAD),
         ):
             data[name] = _normalize_rate(data.get(name), name, default=default)
 
         if data.get("cost_of_debt") is not None:
             data["cost_of_debt"] = _normalize_rate(data["cost_of_debt"], "cost_of_debt")
-            if data["cost_of_debt"] > 0.30:
+            if data["cost_of_debt"] > MAX_COST_OF_DEBT_RATE:
                 raise ValueError(
                     f"cost_of_debt ({data['cost_of_debt']*100:.2f}%) exceeds realistic borrowing limits (max 30.0%). "
                     f"Please verify the pre-tax borrowing rate."
@@ -159,7 +149,7 @@ class WACCInput(BaseModel):
                 raise ValueError(f"share_price must be strictly positive (> 0), got: {price_val}")
             if shares_val <= 0.0:
                 raise ValueError(f"diluted_shares must be strictly positive (> 0), got: {shares_val}")
-            if shares_val > 100_000.0:
+            if shares_val > MAX_DILUTED_SHARES_MILLIONS:
                 raise ValueError(
                     f"diluted_shares ({shares_val:,.2f}) appears to be in raw units or thousands. "
                     f"Must be passed in MILLIONS (e.g. 15004.7 for Apple)."
@@ -169,41 +159,6 @@ class WACCInput(BaseModel):
         return data
 
 
-class WACCCalculationResult(BaseModel):
-    """Structured Pydantic model for WACC calculation output and institutional audit trail."""
-    wacc: float = Field(..., description="Discount rate applied (user override or CAPM blend) as decimal")
-    wacc_pct: float = Field(..., description="Discount rate applied as percentage")
-    wacc_source: WACCSource
-    capm_wacc_pct: float = Field(..., description="CAPM-blended WACC % (shown even when overridden)")
-    risk_free_rate_pct: float
-    risk_free_rate_source: str
-    equity_risk_premium_pct: float
-    equity_risk_premium_source: str
-    beta_raw: float = Field(..., description="Beta as supplied")
-    beta: float = Field(..., description="Beta used in CAPM (Blume-adjusted when requested)")
-    beta_source: str
-    cost_of_equity: float = Field(..., description="Cost of Equity (Ke) as decimal via CAPM")
-    cost_of_equity_pct: float
-    cost_of_debt_pre_tax: float
-    cost_of_debt_pre_tax_pct: float
-    cost_of_debt_after_tax: float
-    cost_of_debt_after_tax_pct: float
-    cost_of_debt_source: CostOfDebtSource
-    cost_of_debt_note: Optional[str] = Field(None, description="Why a derived Kd was rejected, if it was")
-    effective_tax_rate: float
-    effective_tax_rate_pct: float
-    equity_weight_pct: float
-    debt_weight_pct: float
-    capital_structure_source: CapitalStructureSource
-    market_cap: Optional[float] = Field(None, description="Equity value (E) used for weighting in $ Millions")
-    total_debt: float
-    total_capital: float
-    formula_breakdown_markdown: str
-
-
-# ==============================================================================
-# 3. Core Deterministic WACC Calculation Function
-# ==============================================================================
 def calculate_wacc(
     beta: float,
     total_debt: float,
@@ -212,7 +167,7 @@ def calculate_wacc(
     diluted_shares: Optional[float] = None,
     risk_free_rate: Optional[float] = None,
     equity_risk_premium: Optional[float] = None,
-    tax_rate: float = 0.21,
+    tax_rate: float = DEFAULT_TAX_RATE,
     cost_of_debt: Optional[float] = None,
     interest_expense: Optional[float] = None,
     credit_spread_fallback: Optional[float] = None,
@@ -224,7 +179,7 @@ def calculate_wacc(
     equity_risk_premium_source: str = "house_assumption_config",
     equity_value_source: str = "market_value",
     wacc_override: Optional[float] = None,
-) -> Dict[str, Any]:
+) -> WACCCalculationResult:
     """
     Calculates the Weighted Average Cost of Capital (WACC) using CAPM and institutional weighting.
 
@@ -234,7 +189,7 @@ def calculate_wacc(
     component is still computed and reported.
 
     Returns:
-        Structured dictionary matching WACCCalculationResult.
+        WACCCalculationResult: rounded figures, provenance tags and the WACC build-up table.
     """
     validated = WACCInput(
         beta=beta,
@@ -305,45 +260,36 @@ def calculate_wacc(
         wacc = capm_wacc
         wacc_source = "capm_blended"
 
-    if wacc <= 0.0 or wacc > 0.50:
+    if wacc <= 0.0 or wacc > WACC_WARNING_CEILING_RATE:
         logger.warning(f"Calculated WACC ({wacc*100:.2f}%) is outside typical institutional boundaries (0% - 50%).")
 
-    # 4. Formatted Institutional Markdown Table
-    kd_desc = {
-        "explicit_provided": f"Explicitly provided input ({kd*100:.2f}%)",
-        "derived_from_10k_interest_expense": f"10-K interest expense ${validated.interest_expense or 0:,.1f}M / average debt",
-        "interest_expense_out_of_band_fallback": f"Rf + {spread*100:.2f}% spread (derived rate out of band)",
-        "institutional_credit_spread_fallback": f"Rf + {spread*100:.2f}% spread (no interest expense disclosed)",
-        "zero_debt_exemption": "Zero debt exemption (Firm has $0 gross debt)",
-    }[kd_source]
-    beta_desc = f"{beta_source}" + (f" (Blume-adjusted from raw {b_raw:.2f})" if apply_blume_adjustment else "")
-    equity_desc = {
-        "market_value": "Market capitalization",
-        "book_equity_fallback": "Book equity (no market price available)",
-        "all_equity_no_equity_value": "No equity value available: weighted 100% equity",
-    }[structure_source]
-    e_cell = f"${e:,.1f}M" if e is not None else "n/a"
-
-    rows = [
-        "| WACC Parameter | Value | Source / Methodology |",
-        "| :--- | :---: | :--- |",
-        f"| **Risk-Free Rate ($R_f$)** | {rf*100:.2f}% | {risk_free_rate_source} |",
-        f"| **Equity Risk Premium (ERP)** | {erp*100:.2f}% | {equity_risk_premium_source} |",
-        f"| **Beta ($\\beta$)** | {b:.2f} | {beta_desc} |",
-        f"| **Cost of Equity ($K_e$)** | **{ke*100:.2f}%** | CAPM: $R_f + (\\beta \\times \\text{{ERP}})$ |",
-        f"| **Pre-Tax Cost of Debt ($K_d$)** | {kd*100:.2f}% | {kd_desc} |",
-        f"| **Tax Rate ($t$)** | {t*100:.2f}% | Normalized forecast tax rate |",
-        f"| **After-Tax Cost of Debt** | **{kd_after_tax*100:.2f}%** | $K_d \\times (1 - t)$ |",
-        f"| **Equity Value ($E$)** | {e_cell} | {equity_desc} |",
-        f"| **Gross Total Debt ($D$)** | ${d:,.1f}M | 10-K balance sheet |",
-        f"| **Equity Weight ($W_e$)** | {we*100:.2f}% | $E / (E + D)$ |",
-        f"| **Debt Weight ($W_d$)** | {wd*100:.2f}% | $D / (E + D)$ |",
-        f"| **CAPM Blended WACC** | {capm_wacc*100:.2f}% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |",
-    ]
-    if wacc_source == "user_override":
-        rows.append(f"| **Applied Discount Rate** | **{wacc*100:.2f}%** | User-specified override |")
-    else:
-        rows.append(f"| **Applied Discount Rate** | **{wacc*100:.2f}%** | CAPM blended WACC |")
+    components = WACCComponents(
+        risk_free_rate=rf,
+        risk_free_rate_source=risk_free_rate_source,
+        equity_risk_premium=erp,
+        equity_risk_premium_source=equity_risk_premium_source,
+        beta_raw=b_raw,
+        beta=b,
+        beta_source=beta_source,
+        blume_adjusted=apply_blume_adjustment,
+        cost_of_equity=ke,
+        cost_of_debt_pre_tax=kd,
+        cost_of_debt_source=kd_source,
+        cost_of_debt_note=kd_note,
+        interest_expense=validated.interest_expense,
+        credit_spread=spread,
+        tax_rate=t,
+        cost_of_debt_after_tax=kd_after_tax,
+        equity_value=e,
+        total_debt=d,
+        total_capital=v,
+        equity_weight=we,
+        debt_weight=wd,
+        capital_structure_source=structure_source,
+        capm_wacc=capm_wacc,
+        wacc=wacc,
+        wacc_source=wacc_source,
+    )
 
     result = WACCCalculationResult(
         wacc=round(wacc, 6),
@@ -373,58 +319,29 @@ def calculate_wacc(
         market_cap=round(e, 2) if e is not None else None,
         total_debt=round(d, 2),
         total_capital=round(v, 2),
-        formula_breakdown_markdown="\n".join(rows),
+        formula_breakdown_markdown=render_wacc_build_up(components),
     )
 
-    return result.model_dump()
+    return result
 
 
-# ==============================================================================
-# 4. LangChain Agent Tool Decorator
-# ==============================================================================
-@tool
-def calculate_wacc_tool(
-    beta: float,
-    total_debt: float,
-    market_cap: Optional[float] = None,
-    share_price: Optional[float] = None,
-    diluted_shares: Optional[float] = None,
-    risk_free_rate: Optional[float] = None,
-    equity_risk_premium: Optional[float] = None,
-    tax_rate: float = 0.21,
-    cost_of_debt: Optional[float] = None,
-    interest_expense: Optional[float] = None,
-) -> Dict[str, Any]:
-    """
-    Calculate the Weighted Average Cost of Capital (WACC) discount hurdle rate using CAPM.
-
-    Args:
-        beta: Systematic market risk factor (e.g. 1.10).
-        total_debt: Gross total debt in $ Millions (must be positive or zero).
-        market_cap: Total market cap in $ Millions (optional if share_price and diluted_shares passed).
-        share_price: Stock price in $ (used with diluted_shares to compute market cap).
-        diluted_shares: Diluted shares in Millions (e.g. 15004.7 for Apple).
-        risk_free_rate: 10-Yr US Treasury rate as decimal (defaults to the configured house rate).
-        equity_risk_premium: Expected market risk premium as decimal (defaults to the configured house ERP).
-        tax_rate: Tax rate as decimal (default 0.21).
-        cost_of_debt: Pre-tax borrowing rate as decimal (optional).
-        interest_expense: Annual 10-K interest expense in $ Millions (optional, used to derive Kd).
-
-    Returns:
-        Structured dictionary containing wacc, components, weights and provenance tags.
-    """
-    try:
-        return calculate_wacc(
-            beta=beta,
-            total_debt=total_debt,
-            market_cap=market_cap,
-            share_price=share_price,
-            diluted_shares=diluted_shares,
-            risk_free_rate=risk_free_rate,
-            equity_risk_premium=equity_risk_premium,
-            tax_rate=tax_rate,
-            cost_of_debt=cost_of_debt,
-            interest_expense=interest_expense,
-        )
-    except Exception as e:
-        return {"error": f"calculate_wacc_tool failed: {e}"}
+def estimate_cost_of_capital(inputs: CostOfCapitalInputs) -> CostOfCapital:
+    """CAPM WACC from the gathered inputs; a derived Kd rejected by its band adds its note to the warnings."""
+    wacc_audit = calculate_wacc(
+        beta=inputs.beta,
+        total_debt=inputs.total_debt,
+        prior_total_debt=inputs.prior_total_debt,
+        market_cap=inputs.equity_value,
+        risk_free_rate=inputs.risk_free_rate,
+        equity_risk_premium=inputs.equity_risk_premium,
+        tax_rate=inputs.marginal_tax_rate,
+        interest_expense=inputs.interest_expense,
+        apply_blume_adjustment=inputs.apply_blume_adjustment,
+        beta_source=inputs.beta_source,
+        risk_free_rate_source=inputs.risk_free_rate_source,
+        equity_risk_premium_source=inputs.equity_risk_premium_source,
+        equity_value_source=inputs.equity_value_source,
+        wacc_override=inputs.wacc_override,
+    )
+    note = (wacc_audit.cost_of_debt_note,) if wacc_audit.cost_of_debt_note else ()
+    return CostOfCapital(wacc_audit=wacc_audit, marginal_tax_rate=inputs.marginal_tax_rate, warnings=inputs.warnings + note)

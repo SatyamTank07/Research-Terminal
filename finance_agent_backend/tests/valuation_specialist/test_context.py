@@ -1,4 +1,4 @@
-"""Tests for market_data_tools: live ^TNX risk-free rate, raw beta provenance and offline fallbacks (yfinance mocked)."""
+"""Tests for the valuation context: live ^TNX risk-free rate, raw beta provenance and offline fallbacks (yfinance mocked)."""
 
 import unittest
 from types import SimpleNamespace
@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 
-from app.agents.tools.market_data_tools import fetch_market_context, fetch_risk_free_rate
+from app.agents.specialized.valuation_specialist.context import fetch_market_context, fetch_risk_free_rate
 from app.config import settings
 
 
