@@ -22,12 +22,18 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
-from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative
-from app.agents.shared.filing.sections import build_section_context, locate_section_chunks
 from app.agents.shared.filing.sentences import normalize_text
 from app.agents.shared.llm_call import complete_once
 from app.agents.shared.prompts import render_prompt
 from app.agents.shared.quotes import find_quote_chunk, numbers_supported
+from app.agents.specialized.business_strategist.context import (
+    Pool,
+    filing_items,
+    load_filing,
+    locate_item1,
+    pool_chunk,
+    read_item1,
+)
 from app.agents.specialized.business_strategist.state_business_strategist import (
     MOAT_TYPES,
     NOT_DISCLOSED,
@@ -44,8 +50,6 @@ from app.agents.tools.business_disclosure_tools import (
     clean_name,
     extract_segment_disclosures,
     find_disclosure_sentences,
-    infer_section_items,
-    load_filing_chunks,
     name_key,
     render_revenue_mix_markdown,
     render_segment_table_markdown,
@@ -59,20 +63,12 @@ from app.agents.tools.claim_relevance import (
 
 logger = logging.getLogger("finance_agent.agents.business_strategist")
 
-ITEM1_SECTION = "Item 1"
-ITEM1_CHAR_BUDGET = 90_000
 JUDGEMENT_MAX_TOKENS = 2_000
 MAX_QUOTE_CHARS = 300
 MAX_EVIDENCE_PER_CLAIM = 2
 MAX_SECONDARY_MOATS = 2
 MAX_THREATS = 4
 WIDE_MIN_QUOTES = 2
-RAG_FALLBACK_LIMIT = 6
-RAG_FALLBACK_QUERIES = (
-    "business overview products services customers how the company generates revenue",
-    "competition competitive factors competitors market position",
-    "intellectual property brand network scale technology advantages",
-)
 
 _NOT_DISCLOSED_HINTS = ("not explicitly disclosed", "not disclosed", "no disclosure", "not discussed", "not stated")
 _DURABILITY = {"wide": "Wide", "narrow": "Narrow", "none": "None", "indeterminate": "Indeterminate"}
@@ -88,8 +84,6 @@ _MOAT_ALIASES: Tuple[Tuple[str, str], ...] = (
     ("efficient scale", "Efficient Scale"),
     ("no moat", "None"),
 )
-
-Pool = Dict[str, Dict[str, Any]]
 
 
 def _not_assessed(reason: str) -> str:
@@ -113,34 +107,30 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         ticker = ticker.upper()
         dq = StrategistDataQuality()
 
-        item1, located_by = self._safe_locate(ticker, fiscal_year)
+        item1, located_by = locate_item1(ticker, fiscal_year)
         dq.section_located_by = located_by  # type: ignore[assignment]
-        filing = self._safe_load_filing(ticker, fiscal_year, dq)
+        filing, load_notes = load_filing(ticker, fiscal_year)
+        dq.notes.extend(load_notes)
         # Stored labels are only trusted when Item 1 itself was found under its label.
-        items = infer_section_items(filing) if located_by == "heading_boundary" else {}
+        items = filing_items(filing, located_by)
 
         extraction = extract_segment_disclosures(filing, fiscal_year, items)
         self._record_extraction(extraction, dq)
 
-        if not item1:
-            item1 = self._rag_fallback(ticker, fiscal_year)
-        pool: Pool = {c.chunk_id: c.model_dump() for c in item1}
-        if item1:
-            context, mode, chars = build_section_context(item1, ITEM1_CHAR_BUDGET)
-            dq.coverage_mode = "rag_fallback" if located_by == "not_found" else mode  # type: ignore[assignment]
-        else:
-            context, chars = "", 0
-            dq.coverage_mode = "no_context"
-        dq.item1_chunks = len(item1) if located_by != "not_found" else 0
-        dq.chars_read = chars
-        self._note_coverage(dq, ticker, fiscal_year)
+        text = read_item1(ticker, fiscal_year, item1, located_by)
+        pool: Pool = dict(text.pool)
+        context = text.context
+        dq.coverage_mode = text.coverage_mode  # type: ignore[assignment]
+        dq.item1_chunks = text.item1_chunks
+        dq.chars_read = text.chars_read
+        dq.notes.extend(text.notes)
 
         disclosures = self._safe_disclosures(filing, items, set(pool))
         by_id = {c.chunk_id: c for c in filing}
         for d in disclosures:
             chunk = by_id.get(d.chunk_id)
             if chunk is not None:
-                pool.setdefault(d.chunk_id, self._chunk_dict(chunk, ticker, fiscal_year, items))
+                pool.setdefault(d.chunk_id, pool_chunk(chunk, ticker, fiscal_year, items))
         dq.supplementary_passages = len(disclosures)
 
         raw: Optional[Dict[str, Any]] = None
@@ -210,23 +200,6 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
     # Pre-fetch helpers (never raise)
     # ------------------------------------------------------------------
     @staticmethod
-    def _safe_locate(ticker: str, fiscal_year: int) -> Tuple[List[NarrativeChunkResult], str]:
-        try:
-            return locate_section_chunks(ticker, fiscal_year, ITEM1_SECTION)
-        except Exception as e:
-            logger.warning(f"Item 1 pre-fetch failed for {ticker} FY{fiscal_year}: {e}")
-            return [], "not_found"
-
-    @staticmethod
-    def _safe_load_filing(ticker: str, fiscal_year: int, dq: StrategistDataQuality) -> List[FilingChunk]:
-        try:
-            return load_filing_chunks(ticker, fiscal_year)
-        except Exception as e:
-            logger.warning(f"Filing load failed for {ticker} FY{fiscal_year}: {e}")
-            dq.notes.append("Filing tables could not be loaded; segment and revenue-line figures not extracted.")
-            return []
-
-    @staticmethod
     def _safe_disclosures(
         filing: Sequence[FilingChunk], items: Dict[str, str], exclude: set
     ) -> List[DisclosureSentence]:
@@ -235,31 +208,6 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         except Exception as e:
             logger.warning(f"Disclosure sentence screen failed: {e}")
             return []
-
-    @staticmethod
-    def _rag_fallback(ticker: str, fiscal_year: int) -> List[NarrativeChunkResult]:
-        """Hybrid retrieval across the filing when Item 1 has neither a label nor a heading."""
-        found: Dict[str, NarrativeChunkResult] = {}
-        for query in RAG_FALLBACK_QUERIES:
-            try:
-                for chunk in retrieve_10k_narrative(ticker, fiscal_year, query, section_item=None, limit=RAG_FALLBACK_LIMIT):
-                    found.setdefault(chunk.chunk_id, chunk)
-            except Exception as e:
-                logger.warning(f"Item 1 retrieval fallback query failed for {ticker} FY{fiscal_year}: {e}")
-        return sorted(found.values(), key=lambda c: c.chunk_index)
-
-    @staticmethod
-    def _chunk_dict(chunk: FilingChunk, ticker: str, fiscal_year: int, items: Dict[str, str]) -> Dict[str, Any]:
-        return {
-            "chunk_id": chunk.chunk_id,
-            "ticker": ticker,
-            "fiscal_year": fiscal_year,
-            "item": items.get(chunk.chunk_id) or chunk.item,
-            "breadcrumb": chunk.breadcrumb,
-            "sub_section": chunk.sub_section,
-            "content": chunk.content,
-            "chunk_index": chunk.chunk_index,
-        }
 
     @staticmethod
     def _record_extraction(extraction: SegmentExtraction, dq: StrategistDataQuality) -> None:
@@ -272,23 +220,6 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         dq.consolidated_revenue = extraction.consolidated_revenue
         dq.units = extraction.units
         dq.notes.extend(extraction.notes)
-
-    @staticmethod
-    def _note_coverage(dq: StrategistDataQuality, ticker: str, fiscal_year: int) -> None:
-        if dq.section_located_by == "heading_boundary":
-            dq.notes.append(
-                "Item 1 was located from the filing's own section headings because the stored section labels were wrong; "
-                "citations use heading-inferred items."
-            )
-        if dq.coverage_mode == "rag_fallback":
-            dq.notes.append(
-                f"Item 1 could not be located in the {ticker} FY{fiscal_year} 10-K; business context was retrieved by "
-                "search across the filing and may be incomplete."
-            )
-        elif dq.coverage_mode == "budgeted_section":
-            dq.notes.append("Item 1 exceeded the context budget; later paragraphs were truncated to their lead text.")
-        elif dq.coverage_mode == "no_context":
-            dq.notes.append(f"No Item 1 text could be retrieved for {ticker} FY{fiscal_year}.")
 
     # ------------------------------------------------------------------
     # Deterministic name lists
