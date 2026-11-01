@@ -19,11 +19,12 @@ from app.agents.specialized.valuation_specialist.modules.cost_of_capital import 
     gather_capital_inputs,
 )
 from app.agents.specialized.valuation_specialist.modules.intrinsic_value import (
-    calculate_dcf_with_sensitivity,
+    calculate_dcf,
     dcf_fair_value_per_share,
     estimate_intrinsic_value,
     gather_intrinsic_value_inputs,
 )
+from app.agents.specialized.valuation_specialist.modules.sensitivity import build_sensitivity_grids
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import (
     ScenarioValuation,
     ValuationBuild,
@@ -296,6 +297,7 @@ def build_valuation(
     )
     dcf, projected_fcfs, forecast_source = intrinsic.dcf, intrinsic.projected_fcfs, intrinsic.forecast_source
     common = intrinsic.terms.as_kwargs()
+    grids = build_sensitivity_grids(dcf)
     warnings: List[str] = [*intrinsic.cash_flow_warnings, *capital.warnings, *intrinsic.warnings]
     fair = dcf.fair_value_per_share
     price = market.share_price if market.share_price and market.share_price > 0 else None
@@ -327,7 +329,7 @@ def build_valuation(
             if sc.name == "base":
                 ev, per_share = dcf.enterprise_value, fair
             else:
-                res = calculate_dcf_with_sensitivity(
+                res = calculate_dcf(
                     projected_fcfs=sc.projected_fcfs,
                     terminal_nopat=_scenario_terminal_nopat(forecast, sc, terminal_tax),
                     **common,
@@ -383,8 +385,8 @@ def build_valuation(
         bull_fair_value=by_name["bull"].fair_value_per_share if "bull" in by_name else None,
         **reverse,
         market_implied_wacc_pct=implied_wacc,
-        sensitivity_matrix_markdown=dcf.sensitivity_matrix_markdown,
-        ronic_sensitivity_matrix_markdown=dcf.ronic_sensitivity_matrix_markdown,
+        sensitivity_matrix_markdown=grids.sensitivity_matrix_markdown,
+        ronic_sensitivity_matrix_markdown=grids.ronic_sensitivity_matrix_markdown,
         equity_bridge_markdown=dcf.equity_bridge_markdown,
         scenario_table_markdown=_scenario_table(scenario_vals, weighted, price) if scenario_vals else "",
         data_quality=ValuationDataQuality(

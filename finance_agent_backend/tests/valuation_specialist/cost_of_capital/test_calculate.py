@@ -11,7 +11,7 @@ Validates:
 4. Strict IEEE 754 NaN and Inf rejection across all inputs.
 5. Auto-normalization of rate inputs between percentage and decimal notation.
 6. Real-world 10-K benchmarks across Tesla (TSLA FY25), Nvidia (NVDA FY26), and Apple (AAPL FY25).
-7. Downstream pipeline handoff into calculate_dcf_with_sensitivity.
+7. Downstream pipeline handoff into calculate_dcf and the sensitivity grid.
 """
 
 import math
@@ -21,7 +21,8 @@ from app.agents.specialized.valuation_specialist.modules.cost_of_capital.calcula
     calculate_wacc,
 )
 from app.agents.specialized.valuation_specialist.modules.cost_of_capital.schema import WACCCalculationResult
-from app.agents.specialized.valuation_specialist.modules.intrinsic_value.calculate import calculate_dcf_with_sensitivity
+from app.agents.specialized.valuation_specialist.modules.intrinsic_value.calculate import calculate_dcf
+from app.agents.specialized.valuation_specialist.modules.sensitivity.calculate import build_sensitivity_grids
 
 
 class TestWACCTools(unittest.TestCase):
@@ -249,7 +250,7 @@ class TestWACCTools(unittest.TestCase):
         )
 
         # 2. Pass resulting wacc directly into DCF valuation engine
-        dcf_out = calculate_dcf_with_sensitivity(
+        dcf_out = calculate_dcf(
             projected_fcfs=[110000.0, 118000.0, 126000.0, 134000.0, 142000.0],
             wacc=wacc_out.wacc,  # Direct handoff!
             terminal_growth_rate=0.025,
@@ -261,7 +262,7 @@ class TestWACCTools(unittest.TestCase):
         self.assertGreater(dcf_out.enterprise_value, 0)
         self.assertGreater(dcf_out.equity_value, dcf_out.enterprise_value)  # Cash cushion
         self.assertGreater(dcf_out.fair_value_per_share, 100.0)
-        self.assertIn("| WACC \\ Growth |", dcf_out.sensitivity_matrix_markdown)
+        self.assertIn("| WACC \\ Growth |", build_sensitivity_grids(dcf_out).sensitivity_matrix_markdown)
 
     def test_11_beta_boundary_enforcement(self):
         """Verify strict economic boundary on beta (0.0 < beta <= 5.0)."""

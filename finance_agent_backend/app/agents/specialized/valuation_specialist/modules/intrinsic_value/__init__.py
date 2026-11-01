@@ -1,7 +1,7 @@
 """What is the business worth today? Base-case DCF, terminal value and the EV-to-equity bridge."""
 
 from app.agents.specialized.valuation_specialist.modules.intrinsic_value.calculate import (
-    calculate_dcf_with_sensitivity,
+    calculate_dcf,
     dcf_fair_value_per_share,
     estimate_intrinsic_value,
     value_point,
@@ -17,7 +17,7 @@ __all__ = [
     "DCFTerms",
     "DCFValue",
     "IntrinsicValue",
-    "calculate_dcf_with_sensitivity",
+    "calculate_dcf",
     "dcf_fair_value_per_share",
     "estimate_intrinsic_value",
     "gather_intrinsic_value_inputs",

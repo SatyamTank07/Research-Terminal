@@ -90,8 +90,6 @@ class DCFValue:
     terminal_growth_rate: float
     forecast_years_count: int
     discounting_convention: str                 # 'mid_year' or 'year_end'
-    sensitivity_matrix_markdown: str            # moves to the sensitivity module
-    ronic_sensitivity_matrix_markdown: str      # moves to the sensitivity module
     equity_bridge_markdown: str
     warnings: Tuple[str, ...]
     case: DCFCase

@@ -16,7 +16,7 @@ from app.agents.specialized.valuation_specialist import DCFValuationOutput, Valu
 from app.agents.specialized.valuation_specialist.assemble import build_valuation
 from app.agents.specialized.valuation_specialist.context import MarketInputs
 from app.agents.specialized.valuation_specialist.modules.cost_of_capital import blume_adjust
-from app.agents.specialized.valuation_specialist.modules.intrinsic_value.calculate import calculate_dcf_with_sensitivity
+from app.agents.specialized.valuation_specialist.modules.intrinsic_value.calculate import calculate_dcf
 from app.config import settings
 from tests.forecast_fixtures import make_aapl_audit, make_audit, make_forecast_output
 from tests.valuation_fixtures import AAPL_BALANCE_SHEET_DATE, VALUATION_DATE, make_market, make_valuation_output
@@ -83,7 +83,7 @@ class TestValuationSpecialistAgent(unittest.TestCase):
 
         # Every headline figure equals an independent engine run with the same inputs.
         roll = (VALUATION_DATE - date(2025, 9, 27)).days / 365.25
-        expected = calculate_dcf_with_sensitivity(
+        expected = calculate_dcf(
             forecast.projected_fcfs, w.wacc, 0.025, audit.balance_sheet.net_debt,
             audit.balance_sheet.valuation_shares_outstanding,
             terminal_nopat=round(forecast.forecast_schedule[-1].projected_ebit * (1.0 - settings.DEFAULT_MARGINAL_TAX_RATE), 2),

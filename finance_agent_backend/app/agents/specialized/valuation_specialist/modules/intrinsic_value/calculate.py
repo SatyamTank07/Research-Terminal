@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import logging
 import math
-from dataclasses import replace
 from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 
 from app.agents.specialized.valuation_specialist.modules.cost_of_capital.schema import CostOfCapital
@@ -38,14 +37,6 @@ if TYPE_CHECKING:
     from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastDiagnostics
 
 logger = logging.getLogger("finance_agent.agents.valuation_specialist")
-
-# Sensitivity grid steps
-SENSITIVITY_WACC_STEPS = (-0.010, -0.005, 0.0, 0.005, 0.010)
-SENSITIVITY_GROWTH_STEPS = (-0.006, -0.003, 0.0, 0.003, 0.006)
-SENSITIVITY_RONIC_STEPS = (-0.04, -0.02, 0.0, 0.05, 0.10)
-RONIC_GRID_MIN_SPREAD_OVER_G = 0.01
-RONIC_EQUALS_WACC_TOLERANCE = 0.005
-
 
 def _validate_finite_float(val: Any, name: str) -> float:
     """Validates that a numeric argument is a real, finite float (rejects NaN and Infinity)."""
@@ -156,7 +147,7 @@ def _multiple_warning(name: str, value: Optional[float], band: Tuple[float, floa
     return None
 
 
-def calculate_dcf_with_sensitivity(
+def calculate_dcf(
     projected_fcfs: List[float],
     wacc: float,
     terminal_growth_rate: float,
@@ -173,7 +164,7 @@ def calculate_dcf_with_sensitivity(
 ) -> DCFValue:
     """
     Calculates intrinsic Enterprise Value, Equity Value, and Fair Value per share
-    using a 2-stage Perpetual Gordon Growth DCF model, and constructs a 5x5 sensitivity matrix.
+    using a 2-stage Perpetual Gordon Growth DCF model.
 
     All dollar quantities (cash flows, net debt, NCI) and share counts must be on the same scale
     (standardized to $ millions and millions of shares).
@@ -309,13 +300,10 @@ def calculate_dcf_with_sensitivity(
         diluted_shares=diluted_shares,
     )
 
-    def _value_at(rate: float, g: float, ronic_value: Optional[float] = ronic) -> Optional[DCFPoint]:
-        return value_point(replace(case, ronic=ronic_value), rate, g)
-
     # --------------------------------------------------------------------------
     # Steps 1-3: Explicit PV, Terminal Value, Valuation Bridge
     # --------------------------------------------------------------------------
-    base = _value_at(wacc, terminal_growth_rate)
+    base = value_point(case, wacc, terminal_growth_rate)
     enterprise_value = base.ev
     tv_pct_of_ev = (base.pv_tv / enterprise_value * 100.0) if enterprise_value != 0 else 0.0
 
@@ -342,63 +330,6 @@ def calculate_dcf_with_sensitivity(
         message = _multiple_warning(name, value, band)
         if message:
             warnings.append(message)
-
-    # --------------------------------------------------------------------------
-    # Step 4: 5x5 Two-Way Sensitivity Matrix (WACC vs. Perpetual Growth)
-    # --------------------------------------------------------------------------
-    wacc_steps = [round(wacc + d, 4) for d in SENSITIVITY_WACC_STEPS]
-    growth_steps = [round(terminal_growth_rate + d, 4) for d in SENSITIVITY_GROWTH_STEPS]
-
-    header_cols = [f"{g * 100:.1f}%" for g in growth_steps]
-    table_lines = [
-        "| WACC \\ Growth | " + " | ".join(header_cols) + " |",
-        "|:---|" + "|".join([":---:"] * len(growth_steps)) + "|",
-    ]
-    for i, w in enumerate(wacc_steps):
-        row_label = f"**{w * 100:.1f}%**" + (" *(Base)*" if i == 2 else "")
-        cells = [row_label]
-        for j, g in enumerate(growth_steps):
-            if i == 2 and j == 2:
-                cells.append(f"**${base.per_share:.2f}**")
-                continue
-            cell = _value_at(w, g)
-            cells.append("N/A" if cell is None else f"${cell.per_share:.2f}")
-        table_lines.append("| " + " | ".join(cells) + " |")
-    if terminal_method == "value_driver" and abs(ronic - wacc) <= RONIC_EQUALS_WACC_TOLERANCE:
-        table_lines.append("")
-        table_lines.append(
-            f"_Terminal RONIC ({ronic * 100:.1f}%) is at WACC, so growth beyond the horizon creates no value and the "
-            f"growth columns barely move; the WACC x RONIC grid shows what returns on new capital are worth._"
-        )
-    sensitivity_markdown = "\n".join(table_lines)
-
-    # --------------------------------------------------------------------------
-    # Step 4b: WACC vs. terminal RONIC (value-driver TV only). Informative even when RONIC = WACC flattens
-    # the growth grid. Columns are base RONIC +/- steps, floored at g + 1 pp so every cell converges.
-    # --------------------------------------------------------------------------
-    ronic_markdown = ""
-    if terminal_method == "value_driver":
-        floor = terminal_growth_rate + RONIC_GRID_MIN_SPREAD_OVER_G
-        ronic_cols: List[float] = []
-        for d in SENSITIVITY_RONIC_STEPS:
-            col = round(max(ronic + d, floor), 4)
-            if col not in ronic_cols:
-                ronic_cols.append(col)
-        base_col = round(ronic, 4)
-        ronic_lines = [
-            "| WACC \\ RONIC | " + " | ".join(f"{r * 100:.1f}%" for r in ronic_cols) + " |",
-            "|:---|" + "|".join([":---:"] * len(ronic_cols)) + "|",
-        ]
-        for i, w in enumerate(wacc_steps):
-            cells = [f"**{w * 100:.1f}%**" + (" *(Base)*" if i == 2 else "")]
-            for r in ronic_cols:
-                if i == 2 and r == base_col:
-                    cells.append(f"**${base.per_share:.2f}**")
-                    continue
-                cell = _value_at(w, terminal_growth_rate, r)
-                cells.append("N/A" if cell is None else f"${cell.per_share:.2f}")
-            ronic_lines.append("| " + " | ".join(cells) + " |")
-        ronic_markdown = "\n".join(ronic_lines)
 
     # --------------------------------------------------------------------------
     # Step 5: Equity Bridge Table
@@ -431,8 +362,6 @@ def calculate_dcf_with_sensitivity(
         terminal_growth_rate=round(terminal_growth_rate, 4),
         forecast_years_count=num_years,
         discounting_convention=convention_label,
-        sensitivity_matrix_markdown=sensitivity_markdown,
-        ronic_sensitivity_matrix_markdown=ronic_markdown,
         equity_bridge_markdown=equity_bridge,
         warnings=tuple(warnings),
         case=case,
@@ -440,7 +369,7 @@ def calculate_dcf_with_sensitivity(
     )
 
     logger.info(
-        f"calculate_dcf_with_sensitivity: EV=${result.enterprise_value:,.2f}M | "
+        f"calculate_dcf: EV=${result.enterprise_value:,.2f}M | "
         f"EqVal=${result.equity_value:,.2f}M | FairValue=${result.fair_value_per_share:.2f}/share "
         f"(WACC={wacc*100:.1f}%, g={terminal_growth_rate*100:.1f}%, TV%={result.terminal_value_pct_of_ev}%, {convention_label})"
     )
@@ -514,7 +443,7 @@ def estimate_intrinsic_value(
         roll_forward_years=roll_years,
         risk_free_rate=inputs.risk_free_rate,
     )
-    dcf = calculate_dcf_with_sensitivity(
+    dcf = calculate_dcf(
         projected_fcfs=inputs.projected_fcfs,
         terminal_nopat=terminal_nopat,
         terminal_ebitda=(final_year.projected_ebit + final_year.projected_depreciation) if final_year else None,
