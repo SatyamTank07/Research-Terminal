@@ -9,18 +9,15 @@ threat when needed, and renders the verified risk matrix and evidence table.
 """
 
 import logging
-import re
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence
 
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.narrative_search import retrieve_10k_narrative_tool
 from app.agents.shared.filing.sections import build_section_context
-from app.agents.shared.filing.sentences import normalize_text
 from app.agents.shared.llm_call import complete_once
 from app.agents.shared.prompts import render_prompt
-from app.agents.shared.quotes import find_quote_chunk, numbers_supported
 from app.agents.specialized.risk_analyst.context import (
     RISK_SECTION_ITEM,
     coverage_notes,
@@ -40,19 +37,15 @@ from app.agents.specialized.risk_analyst.modules.disclosure_changes.calculate im
     render_risk_matrix_markdown,
 )
 from app.agents.specialized.risk_analyst.modules.quantified_exposures import (
-    QUANTIFIED_FIGURE,
     check_quantified_coverage,
     extract_quantified_disclosures,
     repair_targets,
 )
-from app.agents.specialized.risk_analyst.modules.risk_inventory import is_boilerplate, states_immaterial, substantiates_high_impact
-from app.agents.specialized.risk_analyst.ratings import derive_severity, higher_level, normalize_level, rank_key
+from app.agents.specialized.risk_analyst.modules.risk_inventory import sanitize_risk, verify_inventory
+from app.agents.specialized.risk_analyst.ratings import rank_key
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
-    FINANCIAL_TRANSMISSIONS,
-    RISK_CATEGORIES,
     RiskAuditOutput,
     RiskDataQuality,
-    RiskEvidence,
     RiskItem,
 )
 
@@ -60,40 +53,6 @@ logger = logging.getLogger("finance_agent.agents.risk_analyst")
 
 MAX_RISKS = 8
 MIN_RISKS = 5
-MAX_QUOTE_CHARS = 300
-MAX_SIGNPOSTS = 3
-DUPLICATE_TITLE_JACCARD = 0.5
-DUPLICATE_TITLE_JACCARD_SHARED_CHUNK = 0.3
-
-_TITLE_STOPWORDS = {
-    "risk", "risks", "the", "and", "of", "to", "in", "on", "for", "our", "from", "with",
-    "related", "due", "its", "their", "a", "an", "by", "or", "potential", "exposure",
-}
-
-_CATEGORY_KEYWORDS: List[Tuple[str, str]] = [
-    (r"regulat|legal|litigation|lawsuit|antitrust|export\s+control|compliance|government|sanction", "Regulatory & Legal"),
-    (r"cyber|technolog|privacy|intellectual\s+property|\bip\b|obsolesc|software|security\s+breach", "Technological & Cybersecurity"),
-    (r"supply|supplier|manufactur|foundry|concentrat|customer|single.source|sole.source", "Supply Chain & Concentration"),
-    (r"compet|demand|pricing|market\s+share|substitut|cyclical", "Competitive & Demand"),
-    (r"macro|geopolit|currency|foreign\s+exchange|tariff|trade|interest\s+rate|inflation|recession", "Macroeconomic & Geopolitical"),
-    (r"debt|liquidity|capital\s+structure|financing|credit|leverage|tax|impairment", "Financial & Capital Structure"),
-]
-
-_NOTE_IMMATERIAL = "Impact capped at Medium: the cited filing text states the matter is not expected to be material."
-_NOTE_LEGAL_OUTSIDE = "Impact capped at Medium: legal matter sourced outside Item 1A without a quantified exposure."
-_NOTE_BOILERPLATE = "Impact capped at Low: generic boilerplate risk without a company-specific exposure."
-_NOTE_UNSUBSTANTIATED = "Impact capped at Medium: no filing-stated magnitude or realized effect supports a High impact."
-_NOTE_EXPOSURE_UNIT = "Quantified exposure removed: not stated as a percentage or currency amount."
-_NOTE_EXPOSURE = "Quantified exposure removed: its figures do not appear in the cited filing text."
-_NOTE_MITIGATION = "Mitigation removed: no verified filing quote supports it."
-
-
-def _title_tokens(title: str) -> set:
-    return {w for w in re.findall(r"[a-z0-9]+", normalize_text(title)) if len(w) > 2 and w not in _TITLE_STOPWORDS}
-
-
-def _jaccard(a: set, b: set) -> float:
-    return len(a & b) / len(a | b) if a and b else 0.0
 
 
 @AgentRegistry.register("risk_analyst")
@@ -219,7 +178,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         proposals = raw.get("identified_risks") if isinstance(raw.get("identified_risks"), list) else []
         repaired = []
         for idx, item in enumerate(proposals):
-            sanitized = self._sanitize_risk(item, idx)
+            sanitized = sanitize_risk(item, idx)
             if sanitized:
                 sanitized["risk_id"] = f"C{idx + 1}"
                 repaired.append(RiskItem.model_validate(sanitized))
@@ -295,7 +254,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         if not isinstance(raw, list):
             run["llm_output_missing"] = True
             raw = []
-        sanitized = [r for r in (self._sanitize_risk(item, idx) for idx, item in enumerate(raw)) if r]
+        sanitized = [r for r in (sanitize_risk(item, idx) for idx, item in enumerate(raw)) if r]
         dq: RiskDataQuality = run["data_quality"]
         dq.risks_proposed = len(raw)
         if len(sanitized) < len(raw):
@@ -310,81 +269,6 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
             "primary_threat_risk_id": str(primary_id) if primary_id not in (None, "") else None,
             "primary_existential_threat": threat.strip() if isinstance(threat, str) else "",
         }
-
-    def _sanitize_risk(self, item: Any, idx: int) -> Optional[Dict[str, Any]]:
-        if not isinstance(item, dict):
-            return None
-        title = str(item.get("risk_title") or "").strip()
-        summary = str(item.get("risk_summary") or "").strip()
-        if not title or not summary:
-            return None
-
-        adjustments: List[str] = []
-        likelihood = normalize_level(item.get("likelihood"))
-        impact = normalize_level(item.get("impact"))
-        if likelihood is None:
-            likelihood = "Medium"
-            adjustments.append("Likelihood not rated by the model; defaulted to Medium.")
-        if impact is None:
-            impact = "Medium"
-            adjustments.append("Impact not rated by the model; defaulted to Medium.")
-
-        transmissions = item.get("financial_transmission") or []
-        if isinstance(transmissions, str):
-            transmissions = [transmissions]
-        lookup = {t.lower(): t for t in FINANCIAL_TRANSMISSIONS}
-        transmission = list(dict.fromkeys(
-            lookup[t.strip().lower()] for t in transmissions if isinstance(t, str) and t.strip().lower() in lookup
-        ))
-
-        signposts = item.get("monitoring_signposts") or []
-        if isinstance(signposts, str):
-            signposts = [signposts]
-
-        return {
-            "risk_id": str(item.get("risk_id") or f"R{idx + 1}"),
-            "risk_category": self._coerce_category(item.get("risk_category"), f"{title} {summary}"),
-            "risk_title": title,
-            "risk_summary": summary,
-            "likelihood": likelihood,
-            "impact": impact,
-            "severity": derive_severity(likelihood, impact),
-            "financial_transmission": transmission,
-            "quantified_exposure": self._clean_str(item.get("quantified_exposure")),
-            "mitigating_factors": self._clean_str(item.get("mitigating_factors")),
-            "mitigation_evidence": self._sanitize_evidence(item.get("mitigation_evidence")),
-            "evidence": [e for e in (self._sanitize_evidence(x) for x in (item.get("evidence") or [])) if e],
-            "monitoring_signposts": [s.strip() for s in signposts if isinstance(s, str) and s.strip()][:MAX_SIGNPOSTS],
-            "adjustments": adjustments,
-        }
-
-    @staticmethod
-    def _clean_str(value: Any) -> Optional[str]:
-        if not isinstance(value, str):
-            return None
-        v = value.strip()
-        return None if not v or v.lower() in ("null", "none", "n/a", "not disclosed") else v
-
-    @staticmethod
-    def _sanitize_evidence(value: Any) -> Optional[Dict[str, Any]]:
-        if not isinstance(value, dict):
-            return None
-        chunk_id, quote = value.get("chunk_id"), value.get("quote")
-        if not isinstance(chunk_id, str) or not isinstance(quote, str) or not quote.strip():
-            return None
-        return {"chunk_id": chunk_id.strip(), "quote": quote.strip()[:MAX_QUOTE_CHARS]}
-
-    @staticmethod
-    def _coerce_category(category: Any, fallback_text: str) -> str:
-        if isinstance(category, str):
-            for c in RISK_CATEGORIES:
-                if category.strip().lower() == c.lower():
-                    return c
-        for text in (category if isinstance(category, str) else "", fallback_text):
-            for pattern, mapped in _CATEGORY_KEYWORDS:
-                if text and re.search(pattern, text, re.IGNORECASE):
-                    return mapped
-        return "Operational"
 
     # ------------------------------------------------------------------
     # Stage 2: deterministic enforcement on the validated model
@@ -406,14 +290,10 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         by_llm_id = {r.risk_id: r for r in risks}
         chosen = by_llm_id.get(output.primary_threat_risk_id or "")
 
-        verified: List[RiskItem] = []
-        for risk in risks:
-            if self._enforce_risk(risk, pool, dq):
-                verified.append(risk)
-            else:
-                dq.risks_dropped_unverified += 1
-
-        survivors, absorbed = self._merge_duplicates(verified)
+        inventory = verify_inventory(risks, pool)
+        dq.quotes_rejected += inventory.quotes_rejected
+        dq.risks_dropped_unverified += inventory.dropped_unverified
+        survivors, absorbed = inventory.survivors, inventory.absorbed
         dq.risks_merged = len(absorbed)
         ranked = sorted(survivors, key=rank_key)
         if len(ranked) > MAX_RISKS:
@@ -438,121 +318,6 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         output.disclosure_changes = run["diff"]
         output.data_quality = dq
         return output
-
-    def _enforce_risk(self, risk: RiskItem, pool: Dict[str, Dict[str, Any]], dq: RiskDataQuality) -> bool:
-        """Verifies evidence and applies screens in place. Returns False if the risk has no verified evidence."""
-        kept: List[RiskEvidence] = []
-        seen = set()
-        for ev in risk.evidence:
-            hit = self._verify_evidence(ev, pool)
-            if hit is None:
-                dq.quotes_rejected += 1
-                continue
-            key = (hit.chunk_id, normalize_text(hit.quote))
-            if key not in seen:
-                seen.add(key)
-                kept.append(hit)
-        if not kept:
-            return False
-        risk.evidence = kept
-        chunk_texts = [pool[e.chunk_id]["content"] for e in kept]
-
-        if risk.quantified_exposure and not QUANTIFIED_FIGURE.search(risk.quantified_exposure):
-            risk.quantified_exposure = None
-            risk.adjustments.append(_NOTE_EXPOSURE_UNIT)
-        elif risk.quantified_exposure and not numbers_supported(risk.quantified_exposure, chunk_texts):
-            risk.quantified_exposure = None
-            risk.adjustments.append(_NOTE_EXPOSURE)
-
-        mitigation = self._verify_evidence(risk.mitigation_evidence, pool) if risk.mitigation_evidence else None
-        if risk.mitigating_factors and mitigation is None:
-            risk.mitigating_factors = None
-            risk.adjustments.append(_NOTE_MITIGATION)
-        risk.mitigation_evidence = mitigation if risk.mitigating_factors else None
-
-        outside = [e for e in kept if e.item != RISK_SECTION_ITEM]
-        immaterial = any(states_immaterial(e.quote) for e in kept) or any(
-            states_immaterial(pool[e.chunk_id]["content"]) for e in outside
-        )
-        if risk.impact == "High" and immaterial:
-            risk.impact = "Medium"
-            risk.adjustments.append(_NOTE_IMMATERIAL)
-        elif (
-            risk.impact == "High"
-            and risk.risk_category == "Regulatory & Legal"
-            and len(outside) == len(kept)
-            and not risk.quantified_exposure
-        ):
-            risk.impact = "Medium"
-            risk.adjustments.append(_NOTE_LEGAL_OUTSIDE)
-
-        if risk.impact == "High" and not substantiates_high_impact([e.quote for e in kept], risk.quantified_exposure):
-            risk.impact = "Medium"
-            risk.adjustments.append(_NOTE_UNSUBSTANTIATED)
-
-        if risk.impact != "Low" and not risk.quantified_exposure and is_boilerplate(f"{risk.risk_title} {risk.risk_summary}"):
-            risk.impact = "Low"
-            risk.adjustments.append(_NOTE_BOILERPLATE)
-
-        risk.severity = derive_severity(risk.likelihood, risk.impact)
-        return True
-
-    @staticmethod
-    def _verify_evidence(ev: Optional[RiskEvidence], pool: Dict[str, Dict[str, Any]]) -> Optional[RiskEvidence]:
-        """Matches a quote to its claimed chunk (exact or near-verbatim), else to any pooled chunk (exact)."""
-        if ev is None or not pool:
-            return None
-        hit = find_quote_chunk(ev.quote, ev.chunk_id, pool)
-        if hit is None:
-            return None
-        return RiskEvidence(
-            chunk_id=hit["chunk_id"],
-            quote=ev.quote,
-            item=hit.get("item"),
-            breadcrumb=hit.get("breadcrumb"),
-            verified=True,
-        )
-
-    def _merge_duplicates(self, risks: List[RiskItem]) -> Tuple[List[RiskItem], Dict[int, RiskItem]]:
-        """Folds duplicate risks into the higher-ranked one. Returns (survivors, {id(absorbed): survivor})."""
-        survivors: List[RiskItem] = []
-        absorbed: Dict[int, RiskItem] = {}
-        for risk in sorted(risks, key=rank_key):
-            base = next((s for s in survivors if self._is_duplicate(s, risk)), None)
-            if base is None:
-                survivors.append(risk)
-                continue
-            self._absorb(base, risk)
-            absorbed[id(risk)] = base
-        return survivors, absorbed
-
-    @staticmethod
-    def _is_duplicate(a: RiskItem, b: RiskItem) -> bool:
-        similarity = _jaccard(_title_tokens(a.risk_title), _title_tokens(b.risk_title))
-        if similarity >= DUPLICATE_TITLE_JACCARD:
-            return True
-        shared = {e.chunk_id for e in a.evidence} & {e.chunk_id for e in b.evidence}
-        return bool(shared) and similarity >= DUPLICATE_TITLE_JACCARD_SHARED_CHUNK
-
-    @staticmethod
-    def _absorb(base: RiskItem, other: RiskItem) -> None:
-        seen = {(e.chunk_id, normalize_text(e.quote)) for e in base.evidence}
-        for e in other.evidence:
-            key = (e.chunk_id, normalize_text(e.quote))
-            if key not in seen:
-                seen.add(key)
-                base.evidence.append(e)
-        base.likelihood = higher_level(base.likelihood, other.likelihood)
-        base.impact = higher_level(base.impact, other.impact)
-        base.severity = derive_severity(base.likelihood, base.impact)
-        base.financial_transmission = list(dict.fromkeys(base.financial_transmission + other.financial_transmission))
-        base.monitoring_signposts = list(dict.fromkeys(base.monitoring_signposts + other.monitoring_signposts))[:MAX_SIGNPOSTS]
-        if not base.quantified_exposure and other.quantified_exposure:
-            base.quantified_exposure = other.quantified_exposure
-        if not base.mitigating_factors and other.mitigating_factors:
-            base.mitigating_factors = other.mitigating_factors
-            base.mitigation_evidence = other.mitigation_evidence
-        base.adjustments.append(f"Merged duplicate risk: '{other.risk_title}'.")
 
     @staticmethod
     def _check_quantified_coverage(
