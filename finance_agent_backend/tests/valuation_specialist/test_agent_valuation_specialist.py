@@ -22,6 +22,7 @@ from app.agents.specialized.valuation_specialist.modules.intrinsic_value.calcula
     dcf_fair_value_per_share,
 )
 from app.agents.tools.forecast_model import project_with_overrides
+from app.agents.specialized.valuation_specialist.write import summarize_from_template
 from app.config import settings
 from tests.forecast_fixtures import (
     make_aapl_audit,
@@ -65,7 +66,7 @@ class TestValuationSpecialistAgent(unittest.TestCase):
         self.assertIn("four short paragraphs", system)
 
         v = make_valuation_output()
-        query = render_prompt("valuation_specialist", "prompt_valuation_query.j2", v=v)
+        query = render_prompt("valuation_specialist", "write.j2", v=v)
         self.assertIn(f"${v.implied_fair_value_per_share:.2f}/share", query)
         self.assertIn("probability-weighted", query)
         self.assertIn(v.wacc_audit.risk_free_rate_source, query)
@@ -271,17 +272,6 @@ class TestBuildValuationEdges(unittest.TestCase):
 
 
 
-class TestCommentaryTruncation(unittest.TestCase):
-    def test_trailing_fragment_is_trimmed(self):
-        from app.agents.specialized.valuation_specialist.agent_valuation_specialist import trim_to_complete_sentence
-
-        cut = "Fair value is $83.75 per share. The reverse DCF implies 23.0% growth, which is significantly higher than the modeled growth"
-        self.assertEqual(trim_to_complete_sentence(cut), "Fair value is $83.75 per share.")
-        whole = 'The base case is "Overvalued." Margin of safety is -68.1%.'
-        self.assertEqual(trim_to_complete_sentence(whole), whole)
-        self.assertEqual(trim_to_complete_sentence("no sentence end at all"), "no sentence end at all")
-
-
 class TestCommentaryCallSettings(unittest.TestCase):
     def test_commentary_call_has_system_prompt_cap_and_five_retries(self):
         from app.agents.specialized.valuation_specialist.agent_valuation_specialist import COMMENTARY_MAX_TOKENS
@@ -398,11 +388,11 @@ class TestReverseDcfInBuildValuation(unittest.TestCase):
     def test_template_and_prompt_carry_reverse_dcf(self):
         out = make_valuation_output()
         self.assertIn("Reverse DCF:", out.valuation_summary)
-        query = render_prompt("valuation_specialist", "prompt_valuation_query.j2", v=out)
+        query = render_prompt("valuation_specialist", "write.j2", v=out)
         self.assertIn("- Reverse DCF:", query)
         self.assertIn("WACC rows x terminal RONIC columns", query)
         self.assertIn("EV/NOPAT", query)
-        self.assertIn("WACC x RONIC", ValuationSpecialistAgent._template_summary(out))
+        self.assertIn("WACC x RONIC", summarize_from_template(out))
 
 
 class TestValuationRonicAndMultiples(unittest.TestCase):

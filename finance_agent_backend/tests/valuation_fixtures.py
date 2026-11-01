@@ -5,9 +5,10 @@ from typing import Optional
 
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
-from app.agents.specialized.valuation_specialist.agent_valuation_specialist import ValuationSpecialistAgent, build_valuation
+from app.agents.specialized.valuation_specialist.agent_valuation_specialist import build_valuation
 from app.agents.specialized.valuation_specialist.context import MarketInputs
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
+from app.agents.specialized.valuation_specialist.write import summarize_from_template
 from tests.forecast_fixtures import make_aapl_audit, make_forecast_output
 
 VALUATION_DATE = date(2026, 10, 11)
@@ -56,6 +57,6 @@ def make_valuation_output(
     )
     return DCFValuationOutput(
         **build.model_dump(),
-        valuation_summary=ValuationSpecialistAgent._template_summary(build),
+        valuation_summary=summarize_from_template(build),
         commentary_source="template",
     )
