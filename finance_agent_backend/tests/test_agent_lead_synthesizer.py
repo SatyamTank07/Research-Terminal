@@ -31,10 +31,8 @@ from app.agents.specialized.risk_analyst import (
     RiskItem,
 )
 from app.agents.specialized.valuation_specialist import DCFValuationOutput
-from app.agents.specialized.risk_analyst.modules.disclosure_changes.calculate import (
-    render_risk_evidence_table,
-    render_risk_matrix_markdown,
-)
+from app.agents.specialized.risk_analyst.assemble import render_risk_evidence_table
+from app.agents.specialized.risk_analyst.modules.risk_profile import render_risk_matrix_markdown
 from app.agents.specialized.financial_auditor.agent_financial_auditor import build_audit
 from app.agents.specialized.financial_auditor.context.audit_inputs import AnnualFinancialInput, BalanceSheetInput
 from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import (

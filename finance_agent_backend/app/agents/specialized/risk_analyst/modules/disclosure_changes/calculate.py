@@ -1,13 +1,11 @@
 """Year-over-year Item 1A comparison: which sentences are unchanged, modified, new or removed, and whether a
 risk's quotes are new, expanded or unchanged versus the prior filing (3-word-shingle Jaccard / containment).
-
-Until their own modules take them, this file also holds the overall profile and the markdown renderers. Nothing
-here calls an LLM.
+Nothing here calls an LLM.
 """
 
 import re
 from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from app.agents.shared.filing.sentences import split_sentences, split_words
@@ -170,57 +168,6 @@ def classify_disclosure_change(quotes: Sequence[str], prior_index: Optional[Sent
     return "Unchanged"
 
 
-# ==============================================================================
-# 2. Profile
-# ==============================================================================
-def derive_overall_profile(severities: Sequence[str]) -> str:
-    """Aggregate rating; "Not Assessed" when no verified risk exists (never a reassuring "Low")."""
-    if not severities:
-        return "Not Assessed"
-    severe = sum(1 for s in severities if s == "Severe")
-    moderate = sum(1 for s in severities if s == "Moderate")
-    if severe >= 2:
-        return "High"
-    if severe == 1 or moderate >= 3:
-        return "Moderate"
-    return "Low"
-
-
-# ==============================================================================
-# 3. Markdown renderers
-# ==============================================================================
-def _cell(text: Any) -> str:
-    return str(text if text not in (None, "") else "—").replace("|", "/").replace("\n", " ")
-
-
-def render_risk_matrix_markdown(risks: Sequence[Any]) -> str:
-    """Renders the verified likelihood x impact risk matrix (accepts RiskItem models or dicts)."""
-    if not risks:
-        return "_No risks survived evidence verification against the filing._"
-    get = (lambda r, k: r.get(k)) if isinstance(risks[0], dict) else getattr
-    lines = [
-        "| # | Risk | Category | Likelihood | Impact | Severity | Model line(s) hit | vs prior year |",
-        "| :--- | :--- | :--- | :---: | :---: | :---: | :--- | :---: |",
-    ]
-    for r in risks:
-        transmission = get(r, "financial_transmission") or []
-        lines.append(
-            f"| {_cell(get(r, 'risk_id'))} | {_cell(get(r, 'risk_title'))} | {_cell(get(r, 'risk_category'))} | "
-            f"{_cell(get(r, 'likelihood'))} | {_cell(get(r, 'impact'))} | **{_cell(get(r, 'severity'))}** | "
-            f"{_cell(', '.join(transmission))} | {_cell(get(r, 'disclosure_change'))} |"
-        )
-    return "\n".join(lines)
-
-
-def render_risk_evidence_table(citations: Sequence[Dict[str, Any]]) -> str:
-    if not citations:
-        return "_No verified filing evidence._"
-    lines = ["| Chunk ID | Section | Breadcrumb |", "| :--- | :--- | :--- |"]
-    for c in citations:
-        lines.append(f"| `{_cell(c.get('chunk_id'))}` | {_cell(c.get('item'))} | {_cell(c.get('breadcrumb'))} |")
-    return "\n".join(lines)
-
-
 __all__ = [
     "SentenceIndex",
     "is_preamble",
@@ -228,7 +175,4 @@ __all__ = [
     "build_prior_index",
     "diff_risk_disclosures",
     "classify_disclosure_change",
-    "derive_overall_profile",
-    "render_risk_matrix_markdown",
-    "render_risk_evidence_table",
 ]

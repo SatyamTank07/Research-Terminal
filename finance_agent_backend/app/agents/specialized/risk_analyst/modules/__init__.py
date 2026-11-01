@@ -4,4 +4,5 @@ MODULES = (
     "disclosure_changes",
     "quantified_exposures",
     "risk_inventory",
+    "risk_profile",
 )

@@ -18,6 +18,7 @@ from app.agents.shared.filing.narrative_search import retrieve_10k_narrative_too
 from app.agents.shared.filing.sections import build_section_context
 from app.agents.shared.llm_call import complete_once
 from app.agents.shared.prompts import render_prompt
+from app.agents.specialized.risk_analyst.assemble import render_risk_evidence_table
 from app.agents.specialized.risk_analyst.context import (
     RISK_SECTION_ITEM,
     coverage_notes,
@@ -31,18 +32,18 @@ from app.agents.specialized.risk_analyst.modules.disclosure_changes import (
     classify_disclosure_change,
     diff_risk_disclosures,
 )
-from app.agents.specialized.risk_analyst.modules.disclosure_changes.calculate import (
-    derive_overall_profile,
-    render_risk_evidence_table,
-    render_risk_matrix_markdown,
-)
 from app.agents.specialized.risk_analyst.modules.quantified_exposures import (
     check_quantified_coverage,
     extract_quantified_disclosures,
     repair_targets,
 )
 from app.agents.specialized.risk_analyst.modules.risk_inventory import sanitize_risk, verify_inventory
-from app.agents.specialized.risk_analyst.ratings import rank_key
+from app.agents.specialized.risk_analyst.modules.risk_profile import (
+    derive_overall_profile,
+    rank_risks,
+    render_risk_matrix_markdown,
+    resolve_primary_threat,
+)
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
     RiskAuditOutput,
     RiskDataQuality,
@@ -50,9 +51,6 @@ from app.agents.specialized.risk_analyst.state_risk_analyst import (
 )
 
 logger = logging.getLogger("finance_agent.agents.risk_analyst")
-
-MAX_RISKS = 8
-MIN_RISKS = 5
 
 
 @AgentRegistry.register("risk_analyst")
@@ -295,22 +293,24 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         dq.risks_dropped_unverified += inventory.dropped_unverified
         survivors, absorbed = inventory.survivors, inventory.absorbed
         dq.risks_merged = len(absorbed)
-        ranked = sorted(survivors, key=rank_key)
-        if len(ranked) > MAX_RISKS:
-            dq.notes.append(f"{len(ranked) - MAX_RISKS} lower-ranked verified risks omitted (cap of {MAX_RISKS}).")
-            ranked = ranked[:MAX_RISKS]
-        if len(ranked) < MIN_RISKS:
-            dq.notes.append(f"Only {len(ranked)} risks survived evidence verification (target {MIN_RISKS}-{MAX_RISKS}).")
+        profile = rank_risks(survivors)
+        ranked = profile.risks
+        dq.notes.extend(profile.notes)
 
-        for i, risk in enumerate(ranked, start=1):
-            risk.risk_id = f"R{i}"
+        for risk in ranked:
             risk.disclosure_change = classify_disclosure_change(
                 [e.quote for e in risk.evidence if e.item == RISK_SECTION_ITEM], run["prior_index"]
             )
 
         output.identified_risks = ranked
         self._check_quantified_coverage(ranked, run["quantified"], dq, run)
-        self._resolve_primary_threat(output, chosen, absorbed, dq)
+        threat = resolve_primary_threat(
+            ranked, chosen, absorbed, output.primary_threat_risk_id, output.primary_existential_threat
+        )
+        output.primary_threat_risk_id = threat.risk_id
+        output.primary_existential_threat = threat.statement
+        if threat.note:
+            dq.notes.append(threat.note)
         output.overall_risk_profile = derive_overall_profile([r.severity for r in ranked])
         output.citations = self._build_citations(ranked, pool)
         output.risk_matrix_markdown = render_risk_matrix_markdown(ranked)
@@ -331,38 +331,6 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
         dq.quantified_uncovered = list(coverage.listed)
         if coverage.note:
             dq.notes.append(coverage.note)
-
-    @staticmethod
-    def _resolve_primary_threat(
-        output: RiskAuditOutput,
-        chosen: Optional[RiskItem],
-        absorbed: Dict[int, RiskItem],
-        dq: RiskDataQuality,
-    ) -> None:
-        ranked = output.identified_risks
-        if not ranked:
-            output.primary_threat_risk_id = None
-            output.primary_existential_threat = ""
-            return
-        if chosen is not None:
-            chosen = absorbed.get(id(chosen), chosen)
-        top_severity = ranked[0].severity
-        if chosen is not None and any(r is chosen for r in ranked) and chosen.severity == top_severity:
-            output.primary_threat_risk_id = chosen.risk_id
-            if not output.primary_existential_threat:
-                output.primary_existential_threat = f"{chosen.risk_title}: {chosen.risk_summary}"
-            return
-
-        top = ranked[0]
-        if chosen is not None:
-            dq.notes.append(
-                f"Primary threat re-pointed to {top.risk_id} ('{top.risk_title}'): the model's choice "
-                f"('{chosen.risk_title}') was not among the most severe verified risks."
-            )
-        elif output.primary_threat_risk_id:
-            dq.notes.append(f"Primary threat re-pointed to {top.risk_id}: the model's choice did not survive verification.")
-        output.primary_threat_risk_id = top.risk_id
-        output.primary_existential_threat = f"{top.risk_title}: {top.risk_summary}"
 
     @staticmethod
     def _build_citations(risks: Sequence[RiskItem], pool: Dict[str, Dict[str, Any]]) -> List[Dict[str, Any]]:
