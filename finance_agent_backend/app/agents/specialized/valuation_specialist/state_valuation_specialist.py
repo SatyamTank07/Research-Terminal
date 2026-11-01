@@ -5,6 +5,7 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 
 from app.agents.specialized.valuation_specialist.modules.cost_of_capital.schema import WACCCalculationResult
+from app.agents.specialized.valuation_specialist.modules.market_implied_expectations.schema import ReverseDCFStatus
 from app.agents.specialized.valuation_specialist.modules.scenario_values.schema import ScenarioValuation
 
 WACCAudit = WACCCalculationResult
@@ -21,11 +22,6 @@ __all__ = [
 
 
 ValuationStance = Literal["Undervalued", "Fairly Valued", "Overvalued"]
-ReverseDCFStatus = Literal[
-    "solved", "price_above_range", "price_below_range", "no_solution", "price_unavailable", "forecast_unavailable"
-]
-
-
 class ValuationDataQuality(BaseModel):
     forecast_source: Literal["forecasting_analyst", "naive_5pct_fallback"]
     market_data_source: str
