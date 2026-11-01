@@ -9,6 +9,8 @@ from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import
     ForecastYear,
     GuidanceSource,
 )
+from app.agents.tools.forecast_baseline import MARGIN_FLOOR
+from app.agents.tools.forecast_model import SCENARIO_PROBABILITIES, project_with_overrides
 
 AGENT = AgentSpec(
     name="forecasting_analyst",
@@ -27,4 +29,7 @@ __all__ = [
     "ForecastOutput",
     "ForecastYear",
     "GuidanceSource",
+    "MARGIN_FLOOR",
+    "SCENARIO_PROBABILITIES",
+    "project_with_overrides",
 ]

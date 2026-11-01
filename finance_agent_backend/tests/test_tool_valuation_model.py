@@ -7,7 +7,7 @@ from app.agents.specialized.valuation_specialist import ValuationSpecialistAgent
 from app.agents.tools.dcf_tools import dcf_fair_value_per_share
 from app.agents.tools.forecast_model import project_with_overrides
 from app.agents.specialized.valuation_specialist.context import MarketInputs
-from app.agents.tools.valuation_model import (
+from app.agents.specialized.valuation_specialist.assemble import (
     REVERSE_DCF_MAX_ITERATIONS,
     REVERSE_DCF_SCAN_POINTS,
     build_valuation,
