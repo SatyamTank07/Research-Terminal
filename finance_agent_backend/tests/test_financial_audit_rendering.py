@@ -11,11 +11,11 @@ import unittest
 
 from bs4 import BeautifulSoup
 
+from app.agents.shared.prompts import render_prompt
+from app.agents.specialized.financial_auditor.context import build_statement_grids, extract_audit_inputs
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.lead_synthesizer.report_citations import NullCiter
-from app.agents.shared.prompts import render_prompt
 from app.agents.tools.financial_math_tools import run_audit_from_inputs
-from app.agents.tools.statement_extraction import build_statement_grids, extract_audit_inputs
 from app.services.ingestion.sec_parser import SECParser
 from tests.statement_fixtures import tsla_payloads
 

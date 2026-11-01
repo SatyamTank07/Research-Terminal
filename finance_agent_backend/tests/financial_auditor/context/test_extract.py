@@ -1,7 +1,7 @@
-"""Unit tests for deterministic statement parsing and line-item extraction.
+"""Unit tests for deterministic line-item extraction from parsed statement tables.
 
 Validates:
-1. Legacy `Col_n` markdown (split `$` cells, colspan drift) parses into aligned fiscal periods.
+1. Statement tables parse into aligned fiscal periods (parser itself: tests/test_financial_tables.py).
 2. TSLA FY2025 line items, including the fields the LLM previously dropped
    (short-term investments, gross profit, D&A, SBC, pretax/tax, current assets/liabilities).
 3. Share counts: weighted diluted (income statement) and period-end (equity caption), thousands -> millions.
@@ -14,78 +14,18 @@ Validates:
 import re
 import unittest
 
-from app.agents.tools.financial_math_tools import run_audit_from_inputs
-from app.agents.tools.statement_extraction import (
+from app.agents.specialized.financial_auditor.context.extract import (
     INCOME_STATEMENT_SYNONYMS,
     build_statement_grids,
     extract_audit_inputs,
 )
-from app.services.financial_tables import (
-    is_well_formed,
-    parse_statement_rows,
-    parse_statement_table,
-    parse_value_token,
-    render_clean_statement,
-)
+from app.agents.tools.financial_math_tools import run_audit_from_inputs
 from tests.statement_fixtures import (
     TSLA_FY2025_BALANCE_SHEET,
     TSLA_FY2025_INCOME_STATEMENT,
     aapl_payloads,
     tsla_payloads,
 )
-
-
-class TestFinancialTableParsing(unittest.TestCase):
-    def test_01_value_tokens(self):
-        self.assertEqual(parse_value_token("( 5,001 )"), -5001.0)
-        self.assertEqual(parse_value_token("—"), 0.0)
-        self.assertIsNone(parse_value_token("$"))
-        self.assertIsNone(parse_value_token(""))
-        self.assertEqual(parse_value_token("$3,794"), 3794.0)
-        self.assertEqual(parse_value_token("1.08"), 1.08)
-
-    def test_02_legacy_income_statement_periods_and_alignment(self):
-        grid = parse_statement_table(TSLA_FY2025_INCOME_STATEMENT)
-        self.assertEqual(grid.periods, [2025, 2024, 2023])
-        self.assertTrue(is_well_formed(grid))
-        rows = {}
-        for r in grid.value_rows:
-            rows.setdefault(r.norm_label, r)  # first occurrence (revenue section, not cost section)
-        self.assertEqual(rows["automotive sales"].values, {2025: 65821.0, 2024: 72480.0, 2023: 78509.0})
-        self.assertEqual(rows["automotive sales"].section, "revenues")
-        self.assertEqual(rows["automotive regulatory credits"].values[2024], 2763.0)
-        self.assertEqual(rows["interest expense"].values[2025], -338.0)
-        self.assertEqual(rows["restructuring and other"].values[2023], 0.0)
-
-    def test_03_balance_sheet_date_headers(self):
-        grid = parse_statement_table(TSLA_FY2025_BALANCE_SHEET)
-        self.assertEqual(grid.periods, [2025, 2024])
-
-    def test_04_clean_rendering_round_trip(self):
-        grid = parse_statement_table(TSLA_FY2025_INCOME_STATEMENT)
-        md = render_clean_statement(grid)
-        self.assertIn("| Line item | FY2025 | FY2024 | FY2023 |", md)
-        self.assertIn("| Total revenues | 94,827 | 97,690 | 96,773 |", md)
-        self.assertIn("| Provision for (benefit from) income taxes | 1,423 | 1,837 | (5,001) |", md)
-        self.assertNotIn("Col_", md)
-        reparsed = parse_statement_table(md)
-        self.assertEqual(reparsed.periods, [2025, 2024, 2023])
-        self.assertEqual(
-            {r.norm_label: r.values for r in reparsed.value_rows}["total revenues"],
-            {2025: 94827.0, 2024: 97690.0, 2023: 96773.0},
-        )
-
-    def test_05_raw_grid_rows_like_ingestion(self):
-        rows = [
-            ["", "2025", "", "2024"],
-            ["Total revenues", "$", "100", "$ 90"],
-            ["Net income", "(5", ")", "7"],
-        ]
-        grid = parse_statement_rows(rows)
-        self.assertEqual(grid.periods, [2025, 2024])
-        vals = {r.norm_label: r.values for r in grid.value_rows}
-        self.assertEqual(vals["total revenues"], {2025: 100.0, 2024: 90.0})
-        self.assertEqual(vals["net income"], {2025: -5.0, 2024: 7.0})
 
 
 class TestTeslaExtraction(unittest.TestCase):

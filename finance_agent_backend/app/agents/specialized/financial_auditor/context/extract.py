@@ -25,7 +25,7 @@ from app.services.financial_tables import (
     render_clean_statement,
 )
 
-logger = logging.getLogger("finance_agent.tools.statement_extraction")
+logger = logging.getLogger("finance_agent.agents.financial_auditor")
 
 # Share counts above this are assumed to be reported in thousands (normalized to millions).
 SHARE_THOUSANDS_THRESHOLD = 100_000.0

@@ -1,0 +1,21 @@
+"""What the Financial Auditor reads before any module runs: the audit window, the Item 8 statements and their line items."""
+
+from app.agents.specialized.financial_auditor.context.extract import (
+    ExtractionResult,
+    build_statement_grids,
+    extract_audit_inputs,
+)
+from app.agents.specialized.financial_auditor.context.fetch import (
+    STATEMENT_TYPES,
+    fetch_statement_tables,
+    resolve_audit_window,
+)
+
+__all__ = [
+    "ExtractionResult",
+    "STATEMENT_TYPES",
+    "build_statement_grids",
+    "extract_audit_inputs",
+    "fetch_statement_tables",
+    "resolve_audit_window",
+]

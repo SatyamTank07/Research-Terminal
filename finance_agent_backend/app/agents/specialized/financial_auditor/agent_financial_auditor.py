@@ -24,12 +24,16 @@ from langchain_core.tools import StructuredTool
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
-from app.agents.shared.filing.table_search import (
-    retrieve_10k_tables,
-    retrieve_10k_tables_tool,
-    retrieve_multiyear_financial_series_tool,
-)
+from app.agents.shared.filing.table_search import retrieve_10k_tables_tool, retrieve_multiyear_financial_series_tool
 from app.agents.shared.prompts import render_prompt
+from app.agents.specialized.financial_auditor.context import (
+    STATEMENT_TYPES,
+    ExtractionResult,
+    build_statement_grids,
+    extract_audit_inputs,
+    fetch_statement_tables,
+    resolve_audit_window,
+)
 from app.agents.specialized.financial_auditor.state_financial_auditor import (
     AuditDataQuality,
     FinancialAuditOutput,
@@ -45,17 +49,10 @@ from app.agents.tools.financial_math_tools import (
     audit_financial_metrics_tool,
     run_audit_from_inputs,
 )
-from app.agents.tools.statement_extraction import (
-    ExtractionResult,
-    build_statement_grids,
-    extract_audit_inputs,
-)
 from app.services.financial_tables import is_well_formed, render_clean_statement
 
 logger = logging.getLogger("finance_agent.agents.financial_auditor")
 
-STATEMENT_TYPES = ("income_statement", "balance_sheet", "cash_flow")
-MAX_FILINGS = 3
 AUDIT_TOOL_MARKERS = ("audit_financial_metrics", "refine_financial_audit")
 ANALYTIC_KEYS = (
     "multi_year_history",
@@ -118,9 +115,9 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
     ) -> FinancialAuditOutput:
         """Audits the 10-K statements for `ticker` / `fiscal_year` and returns a validated FinancialAuditOutput."""
         ticker = ticker.upper()
-        target_years = self._resolve_audit_window(fiscal_year, available_fiscal_years)
+        target_years = resolve_audit_window(fiscal_year, available_fiscal_years)
 
-        tables = self._prefetch_statement_tables(ticker, fiscal_year, available_fiscal_years)
+        tables = fetch_statement_tables(ticker, fiscal_year, available_fiscal_years)
         extraction: Optional[ExtractionResult] = None
         if tables.get("income_statement"):
             try:
@@ -196,45 +193,6 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
     # ------------------------------------------------------------------
     # Setup helpers
     # ------------------------------------------------------------------
-    @staticmethod
-    def _resolve_audit_window(fiscal_year: int, available_fiscal_years: Optional[List[int]]) -> List[int]:
-        """3 contiguous years by default; up to 5 when a filing exists for every year in the span."""
-        window = [fiscal_year - 2, fiscal_year - 1, fiscal_year]
-        if available_fiscal_years:
-            avail = {y for y in available_fiscal_years if y <= fiscal_year}
-            for candidate_min in range(fiscal_year - 4, fiscal_year - 2):
-                span = list(range(candidate_min, fiscal_year + 1))
-                if all(y in avail for y in span):
-                    return span
-        return window
-
-    def _prefetch_statement_tables(
-        self,
-        ticker: str,
-        fiscal_year: int,
-        available_fiscal_years: Optional[List[int]],
-    ) -> Dict[str, List[Dict[str, Any]]]:
-        """Retrieves the primary statements for the target filing and up to two prior filings (newest first)."""
-        from app.database import SessionLocal
-
-        prior = sorted((y for y in (available_fiscal_years or []) if y < fiscal_year), reverse=True)
-        filing_years = [fiscal_year] + prior[: MAX_FILINGS - 1]
-        tables: Dict[str, List[Dict[str, Any]]] = {st: [] for st in STATEMENT_TYPES}
-        db = None
-        try:
-            db = SessionLocal()
-            for fy in filing_years:
-                for st in STATEMENT_TYPES:
-                    for res in retrieve_10k_tables(ticker, fy, statement_type=st, limit=1, db=db):
-                        tables[st].append(res.model_dump())
-        except Exception as e:
-            logger.warning(f"Statement pre-fetch failed for {ticker} FY{fiscal_year}: {e}")
-            return {}
-        finally:
-            if db is not None:
-                db.close()
-        return tables
-
     def _configure_tools(self, mode: str, baseline_inputs: Optional[Dict[str, Any]]) -> None:
         if mode == "deterministic" and baseline_inputs is not None:
             self._run_tools = self.tools + [self._build_refine_tool(baseline_inputs)]
