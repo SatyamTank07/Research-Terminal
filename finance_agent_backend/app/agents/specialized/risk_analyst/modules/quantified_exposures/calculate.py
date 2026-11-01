@@ -8,10 +8,10 @@ from typing import List, Optional, Sequence, Tuple
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from app.agents.shared.filing.sentences import normalize_text, split_sentences
 from app.agents.specialized.risk_analyst.modules.disclosure_changes import is_preamble, shingles
-from app.agents.specialized.risk_analyst.modules.disclosure_changes.thresholds import PASSAGE_MAX_CHARS
 from app.agents.specialized.risk_analyst.modules.quantified_exposures.schema import QuantifiedDisclosure
 from app.agents.specialized.risk_analyst.modules.quantified_exposures.thresholds import (
     COVERAGE_CONTAINMENT,
+    DISCLOSURE_MAX_CHARS,
     MAX_QUANTIFIED_DISCLOSURES,
     MAX_REPAIR_DISCLOSURES,
     MAX_UNCOVERED_LISTED,
@@ -53,7 +53,7 @@ def extract_quantified_disclosures(
                 continue
             if QUANTIFIED_FIGURE.search(sentence) and _QUANTIFIED_TOPIC.search(sentence):
                 seen.add(key)
-                found.append(QuantifiedDisclosure(chunk_id=c.chunk_id, text=sentence[:PASSAGE_MAX_CHARS]))
+                found.append(QuantifiedDisclosure(chunk_id=c.chunk_id, text=sentence[:DISCLOSURE_MAX_CHARS]))
                 if len(found) >= max_items:
                     return found
     return found

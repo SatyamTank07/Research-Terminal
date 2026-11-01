@@ -1,10 +1,9 @@
-"""The rating scale: free-form ratings normalized, levels capped and compared, the severity matrix, the rank order."""
+"""The rating scale: free-form ratings normalized, levels compared, the severity matrix, the rank order."""
 
 import unittest
 from types import SimpleNamespace
 
 from app.agents.specialized.risk_analyst.ratings import (
-    cap_level,
     derive_severity,
     higher_level,
     normalize_level,
@@ -26,14 +25,12 @@ class TestSeverityMatrix(unittest.TestCase):
 
 
 class TestLevels(unittest.TestCase):
-    def test_level_normalization_and_caps(self):
+    def test_free_form_ratings_map_onto_the_scale(self):
         self.assertEqual(normalize_level("severe"), "High")
         self.assertEqual(normalize_level(" Moderate "), "Medium")
         self.assertEqual(normalize_level("low"), "Low")
         self.assertIsNone(normalize_level("unknown"))
         self.assertIsNone(normalize_level(3))
-        self.assertEqual(cap_level("High", "Medium"), "Medium")
-        self.assertEqual(cap_level("Low", "Medium"), "Low")
 
     def test_higher_level_keeps_the_more_serious_rating(self):
         self.assertEqual(higher_level("Low", "High"), "High")

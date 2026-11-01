@@ -1,6 +1,6 @@
 """State and Output Schemas for Risk & Red Flag Analyst Agent.
 
-Fields marked "set by code" are derived deterministically in the agent's post-processing
+Fields marked "set by code" are derived deterministically by the `build_risk_audit` checklist
 (quote verification, likelihood x impact severity matrix, year-over-year diff); any value the
 LLM supplies for them is overwritten.
 """

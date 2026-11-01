@@ -3,7 +3,6 @@ that turns them into a Severe / Moderate / Low severity."""
 
 from typing import Any, Optional, Tuple
 
-LEVELS = ("High", "Medium", "Low")
 SEVERITY_ORDER = {"Severe": 0, "Moderate": 1, "Low": 2}
 LEVEL_ORDER = {"High": 0, "Medium": 1, "Low": 2}
 
@@ -32,11 +31,6 @@ def normalize_level(value: Any) -> Optional[str]:
     if v in ("low", "minor", "limited", "very low"):
         return "Low"
     return None
-
-
-def cap_level(level: str, ceiling: str) -> str:
-    """Returns the lower of `level` and `ceiling` on the High > Medium > Low scale."""
-    return level if LEVEL_ORDER[level] >= LEVEL_ORDER[ceiling] else ceiling
 
 
 def higher_level(a: str, b: str) -> str:

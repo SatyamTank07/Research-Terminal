@@ -1,7 +1,7 @@
 """A material risk and the verbatim filing quotes behind it.
 
-Fields marked "set by code" are derived in verify and the risk profile (quote verification, likelihood x impact
-severity matrix, year-over-year change); any value the LLM supplies for them is overwritten.
+Fields marked "set by code" are derived after the judge (quote verification and severity in verify, rank in the
+risk profile, the year-over-year label from disclosure_changes); any value the LLM supplies for them is overwritten.
 """
 
 from typing import List, Literal, Optional

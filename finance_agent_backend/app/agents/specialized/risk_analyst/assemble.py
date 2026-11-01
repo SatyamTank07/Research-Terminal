@@ -96,7 +96,7 @@ def build_citations(risks: Sequence[RiskItem], pool: Pool) -> List[Dict[str, Any
             seen.add(ev.chunk_id)
             chunk = pool.get(ev.chunk_id, {})
             citation = {"chunk_id": ev.chunk_id}
-            for key in ("ticker", "fiscal_year", "item", "breadcrumb", "sub_section"):
+            for key in _CITATION_KEYS[1:]:
                 if chunk.get(key) is not None:
                     citation[key] = chunk[key]
             citations.append(citation)
