@@ -1,8 +1,8 @@
-"""Claim/quote relevance screen (app/agents/tools/claim_relevance.py), using quotes from a live 10-K run."""
+"""Claim/quote relevance screen (business_strategist/claim_relevance.py), using quotes from a live 10-K run."""
 
 import unittest
 
-from app.agents.tools.claim_relevance import (
+from app.agents.specialized.business_strategist.claim_relevance import (
     is_ip_boilerplate,
     moat_quote_supports,
     pricing_claim_supported,

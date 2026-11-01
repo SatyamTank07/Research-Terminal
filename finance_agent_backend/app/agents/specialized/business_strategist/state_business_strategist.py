@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
+from app.agents.specialized.business_strategist.evidence import StrategyEvidence
 from app.agents.tools.business_disclosure_tools import RevenueLineFigure, SegmentFigure
 
 MoatType = Literal[
@@ -41,19 +42,6 @@ class SegmentMoat(BaseModel):
     moat_rationale: str = Field(
         ..., description="Evidence-backed rationale for this segment's competitive defense cited from 10-K"
     )
-
-
-class StrategyEvidence(BaseModel):
-    """A verbatim filing quote that survived verification, attached to the claim it supports."""
-
-    claim: Literal[
-        "primary_moat", "secondary_moat", "segment_moat", "competitive_threat", "pricing_power", "customer_concentration"
-    ]
-    subject: Optional[str] = Field(None, description="Moat type, segment name or threat the quote supports")
-    chunk_id: str
-    quote: str
-    item: Optional[str] = Field(None, description="True 10-K item of the quoted chunk")
-    breadcrumb: Optional[str] = None
 
 
 class StrategistDataQuality(BaseModel):

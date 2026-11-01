@@ -17,7 +17,7 @@ returned, with the qualitative fields marked as not assessed.
 """
 
 import logging
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
@@ -25,7 +25,13 @@ from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.sentences import normalize_text
 from app.agents.shared.llm_call import complete_once
 from app.agents.shared.prompts import render_prompt
-from app.agents.shared.quotes import find_quote_chunk, numbers_supported
+from app.agents.shared.quotes import numbers_supported
+from app.agents.specialized.business_strategist.claim_relevance import (
+    moat_quote_supports,
+    pricing_claim_supported,
+    segment_quote_mentions,
+    threat_quote_supports,
+)
 from app.agents.specialized.business_strategist.context import (
     Pool,
     filing_items,
@@ -34,6 +40,14 @@ from app.agents.specialized.business_strategist.context import (
     pool_chunk,
     read_item1,
 )
+from app.agents.specialized.business_strategist.evidence import (
+    MAX_QUOTE_CHARS,
+    StrategyEvidence,
+    VerifyTally,
+    not_assessed,
+    text_of,
+    verify_quotes,
+)
 from app.agents.specialized.business_strategist.state_business_strategist import (
     MOAT_TYPES,
     NOT_DISCLOSED,
@@ -41,7 +55,6 @@ from app.agents.specialized.business_strategist.state_business_strategist import
     SegmentDetail,
     SegmentMoat,
     StrategistDataQuality,
-    StrategyEvidence,
 )
 from app.agents.tools.business_disclosure_tools import (
     DisclosureSentence,
@@ -54,18 +67,10 @@ from app.agents.tools.business_disclosure_tools import (
     render_revenue_mix_markdown,
     render_segment_table_markdown,
 )
-from app.agents.tools.claim_relevance import (
-    moat_quote_supports,
-    pricing_claim_supported,
-    segment_quote_mentions,
-    threat_quote_supports,
-)
 
 logger = logging.getLogger("finance_agent.agents.business_strategist")
 
 JUDGEMENT_MAX_TOKENS = 2_000
-MAX_QUOTE_CHARS = 300
-MAX_EVIDENCE_PER_CLAIM = 2
 MAX_SECONDARY_MOATS = 2
 MAX_THREATS = 4
 WIDE_MIN_QUOTES = 2
@@ -84,10 +89,6 @@ _MOAT_ALIASES: Tuple[Tuple[str, str], ...] = (
     ("efficient scale", "Efficient Scale"),
     ("no moat", "None"),
 )
-
-
-def _not_assessed(reason: str) -> str:
-    return f"Not assessed: {reason}."
 
 
 @AgentRegistry.register("business_strategist")
@@ -255,6 +256,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         segment_names = self._reportable_names(extraction)
         line_names = self._line_names(extraction)
         evidence: List[StrategyEvidence] = []
+        tally = VerifyTally()
         data = raw or {}
         assessed = raw is not None
         reason = (
@@ -263,14 +265,15 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             else "no filing text was available"
         )
 
-        moat = self._enforce_moats(data, pool, segment_names, line_names, evidence, dq) if assessed else None
-        threats = self._enforce_threats(data, pool, evidence, dq) if assessed else []
-        pricing = self._enforce_pricing(data, pool, evidence, dq) if assessed else _not_assessed(reason)
-        concentration = self._enforce_concentration(data, pool, disclosures, evidence, dq, assessed, reason)
-        details, products = self._reconcile_details(data, pool, extraction, line_names, segment_names, dq)
+        moat = self._enforce_moats(data, pool, segment_names, line_names, evidence, tally) if assessed else None
+        threats = self._enforce_threats(data, pool, evidence, tally) if assessed else []
+        pricing = self._enforce_pricing(data, pool, evidence, tally) if assessed else not_assessed(reason)
+        concentration = self._enforce_concentration(data, pool, disclosures, evidence, tally, assessed, reason)
+        details, products = self._reconcile_details(data, pool, extraction, line_names, segment_names, tally)
+        self._record_tally(tally, dq)
 
-        business_summary = self._text(data.get("business_summary")) or _not_assessed(reason)
-        revenue_architecture = self._text(data.get("revenue_architecture")) or self._deterministic_architecture(extraction, reason)
+        business_summary = text_of(data.get("business_summary")) or not_assessed(reason)
+        revenue_architecture = text_of(data.get("revenue_architecture")) or self._deterministic_architecture(extraction, reason)
 
         if moat is None:
             moat = {
@@ -279,7 +282,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
                 "segment_specific_moats": [],
                 "moat_durability": "Indeterminate",
                 "moat_trajectory": "Indeterminate",
-                "moat_rationale": _not_assessed(reason),
+                "moat_rationale": not_assessed(reason),
                 "moat_assessment": "not_assessed",
             }
 
@@ -305,62 +308,15 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             **moat,
         )
 
-    # --- evidence ---------------------------------------------------------
-    def _verify(
-        self,
-        raw_evidence: Any,
-        pool: Pool,
-        dq: StrategistDataQuality,
-        claim: str,
-        subject: Optional[str],
-        supports: Optional[Callable[[str, str], bool]] = None,
-    ) -> List[StrategyEvidence]:
-        """Verifies up to MAX_EVIDENCE_PER_CLAIM quotes: the claimed chunk (near-verbatim), else any chunk (exact).
-
-        `supports` additionally requires the quote to evidence the claim's mechanism (claim_relevance); a real
-        but off-topic quote is counted in `quotes_off_topic` and not kept.
-        """
-        if isinstance(raw_evidence, dict):
-            raw_evidence = [raw_evidence]
-        if not isinstance(raw_evidence, list):
-            return []
-        verified: List[StrategyEvidence] = []
-        seen = set()
-        for ev in raw_evidence[:MAX_EVIDENCE_PER_CLAIM]:
-            if not isinstance(ev, dict):
-                continue
-            quote = ev.get("quote")
-            chunk_id = str(ev.get("chunk_id") or "").strip()
-            if not isinstance(quote, str) or not quote.strip():
-                continue
-            quote = quote.strip()[:MAX_QUOTE_CHARS]
-            hit = find_quote_chunk(quote, chunk_id, pool)
-            if hit is None:
-                dq.quotes_rejected += 1
-                continue
-            if supports is not None and not supports(quote, hit.get("content") or ""):
-                dq.quotes_off_topic += 1
-                continue
-            key = (hit["chunk_id"], normalize_text(quote))
-            if key in seen:
-                continue
-            seen.add(key)
-            dq.quotes_verified += 1
-            verified.append(
-                StrategyEvidence(
-                    claim=claim,  # type: ignore[arg-type]
-                    subject=subject,
-                    chunk_id=hit["chunk_id"],
-                    quote=quote,
-                    item=hit.get("item"),
-                    breadcrumb=hit.get("breadcrumb"),
-                )
-            )
-        return verified
-
+    # --- judgement fields -------------------------------------------------
     @staticmethod
-    def _text(value: Any) -> str:
-        return value.strip() if isinstance(value, str) and value.strip() else ""
+    def _record_tally(tally: VerifyTally, dq: StrategistDataQuality) -> None:
+        dq.claims_proposed += tally.claims_proposed
+        dq.claims_dropped += tally.claims_dropped
+        dq.quotes_verified += tally.quotes_verified
+        dq.quotes_rejected += tally.quotes_rejected
+        dq.quotes_off_topic += tally.quotes_off_topic
+        dq.notes.extend(tally.notes)
 
     @staticmethod
     def _coerce_moat(value: Any) -> Optional[str]:
@@ -391,15 +347,15 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         segment_names: List[str],
         line_names: List[str],
         evidence: List[StrategyEvidence],
-        dq: StrategistDataQuality,
+        tally: VerifyTally,
     ) -> Dict[str, Any]:
         primary = data.get("primary_moat") if isinstance(data.get("primary_moat"), dict) else {}
         p_type = self._coerce_moat(primary.get("type"))
-        p_rationale = self._text(primary.get("rationale"))
+        p_rationale = text_of(primary.get("rationale"))
         if p_type and p_type != "None":
-            dq.claims_proposed += 1
+            tally.claims_proposed += 1
         p_evidence = (
-            self._verify(primary.get("evidence"), pool, dq, "primary_moat", p_type, lambda q, _c: moat_quote_supports(p_type, q))
+            verify_quotes(primary.get("evidence"), pool, tally, "primary_moat", p_type, lambda q, _c: moat_quote_supports(p_type, q))
             if p_type and p_type != "None" else []
         )
 
@@ -411,15 +367,15 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             s_type = self._coerce_moat(item.get("type"))
             if not s_type or s_type == "None":
                 continue
-            dq.claims_proposed += 1
-            s_evidence = self._verify(
-                item.get("evidence"), pool, dq, "secondary_moat", s_type, lambda q, _c, t=s_type: moat_quote_supports(t, q)
+            tally.claims_proposed += 1
+            s_evidence = verify_quotes(
+                item.get("evidence"), pool, tally, "secondary_moat", s_type, lambda q, _c, t=s_type: moat_quote_supports(t, q)
             )
             if not s_evidence:
-                dq.claims_dropped += 1
-                dq.notes.append(f"Secondary moat '{s_type}' dropped: no verified filing quote evidencing its mechanism.")
+                tally.claims_dropped += 1
+                tally.notes.append(f"Secondary moat '{s_type}' dropped: no verified filing quote evidencing its mechanism.")
                 continue
-            secondaries.append((s_type, self._text(item.get("rationale")), s_evidence))
+            secondaries.append((s_type, text_of(item.get("rationale")), s_evidence))
 
         assessment = "verified"
         if p_type and p_type != "None" and p_evidence:
@@ -427,8 +383,8 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         elif secondaries:
             promoted = secondaries.pop(0)
             if p_type and p_type != "None":
-                dq.claims_dropped += 1
-                dq.notes.append(
+                tally.claims_dropped += 1
+                tally.notes.append(
                     f"Primary moat '{p_type}' had no verified quote evidencing its mechanism; verified secondary moat "
                     f"'{promoted[0]}' promoted to primary."
                 )
@@ -440,8 +396,8 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         else:
             assessment = "unsupported"
             if p_type:
-                dq.claims_dropped += 1
-            dq.notes.append(
+                tally.claims_dropped += 1
+            tally.notes.append(
                 f"Primary moat {repr(p_type) if p_type else '(missing)'} had no verified filing quote evidencing its "
                 "mechanism; moat downgraded to None / Indeterminate."
             )
@@ -452,7 +408,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
                 kept_secondary.append(s_type)
                 evidence.extend(s_evidence)
 
-        segment_moats = self._enforce_segment_moats(data, pool, segment_names, line_names, evidence, dq)
+        segment_moats = self._enforce_segment_moats(data, pool, segment_names, line_names, evidence, tally)
 
         durability = _DURABILITY.get(str(data.get("moat_durability") or "").strip().lower(), "Indeterminate")
         trajectory = _TRAJECTORY.get(str(data.get("moat_trajectory") or "").strip().lower(), "Indeterminate")
@@ -460,10 +416,10 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             moat_quotes = {(e.chunk_id, normalize_text(e.quote)) for e in evidence if e.claim in ("primary_moat", "secondary_moat")}
             if durability == "Wide" and len(moat_quotes) < WIDE_MIN_QUOTES:
                 durability = "Narrow"
-                dq.notes.append(f"Durability capped at Narrow: 'Wide' needs at least {WIDE_MIN_QUOTES} distinct verified moat quotes.")
+                tally.notes.append(f"Durability capped at Narrow: 'Wide' needs at least {WIDE_MIN_QUOTES} distinct verified moat quotes.")
             elif durability == "None":
                 durability = "Indeterminate"
-                dq.notes.append("Durability 'None' contradicts a verified moat; set to Indeterminate.")
+                tally.notes.append("Durability 'None' contradicts a verified moat; set to Indeterminate.")
             rationale = p_rationale or f"{p_type} evidenced by the quoted filing disclosures."
         elif assessment == "no_moat":
             durability = durability if durability in ("None", "Indeterminate") else "None"
@@ -472,7 +428,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         else:
             p_type, durability, trajectory = "None", "Indeterminate", "Indeterminate"
             kept_secondary = []
-            rationale = _not_assessed("no proposed moat was supported by a verified filing quote that evidences its mechanism")
+            rationale = not_assessed("no proposed moat was supported by a verified filing quote that evidences its mechanism")
 
         return {
             "economic_moat_type": p_type if assessment == "verified" else "None",
@@ -491,7 +447,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         segment_names: List[str],
         line_names: List[str],
         evidence: List[StrategyEvidence],
-        dq: StrategistDataQuality,
+        tally: VerifyTally,
     ) -> List[SegmentMoat]:
         targets = segment_names or line_names
         lookup = {name_key(n): n for n in targets}
@@ -505,22 +461,22 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             name = clean_name(str(item.get("segment_name") or ""))
             if not m_type or not name:
                 continue
-            dq.claims_proposed += 1
+            tally.claims_proposed += 1
             canonical = self._match_name(name, lookup) if lookup else name
             if canonical is None:
-                dq.claims_dropped += 1
-                dq.notes.append(f"Segment moat for '{name}' dropped: not a code-extracted segment or revenue line.")
+                tally.claims_dropped += 1
+                tally.notes.append(f"Segment moat for '{name}' dropped: not a code-extracted segment or revenue line.")
                 continue
             if name_key(canonical) in seen:
                 continue
-            seg_evidence = self._verify(
-                item.get("evidence"), pool, dq, "segment_moat", canonical,
+            seg_evidence = verify_quotes(
+                item.get("evidence"), pool, tally, "segment_moat", canonical,
                 # The segment must be named in the quote or in the chunk it came from.
                 lambda q, c, t=m_type, n=canonical: moat_quote_supports(t, q) and segment_quote_mentions(n, f"{q} {c}"),
             )
             if not seg_evidence:
-                dq.claims_dropped += 1
-                dq.notes.append(
+                tally.claims_dropped += 1
+                tally.notes.append(
                     f"Segment moat for '{canonical}' dropped: no verified quote naming the segment and evidencing {m_type}."
                 )
                 continue
@@ -530,7 +486,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
                 SegmentMoat(
                     segment_name=canonical,
                     moat_type=m_type,  # type: ignore[arg-type]
-                    moat_rationale=self._text(item.get("rationale")) or f"{m_type} evidenced by the quoted disclosure.",
+                    moat_rationale=text_of(item.get("rationale")) or f"{m_type} evidenced by the quoted disclosure.",
                 )
             )
         return kept
@@ -545,49 +501,49 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
 
     # --- threats / pricing / concentration -------------------------------
     def _enforce_threats(
-        self, data: Dict[str, Any], pool: Pool, evidence: List[StrategyEvidence], dq: StrategistDataQuality
+        self, data: Dict[str, Any], pool: Pool, evidence: List[StrategyEvidence], tally: VerifyTally
     ) -> List[str]:
         raw = data.get("competitive_threats") if isinstance(data.get("competitive_threats"), list) else []
         kept: List[str] = []
         for item in raw:
             if not isinstance(item, dict):
                 continue
-            threat = self._text(item.get("threat"))
+            threat = text_of(item.get("threat"))
             if not threat:
                 continue
-            dq.claims_proposed += 1
-            t_evidence = self._verify(item.get("evidence"), pool, dq, "competitive_threat", threat,
+            tally.claims_proposed += 1
+            t_evidence = verify_quotes(item.get("evidence"), pool, tally, "competitive_threat", threat,
                                       lambda q, _c: threat_quote_supports(q))
             if not t_evidence or len(kept) >= MAX_THREATS:
-                dq.claims_dropped += 1
+                tally.claims_dropped += 1
                 continue
             kept.append(threat)
             evidence.extend(t_evidence)
         if raw and not kept:
-            dq.notes.append("No proposed competitive threat was supported by a verified filing quote.")
+            tally.notes.append("No proposed competitive threat was supported by a verified filing quote.")
         return kept
 
     def _enforce_pricing(
-        self, data: Dict[str, Any], pool: Pool, evidence: List[StrategyEvidence], dq: StrategistDataQuality
+        self, data: Dict[str, Any], pool: Pool, evidence: List[StrategyEvidence], tally: VerifyTally
     ) -> str:
         raw = data.get("pricing_power") if isinstance(data.get("pricing_power"), dict) else {}
-        assessment = self._text(raw.get("assessment"))
+        assessment = text_of(raw.get("assessment"))
         if not assessment or self._is_not_disclosed(assessment):
             return NOT_DISCLOSED
-        dq.claims_proposed += 1
-        verified = self._verify(raw.get("evidence"), pool, dq, "pricing_power", None)
+        tally.claims_proposed += 1
+        verified = verify_quotes(raw.get("evidence"), pool, tally, "pricing_power", None)
         if not verified:
-            dq.claims_dropped += 1
-            dq.notes.append("Pricing-power assessment dropped: no verified filing quote.")
+            tally.claims_dropped += 1
+            tally.notes.append("Pricing-power assessment dropped: no verified filing quote.")
             return NOT_DISCLOSED
         evidence.extend(verified)
         if not any(pricing_claim_supported(assessment, e.quote) for e in verified):
-            dq.claims_dropped += 1
-            dq.notes.append("Pricing-power claim not evidenced by its quotes (they describe pricing, not pricing power); "
+            tally.claims_dropped += 1
+            tally.notes.append("Pricing-power claim not evidenced by its quotes (they describe pricing, not pricing power); "
                             "replaced by the verified quote.")
             return f'Filing states: "{verified[0].quote}"'
         if not numbers_supported(assessment, [pool[e.chunk_id]["content"] for e in verified]):
-            dq.notes.append("Pricing-power text cited figures absent from its quotes; replaced by the verified quote.")
+            tally.notes.append("Pricing-power text cited figures absent from its quotes; replaced by the verified quote.")
             return f'Filing states: "{verified[0].quote}"'
         return assessment
 
@@ -597,20 +553,20 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         pool: Pool,
         disclosures: Sequence[DisclosureSentence],
         evidence: List[StrategyEvidence],
-        dq: StrategistDataQuality,
+        tally: VerifyTally,
         assessed: bool,
         reason: str,
     ) -> str:
         raw = data.get("customer_concentration") if isinstance(data.get("customer_concentration"), dict) else {}
-        disclosure = self._text(raw.get("disclosure"))
+        disclosure = text_of(raw.get("disclosure"))
         if assessed and disclosure and not self._is_not_disclosed(disclosure):
-            dq.claims_proposed += 1
-            verified = self._verify(raw.get("evidence"), pool, dq, "customer_concentration", None)
+            tally.claims_proposed += 1
+            verified = verify_quotes(raw.get("evidence"), pool, tally, "customer_concentration", None)
             if verified and numbers_supported(disclosure, [pool[e.chunk_id]["content"] for e in verified]):
                 evidence.extend(verified)
                 return disclosure
-            dq.claims_dropped += 1
-            dq.notes.append("Customer-concentration text lacked a verified quote or supported figures; replaced deterministically.")
+            tally.claims_dropped += 1
+            tally.notes.append("Customer-concentration text lacked a verified quote or supported figures; replaced deterministically.")
 
         # Deterministic fallback: the screened filing sentence itself, verbatim.
         revenue = [d for d in disclosures if d.kind == "revenue_concentration"]
@@ -631,7 +587,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             if revenue:
                 return f'Filing states: "{chosen.text}"'
             return f'{NOT_DISCLOSED} for revenue. Receivables: "{chosen.text}"'
-        return NOT_DISCLOSED if assessed else _not_assessed(reason)
+        return NOT_DISCLOSED if assessed else not_assessed(reason)
 
     # --- product lines ----------------------------------------------------
     def _reconcile_details(
@@ -641,7 +597,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         extraction: SegmentExtraction,
         line_names: List[str],
         segment_names: List[str],
-        dq: StrategistDataQuality,
+        tally: VerifyTally,
     ) -> Tuple[List[SegmentDetail], List[str]]:
         """segment_details / primary_product_segments follow the code-extracted revenue lines, else the
         (non-geographic) reportable segments.
@@ -662,7 +618,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
                     continue
                 by_target.setdefault(canonical, d)
             if unmatched:
-                dq.notes.append(
+                tally.notes.append(
                     f"{len(unmatched)} model-proposed product line(s) not in the extracted revenue table were dropped "
                     f"({', '.join(n for n in unmatched[:3] if n)})."
                 )
@@ -674,7 +630,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
                 details.append(
                     SegmentDetail(
                         name=name,
-                        description=self._text(d.get("description")) or self._figure_description(name, figures.get(name_key(name))),
+                        description=text_of(d.get("description")) or self._figure_description(name, figures.get(name_key(name))),
                         growth_drivers=self._drivers(d.get("growth_drivers")),
                     )
                 )
@@ -686,10 +642,10 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             name = clean_name(str(d.get("name") or ""))
             if not name or normalize_text(name) not in corpus:
                 if name:
-                    dq.notes.append(f"Product line '{name}' dropped: not named in the filing text.")
+                    tally.notes.append(f"Product line '{name}' dropped: not named in the filing text.")
                 continue
             details.append(
-                SegmentDetail(name=name, description=self._text(d.get("description")) or name, growth_drivers=self._drivers(d.get("growth_drivers")))
+                SegmentDetail(name=name, description=text_of(d.get("description")) or name, growth_drivers=self._drivers(d.get("growth_drivers")))
             )
         return details, [d.name for d in details]
 
@@ -711,7 +667,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
     def _deterministic_architecture(self, extraction: SegmentExtraction, reason: str) -> str:
         lines = [f for f in self._latest(extraction.revenue_lines) if f.parent is None]
         if not lines:
-            return _not_assessed(reason)
+            return not_assessed(reason)
         mix = ", ".join(
             f"{f.name} {f.revenue_share_pct:.1f}%" for f in lines if f.revenue_share_pct is not None
         )
