@@ -33,6 +33,7 @@ from app.agents.specialized.business_strategist.claim_relevance import (
     threat_quote_supports,
 )
 from app.agents.specialized.business_strategist.context import (
+    FilingChunk,
     Pool,
     filing_items,
     load_filing,
@@ -56,16 +57,18 @@ from app.agents.specialized.business_strategist.state_business_strategist import
     SegmentMoat,
     StrategistDataQuality,
 )
-from app.agents.tools.business_disclosure_tools import (
-    DisclosureSentence,
-    FilingChunk,
+from app.agents.specialized.business_strategist.modules.market_power import DisclosureSentence, gather_disclosures
+from app.agents.specialized.business_strategist.modules.revenue_mix import (
     SegmentExtraction,
     clean_name,
     extract_segment_disclosures,
-    find_disclosure_sentences,
+    latest_year_figures,
+    match_name,
     name_key,
     render_revenue_mix_markdown,
     render_segment_table_markdown,
+    reportable_segment_names,
+    top_level_line_names,
 )
 
 logger = logging.getLogger("finance_agent.agents.business_strategist")
@@ -126,7 +129,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         dq.chars_read = text.chars_read
         dq.notes.extend(text.notes)
 
-        disclosures = self._safe_disclosures(filing, items, set(pool))
+        disclosures = gather_disclosures(filing, items, set(pool))
         by_id = {c.chunk_id: c for c in filing}
         for d in disclosures:
             chunk = by_id.get(d.chunk_id)
@@ -160,8 +163,8 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         disclosures: Sequence[DisclosureSentence],
         callbacks: Optional[List[Any]],
     ) -> Optional[Dict[str, Any]]:
-        segment_names = self._reportable_names(extraction)
-        line_names = self._line_names(extraction)
+        segment_names = reportable_segment_names(extraction)
+        line_names = top_level_line_names(extraction)
         prompt = render_prompt(
             "business_strategist", "prompt_business_strategist_query.j2",
             ticker=ticker,
@@ -198,18 +201,8 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         )
 
     # ------------------------------------------------------------------
-    # Pre-fetch helpers (never raise)
+    # Data-quality record
     # ------------------------------------------------------------------
-    @staticmethod
-    def _safe_disclosures(
-        filing: Sequence[FilingChunk], items: Dict[str, str], exclude: set
-    ) -> List[DisclosureSentence]:
-        try:
-            return find_disclosure_sentences(filing, items, exclude_chunk_ids=exclude)
-        except Exception as e:
-            logger.warning(f"Disclosure sentence screen failed: {e}")
-            return []
-
     @staticmethod
     def _record_extraction(extraction: SegmentExtraction, dq: StrategistDataQuality) -> None:
         dq.segment_tables_found = extraction.segment_tables_found
@@ -221,22 +214,6 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         dq.consolidated_revenue = extraction.consolidated_revenue
         dq.units = extraction.units
         dq.notes.extend(extraction.notes)
-
-    # ------------------------------------------------------------------
-    # Deterministic name lists
-    # ------------------------------------------------------------------
-    @staticmethod
-    def _latest(figures: Sequence[Any]) -> List[Any]:
-        if not figures:
-            return []
-        year = max(f.fiscal_year for f in figures)
-        return [f for f in figures if f.fiscal_year == year]
-
-    def _reportable_names(self, extraction: SegmentExtraction) -> List[str]:
-        return [f.segment_name for f in self._latest(extraction.segments) if f.reportable]
-
-    def _line_names(self, extraction: SegmentExtraction) -> List[str]:
-        return [f.name for f in self._latest(extraction.revenue_lines) if f.parent is None]
 
     # ------------------------------------------------------------------
     # Assembly & enforcement
@@ -253,8 +230,8 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         items: Dict[str, str],
         dq: StrategistDataQuality,
     ) -> BusinessMoatOutput:
-        segment_names = self._reportable_names(extraction)
-        line_names = self._line_names(extraction)
+        segment_names = reportable_segment_names(extraction)
+        line_names = top_level_line_names(extraction)
         evidence: List[StrategyEvidence] = []
         tally = VerifyTally()
         data = raw or {}
@@ -462,7 +439,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             if not m_type or not name:
                 continue
             tally.claims_proposed += 1
-            canonical = self._match_name(name, lookup) if lookup else name
+            canonical = match_name(name, lookup) if lookup else name
             if canonical is None:
                 tally.claims_dropped += 1
                 tally.notes.append(f"Segment moat for '{name}' dropped: not a code-extracted segment or revenue line.")
@@ -490,14 +467,6 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
                 )
             )
         return kept
-
-    @staticmethod
-    def _match_name(name: str, lookup: Dict[str, str]) -> Optional[str]:
-        key = name_key(name)
-        if key in lookup:
-            return lookup[key]
-        candidates = [v for k, v in lookup.items() if k and (k in key or key in k)]
-        return candidates[0] if len(candidates) == 1 else None
 
     # --- threats / pricing / concentration -------------------------------
     def _enforce_threats(
@@ -612,7 +581,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             by_target: Dict[str, Dict[str, Any]] = {}
             unmatched = []
             for d in proposed:
-                canonical = self._match_name(str(d.get("name") or ""), lookup)
+                canonical = match_name(str(d.get("name") or ""), lookup)
                 if canonical is None:
                     unmatched.append(str(d.get("name") or ""))
                     continue
@@ -622,8 +591,8 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
                     f"{len(unmatched)} model-proposed product line(s) not in the extracted revenue table were dropped "
                     f"({', '.join(n for n in unmatched[:3] if n)})."
                 )
-            figures = {name_key(f.name): f for f in self._latest(extraction.revenue_lines)}
-            figures.update({name_key(f.segment_name): f for f in self._latest(extraction.segments)})
+            figures = {name_key(f.name): f for f in latest_year_figures(extraction.revenue_lines)}
+            figures.update({name_key(f.segment_name): f for f in latest_year_figures(extraction.segments)})
             details = []
             for name in targets:
                 d = by_target.get(name, {})
@@ -665,7 +634,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
         return f"{name}: FY{figure.fiscal_year} revenue ${figure.revenue:,.0f}M{share} (from the 10-K tables)."
 
     def _deterministic_architecture(self, extraction: SegmentExtraction, reason: str) -> str:
-        lines = [f for f in self._latest(extraction.revenue_lines) if f.parent is None]
+        lines = [f for f in latest_year_figures(extraction.revenue_lines) if f.parent is None]
         if not lines:
             return not_assessed(reason)
         mix = ", ".join(

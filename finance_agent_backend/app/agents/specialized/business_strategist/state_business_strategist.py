@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
 from app.agents.specialized.business_strategist.evidence import StrategyEvidence
-from app.agents.tools.business_disclosure_tools import RevenueLineFigure, SegmentFigure
+from app.agents.specialized.business_strategist.modules.revenue_mix.schema import RevenueLineFigure, SegmentFigure
 
 MoatType = Literal[
     "Network Effects",

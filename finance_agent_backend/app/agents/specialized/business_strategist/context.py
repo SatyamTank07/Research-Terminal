@@ -3,11 +3,18 @@ headings, with a search fallback, and the whole filing in order."""
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative
-from app.agents.shared.filing.sections import build_section_context, locate_section_chunks
-from app.agents.tools.business_disclosure_tools import FilingChunk, infer_section_items, load_filing_chunks
+from app.agents.shared.filing.sections import (
+    TEN_K_ITEM_ORDER,
+    build_section_context,
+    heading_item,
+    locate_section_chunks,
+)
 
 logger = logging.getLogger("finance_agent.agents.business_strategist")
 
@@ -21,6 +28,72 @@ RAG_FALLBACK_QUERIES = (
 )
 
 Pool = Dict[str, Dict[str, Any]]
+
+
+class FilingChunk(BaseModel):
+    """One stored chunk of the 10-K (narrative or table) in filing order."""
+
+    chunk_id: str
+    chunk_index: int
+    chunk_type: str
+    item: Optional[str] = None
+    breadcrumb: Optional[str] = None
+    sub_section: Optional[str] = None
+    content: str = ""
+
+
+def load_filing_chunks(ticker: str, fiscal_year: int, db: Optional[Session] = None) -> List[FilingChunk]:
+    """Returns every chunk of the 10-K for `ticker` / `fiscal_year` in filing order."""
+    from app.database import SessionLocal
+    from app.models import ANNUAL_REPORT_FILING_TYPE, Document, DocumentChunk
+
+    owns_db = db is None
+    if owns_db:
+        db = SessionLocal()
+    try:
+        rows = (
+            db.query(DocumentChunk)
+            .join(Document, Document.id == DocumentChunk.document_id)
+            .filter(
+                Document.ticker == ticker.strip().upper(),
+                Document.fiscal_year == fiscal_year,
+                Document.filing_type == ANNUAL_REPORT_FILING_TYPE,
+            )
+            .order_by(DocumentChunk.chunk_index.asc())
+            .all()
+        )
+        return [
+            FilingChunk(
+                chunk_id=str(c.id),
+                chunk_index=c.chunk_index,
+                chunk_type=c.chunk_type or "narrative",
+                item=c.item,
+                breadcrumb=c.breadcrumb,
+                sub_section=c.sub_section,
+                content=c.content or "",
+            )
+            for c in rows
+        ]
+    finally:
+        if owns_db:
+            db.close()
+
+
+def infer_section_items(chunks: Sequence[FilingChunk]) -> Dict[str, str]:
+    """Maps chunk_id -> 10-K item inferred from the filing's own section headings.
+
+    Headings only move forward through the standard item order, so cross-references and stray
+    backward mentions never re-open an earlier section. Chunks before the first heading are
+    mapped to "Cover Page".
+    """
+    mapping: Dict[str, str] = {}
+    current: Optional[str] = None
+    for chunk in chunks:
+        found = heading_item(chunk.content)
+        if found is not None and (current is None or TEN_K_ITEM_ORDER.index(found) > TEN_K_ITEM_ORDER.index(current)):
+            current = found
+        mapping[chunk.chunk_id] = f"Item {current}" if current else "Cover Page"
+    return mapping
 
 
 @dataclass(frozen=True)

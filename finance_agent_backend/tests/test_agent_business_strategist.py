@@ -21,9 +21,9 @@ from unittest.mock import MagicMock, patch
 from app.agents.registry import AgentRegistry
 from app.agents.specialized.business_strategist import BusinessMoatOutput, BusinessStrategistAgent
 from app.agents.shared.prompts import render_prompt
-from app.agents.tools.business_disclosure_tools import FilingChunk
+from app.agents.specialized.business_strategist.context import FilingChunk
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
-from tests.test_tool_business_disclosure import DISAGGREGATION, INCOME_STATEMENT, STACKED_SEGMENTS
+from tests.business_strategist.filing_fixtures import DISAGGREGATION, INCOME_STATEMENT, STACKED_SEGMENTS
 
 MODULE = "app.agents.specialized.business_strategist.agent_business_strategist"
 CONTEXT = "app.agents.specialized.business_strategist.context"
@@ -392,7 +392,7 @@ class TestRealFilingSmoke(unittest.TestCase):
     """Deterministic (no LLM) run on the ingested AAPL FY2025 10-K, skipped when not ingested."""
 
     def test_aapl_segments_and_revenue_lines(self):
-        from app.agents.tools.business_disclosure_tools import load_filing_chunks
+        from app.agents.specialized.business_strategist.context import load_filing_chunks
 
         try:
             chunks = load_filing_chunks("AAPL", 2025)

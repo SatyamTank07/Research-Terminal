@@ -8,13 +8,15 @@ from app.agents.shared.filing.sections import build_section_context
 from app.agents.specialized.business_strategist.context import (
     ITEM1_CHAR_BUDGET,
     RAG_FALLBACK_QUERIES,
+    FilingChunk,
     filing_items,
+    infer_section_items,
     load_filing,
     locate_item1,
     pool_chunk,
     read_item1,
 )
-from app.agents.tools.business_disclosure_tools import FilingChunk
+from tests.business_strategist.filing_fixtures import text
 
 CONTEXT = "app.agents.specialized.business_strategist.context"
 
@@ -44,6 +46,19 @@ class TestLocateAndLoad(unittest.TestCase):
         ]
         self.assertEqual(filing_items(filing, "item_label"), {})
         self.assertEqual(filing_items(filing, "heading_boundary"), {"h1": "Item 1", "b1": "Item 1"})
+
+    def test_infer_section_items_moves_forward_only(self):
+        chunks = [
+            FilingChunk(chunk_id="a", chunk_index=0, chunk_type="table", content="| Item 1. | Business |"),
+            text(1, "We sell things."),
+            FilingChunk(chunk_id="b", chunk_index=2, chunk_type="table", content="| Item 7. | Management's Discussion |"),
+            text(3, "As described in Item 1, revenue grew."),
+            FilingChunk(chunk_id="c", chunk_index=4, chunk_type="table", content="| Item 1A. | Risk Factors |"),
+        ]
+        items = infer_section_items(chunks)
+        self.assertEqual(items["n1"], "Item 1")
+        self.assertEqual(items["n3"], "Item 7")
+        self.assertEqual(items["c"], "Item 7")  # a backward heading never re-opens an earlier section
 
 
 class TestReadItem1(unittest.TestCase):
