@@ -15,7 +15,6 @@ The LLM only chooses inputs and normalization items; every number is produced he
 """
 
 import logging
-import re
 from typing import Any, Dict, List, Literal, Optional
 
 from langchain_core.tools import tool
@@ -28,9 +27,20 @@ from app.agents.specialized.financial_auditor.context.audit_inputs import (
     check_audit_window,
     validate_audit_inputs,
 )
-from app.agents.specialized.financial_auditor.findings import ForensicFinding, Severity, rank_findings
+from app.agents.specialized.financial_auditor.findings import ForensicFinding, rank_findings
 from app.agents.specialized.financial_auditor.modules.cash_conversion import measure_cash_conversion, screen_cash_conversion
+from app.agents.specialized.financial_auditor.modules.earnings_normalization import (
+    NormalizationAdjustment,
+    normalize_earnings,
+    screen_earnings_normalization,
+    screen_normalization_adjustments,
+)
 from app.agents.specialized.financial_auditor.modules.revenue_quality import screen_revenue_quality
+from app.agents.specialized.financial_auditor.modules.tax_quality import (
+    latest_tax_rate,
+    measure_tax_quality,
+    screen_tax_quality,
+)
 from app.agents.specialized.financial_auditor.modules.working_capital import (
     YearWorkingCapital,
     measure_working_capital,
@@ -50,42 +60,12 @@ from app.agents.specialized.financial_auditor.modules.financial_history import (
 
 logger = logging.getLogger("finance_agent.tools.financial_math")
 
-STATUTORY_TAX_RATE = 0.21
 
 # Forensic thresholds (institutional quality-of-earnings screens)
-NON_OPERATING_TO_EBIT_THRESHOLD_PCT = 20.0
-NORMALIZATION_TO_EBIT_THRESHOLD_PCT = 20.0
-ETR_LOW_PCT = 5.0
-ETR_HIGH_PCT = 40.0
-DEFERRED_TAX_TO_NI_THRESHOLD_PCT = 25.0
 CAPEX_DRIVEN_FCF_THRESHOLD_PCT = 75.0
 DILUTED_SHARE_GROWTH_THRESHOLD_PCT = 3.0
 PERIOD_END_SHARE_GROWTH_THRESHOLD_PCT = 5.0
 
-
-
-class NormalizationAdjustment(BaseModel):
-    """
-    A non-recurring or non-core item to strip from reported earnings.
-
-    - `amount`: positive magnitude in $ millions, exactly as disclosed.
-    - `direction`: "inflated_reported_earnings" for gains, credit sales, tax benefits and
-      valuation-allowance releases (normalized earnings are LOWER); "depressed_reported_earnings"
-      for charges such as impairments, restructuring and litigation (normalized earnings are HIGHER).
-    """
-
-    fiscal_year: int
-    label: str
-    amount: float = Field(..., gt=0, description="Positive magnitude in $ millions")
-    direction: Literal["inflated_reported_earnings", "depressed_reported_earnings"]
-    affects: Literal["operating_income", "net_income"] = "operating_income"
-    rationale: Optional[str] = None
-    source_chunk_id: Optional[str] = None
-
-    @property
-    def signed_effect(self) -> float:
-        """Effect on reported earnings (+ inflated, - depressed); normalized = reported - signed_effect."""
-        return self.amount if self.direction == "inflated_reported_earnings" else -self.amount
 
 
 # ==============================================================================
@@ -201,15 +181,6 @@ class FinancialAuditResult(BaseModel):
 # ==============================================================================
 # 3. Helpers
 # ==============================================================================
-def _year_tax_rate(inp: AnnualFinancialInput) -> Optional[float]:
-    """Derived effective tax rate (decimal) when pre-tax income is positive and tax is an expense."""
-    if inp.pretax_income is None or inp.income_tax_expense is None:
-        return None
-    if inp.pretax_income <= 0 or inp.income_tax_expense < 0:
-        return None
-    return inp.income_tax_expense / inp.pretax_income
-
-
 # ==============================================================================
 # 4. Core Ratio Engine
 # ==============================================================================
@@ -228,15 +199,8 @@ def calculate_financial_ratios(
     latest = history[-1]
 
     # Effective tax rate with provenance
-    tax_rate, tax_source = STATUTORY_TAX_RATE, "statutory_default_not_provided"
-    if latest_input.pretax_income is not None and latest_input.income_tax_expense is not None:
-        if latest_input.pretax_income <= 0:
-            tax_source = "statutory_fallback_due_to_pretax_loss"
-        elif latest_input.income_tax_expense < 0:
-            tax_source = "statutory_fallback_due_to_tax_benefit"
-        else:
-            tax_rate = round(latest_input.income_tax_expense / latest_input.pretax_income, 4)
-            tax_source = "derived_from_10k"
+    latest_tax = latest_tax_rate(latest_input)
+    tax_rate, tax_source = latest_tax.rate, latest_tax.source
 
     # Liquidity bridge
     sec = balance_sheet.marketable_securities or 0.0
@@ -362,62 +326,6 @@ def calculate_financial_ratios(
 # ==============================================================================
 # 5. Quality-of-Earnings & Operating Analytics
 # ==============================================================================
-_AGGREGATE_LINE_LABEL = re.compile(
-    r"non[- ]?operating|non[- ]?core income|other income|other \(expense\)|interest (and other )?income|"
-    r"total other|income dependence"
-)
-_RECURRING_COST_LABEL = re.compile(
-    r"research and development|selling, general|general and administrative|stock[- ]based|share[- ]based"
-)
-_TAX_LABEL = re.compile(r"\btax(?:es)?\b")
-_DISCRETE_TAX_EVENT = re.compile(
-    r"valuation[- ]allowance|remeasure|re-measure|settlement|tax (?:act|reform|law)|tax cuts|tcja|enact|"
-    r"repatriat|transition tax|one[- ]time|discrete|intra[- ]entity|ip transfer|uncertain tax|statute"
-)
-
-
-def screen_normalization_adjustments(
-    annual_financials: List[AnnualFinancialInput],
-    adjustments: Optional[List[NormalizationAdjustment]],
-) -> Dict[str, List[Any]]:
-    """
-    Deterministically rejects normalization items that are not discrete non-recurring disclosures:
-    out-of-window years, aggregate non-operating subtotals (already measured by the
-    NON_CORE_INCOME_DEPENDENCE screen), recurring operating costs and the recurring income tax
-    provision (only discrete tax events such as valuation-allowance releases qualify).
-    """
-    inputs = {f.fiscal_year: f for f in annual_financials}
-    accepted: List[NormalizationAdjustment] = []
-    rejected: List[Dict[str, Any]] = []
-    for adj in adjustments or []:
-        reason = None
-        f = inputs.get(adj.fiscal_year)
-        label = adj.label.lower()
-        tax_provision = abs(f.income_tax_expense) if f is not None and f.income_tax_expense else None
-        if f is None:
-            reason = f"FY{adj.fiscal_year} is outside the audited window {sorted(inputs)}"
-        elif _AGGREGATE_LINE_LABEL.search(label):
-            reason = "aggregate non-operating line; measured deterministically by NON_CORE_INCOME_DEPENDENCE"
-        elif _RECURRING_COST_LABEL.search(label):
-            reason = "recurring operating cost; not a non-recurring item"
-        elif _TAX_LABEL.search(label) and not _DISCRETE_TAX_EVENT.search(f"{label} {(adj.rationale or '').lower()}"):
-            reason = (
-                "recurring income tax provision; only discrete tax events (valuation-allowance release, "
-                "remeasurement, settlement, tax-law change) qualify, and the effective tax rate is measured separately"
-            )
-        elif tax_provision and abs(adj.amount - tax_provision) <= 0.005 * tax_provision:
-            reason = "amount equals the full income tax provision, a recurring expense"
-        elif f.pretax_income is not None:
-            non_op = f.pretax_income - f.operating_income
-            if non_op and abs(adj.amount - abs(non_op)) <= 0.005 * abs(non_op):
-                reason = "amount equals the aggregate non-operating income subtotal"
-        if reason:
-            rejected.append({**adj.model_dump(), "rejection": reason})
-        else:
-            accepted.append(adj)
-    return {"accepted": accepted, "rejected": rejected}
-
-
 def calculate_quality_of_earnings(
     annual_financials: List[AnnualFinancialInput],
     history: List[YearFinancialsResult],
@@ -427,16 +335,9 @@ def calculate_quality_of_earnings(
     """Earnings quality, working capital, capital intensity, cost structure and share-count analytics."""
     inputs = sorted(annual_financials, key=lambda x: x.fiscal_year)
     hist_map = {h.fiscal_year: h for h in history}
-    adj_by_year: Dict[int, List[NormalizationAdjustment]] = {}
-    for adj in adjustments or []:
-        if adj.fiscal_year not in hist_map:
-            raise ValueError(
-                f"normalization adjustment '{adj.label}' targets FY{adj.fiscal_year}, "
-                f"outside the audited window {sorted(hist_map)}."
-            )
-        adj_by_year.setdefault(adj.fiscal_year, []).append(adj)
-
+    normalized_by_year = {r.fiscal_year: r for r in normalize_earnings(annual_financials, history, adjustments)}
     cash_by_year = {r.fiscal_year: r for r in measure_cash_conversion(annual_financials, history, prior_total_assets)}
+    tax_by_year = {r.fiscal_year: r for r in measure_tax_quality(annual_financials)}
     eq: List[YearEarningsQuality] = []
     ci: List[YearCapitalIntensity] = []
     sh: List[YearShareCount] = []
@@ -447,21 +348,7 @@ def calculate_quality_of_earnings(
         rev = f.revenue
 
         # --- Earnings quality
-        cc = cash_by_year[f.fiscal_year]
-        non_op = round(f.pretax_income - f.operating_income, 2) if f.pretax_income is not None else None
-        year_rate = _year_tax_rate(f)
-        etr_pct = pct_of(f.income_tax_expense, f.pretax_income) if (
-            f.pretax_income not in (None, 0) and f.income_tax_expense is not None
-        ) else None
-
-        year_adj = adj_by_year.get(f.fiscal_year, [])
-        ebit_adj = round(sum(a.signed_effect for a in year_adj if a.affects == "operating_income"), 2)
-        ni_direct_adj = round(sum(a.signed_effect for a in year_adj if a.affects == "net_income"), 2)
-        after_tax_factor = 1.0 - (year_rate if year_rate is not None else STATUTORY_TAX_RATE)
-        ni_total_adj = round(ebit_adj * after_tax_factor + ni_direct_adj, 2)
-        norm_ebit = round(f.operating_income - ebit_adj, 2)
-        norm_ni = round(f.net_income - ni_total_adj, 2)
-        abs_ebit_adj = sum(abs(a.amount) for a in year_adj if a.affects == "operating_income")
+        cc, tx, nz = cash_by_year[f.fiscal_year], tax_by_year[f.fiscal_year], normalized_by_year[f.fiscal_year]
 
         eq.append(YearEarningsQuality(
             fiscal_year=f.fiscal_year,
@@ -471,18 +358,18 @@ def calculate_quality_of_earnings(
             sbc_to_ocf_pct=cc.sbc_to_ocf_pct,
             sbc_to_operating_income_pct=cc.sbc_to_operating_income_pct,
             sbc_adjusted_fcf=cc.sbc_adjusted_fcf,
-            non_operating_income=non_op,
-            non_operating_to_operating_income_pct=pct_of(non_op, f.operating_income) if f.operating_income > 0 else None,
-            effective_tax_rate_pct=etr_pct,
-            deferred_tax_to_net_income_pct=pct_of(f.deferred_income_taxes, abs(f.net_income)) if f.net_income else None,
-            adjustments=year_adj,
-            operating_income_adjustments_total=ebit_adj,
-            net_income_adjustments_total=ni_total_adj,
-            adjustments_pct_of_operating_income=pct_of(abs_ebit_adj, abs(f.operating_income)) if year_adj else None,
-            normalized_operating_income=norm_ebit,
-            normalized_operating_margin_pct=pct_of(norm_ebit, rev) or 0.0,
-            normalized_net_income=norm_ni,
-            normalized_net_margin_pct=pct_of(norm_ni, rev) or 0.0,
+            non_operating_income=nz.non_operating_income,
+            non_operating_to_operating_income_pct=nz.non_operating_to_operating_income_pct,
+            effective_tax_rate_pct=tx.effective_tax_rate_pct,
+            deferred_tax_to_net_income_pct=tx.deferred_tax_to_net_income_pct,
+            adjustments=nz.adjustments,
+            operating_income_adjustments_total=nz.operating_income_adjustments_total,
+            net_income_adjustments_total=nz.net_income_adjustments_total,
+            adjustments_pct_of_operating_income=nz.adjustments_pct_of_operating_income,
+            normalized_operating_income=nz.normalized_operating_income,
+            normalized_operating_margin_pct=nz.normalized_operating_margin_pct,
+            normalized_net_income=nz.normalized_net_income,
+            normalized_net_margin_pct=nz.normalized_net_margin_pct,
         ))
 
         # --- Capital intensity & FCF bridge
@@ -536,8 +423,6 @@ def detect_forensic_findings(
 ) -> List[ForensicFinding]:
     """Severity-ranked institutional quality-of-earnings and forensic accounting screens."""
     findings: List[ForensicFinding] = []
-    inputs = {f.fiscal_year: f for f in annual_inputs}
-    eq = {r.fiscal_year: r for r in analytics["earnings_quality"]}
     ci = {r.fiscal_year: r for r in analytics["capital_intensity"]}
     sh = {r.fiscal_year: r for r in analytics["share_count_history"]}
 
@@ -553,44 +438,6 @@ def detect_forensic_findings(
             f"NEGATIVE BOOK EQUITY WARNING: Stockholders' equity is negative "
             f"(${balance_sheet.stockholders_equity:,.1f}M). ROE, ROIC and Debt-to-Equity are suppressed as "
             f"uninterpretable.")
-
-    for yr, q in eq.items():
-        if q.non_operating_to_operating_income_pct is not None and \
-                q.non_operating_to_operating_income_pct > NON_OPERATING_TO_EBIT_THRESHOLD_PCT:
-            add("NON_CORE_INCOME_DEPENDENCE", "medium", yr, "non_operating_to_operating_income_pct",
-                q.non_operating_to_operating_income_pct, NON_OPERATING_TO_EBIT_THRESHOLD_PCT,
-                f"NON-CORE INCOME DEPENDENCE (FY{yr}): Non-operating income of ${q.non_operating_income:,.1f}M "
-                f"equals {q.non_operating_to_operating_income_pct:.1f}% of operating income; pre-tax earnings "
-                f"lean on interest and other income rather than the core business.")
-        if q.adjustments_pct_of_operating_income is not None and \
-                q.adjustments_pct_of_operating_income > NORMALIZATION_TO_EBIT_THRESHOLD_PCT:
-            labels = ", ".join(a.label for a in q.adjustments if a.affects == "operating_income")
-            add("NON_CORE_INCOME_DEPENDENCE", "high", yr, "normalization_adjustments_pct_of_operating_income",
-                q.adjustments_pct_of_operating_income, NORMALIZATION_TO_EBIT_THRESHOLD_PCT,
-                f"NORMALIZATION MATERIALITY (FY{yr}): Non-recurring / non-core items ({labels}) equal "
-                f"{q.adjustments_pct_of_operating_income:.1f}% of reported operating income; normalized operating "
-                f"income is ${q.normalized_operating_income:,.1f}M ({q.normalized_operating_margin_pct:.2f}% margin).")
-
-        f_in = inputs[yr]
-        tax_reasons = []
-        severity: Severity = "medium"
-        if f_in.income_tax_expense is not None and f_in.pretax_income is not None and f_in.pretax_income > 0:
-            if f_in.income_tax_expense < 0:
-                severity = "high"
-                tax_reasons.append(
-                    f"a ${abs(f_in.income_tax_expense):,.1f}M tax benefit on positive pre-tax income of "
-                    f"${f_in.pretax_income:,.1f}M")
-            elif q.effective_tax_rate_pct is not None and not (ETR_LOW_PCT <= q.effective_tax_rate_pct <= ETR_HIGH_PCT):
-                tax_reasons.append(f"an effective tax rate of {q.effective_tax_rate_pct:.1f}%")
-        if q.deferred_tax_to_net_income_pct is not None and \
-                abs(q.deferred_tax_to_net_income_pct) > DEFERRED_TAX_TO_NI_THRESHOLD_PCT:
-            tax_reasons.append(
-                f"a deferred tax adjustment of ${f_in.deferred_income_taxes:,.1f}M "
-                f"({q.deferred_tax_to_net_income_pct:.1f}% of net income)")
-        if tax_reasons:
-            add("TAX_ANOMALY", severity, yr, "effective_tax_rate_pct", q.effective_tax_rate_pct, None,
-                f"TAX ANOMALY (FY{yr}): Reported earnings include {'; '.join(tax_reasons)}. Net income and margins "
-                f"for this year are not comparable without normalization (e.g. valuation-allowance release).")
 
     for yr, c in ci.items():
         if c.fcf_change is not None and c.fcf_change > 0 and (c.ocf_change or 0.0) <= 0 \
@@ -623,6 +470,8 @@ def detect_forensic_findings(
                 f"equity awards, conversions or issuances, and use the period-end count for per-share value.")
 
     findings.extend(screen_cash_conversion(history, analytics["earnings_quality"]))
+    findings.extend(screen_tax_quality(annual_inputs, analytics["earnings_quality"]))
+    findings.extend(screen_earnings_normalization(analytics["earnings_quality"]))
     findings.extend(screen_margins_and_costs(history, analytics["cost_structure"]))
     findings.extend(screen_working_capital(annual_inputs, history, analytics["working_capital"]))
     findings.extend(screen_revenue_quality(annual_inputs, history))

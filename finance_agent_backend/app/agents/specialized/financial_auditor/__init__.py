@@ -4,6 +4,8 @@ from app.agents.specialized.financial_auditor.agent_financial_auditor import (
     audit_financial_statements,
     summarize_audit,
 )
+from app.agents.specialized.financial_auditor.modules.earnings_normalization import NormalizationAdjustment
+from app.agents.specialized.financial_auditor.modules.tax_quality import STATUTORY_TAX_RATE
 from app.agents.specialized.financial_auditor.state_financial_auditor import (
     AuditDataQuality,
     BalanceSheetSnapshot,
@@ -26,4 +28,6 @@ __all__ = [
     "AuditDataQuality",
     "YearFinancials",
     "BalanceSheetSnapshot",
+    "NormalizationAdjustment",
+    "STATUTORY_TAX_RATE",
 ]

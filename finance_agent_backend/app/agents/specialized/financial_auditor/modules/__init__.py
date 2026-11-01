@@ -7,4 +7,6 @@ MODULES = (
     "working_capital",
     "revenue_quality",
     "cash_conversion",
+    "tax_quality",
+    "earnings_normalization",
 )
