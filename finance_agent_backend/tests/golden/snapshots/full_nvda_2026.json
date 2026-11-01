@@ -28,7 +28,7 @@
    "type": "status"
   },
   {
-   "message": "Analyzed Item 1A risks & threats (0 verified risks, 0 severe; full-section read; no prior-year baseline)",
+   "message": "Analyzed Item 1A risks & threats (8 verified risks, 2 severe; full-section read; no prior-year baseline)",
    "node": "risk_analyst",
    "type": "status"
   },
@@ -38,7 +38,7 @@
    "type": "status"
   },
   {
-   "message": "Discounted at 10.75% (CAPM WACC); base-case DCF fair value $225.01/share (bear $155.24 - bull $320.15)",
+   "message": "Discounted at 10.75% (CAPM WACC); base-case DCF fair value $225.01/share (bear $128.51 - bull $320.15)",
    "node": "valuation_specialist",
    "type": "status"
   },
@@ -48,7 +48,7 @@
    "type": "status"
   },
   {
-   "response": "# Institutional Equity Research Report: NVIDIA CORP (NVDA)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2026) | **Valuation Stance**: **Undervalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$225.01** |\n| Bear / Bull Fair Value | $155.24 / $320.15 |\n| Probability-Weighted Fair Value | $231.35 |\n| Current Share Price[[2]](#cite-2) | $180.00 (yfinance_live) |\n| Base-Case Upside / Downside | +25.0% |\n| Valuation Stance | Undervalued |\n| Market-Implied Revenue Growth (reverse DCF) | 18.9% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 10.75% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 12.69% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 54.6% |\n| Enterprise Value | $5,054,546.3M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-54,088.0M |\n| Equity Value (as of 2026-10-28) | $5,515,841.5M |\n| Valuation Shares[[6]](#cite-6) | 24,514.0M |\n| Forecast | 10-year explicit horizon, 20.7% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business.\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: Compute & Networking, Graphics\n- **Revenue lines (ASC 606)**: Data Center, Gaming, Professional Visualization, Automotive, OEM and Other\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2026 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Compute & Networking | 193,479 | 89.6% | 66.5% | 130,141 | 67.3% | 93.4% |\n| Graphics | 22,459 | 10.4% | 57.0% | 9,156 | 40.8% | 6.6% |\n\n_Source: 10-K segment note (chunk `26b52a89-af2d-4d60-a78b-9846e216d374`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2026 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Data Center | 193,737 | 89.7% | 68.2% |\n| &nbsp;&nbsp;↳ Compute | 162,361 | 75.2% | 58.9% |\n| &nbsp;&nbsp;↳ Networking | 31,376 | 14.5% | 141.5% |\n| Gaming | 16,042 | 7.4% | 41.3% |\n| Professional Visualization | 3,191 | 1.5% | 69.9% |\n| Automotive | 2,349 | 1.1% | 38.7% |\n| OEM and Other | 619 | 0.3% | 59.1% |\n\n_Source: 10-K revenue disaggregation (chunk `40fa96f8-8f71-4703-b3b8-e81ae177bc64`); figures in USD millions as reported._\n\n- **Data Center**: Rack-scale AI compute and networking platforms. _Drivers: Blackwell architecture, AI model makers._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat[[9]](#cite-9) | **Network Effects** (verified) |\n| Secondary moats[[10]](#cite-10) | High Switching Costs |\n| Durability / trajectory | Wide / Expanding |\n| Compute & Networking[[11]](#cite-11) | Cost Advantage: Data-center-scale interconnect of compute nodes. |\n\n**Moat rationale (filing-based)**: A growing developer base and installed base make the platform more valuable to each customer.[[9]](#cite-9)\n\n**Business analysis data-quality notes**\n- Secondary moat 'Intangible Assets / Brand' dropped: no verified filing quote evidencing its mechanism.\n- Segment moat for 'Robotics' dropped: not a code-extracted segment or revenue line.\n- 1 model-proposed product line(s) not in the extracted revenue table were dropped (Networking).\n\n**Competitive threats**\n\n- Existing competitors and new entrants may offer lower-priced or better-performing products.[[12]](#cite-12)\n- China-based competitors are favoured by the Chinese government.[[13]](#cite-13)\n\n- **Pricing power**: Cheaper competing products have lowered selling prices for some NVIDIA products.[[14]](#cite-14)\n- **Customer concentration**: Two direct customers represented 22% and 14% of fiscal year 2026 revenue.[[15]](#cite-15)\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2024 | FY2025 | FY2026 |\n| :--- | ---: | ---: | ---: |\n| Revenue[[16]](#cite-16) | 60,922.0 | 130,497.0 | 215,938.0 |\n| Revenue growth %[[16]](#cite-16) | N/A | +114.2% | +65.5% |\n| Gross margin %[[16]](#cite-16) | 72.72% | 74.99% | 71.07% |\n| Operating income[[16]](#cite-16) | 32,972.0 | 81,453.0 | 130,387.0 |\n| Operating margin %[[16]](#cite-16) | 54.12% | 62.42% | 60.38% |\n| Net income (attrib.)[[16]](#cite-16) | 29,760.0 | 72,880.0 | 120,067.0 |\n| Net margin %[[16]](#cite-16) | 48.85% | 55.85% | 55.60% |\n| Operating cash flow[[17]](#cite-17) | 28,090.0 | 64,089.0 | 102,718.0 |\n| Capex[[17]](#cite-17) | 1,069.0 | 3,236.0 | 6,042.0 |\n| Free cash flow[[17]](#cite-17) | 27,021.0 | 60,853.0 | 96,676.0 |\n| FCF conversion %[[18]](#cite-18) | 90.8% | 83.5% | 80.5% |\n| Stock-based comp.[[17]](#cite-17) | 3,549.0 | 4,737.0 | 6,386.0 |\n| SBC-adjusted FCF[[17]](#cite-17) | 23,472.0 | 56,116.0 | 90,290.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2024 | FY2025 | FY2026 |\n| :--- | ---: | ---: | ---: |\n| Normalized operating income[[16]](#cite-16) | 32,972.0 | 81,453.0 | 130,387.0 |\n| Normalized operating margin %[[16]](#cite-16) | 54.12% | 62.42% | 60.38% |\n| Normalized net income[[16]](#cite-16) | 29,760.0 | 72,880.0 | 120,067.0 |\n| Adjustments % of EBIT[[16]](#cite-16) | N/A | N/A | N/A |\n| Non-operating income[[16]](#cite-16) | 846.0 | 2,573.0 | 11,063.0 |\n| Non-operating % of EBIT[[16]](#cite-16) | 2.6% | 3.2% | 8.5% |\n| Effective tax rate %[[16]](#cite-16) | 12.0% | 13.3% | 15.1% |\n| Deferred tax % of NI[[18]](#cite-18) | -8.4% | -6.1% | -1.2% |\n| Accruals (NI - OCF)[[18]](#cite-18) | 1,670.0 | 8,791.0 | 17,349.0 |\n| Sloan accruals ratio %[[1]](#cite-1) | N/A | 7.9% | 10.9% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2026)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $10,605.0M |\n| Marketable securities[[6]](#cite-6) | $51,951.0M |\n| Total liquid cash[[6]](#cite-6) | $62,556.0M |\n| Total debt[[6]](#cite-6) | $8,468.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-54,088.0M |\n| Stockholders' equity[[6]](#cite-6) | $157,293.0M |\n| Valuation share count[[6]](#cite-6) | 24,514.0M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 3.91x |\n| EBITDA[[18]](#cite-18) | $133,230.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.41x |\n| Debt / equity[[6]](#cite-6) | 0.05x |\n| Effective tax rate[[16]](#cite-16) | 15.1% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[19]](#cite-19) | 149.8% |\n| ROIC (average gross debt + equity)[[19]](#cite-19) | 87.3% |\n| ROE (average equity)[[19]](#cite-19) | 101.5% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| HIGH | CHRONIC_ACCRUAL_DEFICIT | 2026 | CHRONIC ACCRUAL DEFICIT: Operating cash flow was strictly lower than net income in every reported fiscal year, signaling persistently low cash conversion quality. |\n| MEDIUM | INVENTORY_ACCUMULATION | 2026 | INVENTORY ACCUMULATION WARNING (FY2026): Inventory increased +112.33% ($10,080.0M -> $21,403.0M), substantially exceeding revenue growth of +65.47%; this may indicate obsolescence risk or slowing sell-through. |\n| MEDIUM | HIGH_ACCRUALS | 2026 | HIGH ACCRUALS (FY2026): Sloan accruals ratio of 10.9% of average total assets; earnings are running materially ahead of operating cash flow. |\n\n- **Restatement review**: Single filing available; cross-filing restatement review not possible.\n- **Data quality**: extraction mode `deterministic`; 8/8 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 10-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 60.38%; tax 13.26% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 6 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 40.00% in year 1 to 2.50% in year 10, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 60.38% to 60.38% by year 10.\n- **Reinvestment**: CapEx starts at 2.52% of revenue from the recency-weighted 3-year audited level (latest year 2.80%, simple average 2.34%) and fades to a 5.12% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 30.0% return on new capital (base roic capped) = 8.3% of NOPAT; D&A is held at 1.32% (reported); working capital at 23.17% of incremental revenue (working_capital_days); SBC at 2.96% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2024A | FY2025A | FY2026A | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E | FY2036E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $60,922 | $130,497 | $215,938 | $302,313 | $410,632 | $540,679 | $689,366 | $850,195 | $1,013,177 | $1,165,154 | $1,291,340 | $1,377,473 | $1,411,909 |\n| Revenue Growth YoY | — | +114.2% | +65.5% | +40.0% | +35.8% | +31.7% | +27.5% | +23.3% | +19.2% | +15.0% | +10.8% | +6.7% | +2.5% |\n| Operating Income (EBIT) | — | — | — | $182,537 | $247,940 | $326,462 | $416,239 | $513,348 | $611,757 | $703,520 | $779,711 | $831,718 | $852,511 |\n| Operating Margin | 54.1% | 62.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% |\n| NOPAT (Effective Tax 13.3%) | — | — | — | $158,332 | $215,063 | $283,173 | $361,046 | $445,278 | $530,638 | $610,233 | $676,322 | $721,432 | $739,468 |\n| Capital Expenditures | — | — | — | $7,618 | $11,539 | $16,761 | $23,370 | $31,202 | $40,122 | $49,519 | $58,627 | $66,532 | $72,290 |\n| Depreciation & Amortization | — | — | — | $3,980 | $5,406 | $7,118 | $9,076 | $11,194 | $13,339 | $15,340 | $17,002 | $18,136 | $18,589 |\n| Change in Working Capital (ΔNWC) | — | — | — | $20,017 | $25,102 | $30,137 | $34,457 | $37,271 | $37,770 | $35,219 | $29,243 | $19,960 | $7,980 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $8,940 | $12,144 | $15,990 | $20,387 | $25,143 | $29,963 | $34,457 | $38,189 | $40,736 | $41,755 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$134,678** | **$183,828** | **$243,393** | **$312,296** | **$387,998** | **$466,085** | **$540,835** | **$605,454** | **$653,075** | **$677,787** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 25.3% | $5,833,632M |\n| Base | 50% | 20.7% | $4,205,429M |\n| Bear | 25% | 15.9% | $2,977,655M |\n\n**Forecast diagnostics**\n- Return on new invested capital of 117% exceeds 100%; CapEx or working-capital assumptions may understate the reinvestment growth requires.\n- CapEx intensity fades from 2.52% to a 5.12% steady state; the explicit years carry a large reinvestment transition.\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.47 | yfinance_raw (Blume-adjusted from raw 1.70) |\n| **Cost of Equity ($K_e$)** | **10.76%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 5.55% | Rf + 1.25% spread (derived rate out of band) |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **4.16%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $4,400,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $8,468.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 99.81% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 0.19% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 10.75% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **10.75%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $2,294,628.3M |\n| PV of terminal value (value_driver) | $2,759,918.0M |\n| **Enterprise value** | **$5,054,546.3M** |\n| Plus: net cash | $54,088.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $5,108,634.3M |\n| Enterprise value rolled forward 0.76 yrs @ WACC 10.75% | $5,460,005.1M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $55,836.4M |\n| **Equity value at valuation date** | **$5,515,841.5M** |\n| Diluted shares | 24,514.00M |\n| **Fair value per share** | **$225.01** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 25.3% | $5,833,632M | $320.15 | +77.9% |\n| Base | 50% | 20.7% | $4,205,429M | $225.01 | +25.0% |\n| Bear | 25% | 15.9% | $2,977,655M | $155.24 | -13.8% |\n| **Probability-weighted** | 100% | | | **$231.35** | +28.5% |\n\n**Reverse DCF**: At $180.00 the market implies 18.9% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 20.7% modeled revenue CAGR. At modeled growth the price instead needs a -11.8 pp operating-margin shift in every year (final-year margin 48.6% versus 60.4% modeled). Holding the modeled cash flows, the price corresponds to a 12.69% discount rate versus the 10.75% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **9.8%** | $248.53 | $252.98 | $257.79 | $263.00 | $268.68 |\n| **10.2%** | $232.64 | $236.36 | $240.34 | $244.65 | $249.30 |\n| **10.8%** *(Base)* | $218.58 | $221.70 | **$225.01** | $228.61 | $232.46 |\n| **11.2%** | $206.05 | $208.68 | $211.49 | $214.49 | $217.70 |\n| **11.8%** | $194.81 | $197.05 | $199.42 | $201.95 | $204.65 |\n\n| WACC \\ RONIC | 26.0% | 28.0% | 30.0% | 35.0% | 40.0% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **9.8%** | $255.69 | $256.81 | $257.79 | $259.73 | $261.19 |\n| **10.2%** | $238.46 | $239.47 | $240.34 | $242.09 | $243.41 |\n| **10.8%** *(Base)* | $223.33 | $224.24 | **$225.01** | $226.61 | $227.80 |\n| **11.2%** | $209.95 | $210.77 | $211.49 | $212.92 | $213.99 |\n| **11.8%** | $198.02 | $198.77 | $199.42 | $200.73 | $201.70 |\n\n**Valuation data-quality warnings**\n- Interest expense / average debt = 3.06% is outside the [3.30%, 15%] band (stale coupons or a scale mismatch); used Rf + 1.25% spread instead.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: not assessed\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n- 9 of 9 quantified Item 1A disclosures are not cited by any verified risk.\n- Coverage repair pass proposed no usable risks; uncited quantified disclosures remain.\n\n**Quantified Item 1A disclosures not cited by any verified risk**\n- \"Our semiconductor wafers are manufactured, assembled, tested and packaged by third parties located outside of the United States, and we generated 31% of our revenue in fiscal year 2026 from sales outside the United States.\"\n- \"For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.\"\n- \"We generate a significant amount of our revenue from a limited number of indirect customers, and we estimate some individually representing 10% or more of our revenue.\"\n- \"As a result of these requirements, we incurred a $4.5 billion charge in the first quarter of fiscal year 2026 associated with H20 for excess inventory and purchase obligations, as the demand for H20 products diminished.\"\n- \"We generated approximately $60 million in H20 revenue under those licenses.\"\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "response": "# Institutional Equity Research Report: NVIDIA CORP (NVDA)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2026) | **Valuation Stance**: **Undervalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$225.01** |\n| Bear / Bull Fair Value | $128.51 / $320.15 |\n| Probability-Weighted Fair Value | $224.67 |\n| Current Share Price[[2]](#cite-2) | $180.00 (yfinance_live) |\n| Base-Case Upside / Downside | +25.0% |\n| Valuation Stance | Undervalued |\n| Market-Implied Revenue Growth (reverse DCF) | 18.9% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 10.75% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 12.69% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 54.6% |\n| Enterprise Value | $5,054,546.3M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-54,088.0M |\n| Equity Value (as of 2026-10-28) | $5,515,841.5M |\n| Valuation Shares[[6]](#cite-6) | 24,514.0M |\n| Forecast | 10-year explicit horizon, 20.7% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business.\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: Compute & Networking, Graphics\n- **Revenue lines (ASC 606)**: Data Center, Gaming, Professional Visualization, Automotive, OEM and Other\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2026 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Compute & Networking | 193,479 | 89.6% | 66.5% | 130,141 | 67.3% | 93.4% |\n| Graphics | 22,459 | 10.4% | 57.0% | 9,156 | 40.8% | 6.6% |\n\n_Source: 10-K segment note (chunk `26b52a89-af2d-4d60-a78b-9846e216d374`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2026 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Data Center | 193,737 | 89.7% | 68.2% |\n| &nbsp;&nbsp;↳ Compute | 162,361 | 75.2% | 58.9% |\n| &nbsp;&nbsp;↳ Networking | 31,376 | 14.5% | 141.5% |\n| Gaming | 16,042 | 7.4% | 41.3% |\n| Professional Visualization | 3,191 | 1.5% | 69.9% |\n| Automotive | 2,349 | 1.1% | 38.7% |\n| OEM and Other | 619 | 0.3% | 59.1% |\n\n_Source: 10-K revenue disaggregation (chunk `40fa96f8-8f71-4703-b3b8-e81ae177bc64`); figures in USD millions as reported._\n\n- **Data Center**: Rack-scale AI compute and networking platforms. _Drivers: Blackwell architecture, AI model makers._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat[[9]](#cite-9) | **Network Effects** (verified) |\n| Secondary moats[[10]](#cite-10) | High Switching Costs |\n| Durability / trajectory | Wide / Expanding |\n| Compute & Networking[[11]](#cite-11) | Cost Advantage: Data-center-scale interconnect of compute nodes. |\n\n**Moat rationale (filing-based)**: A growing developer base and installed base make the platform more valuable to each customer.[[9]](#cite-9)\n\n**Business analysis data-quality notes**\n- Secondary moat 'Intangible Assets / Brand' dropped: no verified filing quote evidencing its mechanism.\n- Segment moat for 'Robotics' dropped: not a code-extracted segment or revenue line.\n- 1 model-proposed product line(s) not in the extracted revenue table were dropped (Networking).\n\n**Competitive threats**\n\n- Existing competitors and new entrants may offer lower-priced or better-performing products.[[12]](#cite-12)\n- China-based competitors are favoured by the Chinese government.[[13]](#cite-13)\n\n- **Pricing power**: Cheaper competing products have lowered selling prices for some NVIDIA products.[[14]](#cite-14)\n- **Customer concentration**: Two direct customers represented 22% and 14% of fiscal year 2026 revenue.[[15]](#cite-15)\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2024 | FY2025 | FY2026 |\n| :--- | ---: | ---: | ---: |\n| Revenue[[16]](#cite-16) | 60,922.0 | 130,497.0 | 215,938.0 |\n| Revenue growth %[[16]](#cite-16) | N/A | +114.2% | +65.5% |\n| Gross margin %[[16]](#cite-16) | 72.72% | 74.99% | 71.07% |\n| Operating income[[16]](#cite-16) | 32,972.0 | 81,453.0 | 130,387.0 |\n| Operating margin %[[16]](#cite-16) | 54.12% | 62.42% | 60.38% |\n| Net income (attrib.)[[16]](#cite-16) | 29,760.0 | 72,880.0 | 120,067.0 |\n| Net margin %[[16]](#cite-16) | 48.85% | 55.85% | 55.60% |\n| Operating cash flow[[17]](#cite-17) | 28,090.0 | 64,089.0 | 102,718.0 |\n| Capex[[17]](#cite-17) | 1,069.0 | 3,236.0 | 6,042.0 |\n| Free cash flow[[17]](#cite-17) | 27,021.0 | 60,853.0 | 96,676.0 |\n| FCF conversion %[[18]](#cite-18) | 90.8% | 83.5% | 80.5% |\n| Stock-based comp.[[17]](#cite-17) | 3,549.0 | 4,737.0 | 6,386.0 |\n| SBC-adjusted FCF[[17]](#cite-17) | 23,472.0 | 56,116.0 | 90,290.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2024 | FY2025 | FY2026 |\n| :--- | ---: | ---: | ---: |\n| Normalized operating income[[16]](#cite-16) | 32,972.0 | 81,453.0 | 130,387.0 |\n| Normalized operating margin %[[16]](#cite-16) | 54.12% | 62.42% | 60.38% |\n| Normalized net income[[16]](#cite-16) | 29,760.0 | 72,880.0 | 120,067.0 |\n| Adjustments % of EBIT[[16]](#cite-16) | N/A | N/A | N/A |\n| Non-operating income[[16]](#cite-16) | 846.0 | 2,573.0 | 11,063.0 |\n| Non-operating % of EBIT[[16]](#cite-16) | 2.6% | 3.2% | 8.5% |\n| Effective tax rate %[[16]](#cite-16) | 12.0% | 13.3% | 15.1% |\n| Deferred tax % of NI[[18]](#cite-18) | -8.4% | -6.1% | -1.2% |\n| Accruals (NI - OCF)[[18]](#cite-18) | 1,670.0 | 8,791.0 | 17,349.0 |\n| Sloan accruals ratio %[[1]](#cite-1) | N/A | 7.9% | 10.9% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2026)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $10,605.0M |\n| Marketable securities[[6]](#cite-6) | $51,951.0M |\n| Total liquid cash[[6]](#cite-6) | $62,556.0M |\n| Total debt[[6]](#cite-6) | $8,468.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-54,088.0M |\n| Stockholders' equity[[6]](#cite-6) | $157,293.0M |\n| Valuation share count[[6]](#cite-6) | 24,514.0M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 3.91x |\n| EBITDA[[18]](#cite-18) | $133,230.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.41x |\n| Debt / equity[[6]](#cite-6) | 0.05x |\n| Effective tax rate[[16]](#cite-16) | 15.1% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[19]](#cite-19) | 149.8% |\n| ROIC (average gross debt + equity)[[19]](#cite-19) | 87.3% |\n| ROE (average equity)[[19]](#cite-19) | 101.5% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| HIGH | CHRONIC_ACCRUAL_DEFICIT | 2026 | CHRONIC ACCRUAL DEFICIT: Operating cash flow was strictly lower than net income in every reported fiscal year, signaling persistently low cash conversion quality. |\n| MEDIUM | INVENTORY_ACCUMULATION | 2026 | INVENTORY ACCUMULATION WARNING (FY2026): Inventory increased +112.33% ($10,080.0M -> $21,403.0M), substantially exceeding revenue growth of +65.47%; this may indicate obsolescence risk or slowing sell-through. |\n| MEDIUM | HIGH_ACCRUALS | 2026 | HIGH ACCRUALS (FY2026): Sloan accruals ratio of 10.9% of average total assets; earnings are running materially ahead of operating cash flow. |\n\n- **Restatement review**: Single filing available; cross-filing restatement review not possible.\n- **Data quality**: extraction mode `deterministic`; 8/8 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 10-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 60.38%; tax 13.26% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 6 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 40.00% in year 1 to 2.50% in year 10, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 60.38% to 60.38% by year 10.\n- **Reinvestment**: CapEx starts at 2.52% of revenue from the recency-weighted 3-year audited level (latest year 2.80%, simple average 2.34%) and fades to a 5.12% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 30.0% return on new capital (base roic capped) = 8.3% of NOPAT; D&A is held at 1.32% (reported); working capital at 23.17% of incremental revenue (working_capital_days); SBC at 2.96% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2024A | FY2025A | FY2026A | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E | FY2036E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $60,922 | $130,497 | $215,938 | $302,313 | $410,632 | $540,679 | $689,366 | $850,195 | $1,013,177 | $1,165,154 | $1,291,340 | $1,377,473 | $1,411,909 |\n| Revenue Growth YoY | — | +114.2% | +65.5% | +40.0% | +35.8% | +31.7% | +27.5% | +23.3% | +19.2% | +15.0% | +10.8% | +6.7% | +2.5% |\n| Operating Income (EBIT) | — | — | — | $182,537 | $247,940 | $326,462 | $416,239 | $513,348 | $611,757 | $703,520 | $779,711 | $831,718 | $852,511 |\n| Operating Margin | 54.1% | 62.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% |\n| NOPAT (Effective Tax 13.3%) | — | — | — | $158,332 | $215,063 | $283,173 | $361,046 | $445,278 | $530,638 | $610,233 | $676,322 | $721,432 | $739,468 |\n| Capital Expenditures | — | — | — | $7,618 | $11,539 | $16,761 | $23,370 | $31,202 | $40,122 | $49,519 | $58,627 | $66,532 | $72,290 |\n| Depreciation & Amortization | — | — | — | $3,980 | $5,406 | $7,118 | $9,076 | $11,194 | $13,339 | $15,340 | $17,002 | $18,136 | $18,589 |\n| Change in Working Capital (ΔNWC) | — | — | — | $20,017 | $25,102 | $30,137 | $34,457 | $37,271 | $37,770 | $35,219 | $29,243 | $19,960 | $7,980 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $8,940 | $12,144 | $15,990 | $20,387 | $25,143 | $29,963 | $34,457 | $38,189 | $40,736 | $41,755 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$134,678** | **$183,828** | **$243,393** | **$312,296** | **$387,998** | **$466,085** | **$540,835** | **$605,454** | **$653,075** | **$677,787** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 25.3% | $5,833,632M |\n| Base | 50% | 20.7% | $4,205,429M |\n| Bear | 25% | 13.5% | $2,497,509M |\n\n**Forecast diagnostics**\n- Return on new invested capital of 117% exceeds 100%; CapEx or working-capital assumptions may understate the reinvestment growth requires.\n- CapEx intensity fades from 2.52% to a 5.12% steady state; the explicit years carry a large reinvestment transition.\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.47 | yfinance_raw (Blume-adjusted from raw 1.70) |\n| **Cost of Equity ($K_e$)** | **10.76%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 5.55% | Rf + 1.25% spread (derived rate out of band) |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **4.16%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $4,400,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $8,468.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 99.81% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 0.19% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 10.75% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **10.75%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $2,294,628.3M |\n| PV of terminal value (value_driver) | $2,759,918.0M |\n| **Enterprise value** | **$5,054,546.3M** |\n| Plus: net cash | $54,088.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $5,108,634.3M |\n| Enterprise value rolled forward 0.76 yrs @ WACC 10.75% | $5,460,005.1M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $55,836.4M |\n| **Equity value at valuation date** | **$5,515,841.5M** |\n| Diluted shares | 24,514.00M |\n| **Fair value per share** | **$225.01** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 25.3% | $5,833,632M | $320.15 | +77.9% |\n| Base | 50% | 20.7% | $4,205,429M | $225.01 | +25.0% |\n| Bear | 25% | 13.5% | $2,497,509M | $128.51 | -28.6% |\n| **Probability-weighted** | 100% | | | **$224.67** | +24.8% |\n\n**Reverse DCF**: At $180.00 the market implies 18.9% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 20.7% modeled revenue CAGR. At modeled growth the price instead needs a -11.8 pp operating-margin shift in every year (final-year margin 48.6% versus 60.4% modeled). Holding the modeled cash flows, the price corresponds to a 12.69% discount rate versus the 10.75% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **9.8%** | $248.53 | $252.98 | $257.79 | $263.00 | $268.68 |\n| **10.2%** | $232.64 | $236.36 | $240.34 | $244.65 | $249.30 |\n| **10.8%** *(Base)* | $218.58 | $221.70 | **$225.01** | $228.61 | $232.46 |\n| **11.2%** | $206.05 | $208.68 | $211.49 | $214.49 | $217.70 |\n| **11.8%** | $194.81 | $197.05 | $199.42 | $201.95 | $204.65 |\n\n| WACC \\ RONIC | 26.0% | 28.0% | 30.0% | 35.0% | 40.0% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **9.8%** | $255.69 | $256.81 | $257.79 | $259.73 | $261.19 |\n| **10.2%** | $238.46 | $239.47 | $240.34 | $242.09 | $243.41 |\n| **10.8%** *(Base)* | $223.33 | $224.24 | **$225.01** | $226.61 | $227.80 |\n| **11.2%** | $209.95 | $210.77 | $211.49 | $212.92 | $213.99 |\n| **11.8%** | $198.02 | $198.77 | $199.42 | $200.73 | $201.70 |\n\n**Valuation data-quality warnings**\n- Interest expense / average debt = 3.06% is outside the [3.30%, 15%] band (stale coupons or a scale mismatch); used Rf + 1.25% spread instead.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **High** | **Severe Risks**: 2 of 8 | **Disclosure Baseline**: not assessed\n\nRisk disclosures focus on competition and regulation.\n\n| # | Risk | Category | Likelihood | Impact | Severity | Model line(s) hit | vs prior year |\n| :--- | :--- | :--- | :---: | :---: | :---: | :--- | :---: |\n| R1 | Direct customer concentration | Supply Chain & Concentration | High | High | **Severe** | Revenue | Not Assessed |\n| R2 | China export controls | Regulatory & Legal | High | High | **Severe** | Revenue, Gross Margin, Terminal Value | Not Assessed |\n| R3 | Foundry dependence | Supply Chain & Concentration | Medium | Medium | **Moderate** | Gross Margin, Capex & Working Capital | Not Assessed |\n| R4 | Competitive pricing pressure | Competitive & Demand | Medium | Medium | **Moderate** | Revenue, Gross Margin | Not Assessed |\n| R5 | Security breaches and cyber-attacks | Technological & Cybersecurity | Medium | Medium | **Moderate** | Operating Expenses | Not Assessed |\n| R6 | International revenue exposure | Macroeconomic & Geopolitical | Medium | Medium | **Moderate** | Revenue | Not Assessed |\n| R7 | USG revenue share on licensed China sales | Regulatory & Legal | Medium | Medium | **Moderate** | Revenue | Not Assessed |\n| R8 | Stock price volatility | Financial & Capital Structure | High | Low | **Low** | Cost of Capital | Not Assessed |\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\n#### R1 — Direct customer concentration\n- **Disclosure**: Two direct customers account for over a third of revenue.[[20]](#cite-20)[[21]](#cite-21)\n- **Quantified exposure**: 22% and 14% of total revenue\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue\n- **Signposts to monitor**: Customer mix disclosures; Hyperscaler capex guidance; Disclosure updates in the next 10-K\n\n#### R2 — China export controls\n- **Disclosure**: USG licensing requirements for H20 led to an inventory and purchase-obligation charge.[[22]](#cite-22)[[23]](#cite-23)\n- **Quantified exposure**: $4.5 billion charge\n- **Filing-stated mitigation**: The company seeks to comply strictly with export control regulations.[[24]](#cite-24)\n- **Model lines hit**: Revenue, Gross Margin, Terminal Value\n- **Signposts to monitor**: Disclosure updates in the next 10-K; New BIS rules\n\n#### R3 — Foundry dependence\n- **Disclosure**: Wafers are made by third-party foundries.[[25]](#cite-25)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Gross Margin, Capex & Working Capital\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n#### R4 — Competitive pricing pressure\n- **Disclosure**: Competitor products may be cheaper or better.[[26]](#cite-26)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue, Gross Margin\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n#### R5 — Security breaches and cyber-attacks\n- **Disclosure**: Breaches could disrupt operations.[[27]](#cite-27)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Operating Expenses\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n#### R6 — International revenue exposure\n- **Disclosure**: A large share of revenue comes from outside the United States.[[28]](#cite-28)\n- **Quantified exposure**: 31% of revenue\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n#### R7 — USG revenue share on licensed China sales\n- **Disclosure**: The USG expects a share of revenue from licensed China sales.[[29]](#cite-29)\n- **Quantified exposure**: 15% or more of the revenue\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n#### R8 — Stock price volatility\n- **Disclosure**: Operating results may fluctuate below analyst expectations and the stock price could decline.[[30]](#cite-30)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Cost of Capital\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n| Chunk ID | Section | Breadcrumb |\n| :--- | :--- | :--- |\n| `3045bbae-aa3a-4c9d-9ec8-127f188e5207` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `dc5b89ea-d453-4a06-906f-a83eb3262f20` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `5258535b-b24f-4bed-bf3e-ead4a79cfd7b` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `e316a55d-81fe-4469-89cc-96b366d21ddb` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `c7fb38ce-1a30-418e-92aa-8b7b1ad184a9` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `84fcacfd-c063-4c4d-b30c-a6064cb99d70` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `35105665-2438-49b9-bc56-5b9dfcbe0340` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `3c03af28-4236-48d5-bfe3-6a5ee668fd9b` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n\n**Risk analysis data-quality notes**\n- 1 malformed risk entries discarded (missing title or summary).\n- Coverage repair pass proposed 2 risk(s) for 3 uncited quantified disclosure(s).\n- 1 lower-ranked verified risks omitted (cap of 8).\n- 3 of 9 quantified Item 1A disclosures are not cited by any verified risk.\n- Primary threat re-pointed to R1 ('Direct customer concentration'): the model's choice ('Competitive pricing pressure') was not among the most severe verified risks.\n\n**Quantified Item 1A disclosures not cited by any verified risk**\n- \"We generated approximately $60 million in H20 revenue under those licenses.\"\n- \"If we are found not to comply, we could be subject to penalties of up to €20 million or 4% of worldwide revenue, whichever is greater, and classes of individuals or consumer protection organizations may initiate litigation related to our processing of their personal data.\"\n- \"Non-compliance with NIS2 may lead to administrative fines of a maximum of 10 million Euros or up to 2% of the total worldwide revenue of the preceding fiscal year.\"\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
    "sources": [
     {
      "chunks": [
@@ -462,6 +462,248 @@
      "n": 19,
      "provider": null,
      "quote": null,
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "3045bbae-aa3a-4c9d-9ec8-127f188e5207",
+       "chunk_index": 81,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 20,
+     "provider": null,
+     "quote": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "3045bbae-aa3a-4c9d-9ec8-127f188e5207",
+       "chunk_index": 81,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 21,
+     "provider": null,
+     "quote": "We generate a significant amount of our revenue from a limited number of indirect customers, and we estimate some individually representing 10% or more of our revenue.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+       "chunk_index": 96,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 22,
+     "provider": null,
+     "quote": "As a result of these requirements, we incurred a $4.5 billion charge in the first quarter of fiscal year 2026 associated with H20 for excess inventory and purchase obligations, as the demand for H20 products diminished.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+       "chunk_index": 96,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 23,
+     "provider": null,
+     "quote": "As a result, any H200 shipped under the new licensing program will be subject to a 25% tariff upon importation into the United States.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "5258535b-b24f-4bed-bf3e-ead4a79cfd7b",
+       "chunk_index": 103,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 24,
+     "provider": null,
+     "quote": "While we seek to strictly comply with all applicable export control regulators",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "e316a55d-81fe-4469-89cc-96b366d21ddb",
+       "chunk_index": 60,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 25,
+     "provider": null,
+     "quote": "We depend on foundries to manufacture our semiconductor wafers using their fabrication equipment and techniques.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "c7fb38ce-1a30-418e-92aa-8b7b1ad184a9",
+       "chunk_index": 50,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 26,
+     "provider": null,
+     "quote": "Our competitors’ products, services, including those mentioned above in this Annual Report on Form 10-K, may be cheaper or provide better functionality or features than ours, which has resulted and may in the future result in lower-than-expected selling prices or demand for our products.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "84fcacfd-c063-4c4d-b30c-a6064cb99d70",
+       "chunk_index": 45,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 27,
+     "provider": null,
+     "quote": "Product, system security and data protection incidents or breaches, as well as cyber-attacks could disrupt our operations and adversely affect our financial condition, stock price and reputation.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "35105665-2438-49b9-bc56-5b9dfcbe0340",
+       "chunk_index": 67,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 28,
+     "provider": null,
+     "quote": "we generated 31% of our revenue in fiscal year 2026 from sales outside the United States.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+       "chunk_index": 96,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 29,
+     "provider": null,
+     "quote": "USG officials expressed an expectation that the USG will receive 15% or more of the revenue generated from licensed sales of our products, but the USG did not publish a regulation codifying such requirement.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "3c03af28-4236-48d5-bfe3-6a5ee668fd9b",
+       "chunk_index": 46,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 30,
+     "provider": null,
+     "quote": "Our operating results have in the past fluctuated and may in the future fluctuate, and if our operating results are below the expectations of securities analysts or investors, our stock price could decline.",
      "ticker": "NVDA"
     }
    ],
@@ -981,7 +1223,7 @@
   "conversational_response": null,
   "dcf_valuation": {
    "balance_sheet_date": "2026-01-25",
-   "bear_fair_value": 155.24,
+   "bear_fair_value": 128.51,
    "bull_fair_value": 320.15,
    "commentary_source": "template",
    "current_share_price": 180.0,
@@ -1010,7 +1252,7 @@
    "modeled_revenue_cagr_pct": 20.66,
    "net_debt": -54088.0,
    "noncontrolling_interests": 0.0,
-   "probability_weighted_fair_value": 231.35,
+   "probability_weighted_fair_value": 224.67,
    "projected_fcfs": [
     134677.54,
     183828.41,
@@ -1031,7 +1273,7 @@
    "roll_forward_years": 0.7556,
    "ronic_sensitivity_matrix_markdown": "| WACC \\ RONIC | 26.0% | 28.0% | 30.0% | 35.0% | 40.0% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **9.8%** | $255.69 | $256.81 | $257.79 | $259.73 | $261.19 |\n| **10.2%** | $238.46 | $239.47 | $240.34 | $242.09 | $243.41 |\n| **10.8%** *(Base)* | $223.33 | $224.24 | **$225.01** | $226.61 | $227.80 |\n| **11.2%** | $209.95 | $210.77 | $211.49 | $212.92 | $213.99 |\n| **11.8%** | $198.02 | $198.77 | $199.42 | $200.73 | $201.70 |",
    "ronic_used_pct": 30.0,
-   "scenario_table_markdown": "| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 25.3% | $5,833,632M | $320.15 | +77.9% |\n| Base | 50% | 20.7% | $4,205,429M | $225.01 | +25.0% |\n| Bear | 25% | 15.9% | $2,977,655M | $155.24 | -13.8% |\n| **Probability-weighted** | 100% | | | **$231.35** | +28.5% |",
+   "scenario_table_markdown": "| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 25.3% | $5,833,632M | $320.15 | +77.9% |\n| Base | 50% | 20.7% | $4,205,429M | $225.01 | +25.0% |\n| Bear | 25% | 13.5% | $2,497,509M | $128.51 | -28.6% |\n| **Probability-weighted** | 100% | | | **$224.67** | +24.8% |",
    "scenario_valuations": [
     {
      "cumulative_fcf": 5833632.26,
@@ -1052,13 +1294,13 @@
      "upside_downside_pct": 25.01
     },
     {
-     "cumulative_fcf": 2977655.03,
-     "enterprise_value": 3471312.77,
-     "fair_value_per_share": 155.24,
+     "cumulative_fcf": 2497508.97,
+     "enterprise_value": 2864715.21,
+     "fair_value_per_share": 128.51,
      "name": "bear",
      "probability": 0.25,
-     "revenue_cagr_pct": 15.92,
-     "upside_downside_pct": -13.76
+     "revenue_cagr_pct": 13.52,
+     "upside_downside_pct": -28.61
     }
    ],
    "sensitivity_matrix_markdown": "| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **9.8%** | $248.53 | $252.98 | $257.79 | $263.00 | $268.68 |\n| **10.2%** | $232.64 | $236.36 | $240.34 | $244.65 | $249.30 |\n| **10.8%** *(Base)* | $218.58 | $221.70 | **$225.01** | $228.61 | $232.46 |\n| **11.2%** | $206.05 | $208.68 | $211.49 | $214.49 | $217.70 |\n| **11.8%** | $194.81 | $197.05 | $199.42 | $201.95 | $204.65 |",
@@ -1071,7 +1313,7 @@
    "upside_downside_pct": 25.01,
    "valuation_date": "2026-10-28",
    "valuation_stance": "Undervalued",
-   "valuation_summary": "Valuation bridge: the base-case DCF implies an enterprise value of $5,054,546M, of which 54.6% comes from the terminal value (value driver, 2.5% perpetual growth). After net debt of $-54,088M and noncontrolling interests of $0M, equity value is $5,515,841M, or $225.01 per share.\n\nHurdle rate: the applied discount rate is 10.75% (capm blended); CAPM cost of equity is 10.76% (beta 1.47, Rf 4.30%, ERP 4.40%) and after-tax cost of debt is 4.16% at a 0.2% debt weight.\n\nRange: bear $155.24, base $225.01, bull $320.15; probability-weighted $231.35. The WACC x growth and WACC x RONIC grids bracket the base case.\n\nMargin of safety: against a $180.00 share price the base case implies +25.0% (Undervalued). Reverse DCF: At $180.00 the market implies 18.9% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 20.7% modeled revenue CAGR. At modeled growth the price instead needs a -11.8 pp operating-margin shift in every year (final-year margin 48.6% versus 60.4% modeled). Holding the modeled cash flows, the price corresponds to a 12.69% discount rate versus the 10.75% applied.\n\nCaveats: Interest expense / average debt = 3.06% is outside the [3.30%, 15%] band (stale coupons or a scale mismatch); used Rf + 1.25% spread instead.",
+   "valuation_summary": "Valuation bridge: the base-case DCF implies an enterprise value of $5,054,546M, of which 54.6% comes from the terminal value (value driver, 2.5% perpetual growth). After net debt of $-54,088M and noncontrolling interests of $0M, equity value is $5,515,841M, or $225.01 per share.\n\nHurdle rate: the applied discount rate is 10.75% (capm blended); CAPM cost of equity is 10.76% (beta 1.47, Rf 4.30%, ERP 4.40%) and after-tax cost of debt is 4.16% at a 0.2% debt weight.\n\nRange: bear $128.51, base $225.01, bull $320.15; probability-weighted $224.67. The WACC x growth and WACC x RONIC grids bracket the base case.\n\nMargin of safety: against a $180.00 share price the base case implies +25.0% (Undervalued). Reverse DCF: At $180.00 the market implies 18.9% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 20.7% modeled revenue CAGR. At modeled growth the price instead needs a -11.8 pp operating-margin shift in every year (final-year margin 48.6% versus 60.4% modeled). Holding the modeled cash flows, the price corresponds to a 12.69% discount rate versus the 10.75% applied.\n\nCaveats: Interest expense / average debt = 3.06% is outside the [3.30%, 15%] band (stale coupons or a scale mismatch); used Rf + 1.25% spread instead.",
    "wacc_audit": {
     "beta": 1.469,
     "beta_raw": 1.7,
@@ -1109,7 +1351,7 @@
    "current_share_price": 180.0,
    "executive_summary": "The filing supports a balanced view of the business.",
    "fiscal_year": 2026,
-   "full_markdown_report": "# Institutional Equity Research Report: NVIDIA CORP (NVDA)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2026) | **Valuation Stance**: **Undervalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$225.01** |\n| Bear / Bull Fair Value | $155.24 / $320.15 |\n| Probability-Weighted Fair Value | $231.35 |\n| Current Share Price[[2]](#cite-2) | $180.00 (yfinance_live) |\n| Base-Case Upside / Downside | +25.0% |\n| Valuation Stance | Undervalued |\n| Market-Implied Revenue Growth (reverse DCF) | 18.9% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 10.75% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 12.69% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 54.6% |\n| Enterprise Value | $5,054,546.3M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-54,088.0M |\n| Equity Value (as of 2026-10-28) | $5,515,841.5M |\n| Valuation Shares[[6]](#cite-6) | 24,514.0M |\n| Forecast | 10-year explicit horizon, 20.7% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business.\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: Compute & Networking, Graphics\n- **Revenue lines (ASC 606)**: Data Center, Gaming, Professional Visualization, Automotive, OEM and Other\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2026 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Compute & Networking | 193,479 | 89.6% | 66.5% | 130,141 | 67.3% | 93.4% |\n| Graphics | 22,459 | 10.4% | 57.0% | 9,156 | 40.8% | 6.6% |\n\n_Source: 10-K segment note (chunk `26b52a89-af2d-4d60-a78b-9846e216d374`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2026 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Data Center | 193,737 | 89.7% | 68.2% |\n| &nbsp;&nbsp;↳ Compute | 162,361 | 75.2% | 58.9% |\n| &nbsp;&nbsp;↳ Networking | 31,376 | 14.5% | 141.5% |\n| Gaming | 16,042 | 7.4% | 41.3% |\n| Professional Visualization | 3,191 | 1.5% | 69.9% |\n| Automotive | 2,349 | 1.1% | 38.7% |\n| OEM and Other | 619 | 0.3% | 59.1% |\n\n_Source: 10-K revenue disaggregation (chunk `40fa96f8-8f71-4703-b3b8-e81ae177bc64`); figures in USD millions as reported._\n\n- **Data Center**: Rack-scale AI compute and networking platforms. _Drivers: Blackwell architecture, AI model makers._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat[[9]](#cite-9) | **Network Effects** (verified) |\n| Secondary moats[[10]](#cite-10) | High Switching Costs |\n| Durability / trajectory | Wide / Expanding |\n| Compute & Networking[[11]](#cite-11) | Cost Advantage: Data-center-scale interconnect of compute nodes. |\n\n**Moat rationale (filing-based)**: A growing developer base and installed base make the platform more valuable to each customer.[[9]](#cite-9)\n\n**Business analysis data-quality notes**\n- Secondary moat 'Intangible Assets / Brand' dropped: no verified filing quote evidencing its mechanism.\n- Segment moat for 'Robotics' dropped: not a code-extracted segment or revenue line.\n- 1 model-proposed product line(s) not in the extracted revenue table were dropped (Networking).\n\n**Competitive threats**\n\n- Existing competitors and new entrants may offer lower-priced or better-performing products.[[12]](#cite-12)\n- China-based competitors are favoured by the Chinese government.[[13]](#cite-13)\n\n- **Pricing power**: Cheaper competing products have lowered selling prices for some NVIDIA products.[[14]](#cite-14)\n- **Customer concentration**: Two direct customers represented 22% and 14% of fiscal year 2026 revenue.[[15]](#cite-15)\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2024 | FY2025 | FY2026 |\n| :--- | ---: | ---: | ---: |\n| Revenue[[16]](#cite-16) | 60,922.0 | 130,497.0 | 215,938.0 |\n| Revenue growth %[[16]](#cite-16) | N/A | +114.2% | +65.5% |\n| Gross margin %[[16]](#cite-16) | 72.72% | 74.99% | 71.07% |\n| Operating income[[16]](#cite-16) | 32,972.0 | 81,453.0 | 130,387.0 |\n| Operating margin %[[16]](#cite-16) | 54.12% | 62.42% | 60.38% |\n| Net income (attrib.)[[16]](#cite-16) | 29,760.0 | 72,880.0 | 120,067.0 |\n| Net margin %[[16]](#cite-16) | 48.85% | 55.85% | 55.60% |\n| Operating cash flow[[17]](#cite-17) | 28,090.0 | 64,089.0 | 102,718.0 |\n| Capex[[17]](#cite-17) | 1,069.0 | 3,236.0 | 6,042.0 |\n| Free cash flow[[17]](#cite-17) | 27,021.0 | 60,853.0 | 96,676.0 |\n| FCF conversion %[[18]](#cite-18) | 90.8% | 83.5% | 80.5% |\n| Stock-based comp.[[17]](#cite-17) | 3,549.0 | 4,737.0 | 6,386.0 |\n| SBC-adjusted FCF[[17]](#cite-17) | 23,472.0 | 56,116.0 | 90,290.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2024 | FY2025 | FY2026 |\n| :--- | ---: | ---: | ---: |\n| Normalized operating income[[16]](#cite-16) | 32,972.0 | 81,453.0 | 130,387.0 |\n| Normalized operating margin %[[16]](#cite-16) | 54.12% | 62.42% | 60.38% |\n| Normalized net income[[16]](#cite-16) | 29,760.0 | 72,880.0 | 120,067.0 |\n| Adjustments % of EBIT[[16]](#cite-16) | N/A | N/A | N/A |\n| Non-operating income[[16]](#cite-16) | 846.0 | 2,573.0 | 11,063.0 |\n| Non-operating % of EBIT[[16]](#cite-16) | 2.6% | 3.2% | 8.5% |\n| Effective tax rate %[[16]](#cite-16) | 12.0% | 13.3% | 15.1% |\n| Deferred tax % of NI[[18]](#cite-18) | -8.4% | -6.1% | -1.2% |\n| Accruals (NI - OCF)[[18]](#cite-18) | 1,670.0 | 8,791.0 | 17,349.0 |\n| Sloan accruals ratio %[[1]](#cite-1) | N/A | 7.9% | 10.9% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2026)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $10,605.0M |\n| Marketable securities[[6]](#cite-6) | $51,951.0M |\n| Total liquid cash[[6]](#cite-6) | $62,556.0M |\n| Total debt[[6]](#cite-6) | $8,468.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-54,088.0M |\n| Stockholders' equity[[6]](#cite-6) | $157,293.0M |\n| Valuation share count[[6]](#cite-6) | 24,514.0M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 3.91x |\n| EBITDA[[18]](#cite-18) | $133,230.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.41x |\n| Debt / equity[[6]](#cite-6) | 0.05x |\n| Effective tax rate[[16]](#cite-16) | 15.1% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[19]](#cite-19) | 149.8% |\n| ROIC (average gross debt + equity)[[19]](#cite-19) | 87.3% |\n| ROE (average equity)[[19]](#cite-19) | 101.5% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| HIGH | CHRONIC_ACCRUAL_DEFICIT | 2026 | CHRONIC ACCRUAL DEFICIT: Operating cash flow was strictly lower than net income in every reported fiscal year, signaling persistently low cash conversion quality. |\n| MEDIUM | INVENTORY_ACCUMULATION | 2026 | INVENTORY ACCUMULATION WARNING (FY2026): Inventory increased +112.33% ($10,080.0M -> $21,403.0M), substantially exceeding revenue growth of +65.47%; this may indicate obsolescence risk or slowing sell-through. |\n| MEDIUM | HIGH_ACCRUALS | 2026 | HIGH ACCRUALS (FY2026): Sloan accruals ratio of 10.9% of average total assets; earnings are running materially ahead of operating cash flow. |\n\n- **Restatement review**: Single filing available; cross-filing restatement review not possible.\n- **Data quality**: extraction mode `deterministic`; 8/8 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 10-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 60.38%; tax 13.26% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 6 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 40.00% in year 1 to 2.50% in year 10, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 60.38% to 60.38% by year 10.\n- **Reinvestment**: CapEx starts at 2.52% of revenue from the recency-weighted 3-year audited level (latest year 2.80%, simple average 2.34%) and fades to a 5.12% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 30.0% return on new capital (base roic capped) = 8.3% of NOPAT; D&A is held at 1.32% (reported); working capital at 23.17% of incremental revenue (working_capital_days); SBC at 2.96% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2024A | FY2025A | FY2026A | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E | FY2036E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $60,922 | $130,497 | $215,938 | $302,313 | $410,632 | $540,679 | $689,366 | $850,195 | $1,013,177 | $1,165,154 | $1,291,340 | $1,377,473 | $1,411,909 |\n| Revenue Growth YoY | — | +114.2% | +65.5% | +40.0% | +35.8% | +31.7% | +27.5% | +23.3% | +19.2% | +15.0% | +10.8% | +6.7% | +2.5% |\n| Operating Income (EBIT) | — | — | — | $182,537 | $247,940 | $326,462 | $416,239 | $513,348 | $611,757 | $703,520 | $779,711 | $831,718 | $852,511 |\n| Operating Margin | 54.1% | 62.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% |\n| NOPAT (Effective Tax 13.3%) | — | — | — | $158,332 | $215,063 | $283,173 | $361,046 | $445,278 | $530,638 | $610,233 | $676,322 | $721,432 | $739,468 |\n| Capital Expenditures | — | — | — | $7,618 | $11,539 | $16,761 | $23,370 | $31,202 | $40,122 | $49,519 | $58,627 | $66,532 | $72,290 |\n| Depreciation & Amortization | — | — | — | $3,980 | $5,406 | $7,118 | $9,076 | $11,194 | $13,339 | $15,340 | $17,002 | $18,136 | $18,589 |\n| Change in Working Capital (ΔNWC) | — | — | — | $20,017 | $25,102 | $30,137 | $34,457 | $37,271 | $37,770 | $35,219 | $29,243 | $19,960 | $7,980 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $8,940 | $12,144 | $15,990 | $20,387 | $25,143 | $29,963 | $34,457 | $38,189 | $40,736 | $41,755 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$134,678** | **$183,828** | **$243,393** | **$312,296** | **$387,998** | **$466,085** | **$540,835** | **$605,454** | **$653,075** | **$677,787** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 25.3% | $5,833,632M |\n| Base | 50% | 20.7% | $4,205,429M |\n| Bear | 25% | 15.9% | $2,977,655M |\n\n**Forecast diagnostics**\n- Return on new invested capital of 117% exceeds 100%; CapEx or working-capital assumptions may understate the reinvestment growth requires.\n- CapEx intensity fades from 2.52% to a 5.12% steady state; the explicit years carry a large reinvestment transition.\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.47 | yfinance_raw (Blume-adjusted from raw 1.70) |\n| **Cost of Equity ($K_e$)** | **10.76%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 5.55% | Rf + 1.25% spread (derived rate out of band) |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **4.16%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $4,400,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $8,468.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 99.81% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 0.19% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 10.75% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **10.75%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $2,294,628.3M |\n| PV of terminal value (value_driver) | $2,759,918.0M |\n| **Enterprise value** | **$5,054,546.3M** |\n| Plus: net cash | $54,088.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $5,108,634.3M |\n| Enterprise value rolled forward 0.76 yrs @ WACC 10.75% | $5,460,005.1M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $55,836.4M |\n| **Equity value at valuation date** | **$5,515,841.5M** |\n| Diluted shares | 24,514.00M |\n| **Fair value per share** | **$225.01** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 25.3% | $5,833,632M | $320.15 | +77.9% |\n| Base | 50% | 20.7% | $4,205,429M | $225.01 | +25.0% |\n| Bear | 25% | 15.9% | $2,977,655M | $155.24 | -13.8% |\n| **Probability-weighted** | 100% | | | **$231.35** | +28.5% |\n\n**Reverse DCF**: At $180.00 the market implies 18.9% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 20.7% modeled revenue CAGR. At modeled growth the price instead needs a -11.8 pp operating-margin shift in every year (final-year margin 48.6% versus 60.4% modeled). Holding the modeled cash flows, the price corresponds to a 12.69% discount rate versus the 10.75% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **9.8%** | $248.53 | $252.98 | $257.79 | $263.00 | $268.68 |\n| **10.2%** | $232.64 | $236.36 | $240.34 | $244.65 | $249.30 |\n| **10.8%** *(Base)* | $218.58 | $221.70 | **$225.01** | $228.61 | $232.46 |\n| **11.2%** | $206.05 | $208.68 | $211.49 | $214.49 | $217.70 |\n| **11.8%** | $194.81 | $197.05 | $199.42 | $201.95 | $204.65 |\n\n| WACC \\ RONIC | 26.0% | 28.0% | 30.0% | 35.0% | 40.0% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **9.8%** | $255.69 | $256.81 | $257.79 | $259.73 | $261.19 |\n| **10.2%** | $238.46 | $239.47 | $240.34 | $242.09 | $243.41 |\n| **10.8%** *(Base)* | $223.33 | $224.24 | **$225.01** | $226.61 | $227.80 |\n| **11.2%** | $209.95 | $210.77 | $211.49 | $212.92 | $213.99 |\n| **11.8%** | $198.02 | $198.77 | $199.42 | $200.73 | $201.70 |\n\n**Valuation data-quality warnings**\n- Interest expense / average debt = 3.06% is outside the [3.30%, 15%] band (stale coupons or a scale mismatch); used Rf + 1.25% spread instead.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **Not Assessed** | **Severe Risks**: 0 of 0 | **Disclosure Baseline**: not assessed\n\nRisk disclosures focus on competition and regulation.\n\n_No risks survived evidence verification against the filing._\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n_No verified filing evidence._\n\n**Risk analysis data-quality notes**\n- llm_output_missing: the model returned no parsable risk inventory.\n- Only 0 risks survived evidence verification (target 5-8).\n- 9 of 9 quantified Item 1A disclosures are not cited by any verified risk.\n- Coverage repair pass proposed no usable risks; uncited quantified disclosures remain.\n\n**Quantified Item 1A disclosures not cited by any verified risk**\n- \"Our semiconductor wafers are manufactured, assembled, tested and packaged by third parties located outside of the United States, and we generated 31% of our revenue in fiscal year 2026 from sales outside the United States.\"\n- \"For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.\"\n- \"We generate a significant amount of our revenue from a limited number of indirect customers, and we estimate some individually representing 10% or more of our revenue.\"\n- \"As a result of these requirements, we incurred a $4.5 billion charge in the first quarter of fiscal year 2026 associated with H20 for excess inventory and purchase obligations, as the demand for H20 products diminished.\"\n- \"We generated approximately $60 million in H20 revenue under those licenses.\"\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
+   "full_markdown_report": "# Institutional Equity Research Report: NVIDIA CORP (NVDA)\n> **Filing Source**: SEC Form 10-K (Fiscal Year 2026) | **Valuation Stance**: **Undervalued**\n\n## Executive Valuation Dashboard\n\n| Metric | Value |\n| :--- | ---: |\n| **Base-Case DCF Fair Value / Share**[[1]](#cite-1) | **$225.01** |\n| Bear / Bull Fair Value | $128.51 / $320.15 |\n| Probability-Weighted Fair Value | $224.67 |\n| Current Share Price[[2]](#cite-2) | $180.00 (yfinance_live) |\n| Base-Case Upside / Downside | +25.0% |\n| Valuation Stance | Undervalued |\n| Market-Implied Revenue Growth (reverse DCF) | 18.9% |\n| Discount Rate[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5) | 10.75% (CAPM WACC) |\n| Market-Implied Discount Rate (at modeled cash flows) | 12.69% |\n| Terminal Growth | 2.5% |\n| Terminal Tax Rate (marginal) | 25.0% |\n| Terminal Value % of EV | 54.6% |\n| Enterprise Value | $5,054,546.3M |\n| Net Debt (negative = net cash)[[6]](#cite-6) | $-54,088.0M |\n| Equity Value (as of 2026-10-28) | $5,515,841.5M |\n| Valuation Shares[[6]](#cite-6) | 24,514.0M |\n| Forecast | 10-year explicit horizon, 20.7% revenue CAGR (historical fade) |\n\n## 1. Executive Summary\n\nThe filing supports a balanced view of the business.\n\n**Bottom line**: The stance depends on whether margins hold.\n\n## 2. Institutional 3-Pillar Investment Thesis\n\n### Pillar 1: Business Architecture & Competitive Moat\n\nThe business relies on its installed base and its brand.\n\n### Pillar 2: Financial Durability & Earnings Quality\n\nCash generation covers reinvestment needs.\n\n### Pillar 3: Valuation Asymmetry & Margin of Safety\n\nThe valuation case rests on the base-case cash flows.\n\n## 3. Business Operations & Economic Moat Analysis\n\nSegment disclosure frames the revenue mix.\n\n- **Reportable segments (ASC 280)**: Compute & Networking, Graphics\n- **Revenue lines (ASC 606)**: Data Center, Gaming, Professional Visualization, Automotive, OEM and Other\n\n**Reportable segments (verified from the segment note)**[[7]](#cite-7)\n\n| Segment | FY2026 revenue ($M) | % of revenue | YoY growth | Operating income ($M) | Margin | % of segment profit |\n| :--- | ---: | ---: | ---: | ---: | ---: | ---: |\n| Compute & Networking | 193,479 | 89.6% | 66.5% | 130,141 | 67.3% | 93.4% |\n| Graphics | 22,459 | 10.4% | 57.0% | 9,156 | 40.8% | 6.6% |\n\n_Source: 10-K segment note (chunk `26b52a89-af2d-4d60-a78b-9846e216d374`); figures in USD millions as reported._\n\n**Revenue mix (verified from the disaggregation table)**[[8]](#cite-8)\n\n| Revenue line | FY2026 revenue ($M) | % of revenue | YoY growth |\n| :--- | ---: | ---: | ---: |\n| Data Center | 193,737 | 89.7% | 68.2% |\n| &nbsp;&nbsp;↳ Compute | 162,361 | 75.2% | 58.9% |\n| &nbsp;&nbsp;↳ Networking | 31,376 | 14.5% | 141.5% |\n| Gaming | 16,042 | 7.4% | 41.3% |\n| Professional Visualization | 3,191 | 1.5% | 69.9% |\n| Automotive | 2,349 | 1.1% | 38.7% |\n| OEM and Other | 619 | 0.3% | 59.1% |\n\n_Source: 10-K revenue disaggregation (chunk `40fa96f8-8f71-4703-b3b8-e81ae177bc64`); figures in USD millions as reported._\n\n- **Data Center**: Rack-scale AI compute and networking platforms. _Drivers: Blackwell architecture, AI model makers._\n\n| Moat Dimension | Assessment |\n| :--- | :--- |\n| Primary moat[[9]](#cite-9) | **Network Effects** (verified) |\n| Secondary moats[[10]](#cite-10) | High Switching Costs |\n| Durability / trajectory | Wide / Expanding |\n| Compute & Networking[[11]](#cite-11) | Cost Advantage: Data-center-scale interconnect of compute nodes. |\n\n**Moat rationale (filing-based)**: A growing developer base and installed base make the platform more valuable to each customer.[[9]](#cite-9)\n\n**Business analysis data-quality notes**\n- Secondary moat 'Intangible Assets / Brand' dropped: no verified filing quote evidencing its mechanism.\n- Segment moat for 'Robotics' dropped: not a code-extracted segment or revenue line.\n- 1 model-proposed product line(s) not in the extracted revenue table were dropped (Networking).\n\n**Competitive threats**\n\n- Existing competitors and new entrants may offer lower-priced or better-performing products.[[12]](#cite-12)\n- China-based competitors are favoured by the Chinese government.[[13]](#cite-13)\n\n- **Pricing power**: Cheaper competing products have lowered selling prices for some NVIDIA products.[[14]](#cite-14)\n- **Customer concentration**: Two direct customers represented 22% and 14% of fiscal year 2026 revenue.[[15]](#cite-15)\n\n## 4. Audited Financial Statements & Quality of Earnings\n\nReported and normalized earnings are compared year by year.\n\n**Table A — Multi-Year Performance ($M)**\n\n| Metric | FY2024 | FY2025 | FY2026 |\n| :--- | ---: | ---: | ---: |\n| Revenue[[16]](#cite-16) | 60,922.0 | 130,497.0 | 215,938.0 |\n| Revenue growth %[[16]](#cite-16) | N/A | +114.2% | +65.5% |\n| Gross margin %[[16]](#cite-16) | 72.72% | 74.99% | 71.07% |\n| Operating income[[16]](#cite-16) | 32,972.0 | 81,453.0 | 130,387.0 |\n| Operating margin %[[16]](#cite-16) | 54.12% | 62.42% | 60.38% |\n| Net income (attrib.)[[16]](#cite-16) | 29,760.0 | 72,880.0 | 120,067.0 |\n| Net margin %[[16]](#cite-16) | 48.85% | 55.85% | 55.60% |\n| Operating cash flow[[17]](#cite-17) | 28,090.0 | 64,089.0 | 102,718.0 |\n| Capex[[17]](#cite-17) | 1,069.0 | 3,236.0 | 6,042.0 |\n| Free cash flow[[17]](#cite-17) | 27,021.0 | 60,853.0 | 96,676.0 |\n| FCF conversion %[[18]](#cite-18) | 90.8% | 83.5% | 80.5% |\n| Stock-based comp.[[17]](#cite-17) | 3,549.0 | 4,737.0 | 6,386.0 |\n| SBC-adjusted FCF[[17]](#cite-17) | 23,472.0 | 56,116.0 | 90,290.0 |\n\n**Table B — Earnings Quality & Normalization ($M)**\n\n| Metric | FY2024 | FY2025 | FY2026 |\n| :--- | ---: | ---: | ---: |\n| Normalized operating income[[16]](#cite-16) | 32,972.0 | 81,453.0 | 130,387.0 |\n| Normalized operating margin %[[16]](#cite-16) | 54.12% | 62.42% | 60.38% |\n| Normalized net income[[16]](#cite-16) | 29,760.0 | 72,880.0 | 120,067.0 |\n| Adjustments % of EBIT[[16]](#cite-16) | N/A | N/A | N/A |\n| Non-operating income[[16]](#cite-16) | 846.0 | 2,573.0 | 11,063.0 |\n| Non-operating % of EBIT[[16]](#cite-16) | 2.6% | 3.2% | 8.5% |\n| Effective tax rate %[[16]](#cite-16) | 12.0% | 13.3% | 15.1% |\n| Deferred tax % of NI[[18]](#cite-18) | -8.4% | -6.1% | -1.2% |\n| Accruals (NI - OCF)[[18]](#cite-18) | 1,670.0 | 8,791.0 | 17,349.0 |\n| Sloan accruals ratio %[[1]](#cite-1) | N/A | 7.9% | 10.9% |\n\n**Table E — Balance Sheet, Liquidity & Returns (FY2026)**\n\n| Metric | Value |\n| :--- | ---: |\n| Cash & equivalents[[6]](#cite-6) | $10,605.0M |\n| Marketable securities[[6]](#cite-6) | $51,951.0M |\n| Total liquid cash[[6]](#cite-6) | $62,556.0M |\n| Total debt[[6]](#cite-6) | $8,468.0M |\n| Net debt (negative = net cash)[[6]](#cite-6) | $-54,088.0M |\n| Stockholders' equity[[6]](#cite-6) | $157,293.0M |\n| Valuation share count[[6]](#cite-6) | 24,514.0M (weighted_average_diluted) |\n| Current ratio[[6]](#cite-6) | 3.91x |\n| EBITDA[[18]](#cite-18) | $133,230.0M |\n| Net debt / EBITDA[[1]](#cite-1) | -0.41x |\n| Debt / equity[[6]](#cite-6) | 0.05x |\n| Effective tax rate[[16]](#cite-16) | 15.1% (derived_from_10k) |\n| ROIC (average capital, net of liquid cash)[[19]](#cite-19) | 149.8% |\n| ROIC (average gross debt + equity)[[19]](#cite-19) | 87.3% |\n| ROE (average equity)[[19]](#cite-19) | 101.5% |\n\n**Table F — Forensic Findings (severity-ranked)**\n\n| Severity | Code | FY | Finding |\n| :--- | :--- | :---: | :--- |\n| HIGH | CHRONIC_ACCRUAL_DEFICIT | 2026 | CHRONIC ACCRUAL DEFICIT: Operating cash flow was strictly lower than net income in every reported fiscal year, signaling persistently low cash conversion quality. |\n| MEDIUM | INVENTORY_ACCUMULATION | 2026 | INVENTORY ACCUMULATION WARNING (FY2026): Inventory increased +112.33% ($10,080.0M -> $21,403.0M), substantially exceeding revenue growth of +65.47%; this may indicate obsolescence risk or slowing sell-through. |\n| MEDIUM | HIGH_ACCRUALS | 2026 | HIGH ACCRUALS (FY2026): Sloan accruals ratio of 10.9% of average total assets; earnings are running materially ahead of operating cash flow. |\n\n- **Restatement review**: Single filing available; cross-filing restatement review not possible.\n- **Data quality**: extraction mode `deterministic`; 8/8 accounting identity checks passed; reconciliation: No refinement requested by the auditor; deterministic baseline retained.\n\n## 5. 10-Year Financial Forecast & Cash Flow Schedule\n\nGrowth fades toward the terminal rate.\n\n- **Baseline**: reported operating margin 60.38%; tax 13.26% (median_effective); D&A reported; working capital working_capital_days[[1]](#cite-1)\n- **Growth**: Item 7 gave 6 forward-looking statement(s), too few to anchor a guided forecast, so growth fades linearly from the historical trend. Revenue growth runs from 40.00% in year 1 to 2.50% in year 10, against 2.50% terminal growth.\n- **Margins**: Operating margin moves from the reported base of 60.38% to 60.38% by year 10.\n- **Reinvestment**: CapEx starts at 2.52% of revenue from the recency-weighted 3-year audited level (latest year 2.80%, simple average 2.34%) and fades to a 5.12% steady state by year 10, where net reinvestment equals 2.50% terminal growth / 30.0% return on new capital (base roic capped) = 8.3% of NOPAT; D&A is held at 1.32% (reported); working capital at 23.17% of incremental revenue (working_capital_days); SBC at 2.96% of revenue is already expensed in EBIT, so UFCF treats it as a cash cost.\n\n| Metric ($ Millions) | FY2024A | FY2025A | FY2026A | FY2027E | FY2028E | FY2029E | FY2030E | FY2031E | FY2032E | FY2033E | FY2034E | FY2035E | FY2036E |\n|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| Revenue | $60,922 | $130,497 | $215,938 | $302,313 | $410,632 | $540,679 | $689,366 | $850,195 | $1,013,177 | $1,165,154 | $1,291,340 | $1,377,473 | $1,411,909 |\n| Revenue Growth YoY | — | +114.2% | +65.5% | +40.0% | +35.8% | +31.7% | +27.5% | +23.3% | +19.2% | +15.0% | +10.8% | +6.7% | +2.5% |\n| Operating Income (EBIT) | — | — | — | $182,537 | $247,940 | $326,462 | $416,239 | $513,348 | $611,757 | $703,520 | $779,711 | $831,718 | $852,511 |\n| Operating Margin | 54.1% | 62.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% | 60.4% |\n| NOPAT (Effective Tax 13.3%) | — | — | — | $158,332 | $215,063 | $283,173 | $361,046 | $445,278 | $530,638 | $610,233 | $676,322 | $721,432 | $739,468 |\n| Capital Expenditures | — | — | — | $7,618 | $11,539 | $16,761 | $23,370 | $31,202 | $40,122 | $49,519 | $58,627 | $66,532 | $72,290 |\n| Depreciation & Amortization | — | — | — | $3,980 | $5,406 | $7,118 | $9,076 | $11,194 | $13,339 | $15,340 | $17,002 | $18,136 | $18,589 |\n| Change in Working Capital (ΔNWC) | — | — | — | $20,017 | $25,102 | $30,137 | $34,457 | $37,271 | $37,770 | $35,219 | $29,243 | $19,960 | $7,980 |\n| Stock-Based Compensation (memo, in EBIT) | — | — | — | $8,940 | $12,144 | $15,990 | $20,387 | $25,143 | $29,963 | $34,457 | $38,189 | $40,736 | $41,755 |\n| **Unlevered Free Cash Flow (UFCF)** | — | — | — | **$134,678** | **$183,828** | **$243,393** | **$312,296** | **$387,998** | **$466,085** | **$540,835** | **$605,454** | **$653,075** | **$677,787** |\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF |\n| :--- | :---: | :---: | ---: |\n| Bull | 25% | 25.3% | $5,833,632M |\n| Base | 50% | 20.7% | $4,205,429M |\n| Bear | 25% | 13.5% | $2,497,509M |\n\n**Forecast diagnostics**\n- Return on new invested capital of 117% exceeds 100%; CapEx or working-capital assumptions may understate the reinvestment growth requires.\n- CapEx intensity fades from 2.52% to a 5.12% steady state; the explicit years carry a large reinvestment transition.\n\n## 6. Discounted Cash Flow (DCF) Valuation & Sensitivity\n\nThe discount rate drives most of the value range.\n\n**WACC breakdown**\n\n| WACC Parameter | Value | Source / Methodology |\n| :--- | :---: | :--- |\n| **Risk-Free Rate ($R_f$)** | 4.30% | us_10y_treasury_live |\n| **Equity Risk Premium (ERP)** | 4.40% | damodaran_implied_sp500_2026-07 |\n| **Beta ($\\beta$)** | 1.47 | yfinance_raw (Blume-adjusted from raw 1.70) |\n| **Cost of Equity ($K_e$)** | **10.76%** | CAPM: $R_f + (\\beta \\times \\text{ERP})$ |\n| **Pre-Tax Cost of Debt ($K_d$)** | 5.55% | Rf + 1.25% spread (derived rate out of band) |\n| **Tax Rate ($t$)** | 25.00% | Normalized forecast tax rate |\n| **After-Tax Cost of Debt** | **4.16%** | $K_d \\times (1 - t)$ |\n| **Equity Value ($E$)** | $4,400,000.0M | Market capitalization |\n| **Gross Total Debt ($D$)** | $8,468.0M | 10-K balance sheet |\n| **Equity Weight ($W_e$)** | 99.81% | $E / (E + D)$ |\n| **Debt Weight ($W_d$)** | 0.19% | $D / (E + D)$ |\n| **CAPM Blended WACC** | 10.75% | $(W_e \\times K_e) + (W_d \\times K_d \\times (1 - t))$ |\n| **Applied Discount Rate** | **10.75%** | CAPM blended WACC |\n\n_Market inputs_: risk-free rate, equity risk premium and beta[[3]](#cite-3)[[4]](#cite-4)[[5]](#cite-5)\n\n**Equity bridge**\n\n| Valuation Bridge | Value |\n|:---|---:|\n| PV of explicit UFCF (10 yrs, mid_year) | $2,294,628.3M |\n| PV of terminal value (value_driver) | $2,759,918.0M |\n| **Enterprise value** | **$5,054,546.3M** |\n| Plus: net cash | $54,088.0M |\n| Less: noncontrolling interests | $0.0M |\n| Equity value at balance-sheet date | $5,108,634.3M |\n| Enterprise value rolled forward 0.76 yrs @ WACC 10.75% | $5,460,005.1M |\n| Net cash and NCI rolled forward @ Rf 4.30% | $55,836.4M |\n| **Equity value at valuation date** | **$5,515,841.5M** |\n| Diluted shares | 24,514.00M |\n| **Fair value per share** | **$225.01** |\n\n_Debt, cash and share count from the audited balance sheet_[[6]](#cite-6)\n\n**Scenario valuation (same discount rate, terminal growth and bridge)**\n\n| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |\n|:---|:---:|:---:|---:|---:|:---:|\n| Bull | 25% | 25.3% | $5,833,632M | $320.15 | +77.9% |\n| Base | 50% | 20.7% | $4,205,429M | $225.01 | +25.0% |\n| Bear | 25% | 13.5% | $2,497,509M | $128.51 | -28.6% |\n| **Probability-weighted** | 100% | | | **$224.67** | +24.8% |\n\n**Reverse DCF**: At $180.00 the market implies 18.9% constant revenue growth for 10 years (then 2.5% terminal), holding modeled margins, reinvestment, WACC and terminal RONIC, versus a 20.7% modeled revenue CAGR. At modeled growth the price instead needs a -11.8 pp operating-margin shift in every year (final-year margin 48.6% versus 60.4% modeled). Holding the modeled cash flows, the price corresponds to a 12.69% discount rate versus the 10.75% applied.\n\n**Sensitivity**\n\n| WACC \\ Growth | 1.9% | 2.2% | 2.5% | 2.8% | 3.1% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **9.8%** | $248.53 | $252.98 | $257.79 | $263.00 | $268.68 |\n| **10.2%** | $232.64 | $236.36 | $240.34 | $244.65 | $249.30 |\n| **10.8%** *(Base)* | $218.58 | $221.70 | **$225.01** | $228.61 | $232.46 |\n| **11.2%** | $206.05 | $208.68 | $211.49 | $214.49 | $217.70 |\n| **11.8%** | $194.81 | $197.05 | $199.42 | $201.95 | $204.65 |\n\n| WACC \\ RONIC | 26.0% | 28.0% | 30.0% | 35.0% | 40.0% |\n|:---|:---:|:---:|:---:|:---:|:---:|\n| **9.8%** | $255.69 | $256.81 | $257.79 | $259.73 | $261.19 |\n| **10.2%** | $238.46 | $239.47 | $240.34 | $242.09 | $243.41 |\n| **10.8%** *(Base)* | $223.33 | $224.24 | **$225.01** | $226.61 | $227.80 |\n| **11.2%** | $209.95 | $210.77 | $211.49 | $212.92 | $213.99 |\n| **11.8%** | $198.02 | $198.77 | $199.42 | $200.73 | $201.70 |\n\n**Valuation data-quality warnings**\n- Interest expense / average debt = 3.06% is outside the [3.30%, 15%] band (stale coupons or a scale mismatch); used Rf + 1.25% spread instead.\n\n## 7. Material Risk Factors & Existential Overhangs\n\n> **Overall Risk Profile**: **High** | **Severe Risks**: 2 of 8 | **Disclosure Baseline**: not assessed\n\nRisk disclosures focus on competition and regulation.\n\n| # | Risk | Category | Likelihood | Impact | Severity | Model line(s) hit | vs prior year |\n| :--- | :--- | :--- | :---: | :---: | :---: | :--- | :---: |\n| R1 | Direct customer concentration | Supply Chain & Concentration | High | High | **Severe** | Revenue | Not Assessed |\n| R2 | China export controls | Regulatory & Legal | High | High | **Severe** | Revenue, Gross Margin, Terminal Value | Not Assessed |\n| R3 | Foundry dependence | Supply Chain & Concentration | Medium | Medium | **Moderate** | Gross Margin, Capex & Working Capital | Not Assessed |\n| R4 | Competitive pricing pressure | Competitive & Demand | Medium | Medium | **Moderate** | Revenue, Gross Margin | Not Assessed |\n| R5 | Security breaches and cyber-attacks | Technological & Cybersecurity | Medium | Medium | **Moderate** | Operating Expenses | Not Assessed |\n| R6 | International revenue exposure | Macroeconomic & Geopolitical | Medium | Medium | **Moderate** | Revenue | Not Assessed |\n| R7 | USG revenue share on licensed China sales | Regulatory & Legal | Medium | Medium | **Moderate** | Revenue | Not Assessed |\n| R8 | Stock price volatility | Financial & Capital Structure | High | Low | **Low** | Cost of Capital | Not Assessed |\n\n_Severity is a fixed likelihood × impact matrix computed in code; every risk is backed by a verbatim Item 1A quote._\n\n#### R1 — Direct customer concentration\n- **Disclosure**: Two direct customers account for over a third of revenue.[[20]](#cite-20)[[21]](#cite-21)\n- **Quantified exposure**: 22% and 14% of total revenue\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue\n- **Signposts to monitor**: Customer mix disclosures; Hyperscaler capex guidance; Disclosure updates in the next 10-K\n\n#### R2 — China export controls\n- **Disclosure**: USG licensing requirements for H20 led to an inventory and purchase-obligation charge.[[22]](#cite-22)[[23]](#cite-23)\n- **Quantified exposure**: $4.5 billion charge\n- **Filing-stated mitigation**: The company seeks to comply strictly with export control regulations.[[24]](#cite-24)\n- **Model lines hit**: Revenue, Gross Margin, Terminal Value\n- **Signposts to monitor**: Disclosure updates in the next 10-K; New BIS rules\n\n#### R3 — Foundry dependence\n- **Disclosure**: Wafers are made by third-party foundries.[[25]](#cite-25)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Gross Margin, Capex & Working Capital\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n#### R4 — Competitive pricing pressure\n- **Disclosure**: Competitor products may be cheaper or better.[[26]](#cite-26)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue, Gross Margin\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n#### R5 — Security breaches and cyber-attacks\n- **Disclosure**: Breaches could disrupt operations.[[27]](#cite-27)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Operating Expenses\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n#### R6 — International revenue exposure\n- **Disclosure**: A large share of revenue comes from outside the United States.[[28]](#cite-28)\n- **Quantified exposure**: 31% of revenue\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n#### R7 — USG revenue share on licensed China sales\n- **Disclosure**: The USG expects a share of revenue from licensed China sales.[[29]](#cite-29)\n- **Quantified exposure**: 15% or more of the revenue\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Revenue\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\n#### R8 — Stock price volatility\n- **Disclosure**: Operating results may fluctuate below analyst expectations and the stock price could decline.[[30]](#cite-30)\n- **Quantified exposure**: None stated in the filing\n- **Filing-stated mitigation**: None stated in the filing\n- **Model lines hit**: Cost of Capital\n- **Signposts to monitor**: Disclosure updates in the next 10-K\n\nA demand slowdown is the main bear case.\n\n## 8. Regulatory Disclaimers & Audit Breadcrumbs\n\n| Chunk ID | Section | Breadcrumb |\n| :--- | :--- | :--- |\n| `3045bbae-aa3a-4c9d-9ec8-127f188e5207` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `dc5b89ea-d453-4a06-906f-a83eb3262f20` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `5258535b-b24f-4bed-bf3e-ead4a79cfd7b` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `e316a55d-81fe-4469-89cc-96b366d21ddb` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `c7fb38ce-1a30-418e-92aa-8b7b1ad184a9` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `84fcacfd-c063-4c4d-b30c-a6064cb99d70` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `35105665-2438-49b9-bc56-5b9dfcbe0340` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `3c03af28-4236-48d5-bfe3-6a5ee668fd9b` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n\n**Risk analysis data-quality notes**\n- 1 malformed risk entries discarded (missing title or summary).\n- Coverage repair pass proposed 2 risk(s) for 3 uncited quantified disclosure(s).\n- 1 lower-ranked verified risks omitted (cap of 8).\n- 3 of 9 quantified Item 1A disclosures are not cited by any verified risk.\n- Primary threat re-pointed to R1 ('Direct customer concentration'): the model's choice ('Competitive pricing pressure') was not among the most severe verified risks.\n\n**Quantified Item 1A disclosures not cited by any verified risk**\n- \"We generated approximately $60 million in H20 revenue under those licenses.\"\n- \"If we are found not to comply, we could be subject to penalties of up to €20 million or 4% of worldwide revenue, whichever is greater, and classes of individuals or consumer protection organizations may initiate litigation related to our processing of their personal data.\"\n- \"Non-compliance with NIS2 may lead to administrative fines of a maximum of 10 million Euros or up to 2% of the total worldwide revenue of the preceding fiscal year.\"\n\n_This report is generated from SEC Form 10-K disclosures and live market data for research purposes only. It is not investment advice. Every table is computed in code from the filing; narrative commentary is model-written and limited to figures present in those tables._\n\n> *Synthesis Provenance: `llm_structured`*\n",
    "implied_fair_value_per_share": 225.01,
    "sources": [
     {
@@ -1524,6 +1766,248 @@
      "n": 19,
      "provider": null,
      "quote": null,
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "3045bbae-aa3a-4c9d-9ec8-127f188e5207",
+       "chunk_index": 81,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 20,
+     "provider": null,
+     "quote": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "3045bbae-aa3a-4c9d-9ec8-127f188e5207",
+       "chunk_index": 81,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 21,
+     "provider": null,
+     "quote": "We generate a significant amount of our revenue from a limited number of indirect customers, and we estimate some individually representing 10% or more of our revenue.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+       "chunk_index": 96,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 22,
+     "provider": null,
+     "quote": "As a result of these requirements, we incurred a $4.5 billion charge in the first quarter of fiscal year 2026 associated with H20 for excess inventory and purchase obligations, as the demand for H20 products diminished.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+       "chunk_index": 96,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 23,
+     "provider": null,
+     "quote": "As a result, any H200 shipped under the new licensing program will be subject to a 25% tariff upon importation into the United States.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "5258535b-b24f-4bed-bf3e-ead4a79cfd7b",
+       "chunk_index": 103,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 24,
+     "provider": null,
+     "quote": "While we seek to strictly comply with all applicable export control regulators",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "e316a55d-81fe-4469-89cc-96b366d21ddb",
+       "chunk_index": 60,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 25,
+     "provider": null,
+     "quote": "We depend on foundries to manufacture our semiconductor wafers using their fabrication equipment and techniques.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "c7fb38ce-1a30-418e-92aa-8b7b1ad184a9",
+       "chunk_index": 50,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 26,
+     "provider": null,
+     "quote": "Our competitors’ products, services, including those mentioned above in this Annual Report on Form 10-K, may be cheaper or provide better functionality or features than ours, which has resulted and may in the future result in lower-than-expected selling prices or demand for our products.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "84fcacfd-c063-4c4d-b30c-a6064cb99d70",
+       "chunk_index": 45,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 27,
+     "provider": null,
+     "quote": "Product, system security and data protection incidents or breaches, as well as cyber-attacks could disrupt our operations and adversely affect our financial condition, stock price and reputation.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "35105665-2438-49b9-bc56-5b9dfcbe0340",
+       "chunk_index": 67,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 28,
+     "provider": null,
+     "quote": "we generated 31% of our revenue in fiscal year 2026 from sales outside the United States.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+       "chunk_index": 96,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 29,
+     "provider": null,
+     "quote": "USG officials expressed an expectation that the USG will receive 15% or more of the revenue generated from licensed sales of our products, but the USG did not publish a regulation codifying such requirement.",
+     "ticker": "NVDA"
+    },
+    {
+     "chunks": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "3c03af28-4236-48d5-bfe3-6a5ee668fd9b",
+       "chunk_index": 46,
+       "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+       "fiscal_year": 2026,
+       "item": "Item 1A",
+       "ticker": "NVDA"
+      }
+     ],
+     "derived_from": null,
+     "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+     "fiscal_year": 2026,
+     "kind": "verbatim",
+     "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "n": 30,
+     "provider": null,
+     "quote": "Our operating results have in the past fluctuated and may in the future fluctuate, and if our operating results are below the expectations of securities analysts or investors, our stock price could decline.",
      "ticker": "NVDA"
     }
    ],
@@ -2942,44 +3426,44 @@
      ]
     },
     {
-     "cumulative_fcf": 2977655.03,
+     "cumulative_fcf": 2497508.97,
      "name": "bear",
      "operating_margin_pct": [
-      58.88,
-      58.88,
-      58.88,
-      58.88,
-      58.88,
-      58.88,
-      58.88,
-      58.88,
-      58.88,
-      58.88
+      58.13,
+      58.13,
+      58.13,
+      58.13,
+      58.13,
+      58.13,
+      58.13,
+      58.13,
+      58.13,
+      58.13
      ],
      "probability": 0.25,
      "projected_fcfs": [
-      124979.69,
-      159218.36,
-      198003.65,
-      240281.14,
-      284350.7,
-      328047.51,
-      368531.93,
-      402925.98,
-      428526.13,
-      442789.94
+      120341.48,
+      147776.59,
+      177824.39,
+      209600.52,
+      241891.76,
+      273200.74,
+      301835.62,
+      326042.03,
+      344166.02,
+      354829.82
      ],
-     "revenue_cagr_pct": 15.92,
+     "revenue_cagr_pct": 13.52,
      "revenue_growth_pct": [
-      30.0,
-      26.94,
-      23.89,
-      20.83,
-      17.77,
-      14.73,
-      11.67,
-      8.61,
-      5.56,
+      25.0,
+      22.5,
+      20.0,
+      17.5,
+      15.0,
+      12.5,
+      10.0,
+      7.5,
+      5.0,
       2.5
      ]
     }
@@ -2989,40 +3473,376 @@
   },
   "pipeline_notes": [],
   "risk_audit": {
-   "citations": [],
+   "citations": [
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "chunk_id": "3045bbae-aa3a-4c9d-9ec8-127f188e5207",
+     "fiscal_year": 2026,
+     "item": "Item 1A",
+     "sub_section": "Risk Factors",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+     "fiscal_year": 2026,
+     "item": "Item 1A",
+     "sub_section": "Risk Factors",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "chunk_id": "5258535b-b24f-4bed-bf3e-ead4a79cfd7b",
+     "fiscal_year": 2026,
+     "item": "Item 1A",
+     "sub_section": "Risk Factors",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "chunk_id": "e316a55d-81fe-4469-89cc-96b366d21ddb",
+     "fiscal_year": 2026,
+     "item": "Item 1A",
+     "sub_section": "Risk Factors",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "chunk_id": "c7fb38ce-1a30-418e-92aa-8b7b1ad184a9",
+     "fiscal_year": 2026,
+     "item": "Item 1A",
+     "sub_section": "Risk Factors",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "chunk_id": "84fcacfd-c063-4c4d-b30c-a6064cb99d70",
+     "fiscal_year": 2026,
+     "item": "Item 1A",
+     "sub_section": "Risk Factors",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "chunk_id": "35105665-2438-49b9-bc56-5b9dfcbe0340",
+     "fiscal_year": 2026,
+     "item": "Item 1A",
+     "sub_section": "Risk Factors",
+     "ticker": "NVDA"
+    },
+    {
+     "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+     "chunk_id": "3c03af28-4236-48d5-bfe3-6a5ee668fd9b",
+     "fiscal_year": 2026,
+     "item": "Item 1A",
+     "sub_section": "Risk Factors",
+     "ticker": "NVDA"
+    }
+   ],
    "data_quality": {
     "chars_read": 118395,
     "coverage_mode": "full_section",
     "item1a_chunks": 75,
     "notes": [
-     "llm_output_missing: the model returned no parsable risk inventory.",
-     "Only 0 risks survived evidence verification (target 5-8).",
-     "9 of 9 quantified Item 1A disclosures are not cited by any verified risk.",
-     "Coverage repair pass proposed no usable risks; uncited quantified disclosures remain."
+     "1 malformed risk entries discarded (missing title or summary).",
+     "Coverage repair pass proposed 2 risk(s) for 3 uncited quantified disclosure(s).",
+     "1 lower-ranked verified risks omitted (cap of 8).",
+     "3 of 9 quantified Item 1A disclosures are not cited by any verified risk.",
+     "Primary threat re-pointed to R1 ('Direct customer concentration'): the model's choice ('Competitive pricing pressure') was not among the most severe verified risks."
     ],
     "prior_fiscal_year": null,
     "quantified_disclosures": 9,
     "quantified_uncovered": [
-     "Our semiconductor wafers are manufactured, assembled, tested and packaged by third parties located outside of the United States, and we generated 31% of our revenue in fiscal year 2026 from sales outside the United States.",
-     "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
-     "We generate a significant amount of our revenue from a limited number of indirect customers, and we estimate some individually representing 10% or more of our revenue.",
-     "As a result of these requirements, we incurred a $4.5 billion charge in the first quarter of fiscal year 2026 associated with H20 for excess inventory and purchase obligations, as the demand for H20 products diminished.",
-     "We generated approximately $60 million in H20 revenue under those licenses."
+     "We generated approximately $60 million in H20 revenue under those licenses.",
+     "If we are found not to comply, we could be subject to penalties of up to €20 million or 4% of worldwide revenue, whichever is greater, and classes of individuals or consumer protection organizations may initiate litigation related to our processing of their personal data.",
+     "Non-compliance with NIS2 may lead to administrative fines of a maximum of 10 million Euros or up to 2% of the total worldwide revenue of the preceding fiscal year."
     ],
-    "quotes_rejected": 0,
-    "risks_dropped_unverified": 0,
-    "risks_merged": 0,
-    "risks_proposed": 0,
+    "quotes_rejected": 1,
+    "risks_dropped_unverified": 1,
+    "risks_merged": 2,
+    "risks_proposed": 14,
     "section_located_by": "item_label"
    },
    "disclosure_changes": null,
-   "evidence_table_markdown": "_No verified filing evidence._",
+   "evidence_table_markdown": "| Chunk ID | Section | Breadcrumb |\n| :--- | :--- | :--- |\n| `3045bbae-aa3a-4c9d-9ec8-127f188e5207` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `dc5b89ea-d453-4a06-906f-a83eb3262f20` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `5258535b-b24f-4bed-bf3e-ead4a79cfd7b` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `e316a55d-81fe-4469-89cc-96b366d21ddb` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `c7fb38ce-1a30-418e-92aa-8b7b1ad184a9` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `84fcacfd-c063-4c4d-b30c-a6064cb99d70` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `35105665-2438-49b9-bc56-5b9dfcbe0340` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |\n| `3c03af28-4236-48d5-bfe3-6a5ee668fd9b` | Item 1A | NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors |",
    "fiscal_year": 2026,
-   "identified_risks": [],
-   "overall_risk_profile": "Not Assessed",
-   "primary_existential_threat": "",
-   "primary_threat_risk_id": null,
-   "risk_matrix_markdown": "_No risks survived evidence verification against the filing._",
+   "identified_risks": [
+    {
+     "adjustments": [
+      "Merged duplicate risk: 'Indirect customer concentration'."
+     ],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "3045bbae-aa3a-4c9d-9ec8-127f188e5207",
+       "item": "Item 1A",
+       "quote": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
+       "verified": true
+      },
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "3045bbae-aa3a-4c9d-9ec8-127f188e5207",
+       "item": "Item 1A",
+       "quote": "We generate a significant amount of our revenue from a limited number of indirect customers, and we estimate some individually representing 10% or more of our revenue.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Revenue"
+     ],
+     "impact": "High",
+     "likelihood": "High",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Customer mix disclosures",
+      "Hyperscaler capex guidance",
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": "22% and 14% of total revenue",
+     "risk_category": "Supply Chain & Concentration",
+     "risk_id": "R1",
+     "risk_summary": "Two direct customers account for over a third of revenue.",
+     "risk_title": "Direct customer concentration",
+     "severity": "Severe"
+    },
+    {
+     "adjustments": [
+      "Merged duplicate risk: 'Export controls on China sales'."
+     ],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+       "item": "Item 1A",
+       "quote": "As a result of these requirements, we incurred a $4.5 billion charge in the first quarter of fiscal year 2026 associated with H20 for excess inventory and purchase obligations, as the demand for H20 products diminished.",
+       "verified": true
+      },
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+       "item": "Item 1A",
+       "quote": "As a result, any H200 shipped under the new licensing program will be subject to a 25% tariff upon importation into the United States.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Revenue",
+      "Gross Margin",
+      "Terminal Value"
+     ],
+     "impact": "High",
+     "likelihood": "High",
+     "mitigating_factors": "The company seeks to comply strictly with export control regulations.",
+     "mitigation_evidence": {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "5258535b-b24f-4bed-bf3e-ead4a79cfd7b",
+      "item": "Item 1A",
+      "quote": "While we seek to strictly comply with all applicable export control regulators",
+      "verified": true
+     },
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K",
+      "New BIS rules"
+     ],
+     "quantified_exposure": "$4.5 billion charge",
+     "risk_category": "Regulatory & Legal",
+     "risk_id": "R2",
+     "risk_summary": "USG licensing requirements for H20 led to an inventory and purchase-obligation charge.",
+     "risk_title": "China export controls",
+     "severity": "Severe"
+    },
+    {
+     "adjustments": [
+      "Mitigation removed: no verified filing quote supports it.",
+      "Impact capped at Medium: no filing-stated magnitude or realized effect supports a High impact."
+     ],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "e316a55d-81fe-4469-89cc-96b366d21ddb",
+       "item": "Item 1A",
+       "quote": "We depend on foundries to manufacture our semiconductor wafers using their fabrication equipment and techniques.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Gross Margin",
+      "Capex & Working Capital"
+     ],
+     "impact": "Medium",
+     "likelihood": "Medium",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": null,
+     "risk_category": "Supply Chain & Concentration",
+     "risk_id": "R3",
+     "risk_summary": "Wafers are made by third-party foundries.",
+     "risk_title": "Foundry dependence",
+     "severity": "Moderate"
+    },
+    {
+     "adjustments": [],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "c7fb38ce-1a30-418e-92aa-8b7b1ad184a9",
+       "item": "Item 1A",
+       "quote": "Our competitors’ products, services, including those mentioned above in this Annual Report on Form 10-K, may be cheaper or provide better functionality or features than ours, which has resulted and may in the future result in lower-than-expected selling prices or demand for our products.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Revenue",
+      "Gross Margin"
+     ],
+     "impact": "Medium",
+     "likelihood": "Medium",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": null,
+     "risk_category": "Competitive & Demand",
+     "risk_id": "R4",
+     "risk_summary": "Competitor products may be cheaper or better.",
+     "risk_title": "Competitive pricing pressure",
+     "severity": "Moderate"
+    },
+    {
+     "adjustments": [
+      "Quantified exposure removed: its figures do not appear in the cited filing text.",
+      "Impact capped at Medium: no filing-stated magnitude or realized effect supports a High impact."
+     ],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "84fcacfd-c063-4c4d-b30c-a6064cb99d70",
+       "item": "Item 1A",
+       "quote": "Product, system security and data protection incidents or breaches, as well as cyber-attacks could disrupt our operations and adversely affect our financial condition, stock price and reputation.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Operating Expenses"
+     ],
+     "impact": "Medium",
+     "likelihood": "Medium",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": null,
+     "risk_category": "Technological & Cybersecurity",
+     "risk_id": "R5",
+     "risk_summary": "Breaches could disrupt operations.",
+     "risk_title": "Security breaches and cyber-attacks",
+     "severity": "Moderate"
+    },
+    {
+     "adjustments": [],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "35105665-2438-49b9-bc56-5b9dfcbe0340",
+       "item": "Item 1A",
+       "quote": "we generated 31% of our revenue in fiscal year 2026 from sales outside the United States.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Revenue"
+     ],
+     "impact": "Medium",
+     "likelihood": "Medium",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": "31% of revenue",
+     "risk_category": "Macroeconomic & Geopolitical",
+     "risk_id": "R6",
+     "risk_summary": "A large share of revenue comes from outside the United States.",
+     "risk_title": "International revenue exposure",
+     "severity": "Moderate"
+    },
+    {
+     "adjustments": [],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+       "item": "Item 1A",
+       "quote": "USG officials expressed an expectation that the USG will receive 15% or more of the revenue generated from licensed sales of our products, but the USG did not publish a regulation codifying such requirement.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Revenue"
+     ],
+     "impact": "Medium",
+     "likelihood": "Medium",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": "15% or more of the revenue",
+     "risk_category": "Regulatory & Legal",
+     "risk_id": "R7",
+     "risk_summary": "The USG expects a share of revenue from licensed China sales.",
+     "risk_title": "USG revenue share on licensed China sales",
+     "severity": "Moderate"
+    },
+    {
+     "adjustments": [
+      "Impact capped at Low: generic boilerplate risk without a company-specific exposure."
+     ],
+     "disclosure_change": "Not Assessed",
+     "evidence": [
+      {
+       "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+       "chunk_id": "3c03af28-4236-48d5-bfe3-6a5ee668fd9b",
+       "item": "Item 1A",
+       "quote": "Our operating results have in the past fluctuated and may in the future fluctuate, and if our operating results are below the expectations of securities analysts or investors, our stock price could decline.",
+       "verified": true
+      }
+     ],
+     "financial_transmission": [
+      "Cost of Capital"
+     ],
+     "impact": "Low",
+     "likelihood": "High",
+     "mitigating_factors": null,
+     "mitigation_evidence": null,
+     "monitoring_signposts": [
+      "Disclosure updates in the next 10-K"
+     ],
+     "quantified_exposure": null,
+     "risk_category": "Financial & Capital Structure",
+     "risk_id": "R8",
+     "risk_summary": "Operating results may fluctuate below analyst expectations and the stock price could decline.",
+     "risk_title": "Stock price volatility",
+     "severity": "Low"
+    }
+   ],
+   "overall_risk_profile": "High",
+   "primary_existential_threat": "Direct customer concentration: Two direct customers account for over a third of revenue.",
+   "primary_threat_risk_id": "R1",
+   "risk_matrix_markdown": "| # | Risk | Category | Likelihood | Impact | Severity | Model line(s) hit | vs prior year |\n| :--- | :--- | :--- | :---: | :---: | :---: | :--- | :---: |\n| R1 | Direct customer concentration | Supply Chain & Concentration | High | High | **Severe** | Revenue | Not Assessed |\n| R2 | China export controls | Regulatory & Legal | High | High | **Severe** | Revenue, Gross Margin, Terminal Value | Not Assessed |\n| R3 | Foundry dependence | Supply Chain & Concentration | Medium | Medium | **Moderate** | Gross Margin, Capex & Working Capital | Not Assessed |\n| R4 | Competitive pricing pressure | Competitive & Demand | Medium | Medium | **Moderate** | Revenue, Gross Margin | Not Assessed |\n| R5 | Security breaches and cyber-attacks | Technological & Cybersecurity | Medium | Medium | **Moderate** | Operating Expenses | Not Assessed |\n| R6 | International revenue exposure | Macroeconomic & Geopolitical | Medium | Medium | **Moderate** | Revenue | Not Assessed |\n| R7 | USG revenue share on licensed China sales | Regulatory & Legal | Medium | Medium | **Moderate** | Revenue | Not Assessed |\n| R8 | Stock price volatility | Financial & Capital Structure | High | Low | **Low** | Cost of Capital | Not Assessed |",
    "ticker": "NVDA"
   },
   "routing_plan": {
@@ -3471,6 +4291,248 @@
     "n": 19,
     "provider": null,
     "quote": null,
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "3045bbae-aa3a-4c9d-9ec8-127f188e5207",
+      "chunk_index": 81,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1A",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+    "n": 20,
+    "provider": null,
+    "quote": "For fiscal year 2026, sales to one direct customer represented 22% of total revenue and sales to another direct customer represented 14% of total revenue, all of which were primarily attributable to the Compute & Networking segment.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "3045bbae-aa3a-4c9d-9ec8-127f188e5207",
+      "chunk_index": 81,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1A",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+    "n": 21,
+    "provider": null,
+    "quote": "We generate a significant amount of our revenue from a limited number of indirect customers, and we estimate some individually representing 10% or more of our revenue.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+      "chunk_index": 96,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1A",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+    "n": 22,
+    "provider": null,
+    "quote": "As a result of these requirements, we incurred a $4.5 billion charge in the first quarter of fiscal year 2026 associated with H20 for excess inventory and purchase obligations, as the demand for H20 products diminished.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+      "chunk_index": 96,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1A",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+    "n": 23,
+    "provider": null,
+    "quote": "As a result, any H200 shipped under the new licensing program will be subject to a 25% tariff upon importation into the United States.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "5258535b-b24f-4bed-bf3e-ead4a79cfd7b",
+      "chunk_index": 103,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1A",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+    "n": 24,
+    "provider": null,
+    "quote": "While we seek to strictly comply with all applicable export control regulators",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "e316a55d-81fe-4469-89cc-96b366d21ddb",
+      "chunk_index": 60,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1A",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+    "n": 25,
+    "provider": null,
+    "quote": "We depend on foundries to manufacture our semiconductor wafers using their fabrication equipment and techniques.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "c7fb38ce-1a30-418e-92aa-8b7b1ad184a9",
+      "chunk_index": 50,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1A",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+    "n": 26,
+    "provider": null,
+    "quote": "Our competitors’ products, services, including those mentioned above in this Annual Report on Form 10-K, may be cheaper or provide better functionality or features than ours, which has resulted and may in the future result in lower-than-expected selling prices or demand for our products.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "84fcacfd-c063-4c4d-b30c-a6064cb99d70",
+      "chunk_index": 45,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1A",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+    "n": 27,
+    "provider": null,
+    "quote": "Product, system security and data protection incidents or breaches, as well as cyber-attacks could disrupt our operations and adversely affect our financial condition, stock price and reputation.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "35105665-2438-49b9-bc56-5b9dfcbe0340",
+      "chunk_index": 67,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1A",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+    "n": 28,
+    "provider": null,
+    "quote": "we generated 31% of our revenue in fiscal year 2026 from sales outside the United States.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "dc5b89ea-d453-4a06-906f-a83eb3262f20",
+      "chunk_index": 96,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1A",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+    "n": 29,
+    "provider": null,
+    "quote": "USG officials expressed an expectation that the USG will receive 15% or more of the revenue generated from licensed sales of our products, but the USG did not publish a regulation codifying such requirement.",
+    "ticker": "NVDA"
+   },
+   {
+    "chunks": [
+     {
+      "breadcrumb": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+      "chunk_id": "3c03af28-4236-48d5-bfe3-6a5ee668fd9b",
+      "chunk_index": 46,
+      "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+      "fiscal_year": 2026,
+      "item": "Item 1A",
+      "ticker": "NVDA"
+     }
+    ],
+    "derived_from": null,
+    "document_id": "5c7587a4-2654-4872-839b-464763b0a081",
+    "fiscal_year": 2026,
+    "kind": "verbatim",
+    "label": "NVIDIA CORP (NVDA) > 10-K FY2026 > PART I > Item 1A: Risk Factors",
+    "n": 30,
+    "provider": null,
+    "quote": "Our operating results have in the past fluctuated and may in the future fluctuate, and if our operating results are below the expectations of securities analysts or investors, our stock price could decline.",
     "ticker": "NVDA"
    }
   ],

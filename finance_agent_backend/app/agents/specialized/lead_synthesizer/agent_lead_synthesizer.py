@@ -37,7 +37,7 @@ from app.agents.specialized.lead_synthesizer.state_lead_synthesizer import (
     Final10KResearchReport,
     ThreePillarThesis,
 )
-from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
+from app.agents.specialized.risk_analyst import RiskAuditOutput
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
 from app.agents.specialized.lead_synthesizer.report_citations import (
     CITATIONS_FAILED_NOTE,

@@ -2,8 +2,10 @@ from app.agents.pipeline.contract import AgentSpec
 from app.agents.specialized.risk_analyst.agent_risk_analyst import (
     RiskAnalystAgent,
     analyze_risks,
+    build_risk_audit,
     summarize_risks,
 )
+from app.agents.specialized.risk_analyst.modules.quantified_exposures import QuantifiedDisclosure
 from app.agents.specialized.risk_analyst.state_risk_analyst import (
     DisclosurePassage,
     RiskAuditOutput,
@@ -24,7 +26,9 @@ AGENT = AgentSpec(
 __all__ = [
     "AGENT",
     "RiskAnalystAgent",
+    "build_risk_audit",
     "DisclosurePassage",
+    "QuantifiedDisclosure",
     "RiskAuditOutput",
     "RiskDataQuality",
     "RiskDisclosureDiff",

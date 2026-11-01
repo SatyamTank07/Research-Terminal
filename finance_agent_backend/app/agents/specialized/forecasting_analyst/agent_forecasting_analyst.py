@@ -51,7 +51,7 @@ from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drive
 )
 from app.agents.specialized.forecasting_analyst.modules.scenarios import build_scenarios
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastBuild, ForecastOutput
-from app.agents.specialized.risk_analyst.state_risk_analyst import RiskAuditOutput
+from app.agents.specialized.risk_analyst import RiskAuditOutput
 
 logger = logging.getLogger("finance_agent.agents.forecasting_analyst")
 
