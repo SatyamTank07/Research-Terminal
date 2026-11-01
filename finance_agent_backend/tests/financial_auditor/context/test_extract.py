@@ -1,12 +1,12 @@
-"""Unit tests for deterministic statement parsing and line-item extraction.
+"""Unit tests for deterministic line-item extraction from parsed statement tables.
 
 Validates:
-1. Legacy `Col_n` markdown (split `$` cells, colspan drift) parses into aligned fiscal periods.
+1. Statement tables parse into aligned fiscal periods (parser itself: tests/test_financial_tables.py).
 2. TSLA FY2025 line items, including the fields the LLM previously dropped
    (short-term investments, gross profit, D&A, SBC, pretax/tax, current assets/liabilities).
 3. Share counts: weighted diluted (income statement) and period-end (equity caption), thousands -> millions.
 4. Debt classification around the "Total current liabilities" subtotal.
-5. Accounting identity checks and Latest Filing Precedence cross-filing differences.
+5. Latest Filing Precedence cross-filing differences (identity checks: statement_integrity tests).
 6. A second filer vocabulary (AAPL-style) to guard against overfitting.
 7. Clean statement rendering.
 """
@@ -14,78 +14,21 @@ Validates:
 import re
 import unittest
 
-from app.agents.tools.financial_math_tools import run_audit_from_inputs
-from app.agents.tools.statement_extraction import (
+from app.agents.specialized.financial_auditor.agent_financial_auditor import build_audit_from_inputs
+from app.agents.specialized.financial_auditor.context.extract import (
     INCOME_STATEMENT_SYNONYMS,
     build_statement_grids,
     extract_audit_inputs,
 )
-from app.services.financial_tables import (
-    is_well_formed,
-    parse_statement_rows,
-    parse_statement_table,
-    parse_value_token,
-    render_clean_statement,
+from app.agents.specialized.financial_auditor.modules.statement_integrity import (
+    assess_statement_integrity,
+    summarize_for_judge,
 )
 from tests.statement_fixtures import (
-    TSLA_FY2025_BALANCE_SHEET,
     TSLA_FY2025_INCOME_STATEMENT,
     aapl_payloads,
     tsla_payloads,
 )
-
-
-class TestFinancialTableParsing(unittest.TestCase):
-    def test_01_value_tokens(self):
-        self.assertEqual(parse_value_token("( 5,001 )"), -5001.0)
-        self.assertEqual(parse_value_token("—"), 0.0)
-        self.assertIsNone(parse_value_token("$"))
-        self.assertIsNone(parse_value_token(""))
-        self.assertEqual(parse_value_token("$3,794"), 3794.0)
-        self.assertEqual(parse_value_token("1.08"), 1.08)
-
-    def test_02_legacy_income_statement_periods_and_alignment(self):
-        grid = parse_statement_table(TSLA_FY2025_INCOME_STATEMENT)
-        self.assertEqual(grid.periods, [2025, 2024, 2023])
-        self.assertTrue(is_well_formed(grid))
-        rows = {}
-        for r in grid.value_rows:
-            rows.setdefault(r.norm_label, r)  # first occurrence (revenue section, not cost section)
-        self.assertEqual(rows["automotive sales"].values, {2025: 65821.0, 2024: 72480.0, 2023: 78509.0})
-        self.assertEqual(rows["automotive sales"].section, "revenues")
-        self.assertEqual(rows["automotive regulatory credits"].values[2024], 2763.0)
-        self.assertEqual(rows["interest expense"].values[2025], -338.0)
-        self.assertEqual(rows["restructuring and other"].values[2023], 0.0)
-
-    def test_03_balance_sheet_date_headers(self):
-        grid = parse_statement_table(TSLA_FY2025_BALANCE_SHEET)
-        self.assertEqual(grid.periods, [2025, 2024])
-
-    def test_04_clean_rendering_round_trip(self):
-        grid = parse_statement_table(TSLA_FY2025_INCOME_STATEMENT)
-        md = render_clean_statement(grid)
-        self.assertIn("| Line item | FY2025 | FY2024 | FY2023 |", md)
-        self.assertIn("| Total revenues | 94,827 | 97,690 | 96,773 |", md)
-        self.assertIn("| Provision for (benefit from) income taxes | 1,423 | 1,837 | (5,001) |", md)
-        self.assertNotIn("Col_", md)
-        reparsed = parse_statement_table(md)
-        self.assertEqual(reparsed.periods, [2025, 2024, 2023])
-        self.assertEqual(
-            {r.norm_label: r.values for r in reparsed.value_rows}["total revenues"],
-            {2025: 94827.0, 2024: 97690.0, 2023: 96773.0},
-        )
-
-    def test_05_raw_grid_rows_like_ingestion(self):
-        rows = [
-            ["", "2025", "", "2024"],
-            ["Total revenues", "$", "100", "$ 90"],
-            ["Net income", "(5", ")", "7"],
-        ]
-        grid = parse_statement_rows(rows)
-        self.assertEqual(grid.periods, [2025, 2024])
-        vals = {r.norm_label: r.values for r in grid.value_rows}
-        self.assertEqual(vals["total revenues"], {2025: 100.0, 2024: 90.0})
-        self.assertEqual(vals["net income"], {2025: -5.0, 2024: 7.0})
 
 
 class TestTeslaExtraction(unittest.TestCase):
@@ -93,11 +36,9 @@ class TestTeslaExtraction(unittest.TestCase):
     def setUpClass(cls):
         cls.result = extract_audit_inputs(build_statement_grids(tsla_payloads()), 2025, [2023, 2024, 2025])
 
-    def test_01_usable_window(self):
-        self.assertTrue(self.result.is_usable)
+    def test_01_contiguous_window(self):
         self.assertEqual(self.result.years, [2023, 2024, 2025])
         self.assertEqual(self.result.missing_fields, [])
-        self.assertEqual(self.result.completeness_score, 1.0)
 
     def test_02_income_statement_fields(self):
         fy25 = self.result.annual[2025]
@@ -119,7 +60,7 @@ class TestTeslaExtraction(unittest.TestCase):
         self.assertEqual(self.result.annual[2023]["interest_expense"], 156.0)
         record = next(r for r in self.result.to_annual_inputs() if r["fiscal_year"] == 2025)
         self.assertEqual(record["interest_expense"], 338.0)
-        audit = run_audit_from_inputs(self.result.to_tool_kwargs())
+        audit = build_audit_from_inputs(self.result.to_tool_kwargs())
         self.assertEqual(audit["multi_year_history"][-1]["interest_expense"], 338.0)
         self.assertIsNotNone(audit["balance_sheet"]["prior_total_debt"])
 
@@ -164,12 +105,8 @@ class TestTeslaExtraction(unittest.TestCase):
         self.assertEqual(annual[2025]["accounts_payable"], 13371.0)
         self.assertNotIn("accounts_receivable", annual[2023])
 
-    def test_05_identity_checks_pass(self):
-        self.assertTrue(self.result.identity_checks)
-        self.assertEqual(self.result.failed_identity_checks, [])
-
     def test_06_baseline_audit_matches_filing(self):
-        audit = run_audit_from_inputs(self.result.to_tool_kwargs())
+        audit = build_audit_from_inputs(self.result.to_tool_kwargs())
         bs = audit["balance_sheet"]
         self.assertEqual(bs["total_liquid_cash"], 44059.0)
         self.assertEqual(bs["net_debt"], -35683.0)
@@ -192,7 +129,7 @@ class TestTeslaExtraction(unittest.TestCase):
         self.assertEqual({c["chunk_id"] for c in self.result.citations}, {"tsla-is", "tsla-bs", "tsla-cf"})
 
 
-class TestCrossFilingAndIdentityFailures(unittest.TestCase):
+class TestCrossFilingDifferences(unittest.TestCase):
     def test_01_latest_filing_precedence_and_restatement_candidates(self):
         payloads = tsla_payloads()
         older_is = TSLA_FY2025_INCOME_STATEMENT.replace("| 2025 | Col_3 | 2024 | Col_5 | 2023 |",
@@ -208,20 +145,10 @@ class TestCrossFilingAndIdentityFailures(unittest.TestCase):
         self.assertEqual(diffs[0]["older_value"], 97000.0)
         self.assertEqual(diffs[0]["older_filing_year"], 2024)
 
-    def test_02_balance_sheet_identity_failure_blocks_deterministic_mode(self):
-        payloads = tsla_payloads()
-        payloads["balance_sheet"][0]["table_markdown"] = TSLA_FY2025_BALANCE_SHEET.replace(
-            "| Total liabilities and equity | $ | 137,806 |", "| Total liabilities and equity | $ | 147,806 |"
-        )
-        result = extract_audit_inputs(build_statement_grids(payloads), 2025, [2023, 2024, 2025])
-        self.assertTrue(any(c["critical"] for c in result.failed_identity_checks))
-        self.assertFalse(result.is_usable)
-
     def test_03_missing_required_row_is_reported(self):
         payloads = tsla_payloads()
         payloads["cash_flow"] = []
         result = extract_audit_inputs(build_statement_grids(payloads), 2025, [2023, 2024, 2025])
-        self.assertFalse(result.is_usable)
         self.assertIn("FY2025.operating_cash_flow", result.missing_fields)
 
 
@@ -278,7 +205,7 @@ class TestLayoutVariants(unittest.TestCase):
         self.assertEqual(self.result.annual[2025]["income_tax_expense"], 19087.0)
         self.assertEqual(self.result.annual[2023]["income_tax_expense"], 7120.0)
         self.assertTrue(any("benefit-positive" in w for w in self.result.warnings))
-        audit = run_audit_from_inputs(self.result.to_tool_kwargs())
+        audit = build_audit_from_inputs(self.result.to_tool_kwargs())
         self.assertAlmostEqual(audit["profitability_and_return_ratios"]["effective_tax_rate_pct"], 19.61, places=2)
         self.assertNotIn("TAX_ANOMALY", {f["code"] for f in audit["forensic_findings"]})
 
@@ -294,7 +221,8 @@ class TestLayoutVariants(unittest.TestCase):
 class TestSecondFilerVocabulary(unittest.TestCase):
     def test_01_aapl_style_labels_and_thousand_share_scale(self):
         result = extract_audit_inputs(build_statement_grids(aapl_payloads()), 2025, [2023, 2024, 2025])
-        self.assertTrue(result.is_usable, result.summary_for_prompt())
+        integrity = assess_statement_integrity(result)
+        self.assertTrue(integrity.is_usable, summarize_for_judge(result, integrity))
         fy25 = result.annual[2025]
         self.assertEqual(fy25["revenue"], 416161.0)
         self.assertEqual(fy25["gross_profit"], 195201.0)
@@ -312,9 +240,9 @@ class TestSecondFilerVocabulary(unittest.TestCase):
         self.assertEqual(bs["long_term_debt"], 78328.0)
         self.assertEqual(bs["stockholders_equity"], 73733.0)
         self.assertAlmostEqual(bs["period_end_shares_outstanding"], 14773.26, places=2)
-        self.assertEqual(result.failed_identity_checks, [])
+        self.assertEqual(integrity.failed_identity_checks, [])
 
-        audit = run_audit_from_inputs(result.to_tool_kwargs())
+        audit = build_audit_from_inputs(result.to_tool_kwargs())
         self.assertEqual(audit["balance_sheet"]["net_debt"], -33763.0)
         self.assertEqual(audit["balance_sheet"]["share_count_source"], "weighted_average_diluted")
 

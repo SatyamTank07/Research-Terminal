@@ -2,7 +2,7 @@
 
 import unittest
 
-from app.agents.tools.financial_math_tools import NormalizationAdjustment
+from app.agents.specialized.financial_auditor import NormalizationAdjustment
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline.thresholds import (
     STEADY_STATE_RONIC_CAP,

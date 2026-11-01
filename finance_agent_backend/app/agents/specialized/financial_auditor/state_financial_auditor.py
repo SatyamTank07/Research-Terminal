@@ -4,52 +4,73 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from app.agents.tools.financial_math_tools import (
-    BalanceSheetResult,
-    ForensicFinding,
-    ProfitabilityRatiosResult,
-    SolvencyRatiosResult,
-    YearCapitalIntensity,
-    YearCostStructure,
-    YearEarningsQuality,
-    YearFinancialsResult,
-    YearShareCount,
-    YearWorkingCapital,
-)
+from app.agents.specialized.financial_auditor.findings import ForensicFinding
+from app.agents.specialized.financial_auditor.modules.balance_sheet_strength import BalanceSheetResult, SolvencyRatiosResult
+from app.agents.specialized.financial_auditor.modules.capital_allocation import YearCapitalIntensity, YearShareCount
+from app.agents.specialized.financial_auditor.modules.earnings_normalization import NormalizationAdjustment
+from app.agents.specialized.financial_auditor.modules.financial_history import YearFinancialsResult
+from app.agents.specialized.financial_auditor.modules.margins_and_costs import YearCostStructure
+from app.agents.specialized.financial_auditor.modules.statement_integrity import AuditDataQuality
+from app.agents.specialized.financial_auditor.modules.working_capital import YearWorkingCapital
 
 # Ergonomic aliases mapping architectural specification names to calculation engine results
 YearFinancials = YearFinancialsResult
 BalanceSheetSnapshot = BalanceSheetResult
 
-ExtractionMode = Literal["deterministic", "llm_fallback"]
+
+class ProfitabilityRatiosResult(BaseModel):
+    effective_tax_rate_pct: float
+    tax_rate_source: str
+    equity_status: str
+    nopat: float
+    invested_capital: float
+    capital_basis: Literal["average", "ending"]
+    roic_pct: Optional[float] = Field(None, description="NOPAT / (debt + equity - liquid cash)")
+    roic_on_gross_capital_pct: Optional[float] = Field(
+        None, description="NOPAT / (debt + equity); comparable for cash-rich companies"
+    )
+    roe_pct: Optional[float] = None
+    latest_gross_margin_pct: Optional[float] = None
+    latest_operating_margin_pct: float
+    latest_net_margin_pct: float
 
 
-class AuditDataQuality(BaseModel):
-    """Provenance and integrity diagnostics for the numbers in the audit."""
+class YearEarningsQuality(BaseModel):
+    fiscal_year: int
+    accruals: float = Field(..., description="Net income minus operating cash flow")
+    sloan_accruals_ratio_pct: Optional[float] = None
+    stock_based_compensation: Optional[float] = None
+    sbc_to_ocf_pct: Optional[float] = None
+    sbc_to_operating_income_pct: Optional[float] = None
+    sbc_adjusted_fcf: Optional[float] = None
+    non_operating_income: Optional[float] = Field(None, description="Pre-tax income minus operating income")
+    non_operating_to_operating_income_pct: Optional[float] = None
+    effective_tax_rate_pct: Optional[float] = None
+    deferred_tax_to_net_income_pct: Optional[float] = None
+    adjustments: List[NormalizationAdjustment] = Field(default_factory=list)
+    operating_income_adjustments_total: float = 0.0
+    net_income_adjustments_total: float = 0.0
+    adjustments_pct_of_operating_income: Optional[float] = None
+    normalized_operating_income: float
+    normalized_operating_margin_pct: float
+    normalized_net_income: float
+    normalized_net_margin_pct: float
 
-    extraction_mode: ExtractionMode = Field(
-        ..., description="deterministic = Python-parsed statements; llm_fallback = LLM-transcribed inputs"
-    )
-    completeness_score: Optional[float] = Field(
-        None, description="Share of institutionally expected latest-year line items that were found (0-1)"
-    )
-    missing_fields: List[str] = Field(default_factory=list)
-    identity_checks: List[Dict[str, Any]] = Field(
-        default_factory=list, description="Accounting identity checks (balance sheet, gross profit, NI tie-out)"
-    )
-    cross_filing_differences: List[Dict[str, Any]] = Field(
-        default_factory=list, description="Same field/year reported differently by consecutive filings"
-    )
-    reconciliation_log: List[str] = Field(
-        default_factory=list, description="Every correction, gap-fill or override applied to extracted inputs"
-    )
-    field_provenance: Dict[str, Dict[str, Any]] = Field(
-        default_factory=dict, description="FY<year>.<field> -> source statement, row labels, chunk_id"
-    )
-    warnings: List[str] = Field(default_factory=list)
-    summary_may_be_stale: bool = Field(
-        False, description="True when inputs were corrected after the LLM wrote the auditor summary"
-    )
+
+class FinancialAuditResult(BaseModel):
+    """Complete structured output returned by build_audit."""
+
+    multi_year_history: List[YearFinancialsResult]
+    balance_sheet: BalanceSheetResult
+    profitability_and_return_ratios: ProfitabilityRatiosResult
+    solvency_and_liquidity_ratios: SolvencyRatiosResult
+    earnings_quality: List[YearEarningsQuality]
+    working_capital: List[YearWorkingCapital]
+    capital_intensity: List[YearCapitalIntensity]
+    cost_structure: List[YearCostStructure]
+    share_count_history: List[YearShareCount]
+    forensic_findings: List[ForensicFinding]
+    rejected_normalization_adjustments: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class FinancialAuditOutput(BaseModel):
@@ -58,7 +79,7 @@ class FinancialAuditOutput(BaseModel):
     ticker: str = Field(..., description="Stock ticker symbol")
     fiscal_year: int = Field(..., description="Target 10-K fiscal year audited")
 
-    # 1. Deterministic statements analytics (computed by audit_financial_metrics)
+    # 1. Deterministic statements analytics (computed by build_audit)
     multi_year_history: List[YearFinancialsResult]
     balance_sheet: BalanceSheetResult
     profitability_and_return_ratios: ProfitabilityRatiosResult

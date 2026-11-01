@@ -1,0 +1,14 @@
+"""The Financial Auditor's analyst questions in run order. A module reads only modules listed before it."""
+
+MODULES = (
+    "statement_integrity",
+    "financial_history",
+    "margins_and_costs",
+    "working_capital",
+    "revenue_quality",
+    "cash_conversion",
+    "tax_quality",
+    "earnings_normalization",
+    "balance_sheet_strength",
+    "capital_allocation",
+)

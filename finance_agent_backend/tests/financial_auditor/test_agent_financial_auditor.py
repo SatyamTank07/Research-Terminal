@@ -17,12 +17,14 @@ from unittest.mock import MagicMock, patch
 from langchain_core.messages import AIMessage, ToolMessage
 
 from app.agents.registry import AgentRegistry
+from app.agents.shared.filing.table_search import retrieve_multiyear_financial_series_tool
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.financial_auditor import FinancialAuditOutput, FinancialAuditorAgent
-from app.agents.tools.financial_math_tools import run_audit_from_inputs
-from app.agents.shared.filing.table_search import retrieve_multiyear_financial_series_tool
-from app.agents.tools.statement_extraction import build_statement_grids, extract_audit_inputs
+from app.agents.specialized.financial_auditor.agent_financial_auditor import build_audit_from_inputs
+from app.agents.specialized.financial_auditor.context import build_statement_grids, extract_audit_inputs
 from tests.statement_fixtures import tsla_payloads
+
+FETCH = "app.agents.specialized.financial_auditor.agent_financial_auditor.fetch_statement_tables"
 
 SUMMARY_JSON = json.dumps({
     "auditor_summary": (
@@ -74,7 +76,7 @@ class TestFinancialAuditorAgent(unittest.TestCase):
         self.assertIn(2025, years)
         self.assertIn(2024, years)
 
-    @patch.object(FinancialAuditorAgent, "_prefetch_statement_tables", return_value=tsla_payloads())
+    @patch(FETCH, return_value=tsla_payloads())
     @patch.object(FinancialAuditorAgent, "_get_or_create_agent")
     def test_03_deterministic_baseline_without_tool_calls(self, mock_get_agent, _prefetch):
         mock_get_agent.return_value = _mock_agent([AIMessage(content=SUMMARY_JSON)])
@@ -111,7 +113,7 @@ class TestFinancialAuditorAgent(unittest.TestCase):
         self.assertEqual({c["chunk_id"] for c in result.citations}, {"tsla-is", "tsla-bs", "tsla-cf"})
         self.assertTrue(result.auditor_summary.startswith("**Earnings Quality**"))
 
-    @patch.object(FinancialAuditorAgent, "_prefetch_statement_tables", return_value=tsla_payloads())
+    @patch(FETCH, return_value=tsla_payloads())
     @patch.object(FinancialAuditorAgent, "execute_structured", side_effect=RuntimeError("API timeout"))
     def test_03b_llm_failure_returns_deterministic_baseline(self, _exec, _prefetch):
         result = FinancialAuditorAgent().audit(ticker="tsla", fiscal_year=2025)
@@ -119,13 +121,13 @@ class TestFinancialAuditorAgent(unittest.TestCase):
         self.assertEqual(result.balance_sheet.net_debt, -35683.0)
         self.assertIn("narrative step failed", result.auditor_summary)
 
-    @patch.object(FinancialAuditorAgent, "_prefetch_statement_tables", return_value={})
+    @patch(FETCH, return_value={})
     @patch.object(FinancialAuditorAgent, "execute_structured", side_effect=RuntimeError("API timeout"))
     def test_03c_llm_failure_without_baseline_raises(self, _exec, _prefetch):
         with self.assertRaises(RuntimeError):
             FinancialAuditorAgent().audit(ticker="XYZ", fiscal_year=2025)
 
-    @patch.object(FinancialAuditorAgent, "_prefetch_statement_tables", return_value=tsla_payloads())
+    @patch(FETCH, return_value=tsla_payloads())
     @patch.object(FinancialAuditorAgent, "_get_or_create_agent")
     def test_04_last_refinement_wins_and_is_logged(self, mock_get_agent, _prefetch):
         refine = FinancialAuditorAgent._build_refine_tool(_tsla_baseline_inputs())
@@ -177,7 +179,7 @@ class TestFinancialAuditorAgent(unittest.TestCase):
                               "short_term_debt": 1640.0, "long_term_debt": 6736.0,
                               "stockholders_equity": 82137.0, "weighted_diluted_shares": 3528.0},
         }
-        llm_result = run_audit_from_inputs(llm_args)
+        llm_result = build_audit_from_inputs(llm_args)
         self.assertEqual(llm_result["balance_sheet"]["net_debt"], -8137.0)  # the original defect
 
         mock_get_agent.return_value = _mock_agent([
@@ -186,7 +188,7 @@ class TestFinancialAuditorAgent(unittest.TestCase):
             AIMessage(content=SUMMARY_JSON),
         ])
 
-        with patch.object(FinancialAuditorAgent, "_prefetch_statement_tables", return_value=partial):
+        with patch(FETCH, return_value=partial):
             result = FinancialAuditorAgent().audit(ticker="TSLA", fiscal_year=2025)
 
         dq = result.data_quality
@@ -204,7 +206,7 @@ class TestFinancialAuditorAgent(unittest.TestCase):
         self.assertIn("FY2025.operating_cash_flow", dq.missing_fields)
         self.assertIn("DATA_QUALITY", {f.code for f in result.forensic_findings})
 
-    @patch.object(FinancialAuditorAgent, "_prefetch_statement_tables", return_value={})
+    @patch(FETCH, return_value={})
     @patch.object(FinancialAuditorAgent, "_get_or_create_agent")
     def test_06_llm_fallback_without_parsed_statements(self, mock_get_agent, _prefetch):
         llm_args = {
@@ -217,7 +219,7 @@ class TestFinancialAuditorAgent(unittest.TestCase):
         }
         mock_get_agent.return_value = _mock_agent([
             AIMessage(content="", tool_calls=[{"name": "audit_financial_metrics_tool", "args": llm_args, "id": "a1"}]),
-            ToolMessage(name="audit_financial_metrics_tool", content=json.dumps(run_audit_from_inputs(llm_args)),
+            ToolMessage(name="audit_financial_metrics_tool", content=json.dumps(build_audit_from_inputs(llm_args)),
                         tool_call_id="a1"),
             AIMessage(content=SUMMARY_JSON),
         ])
@@ -230,7 +232,7 @@ class TestFinancialAuditorAgent(unittest.TestCase):
         self.assertEqual(result.balance_sheet.share_count_source, "period_end_basic_only")
         self.assertEqual(result.balance_sheet.net_debt, -100.0)
 
-    @patch.object(FinancialAuditorAgent, "_prefetch_statement_tables", return_value={})
+    @patch(FETCH, return_value={})
     @patch.object(FinancialAuditorAgent, "execute_structured")
     def test_07_multiyear_available_years_expansion(self, mock_exec, _prefetch):
         mock_exec.return_value = MagicMock(spec=FinancialAuditOutput)
@@ -243,8 +245,6 @@ class TestFinancialAuditorAgent(unittest.TestCase):
         self.assertIn("Audit window: 2021, 2022, 2023, 2024, 2025", called_query)
         self.assertIn("EXTRACTION MODE: llm_fallback", called_query)
         self.assertEqual(mock_exec.call_args.kwargs["extraction_mode"], "llm_fallback")
-
-        self.assertEqual(FinancialAuditorAgent._resolve_audit_window(2025, [2025, 2024, 2022]), [2023, 2024, 2025])
 
 
 if __name__ == "__main__":
