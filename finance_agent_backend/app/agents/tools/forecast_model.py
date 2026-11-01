@@ -1,5 +1,6 @@
-"""Forecast assembly: base schedule, bull/base/bear scenarios and diagnostics."""
-from typing import Any, Dict, List, Literal, Optional
+"""Forecast assembly: base schedule, scenarios and diagnostics."""
+
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -7,27 +8,11 @@ from app.agents.specialized.forecasting_analyst.modules.audited_baseline import 
 from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import ForecastDrivers, extend_fade
 from app.agents.specialized.forecasting_analyst.modules.reinvestment_path import apply_reinvestment_path
 from app.agents.specialized.forecasting_analyst.modules.free_cash_flow_schedule import run_schedule
+from app.agents.specialized.forecasting_analyst.modules.scenarios import ForecastScenario, build_scenarios
 
-SCENARIO_PROBABILITIES = {"bull": 0.25, "base": 0.50, "bear": 0.25}
-SCENARIO_ORDER = {"bull": 0, "base": 1, "bear": 2}
-MIN_SCENARIO_GROWTH_SHIFT = 0.02
-MAX_SCENARIO_GROWTH_SHIFT = 0.10
-BULL_MARGIN_SHIFT = 0.01
-BEAR_MARGIN_SHIFT = -0.015
-RISK_MULTIPLIERS = {"High": 1.5, "Moderate": 1.0, "Low": 0.75}
 GROWTH_SUPPORT_GAP_WARNING = 0.05
 RONIC_WARNING = 1.0
 MIN_REINVESTMENT_SHARE_OF_REVENUE = 0.005
-
-
-class ForecastScenario(BaseModel):
-    name: Literal["bull", "base", "bear"]
-    probability: float
-    revenue_growth_pct: List[float]
-    operating_margin_pct: List[float]
-    projected_fcfs: List[float]
-    revenue_cagr_pct: float
-    cumulative_fcf: float
 
 
 class ForecastDiagnostics(BaseModel):
@@ -97,39 +82,6 @@ def build_forecast(
     )
 
 
-def build_scenarios(
-    baseline: ForecastBaseline,
-    drivers: ForecastDrivers,
-    base_schedule: Dict[str, Any],
-    risk_profile: Optional[str],
-    terminal_growth: float,
-) -> List[ForecastScenario]:
-    """Growth shifts are largest in year 1 and vanish by the final year, so every case meets terminal growth.
-
-    Bull and bear are defined by free cash flow: when the base case burns cash, faster growth burns more,
-    so the growth shift flips sign while the margin shift keeps its direction. Each case rebuilds its own
-    CapEx steady state from its final-year NOPAT, matching how the valuation sizes its terminal value.
-    """
-    shift = min(max(baseline.growth_volatility or 0.0, MIN_SCENARIO_GROWTH_SHIFT), MAX_SCENARIO_GROWTH_SHIFT)
-    if base_schedule["cumulative_fcf"] < 0:
-        shift = -shift
-    risk_mult = RISK_MULTIPLIERS.get(risk_profile or "", 1.0)
-    n = len(drivers.revenue_growth)
-    weights = [1.0] if n == 1 else [(n - 1 - i) / (n - 1) for i in range(n)]
-    variants = {
-        "bull": (shift, BULL_MARGIN_SHIFT),
-        "bear": (-shift * risk_mult, BEAR_MARGIN_SHIFT * risk_mult),
-    }
-    scenarios = [_scenario("base", drivers, base_schedule)]
-    for name, (g_shift, m_shift) in variants.items():
-        variant, _ = apply_reinvestment_path(baseline, drivers.model_copy(update={
-            "revenue_growth": [round(g + g_shift * w, 4) for g, w in zip(drivers.revenue_growth, weights)],
-            "operating_margin": [round(min(max(m + m_shift, -2.0), 1.0), 4) for m in drivers.operating_margin],
-        }), terminal_growth)
-        scenarios.append(_scenario(name, variant, run_schedule(baseline, variant)))
-    return sorted(scenarios, key=lambda s: SCENARIO_ORDER[s.name])
-
-
 def compute_diagnostics(
     baseline: ForecastBaseline,
     drivers: ForecastDrivers,
@@ -183,18 +135,6 @@ def compute_diagnostics(
         target_reinvestment_rate_pct=_pct(target_rate),
         implied_fundamental_growth_pct=_pct(implied),
         warnings=warnings,
-    )
-
-
-def _scenario(name: str, drivers: ForecastDrivers, schedule: Dict[str, Any]) -> ForecastScenario:
-    return ForecastScenario(
-        name=name,
-        probability=SCENARIO_PROBABILITIES[name],
-        revenue_growth_pct=[round(g * 100.0, 2) for g in drivers.revenue_growth],
-        operating_margin_pct=[round(m * 100.0, 2) for m in drivers.operating_margin],
-        projected_fcfs=schedule["projected_fcfs"],
-        revenue_cagr_pct=schedule["revenue_cagr_pct"],
-        cumulative_fcf=schedule["cumulative_fcf"],
     )
 
 

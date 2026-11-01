@@ -11,7 +11,7 @@ from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import
 )
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import MARGIN_FLOOR
 from app.agents.specialized.forecasting_analyst.modules.free_cash_flow_schedule import project_with_overrides
-from app.agents.tools.forecast_model import SCENARIO_PROBABILITIES
+from app.agents.specialized.forecasting_analyst.modules.scenarios import SCENARIO_PROBABILITIES
 
 AGENT = AgentSpec(
     name="forecasting_analyst",

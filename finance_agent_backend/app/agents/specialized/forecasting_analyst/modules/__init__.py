@@ -6,4 +6,5 @@ MODULES = (
     "revenue_and_margin_drivers",
     "reinvestment_path",
     "free_cash_flow_schedule",
+    "scenarios",
 )
