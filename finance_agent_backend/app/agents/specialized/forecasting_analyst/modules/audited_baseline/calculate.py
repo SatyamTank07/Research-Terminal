@@ -24,6 +24,7 @@ from __future__ import annotations
 import statistics
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
+from app.agents.specialized.financial_auditor import STATUTORY_TAX_RATE
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline.schema import ForecastBaseline, HistoricalRow
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline.thresholds import (
     CAPEX_AVERAGE_YEARS,
@@ -37,7 +38,6 @@ from app.agents.specialized.forecasting_analyst.modules.audited_baseline.thresho
     STEADY_STATE_RONIC_DEFAULT,
     STEADY_STATE_RONIC_FLOOR,
 )
-from app.agents.specialized.financial_auditor import STATUTORY_TAX_RATE
 
 if TYPE_CHECKING:  # runtime import would cycle through app.agents.specialized
     from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput

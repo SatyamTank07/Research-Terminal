@@ -1,7 +1,7 @@
 """Deterministic 10-K Statement Line-Item Extraction.
 
 Maps parsed Item 8 statement tables (income statement, balance sheet, cash flows)
-onto the canonical inputs of `audit_financial_metrics`, so the Financial Auditor's
+onto the canonical inputs of `build_audit`, so the Financial Auditor's
 numbers come from Python rather than LLM transcription.
 
 Design rules:
@@ -40,7 +40,6 @@ REQUIRED_ANNUAL_FIELDS = [
 ]
 REQUIRED_BALANCE_FIELDS = ["cash_and_equivalents", "stockholders_equity"]
 SHARE_COUNT_FIELDS = ["weighted_diluted_shares", "period_end_shares_outstanding"]
-
 
 
 # ==============================================================================
@@ -210,13 +209,12 @@ class ExtractionResult:
         return record
 
     def to_tool_kwargs(self) -> Dict[str, Any]:
-        """Keyword arguments for `audit_financial_metrics` (validated into Pydantic models by the caller)."""
+        """Keyword arguments for `build_audit_from_inputs` (validated into Pydantic models by the caller)."""
         return {
             "annual_financials": self.to_annual_inputs(),
             "balance_sheet": self.to_balance_sheet_input(),
             "prior_balance_sheet": self.to_prior_balance_sheet_input(),
         }
-
 
 
 # ==============================================================================

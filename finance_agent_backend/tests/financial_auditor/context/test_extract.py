@@ -129,7 +129,7 @@ class TestTeslaExtraction(unittest.TestCase):
         self.assertEqual({c["chunk_id"] for c in self.result.citations}, {"tsla-is", "tsla-bs", "tsla-cf"})
 
 
-class TestCrossFilingAndIdentityFailures(unittest.TestCase):
+class TestCrossFilingDifferences(unittest.TestCase):
     def test_01_latest_filing_precedence_and_restatement_candidates(self):
         payloads = tsla_payloads()
         older_is = TSLA_FY2025_INCOME_STATEMENT.replace("| 2025 | Col_3 | 2024 | Col_5 | 2023 |",

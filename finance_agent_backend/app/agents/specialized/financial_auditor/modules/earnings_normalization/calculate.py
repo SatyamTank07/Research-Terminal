@@ -58,7 +58,7 @@ def normalize_earnings(
 
 
 def screen_earnings_normalization(normalized: List[NormalizedYear]) -> List[ForensicFinding]:
-    """NON_CORE_INCOME_DEPENDENCE: non-operating income, or accepted one-offs, above 20% of operating income."""
+    """NON_CORE_INCOME_DEPENDENCE: non-operating income, or accepted one-offs, above their share-of-EBIT thresholds."""
     findings: List[ForensicFinding] = []
     for q in normalized:
         yr = q.fiscal_year

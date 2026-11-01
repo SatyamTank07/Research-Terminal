@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from app.agents.specialized.financial_auditor.context.audit_inputs import AnnualFinancialInput
 from app.agents.specialized.financial_auditor.modules.earnings_normalization.schema import NormalizationAdjustment
+from app.agents.specialized.financial_auditor.modules.earnings_normalization.thresholds import SUBTOTAL_MATCH_TOLERANCE_RATIO
 
 _AGGREGATE_LINE_LABEL = re.compile(
     r"non[- ]?operating|non[- ]?core income|other income|other \(expense\)|interest (and other )?income|"
@@ -49,11 +50,11 @@ def screen_normalization_adjustments(
                 "recurring income tax provision; only discrete tax events (valuation-allowance release, "
                 "remeasurement, settlement, tax-law change) qualify, and the effective tax rate is measured separately"
             )
-        elif tax_provision and abs(adj.amount - tax_provision) <= 0.005 * tax_provision:
+        elif tax_provision and abs(adj.amount - tax_provision) <= SUBTOTAL_MATCH_TOLERANCE_RATIO * tax_provision:
             reason = "amount equals the full income tax provision, a recurring expense"
         elif f.pretax_income is not None:
             non_op = f.pretax_income - f.operating_income
-            if non_op and abs(adj.amount - abs(non_op)) <= 0.005 * abs(non_op):
+            if non_op and abs(adj.amount - abs(non_op)) <= SUBTOTAL_MATCH_TOLERANCE_RATIO * abs(non_op):
                 reason = "amount equals the aggregate non-operating income subtotal"
         if reason:
             rejected.append({**adj.model_dump(), "rejection": reason})

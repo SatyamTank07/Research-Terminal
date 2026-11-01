@@ -59,7 +59,7 @@ def measure_tax_quality(annual_financials: List[AnnualFinancialInput]) -> List[T
 
 
 def screen_tax_quality(annual_inputs: List[AnnualFinancialInput], tax_years: List[TaxYear]) -> List[ForensicFinding]:
-    """TAX_ANOMALY: a tax benefit on pre-tax profit, an effective rate outside 5-40%, or large deferred tax."""
+    """TAX_ANOMALY: a tax benefit on pre-tax profit, an effective rate outside ETR_LOW_PCT..ETR_HIGH_PCT, or large deferred tax."""
     findings: List[ForensicFinding] = []
     inputs = {f.fiscal_year: f for f in annual_inputs}
     for q in tax_years:

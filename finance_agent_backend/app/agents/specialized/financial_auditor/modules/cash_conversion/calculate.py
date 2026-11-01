@@ -72,7 +72,7 @@ def screen_cash_conversion(
         add_finding(findings, "WEAK_CASH_CONVERSION", "medium", history[-1].fiscal_year, "avg_fcf_conversion_pct", avg_conv,
             FCF_CONVERSION_WEAK_PCT,
             f"WEAK CASH CONVERSION WARNING: Free cash flow conversion (FCF / Net Income) has been chronically "
-            f"weak (< 70%) across all reported years with positive earnings (averaging {avg_conv:.1f}%), "
+            f"weak (< {FCF_CONVERSION_WEAK_PCT:.0f}%) across all reported years with positive earnings (averaging {avg_conv:.1f}%), "
             f"signaling high capital intensity or poor earnings-to-cash realization.")
 
     if len(history) >= 2 and all(h.operating_cash_flow < h.net_income for h in history):

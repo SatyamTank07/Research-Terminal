@@ -1,8 +1,12 @@
 """Finding ranking: severity, then newest year, then the screen order; equal findings keep their order."""
 
+import re
 import unittest
+from pathlib import Path
 
 from app.agents.specialized.financial_auditor.findings import FINDING_ORDER, ForensicFinding, rank_findings
+
+MODULES_DIR = Path(__file__).resolve().parents[2] / "app/agents/specialized/financial_auditor/modules"
 
 
 def _f(code, severity="medium", year=2025, metric="m"):
@@ -33,6 +37,15 @@ class TestRankFindings(unittest.TestCase):
         ranked = rank_findings([_f("DATA_QUALITY", year=None), _f("DATA_QUALITY", year=2025)])
         self.assertEqual([f.fiscal_year for f in ranked], [2025, None])
 
+
+    def test_every_code_a_module_emits_has_a_place_in_the_screen_order(self):
+        emitted = set()
+        for path in MODULES_DIR.glob("*/*.py"):
+            text = path.read_text(encoding="utf-8")
+            emitted |= set(re.findall(r'add_finding\(findings, "([A-Z_]+)"', text))
+            emitted |= set(re.findall(r'code="([A-Z_]+)"', text))
+        self.assertGreaterEqual(len(emitted), 16)
+        self.assertEqual(emitted - set(FINDING_ORDER), set())
 
 if __name__ == "__main__":
     unittest.main()

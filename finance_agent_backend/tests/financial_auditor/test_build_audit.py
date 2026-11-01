@@ -261,17 +261,6 @@ class TestBuildAudit(unittest.TestCase):
 
     def test_04_tax_rate_provenance_fallbacks(self):
         """Verify the distinct fallback flags for pre-tax losses, tax credits, and missing data."""
-        base_annual = [
-            AnnualFinancialInput(
-                fiscal_year=2024,
-                revenue=100.0,
-                gross_profit=40.0,
-                operating_income=10.0,
-                net_income=8.0,
-                operating_cash_flow=12.0,
-                capital_expenditures=2.0,
-            )
-        ]
         base_bs = BalanceSheetInput(
             fiscal_year=2025,
             cash_and_equivalents=20.0,

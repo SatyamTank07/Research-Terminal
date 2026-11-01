@@ -260,12 +260,14 @@ class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
 
         tables = fetch_statement_tables(ticker, fiscal_year, available_fiscal_years)
         extraction: Optional[ExtractionResult] = None
+        integrity: Optional[StatementIntegrity] = None
         if tables.get("income_statement"):
             try:
-                extraction = extract_audit_inputs(build_statement_grids(tables), fiscal_year, target_years)
+                parsed = extract_audit_inputs(build_statement_grids(tables), fiscal_year, target_years)
+                integrity = assess_statement_integrity(parsed)
+                extraction = parsed
             except Exception as e:
                 logger.warning(f"Statement extraction failed for {ticker} FY{fiscal_year}: {e}")
-        integrity = assess_statement_integrity(extraction) if extraction is not None else None
 
         baseline_inputs: Optional[Dict[str, Any]] = None
         baseline: Optional[Dict[str, Any]] = None
