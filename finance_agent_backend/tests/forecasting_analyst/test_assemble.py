@@ -2,12 +2,12 @@
 
 import unittest
 
+from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
+from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import build_forecast
 from app.agents.specialized.forecasting_analyst.assemble import assemble_forecast, resolve_forecast_citations
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
-from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
-from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import historical_fade_drivers
-from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import build_forecast
 from app.agents.specialized.forecasting_analyst.modules.management_guidance import MdnaAssessment
+from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import historical_fade_drivers
 from tests.forecast_fixtures import GUIDANCE_CHUNK, make_aapl_audit, make_chunk
 
 

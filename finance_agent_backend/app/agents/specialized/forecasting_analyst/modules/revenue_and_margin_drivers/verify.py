@@ -52,7 +52,7 @@ def screen_forecast_drivers(
     """Never raises: malformed proposals come back with accepted=False and the errors to fix.
 
     `margin_evidence_chunk_ids` are the allowed MD&A chunks carrying forward-looking margin/cost language
-    (see `mdna_guidance.margin_evidence_chunk_ids`); citing one lifts the trend corridor on the margin path.
+    (see `management_guidance.margin_evidence_chunk_ids`); citing one lifts the trend corridor on the margin path.
     """
     errors: List[str] = []
     for name, series in (

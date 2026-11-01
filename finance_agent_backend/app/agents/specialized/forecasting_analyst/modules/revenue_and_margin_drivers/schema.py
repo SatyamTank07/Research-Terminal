@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 class ForecastDrivers(BaseModel):
     """Per-year growth and margin paths plus reinvestment intensities (all decimals).
 
-    `capex_pct_of_revenue` is the year-1 intensity; `build_forecast` fills `capex_path`, which fades it
+    `capex_pct_of_revenue` is the year-1 intensity; `reinvestment_path.apply_reinvestment_path` fills `capex_path`, which fades it
     linearly to `steady_state_capex_pct_of_revenue` in the final explicit year. D&A is held at
     `da_pct_of_revenue` (no PP&E roll-forward is modeled; the final-year net reinvestment is pinned by the
     steady state, so the D&A level does not change terminal cash flow).
@@ -22,7 +22,7 @@ class ForecastDrivers(BaseModel):
     nwc_pct_of_incremental_revenue: float
     sbc_pct_of_revenue: float
     capex_path: List[float] = Field(
-        default_factory=list, description="Applied per-year CapEx intensity (decimals); filled by build_forecast"
+        default_factory=list, description="Applied per-year CapEx intensity (decimals); filled by reinvestment_path.apply_reinvestment_path"
     )
     steady_state_capex_pct_of_revenue: Optional[float] = Field(
         None, description="Final-year CapEx intensity consistent with terminal growth (decimal)"
