@@ -29,21 +29,14 @@ from app.agents.specialized.risk_analyst.context import (
     section_not_provided,
     tool_chunks,
 )
-from app.agents.specialized.risk_analyst.ratings import derive_severity, higher_level, normalize_level, rank_key
-from app.agents.specialized.risk_analyst.state_risk_analyst import (
-    FINANCIAL_TRANSMISSIONS,
-    RISK_CATEGORIES,
-    RiskAuditOutput,
-    RiskDataQuality,
-    RiskEvidence,
-    RiskItem,
-)
-from app.agents.tools.risk_disclosure_tools import (
-    QUANTIFIED_FIGURE,
+from app.agents.specialized.risk_analyst.modules.disclosure_changes import (
     build_prior_index,
     classify_disclosure_change,
-    derive_overall_profile,
     diff_risk_disclosures,
+)
+from app.agents.specialized.risk_analyst.modules.disclosure_changes.calculate import (
+    QUANTIFIED_FIGURE,
+    derive_overall_profile,
     disclosure_covered,
     extract_quantified_disclosures,
     is_boilerplate,
@@ -52,6 +45,15 @@ from app.agents.tools.risk_disclosure_tools import (
     render_risk_matrix_markdown,
     states_immaterial,
     substantiates_high_impact,
+)
+from app.agents.specialized.risk_analyst.ratings import derive_severity, higher_level, normalize_level, rank_key
+from app.agents.specialized.risk_analyst.state_risk_analyst import (
+    FINANCIAL_TRANSMISSIONS,
+    RISK_CATEGORIES,
+    RiskAuditOutput,
+    RiskDataQuality,
+    RiskEvidence,
+    RiskItem,
 )
 
 logger = logging.getLogger("finance_agent.agents.risk_analyst")

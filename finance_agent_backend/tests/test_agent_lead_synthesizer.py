@@ -23,6 +23,7 @@ from app.agents.specialized.financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst import ForecastOutput
 from app.agents.specialized.lead_synthesizer import Final10KResearchReport, ThreePillarThesis
 from app.agents.specialized.risk_analyst import (
+    DisclosurePassage,
     RiskAuditOutput,
     RiskDataQuality,
     RiskDisclosureDiff,
@@ -30,8 +31,7 @@ from app.agents.specialized.risk_analyst import (
     RiskItem,
 )
 from app.agents.specialized.valuation_specialist import DCFValuationOutput
-from app.agents.tools.risk_disclosure_tools import (
-    DisclosurePassage,
+from app.agents.specialized.risk_analyst.modules.disclosure_changes.calculate import (
     render_risk_evidence_table,
     render_risk_matrix_markdown,
 )

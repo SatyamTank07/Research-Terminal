@@ -8,7 +8,7 @@ LLM supplies for them is overwritten.
 from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
-from app.agents.tools.risk_disclosure_tools import DisclosurePassage, RiskDisclosureDiff
+from app.agents.specialized.risk_analyst.modules.disclosure_changes import DisclosurePassage, RiskDisclosureDiff
 
 RiskCategory = Literal[
     "Operational",

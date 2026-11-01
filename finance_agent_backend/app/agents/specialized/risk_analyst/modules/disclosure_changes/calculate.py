@@ -1,30 +1,30 @@
-"""Deterministic Risk-Disclosure Toolkit (Item 1A).
+"""Year-over-year Item 1A comparison: which sentences are unchanged, modified, new or removed, and whether a
+risk's quotes are new, expanded or unchanged versus the prior filing (3-word-shingle Jaccard / containment).
 
-Pure-Python helpers backing the evidence-first Risk Analyst:
-- Year-over-year disclosure diff (sentence-level 3-word-shingle Jaccard).
-- Likelihood x impact severity matrix, aggregate risk profile, materiality / boilerplate screens.
-- Markdown renderers for the verified risk matrix and evidence table.
-
-Nothing here calls an LLM, and the screening helpers never raise on malformed LLM input.
+Until their own modules take them, this file also holds the quantified-disclosure checklist, the materiality and
+boilerplate screens, the overall profile and the markdown renderers. Nothing here calls an LLM, and the screening
+helpers never raise on malformed LLM input.
 """
 
-import logging
 import re
 from collections import defaultdict
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from app.agents.shared.filing.sentences import normalize_text, split_sentences, split_words
-
-logger = logging.getLogger("finance_agent.tools.risk_disclosure")
-
-UNCHANGED_SIMILARITY = 0.6
-MODIFIED_SIMILARITY = 0.3
-MAX_NEW_PASSAGES = 12
-MAX_REMOVED_PASSAGES = 8
-PASSAGE_MAX_CHARS = 400
+from app.agents.specialized.risk_analyst.modules.disclosure_changes.schema import (
+    DisclosurePassage,
+    RiskDisclosureDiff,
+)
+from app.agents.specialized.risk_analyst.modules.disclosure_changes.thresholds import (
+    MAX_NEW_PASSAGES,
+    MAX_REMOVED_PASSAGES,
+    MODIFIED_SIMILARITY,
+    PASSAGE_MAX_CHARS,
+    UNCHANGED_SIMILARITY,
+)
 
 IMMATERIALITY_PATTERNS = re.compile(
     r"not\s+(?:currently\s+)?(?:expected|believed|anticipated|likely)\s+to\s+(?:have|result\s+in|be)\s+(?:a\s+)?material"
@@ -68,18 +68,14 @@ _PREAMBLE_PATTERNS = re.compile(
 )
 
 
+def is_preamble(sentence: str) -> bool:
+    """Item 1A introduction boilerplate ("not exhaustive", "forward-looking", ...) that is not a risk."""
+    return bool(_PREAMBLE_PATTERNS.search(sentence))
+
 
 # ==============================================================================
 # 1. Schemas
 # ==============================================================================
-class DisclosurePassage(BaseModel):
-    """A contiguous run of new (current year) or removed (prior year) Item 1A sentences."""
-
-    chunk_id: str = Field(..., description="Chunk the passage came from (current filing for new, prior filing for removed)")
-    text: str = Field(..., description="Passage text, trimmed")
-    similarity: float = Field(..., description="Best shingle-Jaccard similarity to the other year's sentences")
-
-
 class QuantifiedDisclosure(BaseModel):
     """An Item 1A sentence stating a magnitude (revenue share, charge, regional share...)."""
 
@@ -87,25 +83,10 @@ class QuantifiedDisclosure(BaseModel):
     text: str
 
 
-class RiskDisclosureDiff(BaseModel):
-    """Sentence-level year-over-year comparison of Item 1A disclosures."""
-
-    prior_fiscal_year: int
-    current_sentences: int
-    prior_sentences: int
-    unchanged_sentences: int
-    modified_sentences: int
-    new_sentences: int
-    removed_sentences: int
-    change_ratio_pct: float = Field(..., description="(new + modified) / current sentences, in percent")
-    new_passages: List[DisclosurePassage] = Field(default_factory=list)
-    removed_passages: List[DisclosurePassage] = Field(default_factory=list)
-
-
 # ==============================================================================
-# 3. Sentence shingles
+# 2. Sentence shingles
 # ==============================================================================
-def _shingles(text: str, n: int = 3) -> Set[Tuple[str, ...]]:
+def shingles(text: str, n: int = 3) -> Set[Tuple[str, ...]]:
     words = split_words(text)
     if len(words) < n:
         return {tuple(words)} if words else set()
@@ -119,7 +100,7 @@ class SentenceIndex:
         self.shingles: List[Set[Tuple[str, ...]]] = []
         self._postings: Dict[Tuple[str, ...], List[int]] = defaultdict(list)
         for idx, sentence in enumerate(sentences):
-            sh = _shingles(sentence)
+            sh = shingles(sentence)
             self.shingles.append(sh)
             for s in sh:
                 self._postings[s].append(idx)
@@ -128,7 +109,7 @@ class SentenceIndex:
         return len(self.shingles)
 
     def best_similarity(self, text: str) -> float:
-        query = _shingles(text)
+        query = shingles(text)
         if not query:
             return 0.0
         overlap: Dict[int, int] = defaultdict(int)
@@ -144,7 +125,7 @@ class SentenceIndex:
 
     def containment(self, text: str) -> float:
         """Share of `text`'s shingles found anywhere in the index (robust to partial-sentence quotes)."""
-        query = _shingles(text)
+        query = shingles(text)
         if not query:
             return 0.0
         return sum(1 for s in query if s in self._postings) / len(query)
@@ -154,7 +135,7 @@ def _chunk_sentences(chunks: Sequence[NarrativeChunkResult]) -> List[Tuple[str, 
     out: List[Tuple[str, str]] = []
     for c in chunks:
         for s in split_sentences(c.content):
-            if not _PREAMBLE_PATTERNS.search(s):
+            if not is_preamble(s):
                 out.append((c.chunk_id, s))
     return out
 
@@ -231,7 +212,7 @@ def extract_quantified_disclosures(
     for c in chunks:
         for sentence in split_sentences(c.content):
             key = normalize_text(sentence)
-            if key in seen or _PREAMBLE_PATTERNS.search(sentence):
+            if key in seen or is_preamble(sentence):
                 continue
             if QUANTIFIED_FIGURE.search(sentence) and _QUANTIFIED_TOPIC.search(sentence):
                 seen.add(key)
@@ -256,11 +237,11 @@ def is_material_disclosure(text: str) -> bool:
 
 def disclosure_covered(text: str, quotes: Sequence[str]) -> bool:
     """True if any quote overlaps the disclosure sentence (shingle overlap / smaller side >= 0.5)."""
-    target = _shingles(text)
+    target = shingles(text)
     if not target:
         return False
     for quote in quotes:
-        q = _shingles(quote)
+        q = shingles(quote)
         if q and len(target & q) / min(len(target), len(q)) >= COVERAGE_CONTAINMENT:
             return True
     return False
@@ -290,7 +271,7 @@ def classify_disclosure_change(quotes: Sequence[str], prior_index: Optional[Sent
 
 
 # ==============================================================================
-# 4. Materiality screens
+# 3. Materiality screens
 # ==============================================================================
 def states_immaterial(text: str) -> bool:
     return bool(text) and bool(IMMATERIALITY_PATTERNS.search(text))
@@ -301,7 +282,7 @@ def is_boilerplate(text: str) -> bool:
 
 
 # ==============================================================================
-# 5. Profile
+# 4. Profile
 # ==============================================================================
 def derive_overall_profile(severities: Sequence[str]) -> str:
     """Aggregate rating; "Not Assessed" when no verified risk exists (never a reassuring "Low")."""
@@ -317,7 +298,7 @@ def derive_overall_profile(severities: Sequence[str]) -> str:
 
 
 # ==============================================================================
-# 6. Markdown renderers
+# 5. Markdown renderers
 # ==============================================================================
 def _cell(text: Any) -> str:
     return str(text if text not in (None, "") else "—").replace("|", "/").replace("\n", " ")
@@ -352,10 +333,10 @@ def render_risk_evidence_table(citations: Sequence[Dict[str, Any]]) -> str:
 
 
 __all__ = [
-    "DisclosurePassage",
     "QuantifiedDisclosure",
-    "RiskDisclosureDiff",
     "SentenceIndex",
+    "is_preamble",
+    "shingles",
     "extract_quantified_disclosures",
     "disclosure_covered",
     "is_material_disclosure",
