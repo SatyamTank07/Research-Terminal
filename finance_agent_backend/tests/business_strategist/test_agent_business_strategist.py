@@ -1,4 +1,4 @@
-"""Unit and integration tests for the deterministic-first Business & Moat Strategist.
+"""Whole-run tests for the Business Strategist checklist (context, revenue mix, judge, verify, assemble).
 
 The Item 1 pre-fetch, the filing loader and the single LLM call (`_run_judgement_llm`) are
 patched, so every test is hermetic. Covered:
@@ -19,9 +19,8 @@ from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, patch
 
 from app.agents.registry import AgentRegistry
-from app.agents.specialized.business_strategist import BusinessMoatOutput, BusinessStrategistAgent
+from app.agents.specialized.business_strategist import BusinessMoatOutput, BusinessStrategistAgent, FilingChunk
 from app.agents.shared.prompts import render_prompt
-from app.agents.specialized.business_strategist.context import FilingChunk
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from tests.business_strategist.filing_fixtures import DISAGGREGATION, INCOME_STATEMENT, STACKED_SEGMENTS
 

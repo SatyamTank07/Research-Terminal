@@ -5,14 +5,13 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from app.agents.specialized.business_strategist.state_business_strategist import StrategyEvidence
+from app.agents.specialized.business_strategist import SegmentFigure, StrategyEvidence
 from app.agents.specialized.lead_synthesizer.report_citations import (
     ROW_STATEMENTS,
     NullCiter,
     ReportCiter,
 )
 from app.agents.specialized.risk_analyst import RiskEvidence
-from app.agents.specialized.business_strategist.modules.revenue_mix import SegmentFigure
 from app.agents.shared.citations import CitationRegistry, marker
 from tests.test_agent_lead_synthesizer import _create_mock_audit, _create_mock_moat, _create_mock_risk
 from tests.valuation_fixtures import make_valuation_output
