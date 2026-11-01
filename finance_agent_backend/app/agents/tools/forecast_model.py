@@ -1,12 +1,12 @@
 """Forecast assembly: base schedule, bull/base/bear scenarios and diagnostics."""
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import ForecastBaseline
 from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import ForecastDrivers, extend_fade
 from app.agents.specialized.forecasting_analyst.modules.reinvestment_path import apply_reinvestment_path
-from app.agents.tools.forecast_tools import calculate_forecast_schedule, project_forecast_years
+from app.agents.specialized.forecasting_analyst.modules.free_cash_flow_schedule import run_schedule
 
 SCENARIO_PROBABILITIES = {"bull": 0.25, "base": 0.50, "bear": 0.25}
 SCENARIO_ORDER = {"bull": 0, "base": 1, "bear": 2}
@@ -74,51 +74,6 @@ class ForecastBuild(BaseModel):
             }
             for y in self.schedule["forecast_schedule"]
         ]
-
-
-def run_schedule(baseline: ForecastBaseline, drivers: ForecastDrivers) -> Dict[str, Any]:
-    """Runs the schedule engine; `drivers.capex_path` must already be set (see apply_reinvestment_path)."""
-    return calculate_forecast_schedule(
-        base_revenue=baseline.base_revenue,
-        base_year=baseline.base_year,
-        revenue_growth_rates=drivers.revenue_growth,
-        operating_margins=drivers.operating_margin,
-        tax_rate=drivers.tax_rate,
-        capex_pct_of_revenue=drivers.capex_path,
-        depreciation_pct_of_revenue=drivers.da_pct_of_revenue,
-        nwc_change_pct_of_revenue=drivers.nwc_pct_of_incremental_revenue,
-        sbc_pct_of_revenue=drivers.sbc_pct_of_revenue,
-        historical_rows=baseline.historical_rows,
-    )
-
-
-def project_with_overrides(
-    baseline: ForecastBaseline,
-    drivers: ForecastDrivers,
-    terminal_growth: float,
-    *,
-    growth: Optional[List[float]] = None,
-    margins: Optional[List[float]] = None,
-    terminal_tax: Optional[float] = None,
-) -> Tuple[List[float], float]:
-    """(UFCFs, final-year NOPAT) for `drivers` with the growth and/or margin path replaced and the CapEx steady
-    state rebuilt for the new path. Used by the reverse DCF. With `terminal_tax`, a profitable final year's NOPAT
-    is re-taxed at that (marginal) rate, as the headline terminal value does. Raises ValueError on inputs the
-    engine rejects."""
-    update: Dict[str, Any] = {}
-    if growth is not None:
-        update["revenue_growth"] = list(growth)
-    if margins is not None:
-        update["operating_margin"] = list(margins)
-    variant, _ = apply_reinvestment_path(baseline, drivers.model_copy(update=update), terminal_growth)
-    years = project_forecast_years(
-        baseline.base_revenue, baseline.base_year, variant.revenue_growth, variant.operating_margin,
-        variant.tax_rate, variant.capex_path, variant.da_pct_of_revenue, variant.nwc_pct_of_incremental_revenue,
-        variant.sbc_pct_of_revenue,
-    )
-    final = years[-1]
-    nopat = final.projected_ebit * (1.0 - terminal_tax) if terminal_tax is not None and final.projected_ebit > 0 else final.projected_nopat
-    return [y.projected_unlevered_fcf for y in years], nopat
 
 
 def build_forecast(

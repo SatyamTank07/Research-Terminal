@@ -5,7 +5,8 @@ import unittest
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
 from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
 from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import ForecastDrivers, historical_fade_drivers
-from app.agents.tools.forecast_model import build_forecast, project_with_overrides
+from app.agents.specialized.forecasting_analyst.modules.free_cash_flow_schedule import project_with_overrides
+from app.agents.tools.forecast_model import build_forecast
 from tests.forecast_fixtures import (
     AAPL_BALANCE_SHEET,
     AAPL_ROWS,
