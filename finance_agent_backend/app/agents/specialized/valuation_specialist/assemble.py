@@ -12,25 +12,25 @@ import math
 from datetime import date
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 
-from app.agents.specialized.forecasting_analyst import MARGIN_FLOOR, SCENARIO_PROBABILITIES, project_with_overrides
+from app.agents.specialized.forecasting_analyst import MARGIN_FLOOR, project_with_overrides
 from app.agents.specialized.valuation_specialist.context import MarketInputs
 from app.agents.specialized.valuation_specialist.modules.cost_of_capital import (
     estimate_cost_of_capital,
     gather_capital_inputs,
 )
 from app.agents.specialized.valuation_specialist.modules.intrinsic_value import (
-    calculate_dcf,
     dcf_fair_value_per_share,
     estimate_intrinsic_value,
     gather_intrinsic_value_inputs,
 )
+from app.agents.specialized.valuation_specialist.modules.scenario_values import value_scenarios
 from app.agents.specialized.valuation_specialist.modules.sensitivity import build_sensitivity_grids
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import (
-    ScenarioValuation,
     ValuationBuild,
     ValuationDataQuality,
     ValuationStance,
 )
+from app.agents.specialized.valuation_specialist.upside import upside_pct
 
 if TYPE_CHECKING:  # runtime import would cycle through app.agents.specialized
     from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
@@ -58,12 +58,6 @@ IMPLIED_WACC_MIN_SPREAD_OVER_G = 0.005
 # ==============================================================================
 # Helpers
 # ==============================================================================
-def _upside(fair: float, price: Optional[float]) -> Optional[float]:
-    if price is None or price <= 0:
-        return None
-    return round((fair - price) / price * 100.0, 2)
-
-
 def _stance(upside: Optional[float]) -> Optional[ValuationStance]:
     if upside is None:
         return None
@@ -220,16 +214,6 @@ def _reverse_dcf(
     return {**base, "reverse_dcf_status": status, "reverse_dcf_summary": summary}
 
 
-def _scenario_terminal_nopat(forecast: "ForecastOutput", scenario, tax: float) -> Optional[float]:
-    """Final-year NOPAT of a scenario rebuilt from its growth and margin path (same formula as the schedule)."""
-    if not scenario.revenue_growth_pct or not scenario.operating_margin_pct:
-        return None
-    revenue = forecast.base_revenue
-    for g in scenario.revenue_growth_pct:
-        revenue *= 1.0 + g / 100.0
-    return revenue * scenario.operating_margin_pct[-1] / 100.0 * (1.0 - tax)
-
-
 def _implied_discount_rate(
     projected_fcfs: List[float], price: Optional[float], terminal_growth_rate: float, dcf_kwargs: dict,
     wacc: float,
@@ -244,27 +228,6 @@ def _implied_discount_rate(
         price, bounds, anchor=wacc,
     )
     return round(root * 100.0, 2) if status == "solved" else None
-
-
-def _scenario_table(scenarios: List[ScenarioValuation], weighted: Optional[float], price: Optional[float]) -> str:
-    lines = [
-        "| Scenario | Probability | Revenue CAGR | Cumulative UFCF | Fair Value / Share | vs. Price |",
-        "|:---|:---:|:---:|---:|---:|:---:|",
-    ]
-    for s in scenarios:
-        cagr = f"{s.revenue_cagr_pct:.1f}%" if s.revenue_cagr_pct is not None else "n/a"
-        vs = f"{s.upside_downside_pct:+.1f}%" if s.upside_downside_pct is not None else "n/a"
-        lines.append(
-            f"| {s.name.title()} | {s.probability:.0%} | {cagr} | ${s.cumulative_fcf:,.0f}M | "
-            f"${s.fair_value_per_share:.2f} | {vs} |"
-        )
-    if weighted is not None:
-        vs = _upside(weighted, price)
-        lines.append(
-            f"| **Probability-weighted** | 100% | | | **${weighted:.2f}** | "
-            f"{f'{vs:+.1f}%' if vs is not None else 'n/a'} |"
-        )
-    return "\n".join(lines)
 
 
 # ==============================================================================
@@ -296,12 +259,11 @@ def build_valuation(
         terminal_growth_rate,
     )
     dcf, projected_fcfs, forecast_source = intrinsic.dcf, intrinsic.projected_fcfs, intrinsic.forecast_source
-    common = intrinsic.terms.as_kwargs()
     grids = build_sensitivity_grids(dcf)
     warnings: List[str] = [*intrinsic.cash_flow_warnings, *capital.warnings, *intrinsic.warnings]
     fair = dcf.fair_value_per_share
     price = market.share_price if market.share_price and market.share_price > 0 else None
-    upside = _upside(fair, price)
+    upside = upside_pct(fair, price)
 
     # 3. Reverse DCF (market-implied explicit-period growth), same WACC / TV / bridge as the headline
     reverse = _reverse_dcf(
@@ -323,32 +285,7 @@ def build_valuation(
         ).strip()
 
     # 4. Scenario valuations (same WACC, growth and bridge; base reuses the headline DCF)
-    scenario_vals: List[ScenarioValuation] = []
-    if forecast is not None:
-        for sc in forecast.scenarios:
-            if sc.name == "base":
-                ev, per_share = dcf.enterprise_value, fair
-            else:
-                res = calculate_dcf(
-                    projected_fcfs=sc.projected_fcfs,
-                    terminal_nopat=_scenario_terminal_nopat(forecast, sc, terminal_tax),
-                    **common,
-                )
-                ev, per_share = res.enterprise_value, res.fair_value_per_share
-            scenario_vals.append(ScenarioValuation(
-                name=sc.name,
-                probability=SCENARIO_PROBABILITIES.get(sc.name, sc.probability),
-                revenue_cagr_pct=sc.revenue_cagr_pct,
-                cumulative_fcf=sc.cumulative_fcf,
-                enterprise_value=ev,
-                fair_value_per_share=per_share,
-                upside_downside_pct=_upside(per_share, price),
-            ))
-    by_name = {s.name: s for s in scenario_vals}
-    weighted = (
-        round(sum(s.probability * s.fair_value_per_share for s in scenario_vals), 2)
-        if {"bull", "base", "bear"} <= set(by_name) else None
-    )
+    scenarios = value_scenarios(forecast, intrinsic, capital, price)
 
     build = ValuationBuild(
         ticker=ticker.upper(),
@@ -379,16 +316,16 @@ def build_valuation(
         upside_downside_pct=upside,
         valuation_stance=_stance(upside),
         implied_ev_ebitda=intrinsic.implied_ev_ebitda,
-        scenario_valuations=scenario_vals,
-        probability_weighted_fair_value=weighted,
-        bear_fair_value=by_name["bear"].fair_value_per_share if "bear" in by_name else None,
-        bull_fair_value=by_name["bull"].fair_value_per_share if "bull" in by_name else None,
+        scenario_valuations=scenarios.scenario_valuations,
+        probability_weighted_fair_value=scenarios.probability_weighted_fair_value,
+        bear_fair_value=scenarios.bear_fair_value,
+        bull_fair_value=scenarios.bull_fair_value,
         **reverse,
         market_implied_wacc_pct=implied_wacc,
         sensitivity_matrix_markdown=grids.sensitivity_matrix_markdown,
         ronic_sensitivity_matrix_markdown=grids.ronic_sensitivity_matrix_markdown,
         equity_bridge_markdown=dcf.equity_bridge_markdown,
-        scenario_table_markdown=_scenario_table(scenario_vals, weighted, price) if scenario_vals else "",
+        scenario_table_markdown=scenarios.scenario_table_markdown,
         data_quality=ValuationDataQuality(
             forecast_source=forecast_source,
             market_data_source=market.market_data_source,
@@ -399,6 +336,6 @@ def build_valuation(
     logger.info(
         f"build_valuation {build.ticker} FY{fiscal_year}: WACC {wacc_audit.wacc_pct:.2f}% ({wacc_audit.wacc_source}), "
         f"base ${fair:.2f}, bear ${build.bear_fair_value}, bull ${build.bull_fair_value}, "
-        f"weighted ${weighted}, roll {intrinsic.terms.roll_forward_years:.2f}y, {len(warnings)} warnings"
+        f"weighted ${scenarios.probability_weighted_fair_value}, roll {intrinsic.terms.roll_forward_years:.2f}y, {len(warnings)} warnings"
     )
     return build
