@@ -4,4 +4,5 @@ MODULES = (
     "audited_baseline",
     "management_guidance",
     "revenue_and_margin_drivers",
+    "reinvestment_path",
 )
