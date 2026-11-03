@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from app.agents.registry import AgentRegistry
 from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
 from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import (
     LLM_STEP_FAILED_WARNING,
@@ -77,8 +76,7 @@ class TestForecastingAnalystAgent(unittest.TestCase):
                 patch.object(ForecastingAnalystAgent, "_get_or_create_agent", return_value=llm):
             return forecaster.forecast(ticker="AAPL", fiscal_year=2025, financial_audit=self.audit, terminal_growth=DEFAULT_TERMINAL_GROWTH, **kwargs)
 
-    def test_registry_and_system_prompt(self):
-        self.assertIsInstance(AgentRegistry.get("forecasting_analyst"), ForecastingAnalystAgent)
+    def test_system_prompt(self):
         prompt = render_prompt("forecasting_analyst", "prompt_forecasting_analyst.j2")
         self.assertIn(PROPOSE_TOOL_NAME, prompt)
         self.assertIn("WHOLE percent", prompt)

@@ -22,7 +22,6 @@ from pydantic import ValidationError
 
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
-from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult, retrieve_10k_narrative_tool
 from app.agents.shared.filing.table_search import retrieve_10k_tables_tool
 from app.agents.shared.prompts import render_prompt
@@ -125,7 +124,6 @@ def _risk_lines(risk_audit: Optional[RiskAuditOutput]) -> List[str]:
     ]
 
 
-@AgentRegistry.register("forecasting_analyst")
 class ForecastingAnalystAgent(StructuredAgent[ForecastOutput]):
     """Deterministic-first operating forecaster with LLM-proposed, code-screened drivers."""
 

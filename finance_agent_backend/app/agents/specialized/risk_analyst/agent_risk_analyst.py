@@ -13,7 +13,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
-from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.narrative_search import retrieve_10k_narrative_tool
 from app.agents.shared.filing.sections import build_section_context
 from app.agents.shared.llm_call import complete_once, parse_json_content
@@ -52,7 +51,6 @@ from app.agents.specialized.risk_analyst.state_risk_analyst import (
 logger = logging.getLogger("finance_agent.agents.risk_analyst")
 
 
-@AgentRegistry.register("risk_analyst")
 class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
     """Evidence-first qualitative agent analyzing Item 1A risk disclosures and existential threats."""
 

@@ -1,7 +1,7 @@
 """Unit and Integration Tests for Lead Synthesizer Agent (Milestone 6).
 
 Validates:
-1. Agent registration in AgentRegistry and prompt template rendering.
+1. Prompt template rendering.
 2. Full multi-agent synthesis:
    - Ingestion of Moat, Audit, Forecast, DCF Valuation, and Risk payloads.
    - LLM generation of the 3-Pillar Investment Thesis and Executive Summary.
@@ -17,7 +17,6 @@ Validates:
 import unittest
 from unittest.mock import patch
 
-from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.lead_synthesizer import ThreePillarThesis
 from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import LeadSynthesizerAgent
@@ -56,8 +55,7 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
             dcf_valuation=mock_dcf(), risk_audit=mock_risk(), **kwargs,
         )
 
-    def test_01_initialization_and_registry(self):
-        self.assertIsInstance(AgentRegistry.get("lead_synthesizer"), LeadSynthesizerAgent)
+    def test_01_system_prompt_renders(self):
         prompt = render_prompt("lead_synthesizer", "prompt_lead_synthesizer.j2", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025)
         self.assertIn("Managing Director of Global Equity Research", prompt)
         self.assertIn("ResearchSynthesisPayload", prompt)

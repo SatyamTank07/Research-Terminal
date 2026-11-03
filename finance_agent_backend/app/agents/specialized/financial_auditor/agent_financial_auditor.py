@@ -23,7 +23,6 @@ from langchain_core.tools import StructuredTool, tool
 
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
-from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.table_search import retrieve_10k_tables_tool, retrieve_multiyear_financial_series_tool
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.financial_auditor.assemble import (
@@ -228,7 +227,6 @@ def audit_financial_metrics_tool(
     )
 
 
-@AgentRegistry.register("financial_auditor")
 class FinancialAuditorAgent(StructuredAgent[FinancialAuditOutput]):
     """Deterministic-first auditor of multi-year 10-K financial statements."""
 

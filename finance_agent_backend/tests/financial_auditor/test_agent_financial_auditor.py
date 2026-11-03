@@ -16,7 +16,6 @@ from unittest.mock import MagicMock, patch
 
 from langchain_core.messages import AIMessage, ToolMessage
 
-from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.table_search import retrieve_multiyear_financial_series_tool
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.financial_auditor import FinancialAuditOutput, FinancialAuditorAgent
@@ -50,8 +49,7 @@ def _tsla_baseline_inputs():
 class TestFinancialAuditorAgent(unittest.TestCase):
 
     def test_01_initialization_prompt_and_tool_binding(self):
-        agent = AgentRegistry.get("financial_auditor")
-        self.assertIsInstance(agent, FinancialAuditorAgent)
+        agent = FinancialAuditorAgent()
         self.assertEqual(agent.model_name, "openai:gpt-4o-mini")
 
         prompt = render_prompt("financial_auditor", "prompt_financial_auditor.j2")

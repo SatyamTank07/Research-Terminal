@@ -11,7 +11,6 @@ from typing import Any, List, Optional
 
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
-from app.agents.registry import AgentRegistry
 from app.agents.shared.llm_call import complete_once
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
@@ -76,7 +75,6 @@ def build_valuation(
     return build
 
 
-@AgentRegistry.register("valuation_specialist")
 class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
     """Code-built DCF valuation with one LLM call for commentary."""
 

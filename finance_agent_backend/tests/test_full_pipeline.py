@@ -2,7 +2,7 @@
 
 Validates:
 1. LangGraph StateGraph structure and compilation via build_graph().
-2. MultiAgentOrchestrator registration and BaseAgent interface compatibility.
+2. MultiAgentOrchestrator builds the graph.
 3. Fast-Path DCF valuation execution on Tesla (TSLA FY2025):
    - Confirms skipping qualitative branches (business moat & risk factors remain None).
    - Confirms execution through financial auditor -> forecaster -> valuation specialist -> lead synthesizer.
@@ -18,7 +18,7 @@ Validates:
 import asyncio
 import unittest
 from unittest.mock import MagicMock, patch
-from app.agents import AgentRegistry, MultiAgentOrchestrator, build_graph
+from app.agents import MultiAgentOrchestrator, build_graph
 from app.agents.specialized.business_strategist import BusinessMoatOutput, BusinessStrategistAgent
 from app.agents.specialized.financial_auditor import FinancialAuditOutput, FinancialAuditorAgent
 from app.agents.specialized.financial_auditor.agent_financial_auditor import build_audit
@@ -300,22 +300,11 @@ class TestMilestone6FullPipeline(unittest.TestCase):
             "final_report": state.get("final"),
         }
 
-    def test_01_graph_compilation_and_registry(self):
-        """Verify graph builds cleanly and agent is registered in AgentRegistry."""
-        graph = build_graph()
-        self.assertIsNotNone(graph)
-
-        agent = AgentRegistry.get("multi_agent")
-        self.assertIsInstance(agent, MultiAgentOrchestrator)
-
-        agent_orch = AgentRegistry.get("orchestrator")
-        self.assertIsInstance(agent_orch, MultiAgentOrchestrator)
-
-        registered = AgentRegistry.list_agents()
-        self.assertIn("multi_agent", registered)
-        self.assertIn("orchestrator", registered)
-        self.assertIn("supervisor", registered)
-        self.assertIn("lead_synthesizer", registered)
+    def test_01_graph_compilation(self):
+        """Verify the graph builds cleanly and the orchestrator caches it."""
+        self.assertIsNotNone(build_graph())
+        orchestrator = MultiAgentOrchestrator()
+        self.assertIs(orchestrator.get_graph(), orchestrator.get_graph())
 
     def test_02_fast_path_dcf_pipeline_execution(self):
         """Verify Fast-Path DCF route (TSLA FY2025) executes without running qualitative agents."""
@@ -486,20 +475,19 @@ class TestMilestone6FullPipeline(unittest.TestCase):
 
             req = ChatRequest(
                 message="Calculate DCF fair value and WACC for TSLA",
-                agent_type="multi_agent",
                 stream=False,
             )
             from unittest.mock import MagicMock, patch
             from app.agents.base import AgentOutput
 
-            with patch("app.services.chat_service.AgentRegistry.get") as mock_agent_get:
+            with patch("app.services.chat_service.MultiAgentOrchestrator") as mock_orchestrator_cls:
                 mock_agent = MagicMock()
                 mock_agent.run.return_value = AgentOutput(
                     content="### Institutional DCF Valuation: TSLA (Tesla Inc.)\n\nExecutive Valuation Dashboard: Intrinsic fair value is $245.50/share.",
                     sources=[{"ticker": "TSLA", "item": "Item 8", "snippet": "Cash flows"}],
                     updated_session_state={"ticker": "TSLA", "fiscal_year": 2025},
                 )
-                mock_agent_get.return_value = mock_agent
+                mock_orchestrator_cls.return_value = mock_agent
 
                 with patch.dict("os.environ", {"OPENAI_API_KEY": "test-mock-key"}):
                     response: ChatResponse = process_chat(request=req, user=user, db=db)

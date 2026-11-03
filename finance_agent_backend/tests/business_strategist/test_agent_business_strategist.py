@@ -18,7 +18,6 @@ import unittest
 from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, patch
 
-from app.agents.registry import AgentRegistry
 from app.agents.specialized.business_strategist import BusinessMoatOutput, BusinessStrategistAgent, FilingChunk
 from app.agents.shared.prompts import render_prompt
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
@@ -152,9 +151,9 @@ def _run(
     return out, llm, rag_mock
 
 
-class TestRegistrationAndPrompts(unittest.TestCase):
-    def test_registry_and_tool_free(self):
-        agent = AgentRegistry.get("business_strategist")
+class TestToolsAndPrompts(unittest.TestCase):
+    def test_tool_free(self):
+        agent = BusinessStrategistAgent()
         self.assertIsInstance(agent, BusinessStrategistAgent)
         self.assertEqual(agent.get_tools(), [])
 

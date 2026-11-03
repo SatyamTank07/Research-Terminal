@@ -39,7 +39,8 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
         """Verify ChatRequest defaults stream=True when omitted."""
         req_default = ChatRequest(message="Analyze Apple")
         self.assertTrue(req_default.stream)
-        self.assertEqual(req_default.agent_type, "multi_agent")
+        # A client that still sends the retired agent_type field is accepted; the field is ignored.
+        self.assertNotIn("agent_type", ChatRequest(message="Analyze Apple", agent_type="supervisor").model_dump())
 
         req_sync = ChatRequest(message="Analyze Apple", stream=False)
         self.assertFalse(req_sync.stream)
@@ -117,9 +118,9 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
 
     @patch("app.services.chat_service._prepare_chat_turn")
     @patch("app.services.chat_service._finalize_assistant_turn")
-    @patch("app.services.chat_service.AgentRegistry.get")
+    @patch("app.services.chat_service.MultiAgentOrchestrator")
     def test_05_stream_chat_service_yields_token_lifecycle(
-        self, mock_registry_get, mock_finalize, mock_prepare
+        self, mock_orchestrator_cls, mock_finalize, mock_prepare
     ):
         """Verify stream_chat_service executes 3-phase streaming (status -> token -> result)."""
         mock_conv = MagicMock(spec=Conversation)
@@ -148,7 +149,7 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
             }
 
         mock_agent.astream_run = mock_astream_run
-        mock_registry_get.return_value = mock_agent
+        mock_orchestrator_cls.return_value = mock_agent
 
         req = ChatRequest(message="Analyze AAPL", stream=True)
         db = MagicMock()
@@ -186,8 +187,8 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
 
     @patch("app.services.chat_service._prepare_chat_turn")
     @patch("app.services.chat_service._finalize_assistant_turn")
-    @patch("app.services.chat_service.AgentRegistry.get")
-    def test_06_process_chat_service_unit(self, mock_registry_get, mock_finalize, mock_prepare):
+    @patch("app.services.chat_service.MultiAgentOrchestrator")
+    def test_06_process_chat_service_unit(self, mock_orchestrator_cls, mock_finalize, mock_prepare):
         """Verify process_chat executes synchronously with zero real external API calls."""
         from app.agents.base import AgentOutput
 
@@ -208,7 +209,7 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
             sources=[{"ticker": "TSLA", "item": "Item 8"}],
             updated_session_state={"ticker": "TSLA"},
         )
-        mock_registry_get.return_value = mock_agent
+        mock_orchestrator_cls.return_value = mock_agent
 
         req = ChatRequest(message="Analyze Tesla", stream=False)
         db = MagicMock()

@@ -19,7 +19,6 @@ from typing import Any, Dict, List, Optional, Sequence
 
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
-from app.agents.registry import AgentRegistry
 from app.agents.shared.llm_call import complete_once, parse_json_content
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.business_strategist.assemble import assemble_strategy, not_assessed_reason, record_extraction
@@ -57,7 +56,6 @@ logger = logging.getLogger("finance_agent.agents.business_strategist")
 JUDGEMENT_MAX_TOKENS = 2_000
 
 
-@AgentRegistry.register("business_strategist")
 class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
     """Deterministic-first business model, segment and moat analysis with one verified LLM judgement."""
 

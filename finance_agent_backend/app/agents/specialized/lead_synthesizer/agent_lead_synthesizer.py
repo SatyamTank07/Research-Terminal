@@ -17,7 +17,6 @@ from pydantic import BaseModel
 
 from app.agents.base import AgentOutput, BaseAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
-from app.agents.registry import AgentRegistry
 from app.agents.shared.llm_call import parse_json_content
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
@@ -46,7 +45,6 @@ logger = logging.getLogger("finance_agent.agents.lead_synthesizer")
 SYNTHESIS_MAX_TOKENS = 4000
 
 
-@AgentRegistry.register("lead_synthesizer")
 class LeadSynthesizerAgent(BaseAgent):
     """Institutional report publisher: code-built report skeleton and tables, LLM-written verified prose."""
 

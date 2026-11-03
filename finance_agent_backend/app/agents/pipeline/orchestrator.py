@@ -13,7 +13,6 @@ from app.agents.pipeline.contract import Conversation, StatusLine
 from app.agents.pipeline.graph import build_graph
 from app.agents.pipeline.routes import ROUTES, all_specs
 from app.agents.pipeline.run_state import ResearchRunState
-from app.agents.registry import AgentRegistry
 from app.agents.specialized.lead_synthesizer import Final10KResearchReport
 from app.agents.specialized.supervisor import supervisor_milestone
 
@@ -28,8 +27,6 @@ UNKNOWN_ROUTE_MESSAGE = (
 )
 
 
-@AgentRegistry.register("multi_agent")
-@AgentRegistry.register("orchestrator")
 class MultiAgentOrchestrator(BaseAgent):
     """Runs one chat turn through the research pipeline."""
 

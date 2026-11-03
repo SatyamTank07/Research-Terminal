@@ -14,7 +14,6 @@ from langchain_openai import ChatOpenAI
 
 from app.agents.base import AgentOutput, BaseAgent
 from app.agents.pipeline.contract import Conversation, StatusLine
-from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.supervisor.assemble import (
     assemble_conversational_plan,
@@ -50,7 +49,6 @@ from app.agents.specialized.supervisor.state_supervisor import RoutingPlan, Turn
 logger = logging.getLogger("finance_agent.agents.supervisor")
 
 
-@AgentRegistry.register("supervisor")
 class SupervisorAgent(BaseAgent):
     """Lead Supervisor: intent, company, filing and valuation-parameter resolution for one chat turn."""
 

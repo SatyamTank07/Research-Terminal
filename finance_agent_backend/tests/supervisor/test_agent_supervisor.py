@@ -1,7 +1,7 @@
 """Unit & Integration Tests for Supervisor & Intent Router Agent.
 
 Validates:
-1. Agent registration in AgentRegistry and prompt template rendering.
+1. Prompt template rendering.
 2. Catalog resolution with explicit substitution flagging (year_substituted).
 3. Entity extraction without making actual external API calls.
 4. Intent classification (100% Mocked - No external API calls).
@@ -16,7 +16,6 @@ import json
 import unittest
 from unittest.mock import MagicMock, patch
 
-from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.supervisor import SESSION_KEY
 from app.agents.specialized.supervisor import RoutingPlan, SupervisorAgent, SupervisorExtraction
@@ -29,12 +28,8 @@ class TestAgentSupervisor(unittest.TestCase):
     def setUp(self):
         self.supervisor = SupervisorAgent()
 
-    def test_01_initialization_and_registry(self):
-        """Verify supervisor registration and prompt template rendering."""
-        agent = AgentRegistry.get("supervisor")
-        self.assertIsInstance(agent, SupervisorAgent)
-
-        # Verify generic prompt renders
+    def test_01_system_prompt_renders(self):
+        """Verify the supervisor prompt template renders."""
         prompt = render_prompt("supervisor", "prompt_supervisor.j2", catalog_summary="AAPL (2025), TSLA (2025)")
         self.assertIn("Senior Equity Research Director", prompt)
         self.assertIn("full_10k_report", prompt)
