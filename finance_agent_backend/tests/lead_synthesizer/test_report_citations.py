@@ -5,63 +5,28 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from app.agents.specialized.business_strategist import SegmentFigure, StrategyEvidence
+from app.agents.shared.citations import CitationRegistry, marker
 from app.agents.specialized.lead_synthesizer.report_citations import (
     ROW_STATEMENTS,
     NullCiter,
     ReportCiter,
 )
 from app.agents.specialized.risk_analyst import RiskEvidence
-from app.agents.shared.citations import CitationRegistry, marker
-from tests.test_agent_lead_synthesizer import _create_mock_audit, _create_mock_moat, _create_mock_risk
+from tests.lead_synthesizer.report_fixtures import audit_with_provenance, moat_with_evidence, mock_audit, mock_risk
 from tests.valuation_fixtures import make_valuation_output
 
-IS, BS, CF = "income_statement", "balance_sheet", "cash_flow"
-TEMPLATES = Path(__file__).resolve().parents[1] / "app" / "agents" / "specialized" / "lead_synthesizer"
-
-
-def provenance():
-    out = {}
-    for year in (2023, 2024, 2025):
-        for field, statement in (("revenue", IS), ("operating_income", IS), ("operating_cash_flow", CF)):
-            out[f"FY{year}.{field}"] = {"statement": statement, "chunk_id": f"{statement}-fy2025", "filing_year": 2025}
-    out["FY2025.cash_and_equivalents"] = {"statement": BS, "chunk_id": "balance_sheet-fy2025", "filing_year": 2025}
-    out["FY2024.cash_and_equivalents"] = {"statement": BS, "chunk_id": "balance_sheet-fy2024", "filing_year": 2024}
-    return out
-
-
-def audit_with_provenance():
-    audit = _create_mock_audit()
-    audit.data_quality.field_provenance = provenance()
-    return audit
-
-
-def moat_with_evidence():
-    return _create_mock_moat().model_copy(update={
-        "competitive_threats": ["Android OEMs"],
-        "evidence": [
-            StrategyEvidence(claim="primary_moat", subject="High Switching Costs", chunk_id="item1-a",
-                             quote="Customers who own multiple Apple devices rely on iCloud continuity"),
-            StrategyEvidence(claim="competitive_threat", subject="Android OEMs", chunk_id="item1-b",
-                             quote="The Company faces substantial competition from Android OEMs"),
-            StrategyEvidence(claim="competitive_threat", subject="Other", chunk_id="item1-c", quote="Other rivals"),
-        ],
-        "segment_financials": [
-            SegmentFigure(segment_name="Americas", fiscal_year=2025, revenue=178353.0, revenue_share_pct=42.86,
-                          source_chunk_id="seg-note"),
-        ],
-    })
+TEMPLATES = Path(__file__).resolve().parents[2] / "app" / "agents" / "specialized" / "lead_synthesizer"
 
 
 def citer(**kwargs):
     defaults = dict(financial_audit=audit_with_provenance(), business_moat=moat_with_evidence(),
-                    risk_audit=_create_mock_risk(), dcf_valuation=make_valuation_output())
+                    risk_audit=mock_risk(), dcf_valuation=make_valuation_output())
     return ReportCiter(CitationRegistry(resolver=MagicMock(return_value={})), fiscal_year=2025, **{**defaults, **kwargs})
 
 
 class TestReportCiter(unittest.TestCase):
     def test_every_audit_table_attribute_is_mapped(self):
-        text = (TEMPLATES / "audit_tables.j2").read_text(encoding="utf-8")
+        text = (TEMPLATES / "report" / "audit_tables.j2").read_text(encoding="utf-8")
         attrs = set(re.findall(r'row\("[^"]+", fa\.\w+, "(\w+)"', text)) | set(re.findall(r'fe\("(\w+)"', text))
         self.assertGreater(len(attrs), 40)
         self.assertEqual(attrs - set(ROW_STATEMENTS), set())
@@ -81,7 +46,7 @@ class TestReportCiter(unittest.TestCase):
     def test_unmapped_or_unprovenanced_rows_get_no_marker(self):
         c = citer()
         self.assertEqual(c.row("not_a_metric", audit_with_provenance().multi_year_history), "")
-        self.assertEqual(citer(financial_audit=_create_mock_audit()).row("revenue", _create_mock_audit().multi_year_history), "")
+        self.assertEqual(citer(financial_audit=mock_audit()).row("revenue", mock_audit().multi_year_history), "")
 
     def test_field_uses_anchor_year_by_default(self):
         c = citer()
@@ -107,7 +72,7 @@ class TestReportCiter(unittest.TestCase):
 
     def test_risk_cites_only_verified_quotes(self):
         c = citer()
-        risk = _create_mock_risk().identified_risks[0].model_copy(update={"evidence": [
+        risk = mock_risk().identified_risks[0].model_copy(update={"evidence": [
             RiskEvidence(chunk_id="r1", quote="verified quote", verified=True),
             RiskEvidence(chunk_id="r2", quote="unverified quote", verified=False),
         ]})

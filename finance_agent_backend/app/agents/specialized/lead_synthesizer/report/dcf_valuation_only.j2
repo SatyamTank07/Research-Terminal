@@ -1,0 +1,40 @@
+{# DCF valuation report. `p` holds the (verified) prose fields; all tables come from the artifacts. #}
+{% import "report/report_blocks.j2" as b with context %}
+{% set title_suffix = company_name ~ " (" ~ ticker ~ ")" %}
+{% set horizon = (forecast.forecast_horizon_years ~ "-Year") if forecast else "Multi-Year" %}
+# DCF Valuation & Intrinsic Sensitivity: {{ title_suffix }}
+> **Filing Source**: SEC Form 10-K (FY{{ fiscal_year }}) | **Valuation Stance**: **{{ (dcf_valuation.valuation_stance or "Not stated") if dcf_valuation else "Unavailable" }}**
+{{ b.provenance_note() }}
+
+{% if dcf_valuation %}
+## Executive Valuation Dashboard
+
+{{ b.dashboard(dcf_valuation, forecast) }}
+## 1. Valuation Executive Summary
+
+{{ b.prose(p.executive_summary) }}
+## 2. {{ horizon }} Explicit UFCF Projections
+
+{{ b.prose(p.forecast_commentary) }}{% if forecast %}{{ b.forecast_block(forecast) }}{% else %}{{ b.unavailable("The forecast", notes) }}{% endif %}
+
+## 3. WACC Hurdle Rate Breakdown
+
+{{ b.wacc_block(dcf_valuation) }}
+## 4. Equity Bridge & Scenario Valuation
+
+{{ b.bridge_block(dcf_valuation) }}
+## 5. Sensitivity Analysis
+
+{{ b.sensitivity_block(dcf_valuation) }}
+## 6. Valuation Commentary & Margin of Safety
+
+{{ b.prose(p.valuation_commentary) }}{{ b.valuation_warnings(dcf_valuation) }}
+{% else %}
+## 1. Valuation Executive Summary
+
+{{ b.prose(p.executive_summary) }}{{ b.unavailable("The DCF valuation", notes) }}
+{% endif %}
+
+## 7. Regulatory Disclaimers
+
+{{ b.footer(notes, provenance, removed_sentences) }}

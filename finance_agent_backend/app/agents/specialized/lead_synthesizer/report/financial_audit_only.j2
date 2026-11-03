@@ -1,0 +1,36 @@
+{# Financial statement audit report. `p` holds the (verified) prose fields; all tables come from the artifacts. #}
+{% import "report/report_blocks.j2" as b with context %}
+{% import "report/audit_tables.j2" as t with context %}
+{% set title_suffix = company_name ~ " (" ~ ticker ~ ")" %}
+{% set fa = financial_audit %}
+# Financial Statement Audit & Quality of Earnings: {{ title_suffix }}
+> **Filing Source**: SEC Form 10-K (FY{{ fiscal_year }}) | **Extraction**: {{ fa.data_quality.extraction_mode }} | **Forensic Findings**: {{ fa.forensic_findings | selectattr("severity", "in", ["high", "medium"]) | list | length }} high/medium
+{{ b.provenance_note() }}
+
+## 1. Executive Summary
+
+{{ b.prose(p.executive_summary) }}
+## 2. Multi-Year Performance
+
+{{ t.table_a(fa) }}
+## 3. Earnings Quality & Normalization
+
+{{ b.prose(p.earnings_quality_commentary) }}{{ t.table_b(fa) }}{{ t.normalization_lines(fa) }}
+
+## 4. Margins, Cost Structure & Working Capital
+
+{{ t.table_c(fa) }}
+## 5. Cash Flow, Capital Intensity & Dilution
+
+{{ b.prose(p.cash_flow_balance_sheet_commentary) }}{{ t.table_d(fa) }}
+## 6. Balance Sheet, Liquidity & Returns
+{{ t.table_e(fa) }}
+## 7. Forensic Findings
+{{ t.table_f(fa) }}
+## 8. Restatement Review & Data Quality
+
+{{ b.restatement_block(fa) }}
+## 9. Audited Statements
+
+{{ b.statements_block(fa) }}
+{{ b.footer(notes, provenance, removed_sentences) }}

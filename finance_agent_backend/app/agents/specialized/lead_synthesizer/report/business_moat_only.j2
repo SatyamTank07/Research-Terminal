@@ -1,0 +1,28 @@
+{# Business and moat report. `p` holds the (verified) prose fields; all tables come from the artifacts. #}
+{% import "report/report_blocks.j2" as b with context %}
+{% set title_suffix = company_name ~ " (" ~ ticker ~ ")" %}
+{% set m = business_moat %}
+# Business Operations & Economic Moat Analysis: {{ title_suffix }}
+> **Filing Source**: SEC Form 10-K (FY{{ fiscal_year }}) | **Primary Moat**: **{{ m.economic_moat_type }}** | **Durability**: **{{ m.moat_durability }}** | **Trajectory**: **{{ m.moat_trajectory }}**
+{{ b.provenance_note() }}
+
+## 1. Executive Summary & Revenue Architecture
+
+{{ b.prose(p.executive_summary) }}**Revenue architecture (filing-based)**: {{ m.revenue_architecture }}
+
+## 2. Segments & Disaggregated Revenue Architecture
+
+{{ b.business_block(m) }}
+## 3. Economic Moat Deconstruction
+
+{{ b.prose(p.business_commentary) }}
+## 4. Competitive Threats & Counter-Evidence Stress Test
+
+{{ b.threats_block(m) }}
+## 5. Market Power & Customer Concentration
+
+{{ b.market_power_block(m) }}
+## 6. Filing Evidence & Audit Trail
+
+{{ b.evidence_note() }}
+{{ b.footer(notes, provenance, removed_sentences) }}

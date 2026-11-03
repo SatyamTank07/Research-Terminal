@@ -1,0 +1,29 @@
+{# Risk factor report. `p` holds the (verified) prose fields; all tables come from the artifacts. #}
+{% import "report/report_blocks.j2" as b with context %}
+{% set title_suffix = company_name ~ " (" ~ ticker ~ ")" %}
+{% set r = risk_audit %}
+# Material Risk Factors & Existential Overhangs: {{ title_suffix }}
+{{ b.risk_banner(r) }}
+{{ b.provenance_note() }}
+
+## 1. Risk Summary
+
+{{ b.prose(p.risk_commentary) }}
+## 2. Verified Risk Matrix
+
+{{ b.risk_matrix(r) }}
+## 3. Risk-by-Risk Assessment
+
+{{ b.risk_details(r) }}
+## 4. Primary Existential Threat & Bear-Case Linkage
+
+{{ b.prose(p.bear_case_commentary) }}
+## 5. Year-over-Year Disclosure Changes
+
+{{ b.disclosure_changes(r) }}
+{{ b.prose(p.disclosure_change_commentary) }}
+## 6. Filing Evidence & Audit Trail
+
+{{ b.risk_audit_trail(r) }}
+
+{{ b.footer(notes, provenance, removed_sentences) }}
