@@ -478,11 +478,11 @@ class TestMilestone6FullPipeline(unittest.TestCase):
                 stream=False,
             )
             from unittest.mock import MagicMock, patch
-            from app.agents.base import AgentOutput
+            from app.agents.pipeline.orchestrator import TurnReply
 
             with patch("app.services.chat_service.MultiAgentOrchestrator") as mock_orchestrator_cls:
                 mock_agent = MagicMock()
-                mock_agent.run.return_value = AgentOutput(
+                mock_agent.run.return_value = TurnReply(
                     content="### Institutional DCF Valuation: TSLA (Tesla Inc.)\n\nExecutive Valuation Dashboard: Intrinsic fair value is $245.50/share.",
                     sources=[{"ticker": "TSLA", "item": "Item 8", "snippet": "Cash flows"}],
                     updated_session_state={"ticker": "TSLA", "fiscal_year": 2025},

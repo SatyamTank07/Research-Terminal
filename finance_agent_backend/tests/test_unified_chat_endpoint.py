@@ -190,7 +190,7 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
     @patch("app.services.chat_service.MultiAgentOrchestrator")
     def test_06_process_chat_service_unit(self, mock_orchestrator_cls, mock_finalize, mock_prepare):
         """Verify process_chat executes synchronously with zero real external API calls."""
-        from app.agents.base import AgentOutput
+        from app.agents.pipeline.orchestrator import TurnReply
 
         mock_conv = MagicMock(spec=Conversation)
         mock_conv.id = "conv-def"
@@ -204,7 +204,7 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
         mock_finalize.return_value = mock_assistant_msg
 
         mock_agent = MagicMock()
-        mock_agent.run.return_value = AgentOutput(
+        mock_agent.run.return_value = TurnReply(
             content="Tesla Valuation: DCF fair value is $245.50.",
             sources=[{"ticker": "TSLA", "item": "Item 8"}],
             updated_session_state={"ticker": "TSLA"},

@@ -11,7 +11,6 @@ Validates:
    - Cross-agent citation deduplication.
 3. Graceful handling of partial inputs (e.g. Fast-Path DCF mode without qualitative agents).
 4. Exhaustive None-guard resilience: verifying formatting does not crash on None/NaN metrics.
-5. BaseAgent.run() interface compatibility.
 """
 
 import unittest
@@ -127,10 +126,6 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
         self.assertNotIn("Heading the model should not write", md)
         self.assertIn(f"Terminal value is {TV_SHARE} of enterprise value.", md)
         self.assertIn("1 sentence(s) of commentary were removed", md)
-
-    def test_05_run_agent_output_interface(self):
-        output = self.synthesizer.run([{"role": "user", "content": "Generate final report for Apple"}])
-        self.assertIn("LeadSynthesizerAgent", output.content)
 
     def test_06_risk_prompt_embeds_verified_context(self):
         risk = mock_risk()

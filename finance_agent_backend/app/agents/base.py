@@ -1,7 +1,5 @@
 import json
 import logging
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from dotenv import load_dotenv
 from langchain.agents import create_agent
@@ -16,28 +14,7 @@ logger = logging.getLogger("finance_agent.agents.base")
 T = TypeVar("T", bound=BaseModel)
 
 
-@dataclass
-class AgentOutput:
-    content: str
-    sources: List[Dict[str, Any]] = field(default_factory=list)
-    updated_session_state: Optional[Dict[str, Any]] = None
-
-
-class BaseAgent(ABC):
-    """Abstract Base Class for all specialized agents (LSP)."""
-
-    @abstractmethod
-    def run(
-        self,
-        messages: List[Dict[str, str]],
-        session_state: Optional[Dict[str, Any]] = None,
-        callbacks: Optional[List[Any]] = None,
-    ) -> AgentOutput:
-        """Executes the agent with conversational history and returns standardized AgentOutput."""
-        pass
-
-
-class StructuredAgent(BaseAgent, Generic[T]):
+class StructuredAgent(Generic[T]):
     """Extensible declarative base class for agents emitting structured Pydantic artifacts."""
 
     prompt_name: Optional[str] = None
@@ -233,34 +210,3 @@ class StructuredAgent(BaseAgent, Generic[T]):
 
         output = self._post_process_output(output, result, ticker=ticker, fiscal_year=fiscal_year, **kwargs)
         return output
-
-    def run(
-        self,
-        messages: List[Dict[str, str]],
-        session_state: Optional[Dict[str, Any]] = None,
-        callbacks: Optional[List[Any]] = None,
-    ) -> AgentOutput:
-        """Executes the agent with conversational history conforming to BaseAgent."""
-        active_agent = self._get_or_create_agent()
-        config: Dict[str, Any] = {"recursion_limit": self.recursion_limit}
-        if callbacks:
-            config["callbacks"] = callbacks
-
-        result = active_agent.invoke(
-            {"messages": messages},
-            config=config,
-        )
-
-        structured = result.get("structured_response")
-        if self.output_schema and isinstance(structured, self.output_schema):
-            content = json.dumps(structured.model_dump(), indent=2)
-            sources = getattr(structured, "citations", [])
-        elif isinstance(structured, dict):
-            content = json.dumps(structured, indent=2)
-            sources = structured.get("citations", [])
-        else:
-            last_msg = result["messages"][-1] if result.get("messages") else ""
-            content = getattr(last_msg, "content", str(last_msg))
-            sources = self._extract_citations_from_messages(result.get("messages", []))
-
-        return AgentOutput(content=content, sources=sources)

@@ -15,7 +15,6 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
-from app.agents.base import AgentOutput, BaseAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.shared.llm_call import parse_json_content
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
@@ -45,7 +44,7 @@ logger = logging.getLogger("finance_agent.agents.lead_synthesizer")
 SYNTHESIS_MAX_TOKENS = 4000
 
 
-class LeadSynthesizerAgent(BaseAgent):
+class LeadSynthesizerAgent:
     """Institutional report publisher: code-built report skeleton and tables, LLM-written verified prose."""
 
     def __init__(self, model_name: str = "openai:gpt-4o-mini"):
@@ -141,22 +140,6 @@ class LeadSynthesizerAgent(BaseAgent):
         except Exception as e:
             logger.error(f"Synthesis LLM fallback failed ({e!r}); using deterministic commentary.")
         return {}, "template_default"
-
-    def run(
-        self,
-        messages: List[Dict[str, str]],
-        session_state: Optional[Dict[str, Any]] = None,
-        callbacks: Optional[List[Any]] = None,
-    ) -> AgentOutput:
-        """The synthesizer is driven by the orchestrator with structured payloads; it has no chat mode."""
-        last_user_msg = messages[-1].get("content", "") if messages else ""
-        return AgentOutput(
-            content=(
-                "LeadSynthesizerAgent publishes reports from structured multi-agent payloads; "
-                f"route research requests through the orchestrator ('{last_user_msg[:60]}')."
-            ),
-            sources=[],
-        )
 
 
 def write_research_report(run: RunContext, upstream: Upstream) -> Final10KResearchReport:
