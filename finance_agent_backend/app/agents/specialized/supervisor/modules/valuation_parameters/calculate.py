@@ -9,29 +9,21 @@ unbound and attaches to the next research ticker. Switching to a different compa
 ("use CAPM", "reset assumptions") drops them.
 """
 
-import logging
 import re
 from datetime import date
 from typing import Any, Dict, List, Mapping, Optional
 
-from pydantic import BaseModel, Field
-
-logger = logging.getLogger("finance_agent.agents.query_parameters")
-
-SESSION_KEY = "valuation_overrides"
-OVERRIDE_FIELDS = ("wacc", "terminal_growth", "beta", "share_price")
-
-WACC_BAND = (0.03, 0.25)
-TERMINAL_GROWTH_BAND = (-0.02, 0.05)
-BETA_BAND = (0.05, 4.0)
-
-DEFAULT_TERMINAL_GROWTH = 0.025  # house perpetual growth when the user gives none
-
-
-def resolve_terminal_growth(overrides: Mapping[str, Any]) -> float:
-    """User-specified perpetual growth (already range-checked), else the house default."""
-    value = overrides.get("terminal_growth")
-    return float(value) if value is not None else DEFAULT_TERMINAL_GROWTH
+from app.agents.specialized.supervisor.modules.valuation_parameters.schema import (
+    OVERRIDE_FIELDS,
+    ValuationOverrides,
+    ValuationParameters,
+)
+from app.agents.specialized.supervisor.modules.valuation_parameters.thresholds import (
+    BETA_BAND,
+    DEFAULT_TERMINAL_GROWTH,
+    TERMINAL_GROWTH_BAND,
+    WACC_BAND,
+)
 
 _NUMBER = r"(-?\d+(?:,\d{3})*(?:\.\d+)?)"
 _LINK = r"\s*(?:of|is|at|=|:|to)?\s*"
@@ -56,20 +48,6 @@ _RESET_PATTERN = re.compile(
     r"\b(?:use|back to)\s+(?:the\s+)?(?:capm|default|live)\b",
     re.IGNORECASE,
 )
-
-
-class ValuationOverrides(BaseModel):
-    """User-specified valuation parameters (decimals) with the notes explaining anything rejected."""
-
-    wacc: Optional[float] = None
-    terminal_growth: Optional[float] = None
-    beta: Optional[float] = None
-    share_price: Optional[float] = None
-    reset: bool = Field(False, description="The user asked to drop previously remembered overrides")
-    notes: List[str] = Field(default_factory=list)
-
-    def values(self) -> Dict[str, float]:
-        return {k: getattr(self, k) for k in OVERRIDE_FIELDS if getattr(self, k) is not None}
 
 
 def _to_float(raw: str) -> float:
@@ -155,3 +133,19 @@ def resolve_session_overrides(
     if not merged:
         return {}
     return {"ticker": ticker, **merged}
+
+
+def resolve_terminal_growth(overrides: Mapping[str, Any]) -> float:
+    """User-specified perpetual growth (already range-checked), else the house default."""
+    value = overrides.get("terminal_growth")
+    return float(value) if value is not None else DEFAULT_TERMINAL_GROWTH
+
+
+def resolve_valuation_parameters(
+    current: ValuationOverrides, stored: Optional[Dict[str, Any]], ticker: Optional[str]
+) -> ValuationParameters:
+    """This turn's parameters merged with the ones remembered for the ticker, and a note naming the carried ones."""
+    overrides = resolve_session_overrides(current, stored, ticker)
+    carried = sorted(set(overrides) - {"ticker"} - set(current.values()))
+    carry_note = f"Applied {', '.join(carried)} specified earlier in the conversation." if carried else None
+    return ValuationParameters(overrides=overrides, carry_note=carry_note)

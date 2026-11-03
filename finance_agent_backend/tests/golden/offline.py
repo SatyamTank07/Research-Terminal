@@ -54,8 +54,8 @@ MARKET: Dict[str, Dict[str, float]] = {
 CLOCK_TARGETS = (
     "app.agents.pipeline.orchestrator.date",
     "app.agents.specialized.valuation_specialist.agent_valuation_specialist.date",
-    "app.agents.query_parameters.date",
-    "app.agents.specialized.supervisor.agent_supervisor.date",
+    "app.agents.specialized.supervisor.modules.valuation_parameters.calculate.date",
+    "app.agents.specialized.supervisor.modules.filing_resolution.calculate.date",
 )
 
 

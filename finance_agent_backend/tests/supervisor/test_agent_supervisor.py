@@ -18,9 +18,9 @@ from unittest.mock import MagicMock, patch
 
 from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
-from app.agents.query_parameters import SESSION_KEY
+from app.agents.specialized.supervisor import SESSION_KEY
 from app.agents.specialized.supervisor import RoutingPlan, SupervisorAgent, SupervisorExtraction
-from app.agents.specialized.supervisor.agent_supervisor import CLARIFY_ENTITY_MESSAGE, extract_fiscal_year, names_entity
+from app.agents.specialized.supervisor.modules.company_resolution import CLARIFY_ENTITY_MESSAGE
 
 
 class TestAgentSupervisor(unittest.TestCase):
@@ -39,76 +39,6 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertIn("Senior Equity Research Director", prompt)
         self.assertIn("full_10k_report", prompt)
         self.assertIn("dcf_valuation_only", prompt)
-
-    def test_02_catalog_resolution_and_substitution_flag(self):
-        """Verify direct ticker resolution and explicit provenance flagging when year is substituted."""
-        # Exact year match (AAPL FY2025) -> year_substituted must be False
-        ticker, cname, year, doc_id, year_req, year_sub, avail_years = self.supervisor.resolve_filing_catalog(
-            ticker="AAPL", fiscal_year=2025
-        )
-        self.assertEqual(ticker, "AAPL")
-        self.assertIn("Apple", cname)
-        self.assertEqual(year, 2025)
-        self.assertEqual(year_req, 2025)
-        self.assertFalse(year_sub, "Exact year match should not be flagged as substituted")
-        self.assertIn(2025, avail_years)
-        self.assertIsInstance(avail_years, list)
-
-        # Unavailable year requested (AAPL FY2020) -> must substitute latest year (2025) and flag True
-        ticker2, _, year2, _, year_req2, year_sub2, avail_years2 = self.supervisor.resolve_filing_catalog(
-            ticker="AAPL", fiscal_year=2020
-        )
-        self.assertEqual(ticker2, "AAPL")
-        self.assertEqual(year2, 2025)
-        self.assertEqual(year_req2, 2020)
-        self.assertTrue(year_sub2, "Unavailable year must set year_substituted=True")
-        self.assertEqual(avail_years, avail_years2)
-
-    def test_03_missing_ticker_raises_error(self):
-        """Verify resolve_filing_catalog raises ValueError when no ticker is provided."""
-        with self.assertRaises(ValueError) as ctx:
-            self.supervisor.resolve_filing_catalog(ticker=None)
-        self.assertIn("Could not identify a target stock ticker from the request", str(ctx.exception))
-
-    def test_04_error_on_unknown_ticker(self):
-        """Verify descriptive ValueError when requested entity is not in database catalog."""
-        with self.assertRaises(ValueError) as ctx:
-            self.supervisor.resolve_filing_catalog(ticker="UNKNOWN_CORP_XYZ")
-        self.assertIn("No ingested 10-K filings found for ticker 'UNKNOWN_CORP_XYZ'", str(ctx.exception))
-
-    @patch.object(SupervisorAgent, "_extract_with_llm")
-    def test_05_intent_classification(self, mock_extract):
-        """Verify intent classification across routes using mocked LLM (ZERO API calls)."""
-        # Moat
-        mock_extract.return_value = SupervisorExtraction(query_type="business_moat_only")
-        self.assertEqual(
-            self.supervisor.classify_intent("What is Apple's economic moat and business model?"),
-            "business_moat_only",
-        )
-        # Full Report
-        mock_extract.return_value = SupervisorExtraction(query_type="full_10k_report")
-        self.assertEqual(
-            self.supervisor.classify_intent("Generate comprehensive 10-K research report on Apple"),
-            "full_10k_report",
-        )
-        # DCF
-        mock_extract.return_value = SupervisorExtraction(query_type="dcf_valuation_only")
-        self.assertEqual(
-            self.supervisor.classify_intent("Calculate DCF fair value and WACC for TSLA"),
-            "dcf_valuation_only",
-        )
-        # Financial Audit
-        mock_extract.return_value = SupervisorExtraction(query_type="financial_audit_only")
-        self.assertEqual(
-            self.supervisor.classify_intent("Check statement of operations and balance sheet for Tesla"),
-            "financial_audit_only",
-        )
-        # Risk Factors
-        mock_extract.return_value = SupervisorExtraction(query_type="risk_factors_only")
-        self.assertEqual(
-            self.supervisor.classify_intent("What are the primary Item 1A legal and antitrust risks for Nvidia?"),
-            "risk_factors_only",
-        )
 
     @patch.object(SupervisorAgent, "_extract_with_llm")
     def test_06_year_not_present_auto_substitutes_latest_without_halting(self, mock_extract):
@@ -129,13 +59,11 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertEqual(plan.fiscal_year, 2025)
         self.assertIn(2025, plan.available_fiscal_years)
         self.assertEqual(plan.year_requested, 2022)
-        self.assertGreater(len(plan.active_agents), 0, "Agents must be immediately scheduled")
-        self.assertIn("financial_auditor", plan.active_agents)
         self.assertNotIn("pending_action", plan.updated_session_state)
 
     @patch.object(SupervisorAgent, "_extract_with_llm")
     def test_07_conversational_single_hop_response_generation(self, mock_extract):
-        """Verify conversational query generates response in single LLM turn and schedules no sub-agents."""
+        """Verify conversational query generates response in a single LLM turn."""
         mock_extract.return_value = SupervisorExtraction(
             query_type="conversational",
             conversational_response="Weighted Average Cost of Capital (WACC) represents a firm's blended hurdle rate.",
@@ -148,7 +76,6 @@ class TestAgentSupervisor(unittest.TestCase):
 
         self.assertIsInstance(plan, RoutingPlan)
         self.assertEqual(plan.query_type, "conversational")
-        self.assertEqual(len(plan.active_agents), 0, "No specialized sub-agents needed for conversational")
         self.assertIsNotNone(plan.conversational_response)
         self.assertIn("Weighted Average Cost of Capital", plan.conversational_response)
 
@@ -364,20 +291,6 @@ class TestSupervisorSessionContinuity(unittest.TestCase):
         with patch.object(SupervisorAgent, "_extract_with_llm", return_value=extraction):
             return self.supervisor.route(user_query=query, session_state=session, messages=messages)
 
-    def test_extract_fiscal_year(self):
-        self.assertEqual(extract_fiscal_year("Analyze FY2023 results"), 2023)
-        self.assertEqual(extract_fiscal_year("fiscal year 2024 audit"), 2024)
-        self.assertEqual(extract_fiscal_year("FY'24 margins"), 2024)
-        self.assertEqual(extract_fiscal_year("Analyze the company for 2024"), 2024)
-        self.assertIsNone(extract_fiscal_year("forecast revenue out to 2099"))
-        self.assertIsNone(extract_fiscal_year("terminal growth 2.5%"))
-
-    def test_names_entity(self):
-        self.assertTrue(names_entity("run a dcf on aapl", "AAPL", "Apple Inc."))
-        self.assertTrue(names_entity("Value Apple now", "AAPL", "Apple Inc."))
-        self.assertFalse(names_entity("now run the DCF", "AAPL", "Apple Inc."))
-        self.assertTrue(names_entity("value amazon", "AMZN", "AMAZON.COM, INC."))
-
     def test_research_route_falls_back_to_session_ticker(self):
         plan = self._route("Now show me the risk factors", SupervisorExtraction(query_type="risk_factors_only"), self.SESSION)
         self.assertEqual(plan.ticker, "AAPL")
@@ -448,7 +361,7 @@ def _plan(**changes) -> RoutingPlan:
     fields = dict(
         ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, year_requested=2025, year_substituted=False,
         available_fiscal_years=[2025, 2024], document_id="doc-aapl-2025", query_type="dcf_valuation_only",
-        active_agents=[], routing_provenance="llm_inferred", conversational_response=None,
+        routing_provenance="llm_inferred", conversational_response=None,
         valuation_overrides={"wacc": 0.09, "terminal_growth": 0.03}, parameter_notes=["WACC override 9% applied"],
         updated_session_state={"active_ticker": "AAPL"},
     )

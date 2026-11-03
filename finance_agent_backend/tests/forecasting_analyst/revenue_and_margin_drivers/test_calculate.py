@@ -2,7 +2,7 @@
 
 import unittest
 
-from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
+from app.agents.specialized.supervisor import DEFAULT_TERMINAL_GROWTH
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
 from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import extend_fade, historical_fade_drivers, linear_fade
 from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers.thresholds import BASE_HORIZON_YEARS, EXTENDED_HORIZON_YEARS

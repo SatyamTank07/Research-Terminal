@@ -6,19 +6,13 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 from pydantic import BaseModel, Field
 
 from app.agents.pipeline.contract import RunContext
+from app.agents.specialized.supervisor.modules.query_intent import QueryType
 
-QueryType = Literal[
-    "full_10k_report",
-    "dcf_valuation_only",
-    "financial_audit_only",
-    "business_moat_only",
-    "risk_factors_only",
-    "conversational",
-]
+__all__ = ["QueryType", "RoutingPlan", "TurnResolution"]
 
 
 class RoutingPlan(BaseModel):
-    """Execution blueprint generated deterministically by the Lead Supervisor."""
+    """The resolved route, filing and valuation parameters for one chat turn."""
 
     ticker: str = Field(..., description="Stock ticker symbol (e.g. AAPL)")
     company_name: Optional[str] = Field(None, description="Company corporate name")
@@ -36,9 +30,6 @@ class RoutingPlan(BaseModel):
     )
     document_id: Optional[str] = Field(None, description="UUID of document in documents table")
     query_type: QueryType = Field(..., description="Execution path for the pipeline")
-    active_agents: List[str] = Field(
-        ..., description="Ordered list of agent identifiers required to fulfill the query"
-    )
     routing_provenance: Literal["deterministic_rule", "llm_inferred"] = Field(
         default="deterministic_rule",
         description="Provenance tag: whether intent was resolved by deterministic rules or LLM inference",

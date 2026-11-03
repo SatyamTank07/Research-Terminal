@@ -968,9 +968,6 @@
   "pipeline_notes": [],
   "risk_audit": null,
   "routing_plan": {
-   "active_agents": [
-    "business_strategist"
-   ],
    "available_fiscal_years": [
     2026
    ],

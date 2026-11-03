@@ -1824,11 +1824,6 @@
   "pipeline_notes": [],
   "risk_audit": null,
   "routing_plan": {
-   "active_agents": [
-    "financial_auditor",
-    "forecasting_analyst",
-    "valuation_specialist"
-   ],
    "available_fiscal_years": [
     2025,
     2024

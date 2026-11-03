@@ -3414,14 +3414,6 @@
    "ticker": "AAPL"
   },
   "routing_plan": {
-   "active_agents": [
-    "business_strategist",
-    "financial_auditor",
-    "risk_analyst",
-    "forecasting_analyst",
-    "valuation_specialist",
-    "lead_synthesizer"
-   ],
    "available_fiscal_years": [
     2025,
     2024

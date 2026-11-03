@@ -11,7 +11,7 @@ from tests.pipeline.fixtures import make_run_context
 def _audit_turn(**ctx_changes) -> TurnResolution:
     ctx = make_run_context(route="financial_audit_only", **ctx_changes)
     plan = RoutingPlan(ticker="AAPL", fiscal_year=2025, query_type="financial_audit_only",
-                       available_fiscal_years=[2025, 2024], active_agents=[])
+                       available_fiscal_years=[2025, 2024])
     return TurnResolution(route="financial_audit_only", plan=plan, run_context=ctx, conversational_response=None,
                           session_update={"active_ticker": "AAPL"}, parameter_notes=())
 
