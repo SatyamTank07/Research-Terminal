@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
+from app.agents.specialized.supervisor import DEFAULT_TERMINAL_GROWTH
 from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent
 from app.agents.specialized.forecasting_analyst.agent_forecasting_analyst import PROPOSE_TOOL_NAME
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline

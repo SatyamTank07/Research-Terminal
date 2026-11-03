@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, Iterable, List, Optional
 
-from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
+from app.agents.specialized.supervisor import DEFAULT_TERMINAL_GROWTH
 from app.agents.shared.filing.narrative_search import NarrativeChunkResult
 from app.agents.specialized.financial_auditor import NormalizationAdjustment
 from app.agents.specialized.financial_auditor.agent_financial_auditor import build_audit

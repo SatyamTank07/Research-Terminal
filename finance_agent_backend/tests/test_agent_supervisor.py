@@ -18,7 +18,7 @@ from unittest.mock import MagicMock, patch
 
 from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
-from app.agents.query_parameters import SESSION_KEY
+from app.agents.specialized.supervisor import SESSION_KEY
 from app.agents.specialized.supervisor import RoutingPlan, SupervisorAgent, SupervisorExtraction
 from app.agents.specialized.supervisor.modules.company_resolution import CLARIFY_ENTITY_MESSAGE
 

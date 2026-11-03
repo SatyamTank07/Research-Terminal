@@ -10,7 +10,7 @@ import unittest
 from datetime import date
 from unittest.mock import patch
 
-from app.agents.query_parameters import parse_valuation_overrides
+from app.agents.specialized.supervisor import parse_valuation_overrides
 from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent

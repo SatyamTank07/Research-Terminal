@@ -15,7 +15,6 @@ from langchain_openai import ChatOpenAI
 
 from app.agents.base import AgentOutput, BaseAgent
 from app.agents.pipeline.contract import Conversation, RunContext, StatusLine
-from app.agents.query_parameters import SESSION_KEY, parse_valuation_overrides, resolve_session_overrides, resolve_terminal_growth
 from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.supervisor.context import FilingCatalogError, active_session, load_filing, load_filing_catalog
@@ -26,6 +25,13 @@ from app.agents.specialized.supervisor.modules.filing_resolution import (
     resolve_requested_year,
 )
 from app.agents.specialized.supervisor.modules.query_intent import SupervisorExtraction, verify_query_intent
+from app.agents.specialized.supervisor.modules.valuation_parameters import (
+    SESSION_KEY,
+    parse_valuation_overrides,
+    resolve_session_overrides,
+    resolve_terminal_growth,
+    resolve_valuation_parameters,
+)
 from app.agents.specialized.supervisor.state_supervisor import RoutingPlan, TurnResolution
 
 logger = logging.getLogger("finance_agent.agents.supervisor")
@@ -152,11 +158,10 @@ class SupervisorAgent(BaseAgent):
         year_req, year_sub, avail_years = choice.year_requested, choice.year_substituted, available_years
 
         # 5. Valuation overrides: this turn's values, plus remembered ones for the same company
-        stored = active_state.get(SESSION_KEY)
-        valuation_overrides = resolve_session_overrides(overrides, stored, doc_ticker)
-        carried = sorted(set(valuation_overrides) - {"ticker"} - set(overrides.values()))
-        if carried:
-            notes.append(f"Applied {', '.join(carried)} specified earlier in the conversation.")
+        parameters = resolve_valuation_parameters(overrides, active_state.get(SESSION_KEY), doc_ticker)
+        valuation_overrides = parameters.overrides
+        if parameters.carry_note:
+            notes.append(parameters.carry_note)
 
         updated_session: Dict[str, Any] = {
             "active_ticker": doc_ticker,

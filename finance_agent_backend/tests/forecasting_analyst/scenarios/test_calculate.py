@@ -2,7 +2,7 @@
 
 import unittest
 
-from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
+from app.agents.specialized.supervisor import DEFAULT_TERMINAL_GROWTH
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
 from app.agents.specialized.forecasting_analyst.modules.free_cash_flow_schedule import run_schedule
 from app.agents.specialized.forecasting_analyst.modules.reinvestment_path import apply_reinvestment_path

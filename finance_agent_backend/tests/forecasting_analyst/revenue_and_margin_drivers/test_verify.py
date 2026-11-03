@@ -3,7 +3,7 @@
 import unittest
 
 from app.agents.specialized.forecasting_analyst.modules.audited_baseline import build_forecast_baseline
-from app.agents.query_parameters import DEFAULT_TERMINAL_GROWTH
+from app.agents.specialized.supervisor import DEFAULT_TERMINAL_GROWTH
 from app.agents.specialized.forecasting_analyst.modules.revenue_and_margin_drivers import (
     ForecastDriverProposal,
     screen_forecast_drivers,
