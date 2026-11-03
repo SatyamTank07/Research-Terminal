@@ -83,13 +83,11 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertEqual(plan.fiscal_year, 2025)
         self.assertIn(2025, plan.available_fiscal_years)
         self.assertEqual(plan.year_requested, 2022)
-        self.assertGreater(len(plan.active_agents), 0, "Agents must be immediately scheduled")
-        self.assertIn("financial_auditor", plan.active_agents)
         self.assertNotIn("pending_action", plan.updated_session_state)
 
     @patch.object(SupervisorAgent, "_extract_with_llm")
     def test_07_conversational_single_hop_response_generation(self, mock_extract):
-        """Verify conversational query generates response in single LLM turn and schedules no sub-agents."""
+        """Verify conversational query generates response in a single LLM turn."""
         mock_extract.return_value = SupervisorExtraction(
             query_type="conversational",
             conversational_response="Weighted Average Cost of Capital (WACC) represents a firm's blended hurdle rate.",
@@ -102,7 +100,6 @@ class TestAgentSupervisor(unittest.TestCase):
 
         self.assertIsInstance(plan, RoutingPlan)
         self.assertEqual(plan.query_type, "conversational")
-        self.assertEqual(len(plan.active_agents), 0, "No specialized sub-agents needed for conversational")
         self.assertIsNotNone(plan.conversational_response)
         self.assertIn("Weighted Average Cost of Capital", plan.conversational_response)
 
@@ -402,7 +399,7 @@ def _plan(**changes) -> RoutingPlan:
     fields = dict(
         ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, year_requested=2025, year_substituted=False,
         available_fiscal_years=[2025, 2024], document_id="doc-aapl-2025", query_type="dcf_valuation_only",
-        active_agents=[], routing_provenance="llm_inferred", conversational_response=None,
+        routing_provenance="llm_inferred", conversational_response=None,
         valuation_overrides={"wacc": 0.09, "terminal_growth": 0.03}, parameter_notes=["WACC override 9% applied"],
         updated_session_state={"active_ticker": "AAPL"},
     )

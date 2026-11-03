@@ -30,9 +30,6 @@ class RoutingPlan(BaseModel):
     )
     document_id: Optional[str] = Field(None, description="UUID of document in documents table")
     query_type: QueryType = Field(..., description="Execution path for the pipeline")
-    active_agents: List[str] = Field(
-        ..., description="Ordered list of agent identifiers required to fulfill the query"
-    )
     routing_provenance: Literal["deterministic_rule", "llm_inferred"] = Field(
         default="deterministic_rule",
         description="Provenance tag: whether intent was resolved by deterministic rules or LLM inference",

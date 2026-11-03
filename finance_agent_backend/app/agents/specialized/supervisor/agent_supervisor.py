@@ -21,7 +21,7 @@ from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.supervisor.context import active_session, load_filing, load_filing_catalog
 from app.agents.specialized.supervisor.modules.query_intent import SupervisorExtraction, verify_query_intent
-from app.agents.specialized.supervisor.state_supervisor import QueryType, RoutingPlan, TurnResolution
+from app.agents.specialized.supervisor.state_supervisor import RoutingPlan, TurnResolution
 
 logger = logging.getLogger("finance_agent.agents.supervisor")
 
@@ -56,33 +56,6 @@ def names_entity(text: str, ticker: Optional[str], company_name: Optional[str]) 
         return True
     name_words = [w for w in re.findall(r"[a-z0-9]+", (company_name or "").lower()) if w not in _COMPANY_STOPWORDS]
     return bool(name_words) and name_words[0] in words
-
-# Fast-path agent mapping
-AGENT_EXECUTION_PLANS: Dict[QueryType, List[str]] = {
-    "full_10k_report": [
-        "business_strategist",
-        "financial_auditor",
-        "risk_analyst",
-        "forecasting_analyst",
-        "valuation_specialist",
-        "lead_synthesizer",
-    ],
-    "dcf_valuation_only": [
-        "financial_auditor",
-        "forecasting_analyst",
-        "valuation_specialist",
-    ],
-    "financial_audit_only": [
-        "financial_auditor",
-    ],
-    "business_moat_only": [
-        "business_strategist",
-    ],
-    "risk_factors_only": [
-        "risk_analyst",
-    ],
-    "conversational": [],
-}
 
 
 @AgentRegistry.register("supervisor")
@@ -261,7 +234,6 @@ class SupervisorAgent(BaseAgent):
         if carried:
             notes.append(f"Applied {', '.join(carried)} specified earlier in the conversation.")
 
-        active_agents = AGENT_EXECUTION_PLANS[query_type]
         updated_session: Dict[str, Any] = {
             "active_ticker": doc_ticker,
             "active_company": company_name,
@@ -287,7 +259,6 @@ class SupervisorAgent(BaseAgent):
             year_substituted=year_sub,
             document_id=doc_id,
             query_type=query_type,
-            active_agents=active_agents,
             routing_provenance=provenance,
             conversational_response=None,
             valuation_overrides=valuation_overrides,
@@ -321,7 +292,6 @@ class SupervisorAgent(BaseAgent):
             available_fiscal_years=session.get("available_fiscal_years") or [],
             document_id=None,
             query_type="conversational",
-            active_agents=[],
             routing_provenance=provenance,
             conversational_response=response,
             parameter_notes=list(overrides.notes),
