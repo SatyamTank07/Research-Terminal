@@ -6,15 +6,9 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 from pydantic import BaseModel, Field
 
 from app.agents.pipeline.contract import RunContext
+from app.agents.specialized.supervisor.modules.query_intent import QueryType
 
-QueryType = Literal[
-    "full_10k_report",
-    "dcf_valuation_only",
-    "financial_audit_only",
-    "business_moat_only",
-    "risk_factors_only",
-    "conversational",
-]
+__all__ = ["QueryType", "RoutingPlan", "TurnResolution"]
 
 
 class RoutingPlan(BaseModel):

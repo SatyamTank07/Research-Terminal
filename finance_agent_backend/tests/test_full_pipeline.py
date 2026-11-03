@@ -26,8 +26,7 @@ from app.agents.specialized.financial_auditor.context.audit_inputs import Annual
 from app.agents.specialized.forecasting_analyst import ForecastingAnalystAgent, ForecastOutput
 from app.agents.specialized.lead_synthesizer import Final10KResearchReport, LeadSynthesizerAgent, ThreePillarThesis
 from app.agents.specialized.risk_analyst import RiskAnalystAgent, RiskAuditOutput, RiskItem
-from app.agents.specialized.supervisor import SupervisorAgent
-from app.agents.specialized.supervisor.agent_supervisor import SupervisorExtraction
+from app.agents.specialized.supervisor import SupervisorAgent, SupervisorExtraction
 from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
 from app.database import SessionLocal
 from app.models import ChatMessage, Conversation, User

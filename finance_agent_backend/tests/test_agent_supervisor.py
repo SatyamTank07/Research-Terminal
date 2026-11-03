@@ -65,40 +65,6 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertEqual(avail_years, avail_years2)
 
     @patch.object(SupervisorAgent, "_extract_with_llm")
-    def test_05_intent_classification(self, mock_extract):
-        """Verify intent classification across routes using mocked LLM (ZERO API calls)."""
-        # Moat
-        mock_extract.return_value = SupervisorExtraction(query_type="business_moat_only")
-        self.assertEqual(
-            self.supervisor.classify_intent("What is Apple's economic moat and business model?"),
-            "business_moat_only",
-        )
-        # Full Report
-        mock_extract.return_value = SupervisorExtraction(query_type="full_10k_report")
-        self.assertEqual(
-            self.supervisor.classify_intent("Generate comprehensive 10-K research report on Apple"),
-            "full_10k_report",
-        )
-        # DCF
-        mock_extract.return_value = SupervisorExtraction(query_type="dcf_valuation_only")
-        self.assertEqual(
-            self.supervisor.classify_intent("Calculate DCF fair value and WACC for TSLA"),
-            "dcf_valuation_only",
-        )
-        # Financial Audit
-        mock_extract.return_value = SupervisorExtraction(query_type="financial_audit_only")
-        self.assertEqual(
-            self.supervisor.classify_intent("Check statement of operations and balance sheet for Tesla"),
-            "financial_audit_only",
-        )
-        # Risk Factors
-        mock_extract.return_value = SupervisorExtraction(query_type="risk_factors_only")
-        self.assertEqual(
-            self.supervisor.classify_intent("What are the primary Item 1A legal and antitrust risks for Nvidia?"),
-            "risk_factors_only",
-        )
-
-    @patch.object(SupervisorAgent, "_extract_with_llm")
     def test_06_year_not_present_auto_substitutes_latest_without_halting(self, mock_extract):
         """Verify that when requested year is missing, supervisor automatically substitutes latest year without halting."""
         mock_extract.return_value = SupervisorExtraction(

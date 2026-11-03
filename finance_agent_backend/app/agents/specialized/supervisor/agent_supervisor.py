@@ -13,7 +13,6 @@ from typing import Any, Dict, List, Optional, Tuple
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
-from pydantic import BaseModel, Field
 
 from app.agents.base import AgentOutput, BaseAgent
 from app.agents.pipeline.contract import Conversation, RunContext, StatusLine
@@ -21,6 +20,7 @@ from app.agents.query_parameters import SESSION_KEY, parse_valuation_overrides, 
 from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.supervisor.context import active_session, load_filing, load_filing_catalog
+from app.agents.specialized.supervisor.modules.query_intent import SupervisorExtraction, verify_query_intent
 from app.agents.specialized.supervisor.state_supervisor import QueryType, RoutingPlan, TurnResolution
 
 logger = logging.getLogger("finance_agent.agents.supervisor")
@@ -83,32 +83,6 @@ AGENT_EXECUTION_PLANS: Dict[QueryType, List[str]] = {
     ],
     "conversational": [],
 }
-
-
-class SupervisorExtraction(BaseModel):
-    """Pydantic schema for supervisor intent and entity extraction."""
-
-    query_type: QueryType = Field(
-        default="conversational",
-        description="Selected routing path (full_10k_report, dcf_valuation_only, financial_audit_only, business_moat_only, risk_factors_only, conversational)",
-    )
-    extracted_ticker: Optional[str] = Field(
-        None, description="Extracted stock ticker if identifiable (e.g. AAPL, TSLA, NVDA)"
-    )
-    extracted_year: Optional[int] = Field(
-        None, description="Extracted 4-digit fiscal year if explicitly requested by user (e.g. 2023)"
-    )
-    conversational_response: Optional[str] = Field(
-        None,
-        description=(
-            "If query_type == 'conversational', provide the full, professional response "
-            "directly to the user as a Senior Equity Research Director. If query requires 10-K execution, leave null."
-        ),
-    )
-    routing_reasoning: str = Field(
-        default="", description="Brief explanation of the routing classification"
-    )
-
 
 
 @AgentRegistry.register("supervisor")
@@ -206,33 +180,6 @@ class SupervisorAgent(BaseAgent):
         doc = load_filing(resolved_ticker, target_year)
         return doc.ticker, doc.company_name, doc.fiscal_year, doc.document_id, year_requested, year_substituted, available_years
 
-    def classify_intent(self, user_query: str) -> QueryType:
-        """Public API returning purely the QueryType."""
-        query_type, _ = self.classify_intent_with_provenance(user_query)
-        return query_type
-
-    def classify_intent_with_provenance(
-        self,
-        user_query: str,
-        session_state: Optional[Dict[str, Any]] = None,
-        messages: Optional[List[Dict[str, str]]] = None,
-        callbacks: Optional[List[Any]] = None,
-    ) -> Tuple[QueryType, str]:
-        """Classifies user intent using LLM inference driven by prompt_supervisor.j2."""
-        try:
-            extraction = self._extract_with_llm(
-                user_query,
-                messages=messages,
-                active_session=session_state,
-                callbacks=callbacks,
-            )
-            if extraction and extraction.query_type in AGENT_EXECUTION_PLANS:
-                return extraction.query_type, "llm_inferred"
-        except Exception as e:
-            logger.warning(f"LLM supervisor intent routing failed ({e}); defaulting to conversational.")
-
-        return "conversational", "deterministic_rule"
-
     def route(
         self,
         user_query: str,
@@ -258,26 +205,13 @@ class SupervisorAgent(BaseAgent):
         except Exception as e:
             logger.warning(f"LLM supervisor extraction failed ({e})")
 
-        if extraction and extraction.query_type in AGENT_EXECUTION_PLANS:
-            query_type = extraction.query_type
-            provenance = "llm_inferred"
-        else:
-            query_type = "conversational"
-            provenance = "deterministic_rule"
+        intent = verify_query_intent(extraction)
+        query_type, provenance = intent.query_type, intent.provenance
 
         # 2. Conversational queries are answered directly (single LLM hop)
         if query_type == "conversational":
-            conv_response = (
-                extraction.conversational_response
-                if (extraction and extraction.conversational_response)
-                else (
-                    "I am your Senior Equity Research Director. I can assist you with comprehensive SEC 10-K research reports, "
-                    "three-statement financial audits, multi-year UFCF projections, and DCF valuations. "
-                    "Which company or ticker would you like to evaluate?"
-                )
-            )
             return self._conversational_plan(
-                active_state, overrides, conv_response, provenance,
+                active_state, overrides, intent.reply, provenance,
                 ticker=ticker or (extraction.extracted_ticker if extraction else None),
             )
 
