@@ -46,11 +46,11 @@ from app.agents.specialized.lead_synthesizer.report_citations import (
     NullCiter,
     ReportCiter,
 )
+from app.agents.specialized.lead_synthesizer.modules.report_coverage import assess_report_coverage
 
 logger = logging.getLogger("finance_agent.agents.lead_synthesizer")
 
 SYNTHESIS_MAX_TOKENS = 4000
-REPORT_LAYOUTS = ("full_10k_report", "dcf_valuation_only", "financial_audit_only", "business_moat_only", "risk_factors_only")
 SynthesisProvenance = Literal["llm_structured", "llm_json_fallback", "template_default"]
 
 _DATE_CLAIM = re.compile(
@@ -146,7 +146,6 @@ class LeadSynthesizerAgent(BaseAgent):
     ) -> Final10KResearchReport:
         """Synthesizes all structured agent payloads into a complete Final10KResearchReport."""
         ticker = ticker.upper()
-        notes = list(dict.fromkeys(pipeline_notes or []))
         artifacts = dict(
             business_moat=business_moat,
             financial_audit=financial_audit,
@@ -154,7 +153,8 @@ class LeadSynthesizerAgent(BaseAgent):
             dcf_valuation=dcf_valuation,
             risk_audit=risk_audit,
         )
-        query_type = self._effective_route(query_type, artifacts)
+        coverage = assess_report_coverage(query_type, artifacts, pipeline_notes or [])
+        query_type, notes = coverage.route, list(coverage.notes)
 
         context = render_prompt(
             "lead_synthesizer", "prompt_lead_synthesizer.j2",
@@ -185,9 +185,8 @@ class LeadSynthesizerAgent(BaseAgent):
                 prose[key] = fallback.get(key)
 
         citer, cited_prose = self._cite_prose(prose, fiscal_year, artifacts, notes)
-        layout = query_type if query_type in REPORT_LAYOUTS else "full_10k_report"
         full_report_md = render_prompt(
-            "lead_synthesizer", f"report/{layout}.j2",
+            "lead_synthesizer", f"report/{coverage.layout}.j2",
             ticker=ticker,
             company_name=company_name,
             fiscal_year=fiscal_year,
@@ -227,19 +226,6 @@ class LeadSynthesizerAgent(BaseAgent):
     # ------------------------------------------------------------------
     # LLM call and prose screening
     # ------------------------------------------------------------------
-    @staticmethod
-    def _effective_route(query_type: str, artifacts: Dict[str, Any]) -> str:
-        """Falls back to the full layout when the artifact a single-topic route needs is missing."""
-        required = {
-            "financial_audit_only": "financial_audit",
-            "business_moat_only": "business_moat",
-            "risk_factors_only": "risk_audit",
-        }.get(query_type)
-        if required and artifacts.get(required) is None:
-            logger.warning(f"Route {query_type} has no {required}; using the full report layout with notes.")
-            return "full_10k_report"
-        return query_type
-
     def _invoke_llm(
         self, context: str, instruction: str, callbacks: Optional[List[Any]]
     ) -> Tuple[Dict[str, Any], SynthesisProvenance]:
