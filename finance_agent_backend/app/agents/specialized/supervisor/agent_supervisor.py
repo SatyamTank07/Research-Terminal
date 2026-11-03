@@ -4,7 +4,6 @@
 `MODULES` order, with the catalog read from `context.py` and the plan built by `assemble.py`.
 """
 
-import json
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -12,9 +11,7 @@ from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
-from app.agents.base import AgentOutput, BaseAgent
 from app.agents.pipeline.contract import Conversation, StatusLine
-from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.supervisor.assemble import (
     assemble_conversational_plan,
@@ -50,8 +47,7 @@ from app.agents.specialized.supervisor.state_supervisor import RoutingPlan, Turn
 logger = logging.getLogger("finance_agent.agents.supervisor")
 
 
-@AgentRegistry.register("supervisor")
-class SupervisorAgent(BaseAgent):
+class SupervisorAgent:
     """Lead Supervisor: intent, company, filing and valuation-parameter resolution for one chat turn."""
 
     def __init__(self, model_name: str = "openai:gpt-4o-mini"):
@@ -171,52 +167,6 @@ class SupervisorAgent(BaseAgent):
             intent=intent, filing=filing, choice=choice, available_years=available_years,
             parse_notes=overrides.notes, filing_note=requested.note, parameters=parameters, session=remembered,
         )
-
-    def run(
-        self,
-        messages: List[Dict[str, str]],
-        session_state: Optional[Dict[str, Any]] = None,
-    ) -> AgentOutput:
-        """Executes the supervisor on conversational messages conforming to BaseAgent."""
-        last_user_msg = ""
-        for m in reversed(messages):
-            if m.get("role") == "user":
-                last_user_msg = m.get("content", "")
-                break
-
-        if not last_user_msg and messages:
-            last_user_msg = messages[-1].get("content", "")
-
-        try:
-            plan = self.route(
-                user_query=last_user_msg,
-                messages=messages,
-                session_state=session_state,
-            )
-            if plan.query_type == CONVERSATIONAL and plan.conversational_response:
-                return AgentOutput(
-                    content=plan.conversational_response,
-                    sources=[],
-                    updated_session_state=plan.updated_session_state,
-                )
-
-            return AgentOutput(
-                content=json.dumps(plan.model_dump(), indent=2),
-                sources=[{
-                    "document_id": plan.document_id,
-                    "ticker": plan.ticker,
-                    "fiscal_year": plan.fiscal_year,
-                    "available_fiscal_years": plan.available_fiscal_years,
-                    "year_substituted": plan.year_substituted,
-                    "routing_provenance": plan.routing_provenance,
-                }],
-                updated_session_state=plan.updated_session_state,
-            )
-        except ValueError as e:
-            return AgentOutput(
-                content=f"Supervisor Routing Error: {str(e)}",
-                sources=[],
-            )
 
 
 def _reply_in_chat(

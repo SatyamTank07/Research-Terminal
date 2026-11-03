@@ -1,13 +1,13 @@
 import json
 import logging
-import re
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
+
+from app.agents.shared.llm_call import parse_json_content
+from app.agents.shared.prompts import render_prompt
 
 logger = logging.getLogger("finance_agent.agents.base")
 
@@ -15,29 +15,9 @@ logger = logging.getLogger("finance_agent.agents.base")
 T = TypeVar("T", bound=BaseModel)
 
 
-@dataclass
-class AgentOutput:
-    content: str
-    sources: List[Dict[str, Any]] = field(default_factory=list)
-    updated_session_state: Optional[Dict[str, Any]] = None
-
-
-class BaseAgent(ABC):
-    """Abstract Base Class for all specialized agents (LSP)."""
-
-    @abstractmethod
-    def run(
-        self,
-        messages: List[Dict[str, str]],
-        session_state: Optional[Dict[str, Any]] = None,
-        callbacks: Optional[List[Any]] = None,
-    ) -> AgentOutput:
-        """Executes the agent with conversational history and returns standardized AgentOutput."""
-        pass
-
-
-class StructuredAgent(BaseAgent, Generic[T]):
-    """Extensible declarative base class for agents emitting structured Pydantic artifacts."""
+class StructuredAgent(Generic[T]):
+    """Tool-loop base for the agents that still run a LangChain tool loop (Financial Auditor, Forecasting Analyst,
+    Risk Analyst): the loop, structured-output extraction with pre/post hooks, and tool-message citations."""
 
     prompt_name: Optional[str] = None
     tools: List[Any] = []
@@ -62,12 +42,10 @@ class StructuredAgent(BaseAgent, Generic[T]):
     def get_system_prompt(self) -> str:
         """Renders and returns the system prompt."""
         if self.prompt_name:
-            from app.agents.shared.prompts import render_prompt
             return render_prompt(self.prompt_name, f"prompt_{self.prompt_name}.j2")
         raise NotImplementedError(
             f"Class {self.__class__.__name__} must define 'prompt_name' (its agent folder) or override 'get_system_prompt()'."
         )
-
 
     def _get_or_create_agent(self):
         """Initializes and caches the LangChain agent instance."""
@@ -121,36 +99,6 @@ class StructuredAgent(BaseAgent, Generic[T]):
 
         return citations
 
-    @staticmethod
-    def parse_json_content(raw_content: Any) -> Dict[str, Any]:
-        """Parses a JSON object from model output (strips code fences, falls back to the outermost {...})."""
-        if isinstance(raw_content, list):
-            raw_content = "".join(
-                item.get("text", "") if isinstance(item, dict) else str(item)
-                for item in raw_content
-            )
-        clean_json = (raw_content or "").strip() if isinstance(raw_content, str) else ""
-        if clean_json.startswith("```"):
-            lines = clean_json.split("\n")
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].startswith("```"):
-                lines = lines[:-1]
-            clean_json = "\n".join(lines).strip()
-
-        parsed: Any = {}
-        if clean_json:
-            try:
-                parsed = json.loads(clean_json)
-            except Exception:
-                match = re.search(r"\{.*\}", clean_json, re.DOTALL)
-                if match:
-                    try:
-                        parsed = json.loads(match.group(0))
-                    except Exception:
-                        pass
-        return parsed if isinstance(parsed, dict) else {}
-
     def _pre_validate_data(
         self,
         data: Dict[str, Any],
@@ -183,7 +131,7 @@ class StructuredAgent(BaseAgent, Generic[T]):
             else:
                 # Fallback: Parse from last message content if model emitted JSON string
                 last_msg = messages[-1] if messages else None
-                parsed = self.parse_json_content(getattr(last_msg, "content", "") if last_msg else "")
+                parsed = parse_json_content(getattr(last_msg, "content", "") if last_msg else "")
 
             if fallback_defaults:
                 for k, v in fallback_defaults.items():
@@ -262,34 +210,3 @@ class StructuredAgent(BaseAgent, Generic[T]):
 
         output = self._post_process_output(output, result, ticker=ticker, fiscal_year=fiscal_year, **kwargs)
         return output
-
-    def run(
-        self,
-        messages: List[Dict[str, str]],
-        session_state: Optional[Dict[str, Any]] = None,
-        callbacks: Optional[List[Any]] = None,
-    ) -> AgentOutput:
-        """Executes the agent with conversational history conforming to BaseAgent."""
-        active_agent = self._get_or_create_agent()
-        config: Dict[str, Any] = {"recursion_limit": self.recursion_limit}
-        if callbacks:
-            config["callbacks"] = callbacks
-
-        result = active_agent.invoke(
-            {"messages": messages},
-            config=config,
-        )
-
-        structured = result.get("structured_response")
-        if self.output_schema and isinstance(structured, self.output_schema):
-            content = json.dumps(structured.model_dump(), indent=2)
-            sources = getattr(structured, "citations", [])
-        elif isinstance(structured, dict):
-            content = json.dumps(structured, indent=2)
-            sources = structured.get("citations", [])
-        else:
-            last_msg = result["messages"][-1] if result.get("messages") else ""
-            content = getattr(last_msg, "content", str(last_msg))
-            sources = self._extract_citations_from_messages(result.get("messages", []))
-
-        return AgentOutput(content=content, sources=sources)

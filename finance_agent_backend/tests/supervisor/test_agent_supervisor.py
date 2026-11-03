@@ -1,22 +1,18 @@
 """Unit & Integration Tests for Supervisor & Intent Router Agent.
 
 Validates:
-1. Agent registration in AgentRegistry and prompt template rendering.
+1. Prompt template rendering.
 2. Catalog resolution with explicit substitution flagging (year_substituted).
 3. Entity extraction without making actual external API calls.
 4. Intent classification (100% Mocked - No external API calls).
 5. Automatic graceful year substitution without halting (Zero-Halting, Issue 2.5).
 6. Single-turn conversational response generation (Single LLM Hop, Issue 2).
-7. BaseAgent.run() interface directly returning conversational response.
-8. LLM extraction using mocks (ZERO external API calls).
-9. BaseAgent.run() interface returning JSON routing plan for company analysis.
+7. LLM extraction using mocks (ZERO external API calls).
 """
 
-import json
 import unittest
 from unittest.mock import MagicMock, patch
 
-from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.supervisor import SESSION_KEY
 from app.agents.specialized.supervisor import RoutingPlan, SupervisorAgent, SupervisorExtraction
@@ -29,12 +25,8 @@ class TestAgentSupervisor(unittest.TestCase):
     def setUp(self):
         self.supervisor = SupervisorAgent()
 
-    def test_01_initialization_and_registry(self):
-        """Verify supervisor registration and prompt template rendering."""
-        agent = AgentRegistry.get("supervisor")
-        self.assertIsInstance(agent, SupervisorAgent)
-
-        # Verify generic prompt renders
+    def test_01_system_prompt_renders(self):
+        """Verify the supervisor prompt template renders."""
         prompt = render_prompt("supervisor", "prompt_supervisor.j2", catalog_summary="AAPL (2025), TSLA (2025)")
         self.assertIn("Senior Equity Research Director", prompt)
         self.assertIn("full_10k_report", prompt)
@@ -79,21 +71,6 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertIsNotNone(plan.conversational_response)
         self.assertIn("Weighted Average Cost of Capital", plan.conversational_response)
 
-    @patch.object(SupervisorAgent, "_extract_with_llm")
-    def test_08_run_interface_conversational_output(self, mock_extract):
-        """Verify BaseAgent.run() interface directly returns conversational_response text."""
-        mock_extract.return_value = SupervisorExtraction(
-            query_type="conversational",
-            conversational_response="Hello! I am your Senior Equity Research Director. I can analyze SEC 10-K filings.",
-            routing_reasoning="User greeting",
-        )
-
-        output = self.supervisor.run([
-            {"role": "user", "content": "Hello, what can you do?"}
-        ])
-        self.assertEqual(output.content, "Hello! I am your Senior Equity Research Director. I can analyze SEC 10-K filings.")
-        self.assertEqual(output.sources, [])
-
     @patch.object(SupervisorAgent, "_get_llm")
     def test_09_mocked_llm_fallback_for_conversational_queries(self, mock_get_llm):
         """Verify conversational entity and intent extraction using a mocked LLM (ZERO API calls)."""
@@ -116,25 +93,6 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertEqual(plan.fiscal_year, 2025)
         self.assertEqual(plan.query_type, "business_moat_only")
         self.assertTrue(mock_structured.invoke.called)
-
-    @patch.object(SupervisorAgent, "_extract_with_llm")
-    def test_10_run_interface_returns_routing_plan_json(self, mock_extract):
-        """Verify BaseAgent.run() interface returns valid JSON routing plan for analysis queries."""
-        mock_extract.return_value = SupervisorExtraction(
-            query_type="dcf_valuation_only",
-            extracted_ticker="TSLA",
-            extracted_year=2025,
-            routing_reasoning="User asking for DCF valuation of Tesla",
-        )
-        output = self.supervisor.run([
-            {"role": "user", "content": "What is the DCF valuation of TSLA for 2025?"}
-        ])
-        self.assertTrue(len(output.content) > 0)
-        parsed = json.loads(output.content)
-        self.assertEqual(parsed.get("ticker"), "TSLA")
-        self.assertEqual(parsed.get("fiscal_year"), 2025)
-        self.assertEqual(parsed.get("query_type"), "dcf_valuation_only")
-        self.assertEqual(len(output.sources), 1)
 
     @patch.object(SupervisorAgent, "_get_llm")
     def test_11_multi_turn_history_payload_construction(self, mock_get_llm):

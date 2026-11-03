@@ -1,11 +1,11 @@
-"""The single tool-free LLM completion shared by the Strategist, Risk and Valuation agents."""
+"""The single tool-free LLM completion shared by the Strategist, Risk and Valuation agents, and its JSON parser."""
 
 import unittest
 from unittest.mock import MagicMock, patch
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from app.agents.shared.llm_call import complete_once
+from app.agents.shared.llm_call import complete_once, parse_json_content
 
 MODULE = "app.agents.shared.llm_call"
 
@@ -34,6 +34,25 @@ class TestCompleteOnce(unittest.TestCase):
         })
         self.assertEqual(invoke.args[0], [SystemMessage(content="sys"), HumanMessage(content="user text")])
         self.assertEqual(invoke.kwargs["config"], {"callbacks": [cb]})
+
+
+class TestParseJsonContent(unittest.TestCase):
+    def test_plain_json_object_is_parsed(self):
+        self.assertEqual(parse_json_content('{"a": 1}'), {"a": 1})
+
+    def test_code_fences_are_stripped(self):
+        self.assertEqual(parse_json_content('```json\n{"a": 1}\n```'), {"a": 1})
+
+    def test_outermost_object_is_recovered_from_surrounding_prose(self):
+        self.assertEqual(parse_json_content('Here it is: {"a": {"b": 2}} done.'), {"a": {"b": 2}})
+
+    def test_list_of_content_parts_is_joined(self):
+        self.assertEqual(parse_json_content([{"text": '{"a": '}, "1}"]), {"a": 1})
+
+    def test_anything_but_a_json_object_gives_an_empty_dict(self):
+        for raw in ("[1, 2]", "not json {broken", "", None, 42):
+            with self.subTest(raw=raw):
+                self.assertEqual(parse_json_content(raw), {})
 
 
 if __name__ == "__main__":

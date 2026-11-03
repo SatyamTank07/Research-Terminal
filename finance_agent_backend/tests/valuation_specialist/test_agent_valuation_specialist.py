@@ -11,7 +11,6 @@ from datetime import date
 from unittest.mock import patch
 
 from app.agents.specialized.supervisor import parse_valuation_overrides
-from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.valuation_specialist import DCFValuationOutput, ValuationSpecialistAgent
 from app.agents.specialized.valuation_specialist.agent_valuation_specialist import build_valuation
@@ -56,12 +55,9 @@ def _indebted_audit():
 
 
 class TestValuationSpecialistAgent(unittest.TestCase):
-    def test_01_registry_and_prompts(self):
-        agent = AgentRegistry.get("valuation_specialist")
-        self.assertIsInstance(agent, ValuationSpecialistAgent)
-        self.assertEqual(agent.get_tools(), [])
-
+    def test_01_prompts(self):
         system = render_prompt("valuation_specialist", "prompt_valuation_specialist.j2")
+        self.assertEqual(ValuationSpecialistAgent().get_system_prompt(), system)
         self.assertIn("Use ONLY numbers that appear in the facts block", system)
         self.assertIn("four short paragraphs", system)
 

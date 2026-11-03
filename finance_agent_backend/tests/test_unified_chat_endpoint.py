@@ -15,9 +15,10 @@ Validates:
 import asyncio
 import json
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, create_autospec, patch
 from fastapi.testclient import TestClient
 
+from app.agents.pipeline.orchestrator import MultiAgentOrchestrator, TurnReply
 from app.main import app
 from app.models import ChatMessage, Conversation, User
 from app.schemas.chat import ChatRequest, ChatResponse
@@ -36,10 +37,11 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
         self.client = TestClient(app)
 
     def test_01_chat_request_schema_defaults(self):
-        """Verify ChatRequest defaults stream=True when omitted."""
+        """Verify ChatRequest defaults stream=True when omitted and ignores the retired agent_type field."""
         req_default = ChatRequest(message="Analyze Apple")
         self.assertTrue(req_default.stream)
-        self.assertEqual(req_default.agent_type, "multi_agent")
+        # A client that still sends the retired agent_type field is accepted; the field is ignored.
+        self.assertNotIn("agent_type", ChatRequest(message="Analyze Apple", agent_type="supervisor").model_dump())
 
         req_sync = ChatRequest(message="Analyze Apple", stream=False)
         self.assertFalse(req_sync.stream)
@@ -117,9 +119,9 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
 
     @patch("app.services.chat_service._prepare_chat_turn")
     @patch("app.services.chat_service._finalize_assistant_turn")
-    @patch("app.services.chat_service.AgentRegistry.get")
+    @patch("app.services.chat_service.MultiAgentOrchestrator")
     def test_05_stream_chat_service_yields_token_lifecycle(
-        self, mock_registry_get, mock_finalize, mock_prepare
+        self, mock_orchestrator_cls, mock_finalize, mock_prepare
     ):
         """Verify stream_chat_service executes 3-phase streaming (status -> token -> result)."""
         mock_conv = MagicMock(spec=Conversation)
@@ -134,7 +136,7 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
         mock_finalize.return_value = mock_assistant_msg
 
         # Mock agent with astream_run yielding a milestone and final result without tokens_streamed
-        mock_agent = MagicMock()
+        mock_agent = create_autospec(MultiAgentOrchestrator, instance=True)
 
         async def mock_astream_run(**kwargs):
             yield {"type": "status", "node": "supervisor", "message": "Resolved AAPL"}
@@ -148,7 +150,7 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
             }
 
         mock_agent.astream_run = mock_astream_run
-        mock_registry_get.return_value = mock_agent
+        mock_orchestrator_cls.return_value = mock_agent
 
         req = ChatRequest(message="Analyze AAPL", stream=True)
         db = MagicMock()
@@ -186,11 +188,9 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
 
     @patch("app.services.chat_service._prepare_chat_turn")
     @patch("app.services.chat_service._finalize_assistant_turn")
-    @patch("app.services.chat_service.AgentRegistry.get")
-    def test_06_process_chat_service_unit(self, mock_registry_get, mock_finalize, mock_prepare):
+    @patch("app.services.chat_service.MultiAgentOrchestrator")
+    def test_06_process_chat_service_unit(self, mock_orchestrator_cls, mock_finalize, mock_prepare):
         """Verify process_chat executes synchronously with zero real external API calls."""
-        from app.agents.base import AgentOutput
-
         mock_conv = MagicMock(spec=Conversation)
         mock_conv.id = "conv-def"
         mock_conv.session_state = {}
@@ -202,13 +202,13 @@ class TestUnifiedChatEndpoint(unittest.TestCase):
         mock_assistant_msg.id = "msg-tsla-1"
         mock_finalize.return_value = mock_assistant_msg
 
-        mock_agent = MagicMock()
-        mock_agent.run.return_value = AgentOutput(
+        mock_agent = create_autospec(MultiAgentOrchestrator, instance=True)
+        mock_agent.run.return_value = TurnReply(
             content="Tesla Valuation: DCF fair value is $245.50.",
             sources=[{"ticker": "TSLA", "item": "Item 8"}],
             updated_session_state={"ticker": "TSLA"},
         )
-        mock_registry_get.return_value = mock_agent
+        mock_orchestrator_cls.return_value = mock_agent
 
         req = ChatRequest(message="Analyze Tesla", stream=False)
         db = MagicMock()

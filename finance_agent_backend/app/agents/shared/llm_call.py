@@ -1,5 +1,8 @@
-"""One tool-free LLM completion (temperature 0) used by agent judge, repair and write calls."""
+"""One tool-free LLM completion (temperature 0) used by agent judge, repair and write calls, and the parser for
+the JSON object in a model reply."""
 
+import json
+import re
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
@@ -30,4 +33,34 @@ def complete_once(
     return ChatOpenAI(**llm_kwargs).invoke(messages, config=config).content
 
 
-__all__ = ["complete_once"]
+def parse_json_content(raw_content: Any) -> Dict[str, Any]:
+    """Parses a JSON object from model output (strips code fences, falls back to the outermost {...})."""
+    if isinstance(raw_content, list):
+        raw_content = "".join(
+            item.get("text", "") if isinstance(item, dict) else str(item)
+            for item in raw_content
+        )
+    clean_json = (raw_content or "").strip() if isinstance(raw_content, str) else ""
+    if clean_json.startswith("```"):
+        lines = clean_json.split("\n")
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].startswith("```"):
+            lines = lines[:-1]
+        clean_json = "\n".join(lines).strip()
+
+    parsed: Any = {}
+    if clean_json:
+        try:
+            parsed = json.loads(clean_json)
+        except Exception:
+            match = re.search(r"\{.*\}", clean_json, re.DOTALL)
+            if match:
+                try:
+                    parsed = json.loads(match.group(0))
+                except Exception:
+                    pass
+    return parsed if isinstance(parsed, dict) else {}
+
+
+__all__ = ["complete_once", "parse_json_content"]

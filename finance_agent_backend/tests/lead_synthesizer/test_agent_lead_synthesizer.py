@@ -1,7 +1,7 @@
 """Unit and Integration Tests for Lead Synthesizer Agent (Milestone 6).
 
 Validates:
-1. Agent registration in AgentRegistry and prompt template rendering.
+1. Prompt template rendering.
 2. Full multi-agent synthesis:
    - Ingestion of Moat, Audit, Forecast, DCF Valuation, and Risk payloads.
    - LLM generation of the 3-Pillar Investment Thesis and Executive Summary.
@@ -11,13 +11,11 @@ Validates:
    - Cross-agent citation deduplication.
 3. Graceful handling of partial inputs (e.g. Fast-Path DCF mode without qualitative agents).
 4. Exhaustive None-guard resilience: verifying formatting does not crash on None/NaN metrics.
-5. BaseAgent.run() interface compatibility.
 """
 
 import unittest
 from unittest.mock import patch
 
-from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.lead_synthesizer import ThreePillarThesis
 from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import LeadSynthesizerAgent
@@ -56,8 +54,7 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
             dcf_valuation=mock_dcf(), risk_audit=mock_risk(), **kwargs,
         )
 
-    def test_01_initialization_and_registry(self):
-        self.assertIsInstance(AgentRegistry.get("lead_synthesizer"), LeadSynthesizerAgent)
+    def test_01_system_prompt_renders(self):
         prompt = render_prompt("lead_synthesizer", "prompt_lead_synthesizer.j2", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025)
         self.assertIn("Managing Director of Global Equity Research", prompt)
         self.assertIn("ResearchSynthesisPayload", prompt)
@@ -129,10 +126,6 @@ class TestAgentLeadSynthesizer(unittest.TestCase):
         self.assertNotIn("Heading the model should not write", md)
         self.assertIn(f"Terminal value is {TV_SHARE} of enterprise value.", md)
         self.assertIn("1 sentence(s) of commentary were removed", md)
-
-    def test_05_run_agent_output_interface(self):
-        output = self.synthesizer.run([{"role": "user", "content": "Generate final report for Apple"}])
-        self.assertIn("LeadSynthesizerAgent", output.content)
 
     def test_06_risk_prompt_embeds_verified_context(self):
         risk = mock_risk()

@@ -8,13 +8,16 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
-from app.agents import AgentRegistry
+from app.agents.pipeline.orchestrator import MultiAgentOrchestrator
 from app.agents.shared.citations import strip_markers
 from app.models import ChatMessage, Conversation, User
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.langfuse_service import flush_langfuse, langfuse_trace_scope
 
 logger = logging.getLogger("finance_agent.services.chat")
+
+# Langfuse trace name, tag and metadata value for every chat turn (one research pipeline serves them all).
+AGENT_TYPE = "multi_agent"
 
 
 def _resolve_conversation(request: ChatRequest, user: User, db: Session) -> Conversation:
@@ -127,14 +130,13 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
 
     conversation, user_msg, history_payload = _prepare_chat_turn(request=request, user=user, db=db)
 
-    agent_type = request.agent_type or "multi_agent"
-    trace_name = f"finance-agent:{agent_type}"
-    tags = ["finance-agent", agent_type]
+    trace_name = f"finance-agent:{AGENT_TYPE}"
+    tags = ["finance-agent", AGENT_TYPE]
     metadata = {
         "conversation_id": str(conversation.id),
         "user_id": str(user.id),
         "username": getattr(user, "username", "finance_user"),
-        "agent_type": agent_type,
+        "agent_type": AGENT_TYPE,
     }
 
     try:
@@ -146,18 +148,11 @@ def process_chat(request: ChatRequest, user: User, db: Session) -> ChatResponse:
             metadata=metadata,
         ) as callback:
             callbacks = [callback] if callback else None
-            agent = AgentRegistry.get(agent_type)
-            try:
-                output = agent.run(
-                    history_payload,
-                    session_state=conversation.session_state,
-                    callbacks=callbacks,
-                )
-            except TypeError:
-                try:
-                    output = agent.run(history_payload, session_state=conversation.session_state)
-                except TypeError:
-                    output = agent.run(history_payload)
+            output = MultiAgentOrchestrator().run(
+                history_payload,
+                session_state=conversation.session_state,
+                callbacks=callbacks,
+            )
 
             assistant_msg = _finalize_assistant_turn(
                 conversation=conversation,
@@ -204,14 +199,13 @@ async def stream_chat_service(
 
     conversation, user_msg, history_payload = _prepare_chat_turn(request=request, user=user, db=db)
 
-    agent_type = request.agent_type or "multi_agent"
-    trace_name = f"finance-agent:stream:{agent_type}"
-    tags = ["finance-agent", "streaming", agent_type]
+    trace_name = f"finance-agent:stream:{AGENT_TYPE}"
+    tags = ["finance-agent", "streaming", AGENT_TYPE]
     metadata = {
         "conversation_id": str(conversation.id),
         "user_id": str(user.id),
         "username": getattr(user, "username", "finance_user"),
-        "agent_type": agent_type,
+        "agent_type": AGENT_TYPE,
     }
 
     try:
@@ -223,114 +217,74 @@ async def stream_chat_service(
             metadata=metadata,
         ) as callback:
             callbacks = [callback] if callback else None
-            agent = AgentRegistry.get(agent_type)
-            if hasattr(agent, "astream_run"):
-                async for event in agent.astream_run(
-                    user_query=request.message,
-                    messages=history_payload,
-                    session_state=conversation.session_state,
-                    callbacks=callbacks,
-                ):
-                    event_type = event.get("type")
-                    if event_type == "result":
-                        response_content = event.get("response", "")
-                        sources = event.get("sources", [])
-                        updated_state = event.get("updated_session_state")
+            async for event in MultiAgentOrchestrator().astream_run(
+                user_query=request.message,
+                messages=history_payload,
+                session_state=conversation.session_state,
+                callbacks=callbacks,
+            ):
+                event_type = event.get("type")
+                if event_type == "result":
+                    response_content = event.get("response", "")
+                    sources = event.get("sources", [])
+                    updated_state = event.get("updated_session_state")
 
-                        # If tokens were not streamed natively during node execution,
-                        # stream response in word chunks to ensure token-by-token UI typing
-                        if not event.get("tokens_streamed", False) and response_content:
-                            words = response_content.split(" ")
-                            chunk_size = 6
-                            for i in range(0, len(words), chunk_size):
-                                chunk_words = words[i : i + chunk_size]
-                                chunk_text = " ".join(chunk_words)
-                                if i + chunk_size < len(words):
-                                    chunk_text += " "
-                                yield f"data: {json.dumps({'type': 'token', 'delta': chunk_text})}\n\n"
-                                await asyncio.sleep(0.005)
+                    # If tokens were not streamed natively during node execution,
+                    # stream response in word chunks to ensure token-by-token UI typing
+                    if not event.get("tokens_streamed", False) and response_content:
+                        words = response_content.split(" ")
+                        chunk_size = 6
+                        for i in range(0, len(words), chunk_size):
+                            chunk_words = words[i : i + chunk_size]
+                            chunk_text = " ".join(chunk_words)
+                            if i + chunk_size < len(words):
+                                chunk_text += " "
+                            yield f"data: {json.dumps({'type': 'token', 'delta': chunk_text})}\n\n"
+                            await asyncio.sleep(0.005)
 
-                        assistant_msg = _finalize_assistant_turn(
-                            conversation=conversation,
-                            user=user,
-                            content=response_content,
-                            sources=sources,
-                            updated_session_state=updated_state,
-                            db=db,
-                        )
+                    assistant_msg = _finalize_assistant_turn(
+                        conversation=conversation,
+                        user=user,
+                        content=response_content,
+                        sources=sources,
+                        updated_session_state=updated_state,
+                        db=db,
+                    )
 
-                        payload = {
-                            "type": "result",
-                            "response": response_content,
-                            "conversation_id": conversation.id,
-                            "message_id": assistant_msg.id,
-                            "sources": sources,
-                            "final_report": event.get("final_report"),
-                            "updated_session_state": updated_state,
-                        }
-                        yield f"data: {json.dumps(payload, default=str)}\n\n"
-                    elif event_type == "error":
-                        error_msg = event.get("message") or "The research pipeline failed."
-                        logger.error(f"Agent stream reported an error: {error_msg}")
-                        assistant_msg = _finalize_assistant_turn(
-                            conversation=conversation,
-                            user=user,
-                            content=f"Error communicating with agent: {error_msg}",
-                            sources=[],
-                            updated_session_state=None,
-                            db=db,
-                            is_error=True,
-                        )
-                        payload = {
-                            "type": "error",
-                            "message": error_msg,
-                            "conversation_id": conversation.id,
-                            "message_id": assistant_msg.id,
-                        }
-                        yield f"data: {json.dumps(payload)}\n\n"
-                        return
-                    elif event_type == "token":
-                        yield f"data: {json.dumps(event)}\n\n"
-                    else:
-                        yield f"data: {json.dumps(event)}\n\n"
-            else:
-                # Fallback for non-streaming agents
-                try:
-                    output = await asyncio.to_thread(agent.run, history_payload, conversation.session_state, callbacks)
-                except TypeError:
-                    try:
-                        output = await asyncio.to_thread(agent.run, history_payload, conversation.session_state)
-                    except TypeError:
-                        output = await asyncio.to_thread(agent.run, history_payload)
-
-                if output.content:
-                    words = output.content.split(" ")
-                    chunk_size = 6
-                    for i in range(0, len(words), chunk_size):
-                        chunk_words = words[i : i + chunk_size]
-                        chunk_text = " ".join(chunk_words)
-                        if i + chunk_size < len(words):
-                            chunk_text += " "
-                        yield f"data: {json.dumps({'type': 'token', 'delta': chunk_text})}\n\n"
-                        await asyncio.sleep(0.005)
-
-                assistant_msg = _finalize_assistant_turn(
-                    conversation=conversation,
-                    user=user,
-                    content=output.content,
-                    sources=output.sources,
-                    updated_session_state=output.updated_session_state,
-                    db=db,
-                )
-
-                payload = {
-                    "type": "result",
-                    "response": output.content,
-                    "conversation_id": conversation.id,
-                    "message_id": assistant_msg.id,
-                    "sources": output.sources,
-                }
-                yield f"data: {json.dumps(payload)}\n\n"
+                    payload = {
+                        "type": "result",
+                        "response": response_content,
+                        "conversation_id": conversation.id,
+                        "message_id": assistant_msg.id,
+                        "sources": sources,
+                        "final_report": event.get("final_report"),
+                        "updated_session_state": updated_state,
+                    }
+                    yield f"data: {json.dumps(payload, default=str)}\n\n"
+                elif event_type == "error":
+                    error_msg = event.get("message") or "The research pipeline failed."
+                    logger.error(f"Agent stream reported an error: {error_msg}")
+                    assistant_msg = _finalize_assistant_turn(
+                        conversation=conversation,
+                        user=user,
+                        content=f"Error communicating with agent: {error_msg}",
+                        sources=[],
+                        updated_session_state=None,
+                        db=db,
+                        is_error=True,
+                    )
+                    payload = {
+                        "type": "error",
+                        "message": error_msg,
+                        "conversation_id": conversation.id,
+                        "message_id": assistant_msg.id,
+                    }
+                    yield f"data: {json.dumps(payload)}\n\n"
+                    return
+                elif event_type == "token":
+                    yield f"data: {json.dumps(event)}\n\n"
+                else:
+                    yield f"data: {json.dumps(event)}\n\n"
 
     except Exception as e:
         err_str = str(e)

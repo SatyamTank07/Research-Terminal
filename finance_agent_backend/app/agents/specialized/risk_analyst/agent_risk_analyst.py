@@ -13,10 +13,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
-from app.agents.registry import AgentRegistry
 from app.agents.shared.filing.narrative_search import retrieve_10k_narrative_tool
 from app.agents.shared.filing.sections import build_section_context
-from app.agents.shared.llm_call import complete_once
+from app.agents.shared.llm_call import complete_once, parse_json_content
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.risk_analyst.assemble import Pool, assemble_not_provided, assemble_risk_audit
 from app.agents.specialized.risk_analyst.context import (
@@ -52,7 +51,6 @@ from app.agents.specialized.risk_analyst.state_risk_analyst import (
 logger = logging.getLogger("finance_agent.agents.risk_analyst")
 
 
-@AgentRegistry.register("risk_analyst")
 class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
     """Evidence-first qualitative agent analyzing Item 1A risk disclosures and existential threats."""
 
@@ -168,7 +166,7 @@ class RiskAnalystAgent(StructuredAgent[RiskAuditOutput]):
             existing_titles=[r.risk_title for r in output.identified_risks],
         )
         try:
-            raw = self.parse_json_content(self._run_repair_llm(prompt, callbacks))
+            raw = parse_json_content(self._run_repair_llm(prompt, callbacks))
         except Exception as e:
             logger.warning(f"Coverage repair pass failed for {ticker} FY{fiscal_year}: {e}")
             output.data_quality.notes.append("Coverage repair pass failed; uncited quantified disclosures remain.")

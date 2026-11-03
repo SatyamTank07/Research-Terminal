@@ -3,17 +3,16 @@
 import asyncio
 import concurrent.futures
 import logging
+from dataclasses import dataclass, field
 from datetime import date
 from typing import Any, AsyncIterator, Dict, List, Optional
 
 from langgraph.graph.state import CompiledStateGraph
 
-from app.agents.base import AgentOutput, BaseAgent
 from app.agents.pipeline.contract import Conversation, StatusLine
 from app.agents.pipeline.graph import build_graph
 from app.agents.pipeline.routes import ROUTES, all_specs
 from app.agents.pipeline.run_state import ResearchRunState
-from app.agents.registry import AgentRegistry
 from app.agents.specialized.lead_synthesizer import Final10KResearchReport
 from app.agents.specialized.supervisor import supervisor_milestone
 
@@ -28,9 +27,16 @@ UNKNOWN_ROUTE_MESSAGE = (
 )
 
 
-@AgentRegistry.register("multi_agent")
-@AgentRegistry.register("orchestrator")
-class MultiAgentOrchestrator(BaseAgent):
+@dataclass(frozen=True)
+class TurnReply:
+    """One finished chat turn as the synchronous chat path persists and returns it."""
+
+    content: str
+    sources: List[Dict[str, Any]] = field(default_factory=list)
+    updated_session_state: Optional[Dict[str, Any]] = None
+
+
+class MultiAgentOrchestrator:
     """Runs one chat turn through the research pipeline."""
 
     def __init__(self, recursion_limit: int = 50):
@@ -137,8 +143,8 @@ class MultiAgentOrchestrator(BaseAgent):
         return {"type": "error", "message": NO_REPORT_MESSAGE}
 
     def run(self, messages: List[Dict[str, str]], session_state: Optional[Dict[str, Any]] = None,
-            callbacks: Optional[List[Any]] = None) -> AgentOutput:
-        """Synchronous BaseAgent interface; a run without a report raises."""
+            callbacks: Optional[List[Any]] = None) -> TurnReply:
+        """Synchronous chat entry: runs the turn and returns its reply; a run without a report raises."""
         query = messages[-1]["content"] if messages else ""
         coroutine = self.arun(user_query=query, messages=messages, session_state=session_state, callbacks=callbacks)
         try:
@@ -153,5 +159,5 @@ class MultiAgentOrchestrator(BaseAgent):
         event = self._result_event(state)
         if event["type"] == "error":
             raise RuntimeError(event["message"])
-        return AgentOutput(content=event["response"], sources=event["sources"],
-                           updated_session_state=event["updated_session_state"])
+        return TurnReply(content=event["response"], sources=event["sources"],
+                         updated_session_state=event["updated_session_state"])
