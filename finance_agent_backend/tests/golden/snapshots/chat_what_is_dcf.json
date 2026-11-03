@@ -23,7 +23,6 @@
   "pipeline_notes": [],
   "risk_audit": null,
   "routing_plan": {
-   "active_agents": [],
    "available_fiscal_years": [],
    "company_name": null,
    "conversational_response": "A DCF values a business as the present value of its future free cash flows.",

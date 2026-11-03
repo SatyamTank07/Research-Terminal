@@ -654,9 +654,6 @@
    "ticker": "TSLA"
   },
   "routing_plan": {
-   "active_agents": [
-    "risk_analyst"
-   ],
    "available_fiscal_years": [
     2025
    ],
