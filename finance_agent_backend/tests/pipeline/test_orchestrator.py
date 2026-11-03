@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import patch
 
 from app.agents import MultiAgentOrchestrator
+from app.agents.pipeline.orchestrator import TurnReply
 from app.agents.specialized.financial_auditor import FinancialAuditorAgent
 from app.agents.specialized.supervisor import RoutingPlan, TurnResolution
 from tests.pipeline.fixtures import make_run_context
@@ -66,3 +67,11 @@ class TestOrchestratorStreaming(unittest.TestCase):
                 patch.object(FinancialAuditorAgent, "audit", side_effect=RuntimeError("boom")):
             with self.assertRaises(RuntimeError):
                 MultiAgentOrchestrator().run([{"role": "user", "content": "audit AAPL"}])
+
+    def test_sync_run_returns_the_turn_reply(self):
+        async def finished_run(**kwargs):
+            return {"final": "Hello.", "run": _audit_turn()}
+
+        with patch.object(MultiAgentOrchestrator, "arun", side_effect=finished_run):
+            reply = MultiAgentOrchestrator().run([{"role": "user", "content": "hi"}])
+        self.assertEqual(reply, TurnReply(content="Hello.", sources=[], updated_session_state={"active_ticker": "AAPL"}))

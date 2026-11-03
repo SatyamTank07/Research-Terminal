@@ -184,6 +184,7 @@ class TestRiskAnalystSetup(unittest.TestCase):
         self.assertEqual(RiskAnalystAgent().model_name, "openai:gpt-4o-mini")
 
         prompt = render_prompt("risk_analyst", "prompt_risk_analyst.j2")
+        self.assertEqual(RiskAnalystAgent().get_system_prompt(), prompt)
         for needle in ("Chief Risk Officer", "retrieve_10k_narrative_tool", "RiskAuditOutput", "BOILERPLATE FILTER",
                        "character-for-character", "primary_threat_risk_id", "Competitive & Demand"):
             self.assertIn(needle, prompt)

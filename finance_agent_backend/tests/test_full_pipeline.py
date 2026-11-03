@@ -477,11 +477,11 @@ class TestMilestone6FullPipeline(unittest.TestCase):
                 message="Calculate DCF fair value and WACC for TSLA",
                 stream=False,
             )
-            from unittest.mock import MagicMock, patch
+            from unittest.mock import create_autospec
             from app.agents.pipeline.orchestrator import TurnReply
 
             with patch("app.services.chat_service.MultiAgentOrchestrator") as mock_orchestrator_cls:
-                mock_agent = MagicMock()
+                mock_agent = create_autospec(MultiAgentOrchestrator, instance=True)
                 mock_agent.run.return_value = TurnReply(
                     content="### Institutional DCF Valuation: TSLA (Tesla Inc.)\n\nExecutive Valuation Dashboard: Intrinsic fair value is $245.50/share.",
                     sources=[{"ticker": "TSLA", "item": "Item 8", "snippet": "Cash flows"}],

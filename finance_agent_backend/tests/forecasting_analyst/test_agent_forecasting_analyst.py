@@ -78,6 +78,7 @@ class TestForecastingAnalystAgent(unittest.TestCase):
 
     def test_system_prompt(self):
         prompt = render_prompt("forecasting_analyst", "prompt_forecasting_analyst.j2")
+        self.assertEqual(ForecastingAnalystAgent().get_system_prompt(), prompt)
         self.assertIn(PROPOSE_TOOL_NAME, prompt)
         self.assertIn("WHOLE percent", prompt)
 
