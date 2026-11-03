@@ -35,10 +35,8 @@ from app.agents.specialized.risk_analyst.assemble import render_risk_evidence_ta
 from app.agents.specialized.risk_analyst.modules.risk_profile import render_risk_matrix_markdown
 from app.agents.specialized.financial_auditor.agent_financial_auditor import build_audit
 from app.agents.specialized.financial_auditor.context.audit_inputs import AnnualFinancialInput, BalanceSheetInput
-from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import (
-    LeadSynthesizerAgent,
-    ResearchSynthesisPayload,
-)
+from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import LeadSynthesizerAgent
+from app.agents.specialized.lead_synthesizer.write import ResearchSynthesisPayload
 from tests.forecast_fixtures import make_forecast_output
 from tests.valuation_fixtures import make_valuation_output
 

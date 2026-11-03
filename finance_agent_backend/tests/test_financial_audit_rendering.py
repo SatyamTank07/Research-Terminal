@@ -73,7 +73,7 @@ class TestFinancialAuditRendering(unittest.TestCase):
 
     def test_02_financial_audit_instruction_and_report_layout(self):
         instruction = render_prompt(
-            "lead_synthesizer", "prompt_synthesizer_instruction.j2",
+            "lead_synthesizer", "write.j2",
             ticker="TSLA",
             company_name="Tesla, Inc.",
             fiscal_year=2025,
