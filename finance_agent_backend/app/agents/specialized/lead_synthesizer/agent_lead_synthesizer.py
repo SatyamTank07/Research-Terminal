@@ -15,9 +15,10 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
-from app.agents.base import AgentOutput, BaseAgent, StructuredAgent
+from app.agents.base import AgentOutput, BaseAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
+from app.agents.shared.llm_call import parse_json_content
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
@@ -136,20 +137,12 @@ class LeadSynthesizerAgent(BaseAgent):
             logger.warning(f"Structured synthesis failed ({e!r}); retrying as plain JSON.")
         try:
             response = self._get_llm().invoke(messages, config=config)
-            parsed = self._parse_json_fallback(response.content)
+            parsed = parse_json_content(response.content)
             if parsed:
                 return parsed, "llm_json_fallback"
         except Exception as e:
             logger.error(f"Synthesis LLM fallback failed ({e!r}); using deterministic commentary.")
         return {}, "template_default"
-
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
-    @staticmethod
-    def _parse_json_fallback(content: Any) -> Dict[str, Any]:
-        """Extracts a JSON object from text content when structured output fails."""
-        return StructuredAgent.parse_json_content(content)
 
     def run(
         self,

@@ -1,6 +1,5 @@
 import json
 import logging
-import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
@@ -8,6 +7,8 @@ from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
+
+from app.agents.shared.llm_call import parse_json_content
 
 logger = logging.getLogger("finance_agent.agents.base")
 
@@ -121,36 +122,6 @@ class StructuredAgent(BaseAgent, Generic[T]):
 
         return citations
 
-    @staticmethod
-    def parse_json_content(raw_content: Any) -> Dict[str, Any]:
-        """Parses a JSON object from model output (strips code fences, falls back to the outermost {...})."""
-        if isinstance(raw_content, list):
-            raw_content = "".join(
-                item.get("text", "") if isinstance(item, dict) else str(item)
-                for item in raw_content
-            )
-        clean_json = (raw_content or "").strip() if isinstance(raw_content, str) else ""
-        if clean_json.startswith("```"):
-            lines = clean_json.split("\n")
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].startswith("```"):
-                lines = lines[:-1]
-            clean_json = "\n".join(lines).strip()
-
-        parsed: Any = {}
-        if clean_json:
-            try:
-                parsed = json.loads(clean_json)
-            except Exception:
-                match = re.search(r"\{.*\}", clean_json, re.DOTALL)
-                if match:
-                    try:
-                        parsed = json.loads(match.group(0))
-                    except Exception:
-                        pass
-        return parsed if isinstance(parsed, dict) else {}
-
     def _pre_validate_data(
         self,
         data: Dict[str, Any],
@@ -183,7 +154,7 @@ class StructuredAgent(BaseAgent, Generic[T]):
             else:
                 # Fallback: Parse from last message content if model emitted JSON string
                 last_msg = messages[-1] if messages else None
-                parsed = self.parse_json_content(getattr(last_msg, "content", "") if last_msg else "")
+                parsed = parse_json_content(getattr(last_msg, "content", "") if last_msg else "")
 
             if fallback_defaults:
                 for k, v in fallback_defaults.items():

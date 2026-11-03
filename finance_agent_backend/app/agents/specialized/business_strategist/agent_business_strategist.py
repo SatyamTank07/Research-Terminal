@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional, Sequence
 from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
-from app.agents.shared.llm_call import complete_once
+from app.agents.shared.llm_call import complete_once, parse_json_content
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.business_strategist.assemble import assemble_strategy, not_assessed_reason, record_extraction
 from app.agents.specialized.business_strategist.context import (
@@ -144,7 +144,7 @@ class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
             dq.llm_status = "failed"
             dq.notes.append(f"Qualitative LLM call failed ({type(e).__name__}); moat and competitive fields not assessed.")
             return None
-        parsed = self.parse_json_content(content)
+        parsed = parse_json_content(content)
         if not parsed:
             dq.llm_status = "malformed"
             dq.notes.append("The model returned no parsable JSON; moat and competitive fields not assessed.")
