@@ -25,6 +25,7 @@ from app.agents.specialized.supervisor.modules.filing_resolution import (
     resolve_requested_year,
 )
 from app.agents.specialized.supervisor.modules.query_intent import SupervisorExtraction, verify_query_intent
+from app.agents.specialized.supervisor.modules.session_continuity import SessionFiling, remember_turn
 from app.agents.specialized.supervisor.modules.valuation_parameters import (
     SESSION_KEY,
     parse_valuation_overrides,
@@ -163,15 +164,13 @@ class SupervisorAgent(BaseAgent):
         if parameters.carry_note:
             notes.append(parameters.carry_note)
 
-        updated_session: Dict[str, Any] = {
-            "active_ticker": doc_ticker,
-            "active_company": company_name,
-            "active_fiscal_year": catalog_year,
-            "available_fiscal_years": avail_years,
-            "last_query_type": query_type,
-        }
-        if valuation_overrides:
-            updated_session[SESSION_KEY] = valuation_overrides
+        updated_session = remember_turn(
+            active_state,
+            valuation_overrides,
+            SessionFiling(ticker=doc_ticker, company_name=company_name, fiscal_year=catalog_year,
+                          available_fiscal_years=avail_years),
+            query_type,
+        )
 
         logger.info(
             f"Supervisor routed query '{user_query[:50]}' -> "
@@ -207,12 +206,8 @@ class SupervisorAgent(BaseAgent):
 
         Values stay bound to the active company, or unbound (attach to the next company named) when none is active.
         """
-        session = dict(active_state)
-        remembered = resolve_session_overrides(overrides, session.get(SESSION_KEY), session.get("active_ticker"))
-        if remembered:
-            session[SESSION_KEY] = remembered
-        else:
-            session.pop(SESSION_KEY, None)
+        remembered = resolve_session_overrides(overrides, active_state.get(SESSION_KEY), active_state.get("active_ticker"))
+        session = remember_turn(active_state, remembered)
         active_ticker = ticker or session.get("active_ticker") or ""
         return RoutingPlan(
             ticker=active_ticker,
