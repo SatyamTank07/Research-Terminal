@@ -15,7 +15,8 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class StructuredAgent(Generic[T]):
-    """Extensible declarative base class for agents emitting structured Pydantic artifacts."""
+    """Tool-loop base for the agents that still run a LangChain tool loop (Financial Auditor, Forecasting Analyst,
+    Risk Analyst): the loop, structured-output extraction with pre/post hooks, and tool-message citations."""
 
     prompt_name: Optional[str] = None
     tools: List[Any] = []

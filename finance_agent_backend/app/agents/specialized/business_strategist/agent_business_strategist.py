@@ -17,7 +17,6 @@ marked as not assessed.
 import logging
 from typing import Any, Dict, List, Optional, Sequence
 
-from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.shared.llm_call import complete_once, parse_json_content
 from app.agents.shared.prompts import render_prompt
@@ -56,12 +55,14 @@ logger = logging.getLogger("finance_agent.agents.business_strategist")
 JUDGEMENT_MAX_TOKENS = 2_000
 
 
-class BusinessStrategistAgent(StructuredAgent[BusinessMoatOutput]):
+class BusinessStrategistAgent:
     """Deterministic-first business model, segment and moat analysis with one verified LLM judgement."""
 
-    prompt_name = "business_strategist"
-    tools: List[Any] = []
-    output_schema = BusinessMoatOutput
+    def __init__(self, model_name: str = "openai:gpt-4o-mini"):
+        self.model_name = model_name
+
+    def get_system_prompt(self) -> str:
+        return render_prompt("business_strategist", "prompt_business_strategist.j2")
 
     def analyze(self, ticker: str, fiscal_year: int, callbacks: Optional[List[Any]] = None) -> BusinessMoatOutput:
         """Analyzes the 10-K for `ticker` / `fiscal_year` and returns a verified BusinessMoatOutput. Never raises

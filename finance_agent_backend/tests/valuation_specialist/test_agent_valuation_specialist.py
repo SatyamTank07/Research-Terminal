@@ -55,11 +55,9 @@ def _indebted_audit():
 
 
 class TestValuationSpecialistAgent(unittest.TestCase):
-    def test_01_tool_free_and_prompts(self):
-        agent = ValuationSpecialistAgent()
-        self.assertEqual(agent.get_tools(), [])
-
+    def test_01_prompts(self):
         system = render_prompt("valuation_specialist", "prompt_valuation_specialist.j2")
+        self.assertEqual(ValuationSpecialistAgent().get_system_prompt(), system)
         self.assertIn("Use ONLY numbers that appear in the facts block", system)
         self.assertIn("four short paragraphs", system)
 

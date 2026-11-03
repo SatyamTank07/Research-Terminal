@@ -151,11 +151,10 @@ def _run(
     return out, llm, rag_mock
 
 
-class TestToolsAndPrompts(unittest.TestCase):
-    def test_tool_free(self):
-        agent = BusinessStrategistAgent()
-        self.assertIsInstance(agent, BusinessStrategistAgent)
-        self.assertEqual(agent.get_tools(), [])
+class TestPrompts(unittest.TestCase):
+    def test_agent_system_prompt_is_its_folder_prompt(self):
+        self.assertEqual(BusinessStrategistAgent().get_system_prompt(),
+                         render_prompt("business_strategist", "prompt_business_strategist.j2"))
 
     def test_prompts_render(self):
         system = render_prompt("business_strategist", "prompt_business_strategist.j2")

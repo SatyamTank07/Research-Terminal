@@ -9,9 +9,9 @@ import logging
 from datetime import date
 from typing import Any, List, Optional
 
-from app.agents.base import StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.shared.llm_call import complete_once
+from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
 from app.agents.specialized.valuation_specialist.assemble import assemble_valuation
@@ -75,12 +75,14 @@ def build_valuation(
     return build
 
 
-class ValuationSpecialistAgent(StructuredAgent[DCFValuationOutput]):
+class ValuationSpecialistAgent:
     """Code-built DCF valuation with one LLM call for commentary."""
 
-    prompt_name = "valuation_specialist"
-    tools = []
-    output_schema = DCFValuationOutput
+    def __init__(self, model_name: str = "openai:gpt-4o-mini"):
+        self.model_name = model_name
+
+    def get_system_prompt(self) -> str:
+        return render_prompt("valuation_specialist", "prompt_valuation_specialist.j2")
 
     def value(
         self,
