@@ -96,8 +96,9 @@ class LeadSynthesizerAgent(BaseAgent):
         query_type, notes = coverage.route, list(coverage.notes)
 
         context, instruction = render_write_prompts(
-            ticker, company_name, fiscal_year, available_fiscal_years, query_type, user_query,
-            year_substituted, notes, artifacts,
+            ticker=ticker, company_name=company_name, fiscal_year=fiscal_year,
+            available_fiscal_years=available_fiscal_years, query_type=query_type, user_query=user_query,
+            year_substituted=year_substituted, pipeline_notes=notes, artifacts=artifacts,
         )
         raw, provenance = self._invoke_llm(context, instruction, callbacks)
         prose, removed = screen_prose(raw, context, risk_audit)
@@ -105,12 +106,14 @@ class LeadSynthesizerAgent(BaseAgent):
 
         citer, cited_prose = cite_prose(prose, fiscal_year, artifacts, notes)
         markdown = render_report(
-            coverage.layout, ticker, company_name, fiscal_year, query_type, year_substituted,
-            cited_prose, notes, provenance, removed, citer, artifacts,
+            layout=coverage.layout, ticker=ticker, company_name=company_name, fiscal_year=fiscal_year,
+            year_substituted=year_substituted, prose=cited_prose, notes=notes, provenance=provenance,
+            removed_sentences=removed, citer=citer, artifacts=artifacts,
         )
         markdown, sources = finalize_citations(citer, markdown)
         return assemble_report(
-            ticker, company_name, fiscal_year, dcf_valuation, prose, provenance, year_substituted, markdown, sources,
+            ticker=ticker, company_name=company_name, fiscal_year=fiscal_year, dcf_valuation=dcf_valuation,
+            prose=prose, provenance=provenance, year_substituted=year_substituted, markdown=markdown, sources=sources,
         )
 
     # ------------------------------------------------------------------

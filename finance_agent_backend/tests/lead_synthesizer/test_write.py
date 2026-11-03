@@ -1,9 +1,9 @@
 """Write-step rules: what the prose screen removes and how every prose field is backed up."""
 
+import re
 import unittest
 
 from app.agents.specialized.lead_synthesizer.write import (
-    _YOY_CLAIM,
     PROSE_FIELDS,
     drop_sentences,
     fill_empty_prose,
@@ -19,7 +19,7 @@ YOY_TEXT = "Supply risk rose year-over-year. Demand stays strong."
 class TestProseScreen(unittest.TestCase):
     def test_dropped_sentences_keep_the_bullet_prefix(self):
         text = "- Margins held. Compared to the prior year it improved.\n- Cash is ample."
-        self.assertEqual(drop_sentences(text, _YOY_CLAIM), "- Margins held.\n- Cash is ample.")
+        self.assertEqual(drop_sentences(text, re.compile("prior year")), "- Margins held.\n- Cash is ample.")
 
     def test_headings_tables_and_code_fences_are_stripped_from_prose(self):
         text = "## Heading\nThe moat holds.\n| a | b |\n```\nCash is ample."

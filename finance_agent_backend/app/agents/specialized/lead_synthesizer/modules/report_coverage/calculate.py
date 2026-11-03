@@ -18,6 +18,7 @@ TOPIC_OUTPUT_OF_ROUTE = {
 
 
 def assess_report_coverage(route: str, outputs: Dict[str, Any], notes: Iterable[str]) -> ReportCoverage:
+    """The route the prose is written for, the layout that shows it, and the run notes, each once."""
     required = TOPIC_OUTPUT_OF_ROUTE.get(route)
     if required and outputs.get(required) is None:
         logger.warning(f"Route {route} has no {required}; using the full report layout with notes.")
