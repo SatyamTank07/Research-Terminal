@@ -1,9 +1,16 @@
 {# Code-assembled report blocks. Every number here comes verbatim from an agent artifact; the LLM writes prose only. #}
-{% import "audit_tables.j2" as t with context %}
+{% import "report/audit_tables.j2" as t with context %}
 
 {% macro money(v, f="{:,.1f}") %}{{ ("$" ~ f.format(v) ~ "M") if v is not none else "N/A" }}{% endmacro %}
 {% macro pct(v, f="{:.2f}%") %}{{ f.format(v) if v is not none else "N/A" }}{% endmacro %}
 {% macro per_share(v) %}{{ ("$" ~ "{:,.2f}".format(v)) if v is not none else "N/A" }}{% endmacro %}
+
+{% macro prose(text) %}{% if text %}{{ text }}
+
+{% endif %}{% endmacro %}
+{% macro provenance_note() %}{% if year_substituted %}
+> ⚠️ **Filing Provenance Note**: Requested fiscal year unavailable in database catalog; substituted with latest audited filing (FY{{ fiscal_year }}).
+{% endif %}{% endmacro %}
 
 {% macro unavailable(what, notes) %}
 _{{ what }} is unavailable for this report.{% for note in notes %} {{ note }}{% endfor %}_

@@ -61,7 +61,7 @@ def citer(**kwargs):
 
 class TestReportCiter(unittest.TestCase):
     def test_every_audit_table_attribute_is_mapped(self):
-        text = (TEMPLATES / "audit_tables.j2").read_text(encoding="utf-8")
+        text = (TEMPLATES / "report" / "audit_tables.j2").read_text(encoding="utf-8")
         attrs = set(re.findall(r'row\("[^"]+", fa\.\w+, "(\w+)"', text)) | set(re.findall(r'fe\("(\w+)"', text))
         self.assertGreater(len(attrs), 40)
         self.assertEqual(attrs - set(ROW_STATEMENTS), set())

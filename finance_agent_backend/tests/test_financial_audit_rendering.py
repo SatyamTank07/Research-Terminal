@@ -82,7 +82,7 @@ class TestFinancialAuditRendering(unittest.TestCase):
         self.assertIn("route `financial_audit_only`", instruction)
 
         report = render_prompt(
-            "lead_synthesizer", "report_layout.j2",
+            "lead_synthesizer", "report/financial_audit_only.j2",
             ticker="TSLA", company_name="Tesla, Inc.", fiscal_year=2025, query_type="financial_audit_only",
             financial_audit=_tsla_audit_output(), p={}, notes=[], provenance="template_default", removed_sentences=0,
             cite=NullCiter(),

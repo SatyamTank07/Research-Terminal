@@ -2,7 +2,7 @@
 
 Code-assembled report: the route-specific skeleton and every table (dashboard, audited statements and
 Tables A–F, forecast schedule, WACC, equity bridge, scenarios, sensitivity, risk matrix and evidence) are
-rendered in code from the specialist artifacts (`report_layout.j2`). One structured LLM call writes only
+rendered in code from the specialist artifacts (one `report/<route>.j2` layout per route). One structured LLM call writes only
 the analytical prose between them. Prose is screened in code: sentences citing figures absent from the
 verified context are removed, invented dates and unsupported year-over-year risk claims are stripped,
 and every field has a deterministic fallback, so a failed LLM call still yields a complete report.
@@ -50,6 +50,7 @@ from app.agents.specialized.lead_synthesizer.report_citations import (
 logger = logging.getLogger("finance_agent.agents.lead_synthesizer")
 
 SYNTHESIS_MAX_TOKENS = 4000
+REPORT_LAYOUTS = ("full_10k_report", "dcf_valuation_only", "financial_audit_only", "business_moat_only", "risk_factors_only")
 SynthesisProvenance = Literal["llm_structured", "llm_json_fallback", "template_default"]
 
 _DATE_CLAIM = re.compile(
@@ -184,8 +185,9 @@ class LeadSynthesizerAgent(BaseAgent):
                 prose[key] = fallback.get(key)
 
         citer, cited_prose = self._cite_prose(prose, fiscal_year, artifacts, notes)
+        layout = query_type if query_type in REPORT_LAYOUTS else "full_10k_report"
         full_report_md = render_prompt(
-            "lead_synthesizer", "report_layout.j2",
+            "lead_synthesizer", f"report/{layout}.j2",
             ticker=ticker,
             company_name=company_name,
             fiscal_year=fiscal_year,
