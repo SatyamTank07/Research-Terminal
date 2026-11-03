@@ -20,8 +20,9 @@ INTENT = QueryIntent(query_type="dcf_valuation_only", provenance="llm_inferred",
 
 def _research_plan(parameters: ValuationParameters, filing_note=None):
     return assemble_research_plan(
-        INTENT, FILING, FilingChoice(2024, 2024, False), [2025, 2024], ["Ignored beta 9.00: out of range."],
-        filing_note, parameters, {"active_ticker": "AAPL"},
+        intent=INTENT, filing=FILING, choice=FilingChoice(2024, 2024, False), available_years=[2025, 2024],
+        parse_notes=["Ignored beta 9.00: out of range."], filing_note=filing_note, parameters=parameters,
+        session={"active_ticker": "AAPL"},
     )
 
 

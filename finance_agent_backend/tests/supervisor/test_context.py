@@ -28,10 +28,16 @@ class TestFilingCatalog(unittest.TestCase):
         self.assertIn("Could not identify a target stock ticker from the request", str(ctx.exception))
         self.assertIn("Ingested 10-K tickers include:", str(ctx.exception))
 
-    def test_unknown_ticker_raises_a_value_error(self):
-        with self.assertRaises(ValueError) as ctx:
+    def test_ticker_without_an_ingested_10k_raises_with_the_catalog_hint(self):
+        with self.assertRaises(FilingCatalogError) as ctx:
             load_filing_catalog("UNKNOWN_CORP_XYZ")
         self.assertIn("No ingested 10-K filings found for ticker 'UNKNOWN_CORP_XYZ'", str(ctx.exception))
+        self.assertIn("Ingested 10-K tickers include:", str(ctx.exception))
+
+    def test_blank_ticker_is_treated_as_missing(self):
+        with self.assertRaises(FilingCatalogError) as ctx:
+            load_filing_catalog("   ")
+        self.assertIn("Could not identify a target stock ticker", str(ctx.exception))
 
 
 class TestLoadFiling(unittest.TestCase):

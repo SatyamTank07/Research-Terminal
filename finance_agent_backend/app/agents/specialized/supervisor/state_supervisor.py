@@ -12,7 +12,7 @@ __all__ = ["QueryType", "RoutingPlan", "TurnResolution"]
 
 
 class RoutingPlan(BaseModel):
-    """Execution blueprint generated deterministically by the Lead Supervisor."""
+    """The resolved route, filing and valuation parameters for one chat turn."""
 
     ticker: str = Field(..., description="Stock ticker symbol (e.g. AAPL)")
     company_name: Optional[str] = Field(None, description="Company corporate name")

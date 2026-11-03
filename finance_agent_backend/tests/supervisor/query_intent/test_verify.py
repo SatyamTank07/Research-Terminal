@@ -3,8 +3,10 @@
 import unittest
 from typing import get_args
 
-from app.agents.pipeline.routes import CONVERSATIONAL, ROUTES
+from app.agents.pipeline import routes
+from app.agents.pipeline.routes import ROUTES
 from app.agents.specialized.supervisor.modules.query_intent import (
+    CONVERSATIONAL,
     DEFAULT_REPLY,
     QueryType,
     SupervisorExtraction,
@@ -20,6 +22,7 @@ class TestVerifyQueryIntent(unittest.TestCase):
 
     def test_report_types_are_exactly_the_routes_plus_conversational(self):
         self.assertEqual(set(get_args(QueryType)), set(ROUTES) | {CONVERSATIONAL})
+        self.assertEqual(CONVERSATIONAL, routes.CONVERSATIONAL)
 
     def test_conversational_turn_keeps_the_judges_reply(self):
         intent = verify_query_intent(SupervisorExtraction(query_type="conversational", conversational_response="Hi."))

@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Sequence
 from app.agents.pipeline.contract import Conversation, RunContext
 from app.agents.specialized.supervisor.context import FilingRecord
 from app.agents.specialized.supervisor.modules.filing_resolution import FilingChoice
-from app.agents.specialized.supervisor.modules.query_intent import QueryIntent
+from app.agents.specialized.supervisor.modules.query_intent import CONVERSATIONAL, QueryIntent
 from app.agents.specialized.supervisor.modules.valuation_parameters import ValuationParameters, resolve_terminal_growth
 from app.agents.specialized.supervisor.state_supervisor import RoutingPlan, TurnResolution
 
@@ -57,7 +57,7 @@ def assemble_conversational_plan(
         fiscal_year=session.get("active_fiscal_year") or 0,
         available_fiscal_years=session.get("available_fiscal_years") or [],
         document_id=None,
-        query_type="conversational",
+        query_type=CONVERSATIONAL,
         routing_provenance=provenance,
         conversational_response=reply,
         parameter_notes=list(parse_notes),
@@ -72,7 +72,7 @@ def assemble_turn(conversation: Conversation, plan: RoutingPlan) -> TurnResoluti
         f"route={plan.query_type} (year_substituted={plan.year_substituted})"
     )
     run_context = None
-    if plan.query_type != "conversational":
+    if plan.query_type != CONVERSATIONAL:
         run_context = RunContext(
             ticker=plan.ticker,
             company_name=plan.company_name or plan.ticker,

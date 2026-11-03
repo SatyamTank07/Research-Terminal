@@ -28,7 +28,7 @@ def active_session(session_state: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     return {k: v for k, v in (session_state or {}).items() if k != "pending_action"}
 
 
-def catalog_hint(db, limit: int = CATALOG_HINT_LIMIT) -> str:
+def _catalog_hint(db, limit: int = CATALOG_HINT_LIMIT) -> str:
     """Short list of ingested tickers (capped so a large catalog never floods the reply)."""
     tickers = [
         row[0]
@@ -53,7 +53,7 @@ def load_filing_catalog(ticker: Optional[str]) -> List[int]:
     try:
         if not resolved_ticker:
             raise FilingCatalogError(
-                f"Could not identify a target stock ticker from the request. {catalog_hint(db)}"
+                f"Could not identify a target stock ticker from the request. {_catalog_hint(db)}"
             )
         year_records = (
             db.query(Document.fiscal_year)
@@ -65,7 +65,7 @@ def load_filing_catalog(ticker: Optional[str]) -> List[int]:
         available_years = [r[0] for r in year_records]
         if not available_years:
             raise FilingCatalogError(
-                f"No ingested 10-K filings found for ticker '{resolved_ticker}'. {catalog_hint(db)}"
+                f"No ingested 10-K filings found for ticker '{resolved_ticker}'. {_catalog_hint(db)}"
             )
         return available_years
     finally:

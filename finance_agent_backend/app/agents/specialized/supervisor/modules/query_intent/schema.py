@@ -44,6 +44,6 @@ class SupervisorExtraction(BaseModel):
 class QueryIntent:
     """The report type to run, whether the LLM or the fallback rule chose it, and the reply for a chat turn."""
 
-    query_type: str
+    query_type: QueryType
     provenance: Literal["deterministic_rule", "llm_inferred"]
     reply: Optional[str]

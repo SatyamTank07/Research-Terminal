@@ -3,10 +3,12 @@
 import unittest
 
 from app.agents.specialized.supervisor.modules.valuation_parameters import (
+    DEFAULT_TERMINAL_GROWTH,
     SESSION_KEY,
     ValuationOverrides,
     parse_valuation_overrides,
     resolve_session_overrides,
+    resolve_terminal_growth,
     resolve_valuation_parameters,
 )
 
@@ -112,11 +114,9 @@ class TestResolveSessionOverrides(unittest.TestCase):
 
 class TestTerminalGrowthResolution(unittest.TestCase):
     def test_user_value_wins(self):
-        from app.agents.specialized.supervisor.modules.valuation_parameters import resolve_terminal_growth
         self.assertAlmostEqual(resolve_terminal_growth({"terminal_growth": 0.03}), 0.03)
 
     def test_house_default_when_absent(self):
-        from app.agents.specialized.supervisor.modules.valuation_parameters import DEFAULT_TERMINAL_GROWTH, resolve_terminal_growth
         self.assertEqual(resolve_terminal_growth({}), DEFAULT_TERMINAL_GROWTH)
         self.assertEqual(DEFAULT_TERMINAL_GROWTH, 0.025)
 

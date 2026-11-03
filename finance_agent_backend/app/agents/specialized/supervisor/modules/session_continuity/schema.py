@@ -1,4 +1,4 @@
-"""The filing a research turn ran on, as the session remembers it."""
+"""The filing a research turn ran on, as the session remembers it (modules cannot import context.FilingRecord)."""
 
 from dataclasses import dataclass
 from typing import List

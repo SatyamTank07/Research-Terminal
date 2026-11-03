@@ -11,6 +11,13 @@ from app.agents.specialized.supervisor.modules import MODULES
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 MODULES_DIR = BACKEND_ROOT / "app/agents/specialized/supervisor/modules"
 PACKAGE = "app.agents.specialized.supervisor.modules."
+AGENT_LEVEL_IMPORTS = (
+    "app.agents.specialized.supervisor.state_supervisor",
+    "app.agents.specialized.supervisor.context",
+    "app.agents.specialized.supervisor.assemble",
+    "app.database",
+    "app.models",
+)
 LLM_IMPORTS = ("app.agents.shared.llm_call", "app.agents.shared.prompts", "langchain", "langchain_openai", "openai")
 
 
@@ -43,6 +50,12 @@ class TestSupervisorModuleRules(unittest.TestCase):
             for path in (MODULES_DIR / name).glob("*.py"):
                 for imported in _imports(path):
                     self.assertFalse(imported.startswith(LLM_IMPORTS), f"{name}/{path.name} imports {imported}")
+
+    def test_modules_never_read_the_database_or_the_agent_output(self):
+        for name in MODULES:
+            for path in (MODULES_DIR / name).glob("*.py"):
+                for imported in _imports(path):
+                    self.assertFalse(imported.startswith(AGENT_LEVEL_IMPORTS), f"{name}/{path.name} imports {imported}")
 
     def test_each_module_imports_cold(self):
         for name in MODULES:

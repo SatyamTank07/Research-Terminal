@@ -21,7 +21,12 @@ from app.agents.specialized.supervisor.assemble import (
     assemble_research_plan,
     assemble_turn,
 )
-from app.agents.specialized.supervisor.context import FilingCatalogError, active_session, load_filing, load_filing_catalog
+from app.agents.specialized.supervisor.context import (
+    FilingCatalogError,
+    active_session,
+    load_filing,
+    load_filing_catalog,
+)
 from app.agents.specialized.supervisor.modules.company_resolution import CLARIFY_ENTITY_MESSAGE, resolve_company
 from app.agents.specialized.supervisor.modules.filing_resolution import (
     choose_filing_year,
@@ -47,7 +52,7 @@ logger = logging.getLogger("finance_agent.agents.supervisor")
 
 @AgentRegistry.register("supervisor")
 class SupervisorAgent(BaseAgent):
-    """Lead Supervisor coordinating filing resolution, intent routing, and DAG planning."""
+    """Lead Supervisor: intent, company, filing and valuation-parameter resolution for one chat turn."""
 
     def __init__(self, model_name: str = "openai:gpt-4o-mini"):
         self.model_name = model_name
@@ -68,7 +73,6 @@ class SupervisorAgent(BaseAgent):
         self._cached_llm = llm
         return llm
 
-
     def _extract_with_llm(
         self,
         user_query: str,
@@ -76,7 +80,7 @@ class SupervisorAgent(BaseAgent):
         active_session: Optional[Dict[str, Any]] = None,
         callbacks: Optional[List[Any]] = None,
     ) -> SupervisorExtraction:
-        """Utilizes supervisor.j2 prompt template for LLM routing and entity extraction with conversational history."""
+        """Utilizes the prompt_supervisor.j2 template for LLM routing and entity extraction with conversational history."""
         system_prompt = render_prompt("supervisor", "prompt_supervisor.j2", active_session=active_session)
         llm = self._get_llm()
         structured_llm = llm.with_structured_output(SupervisorExtraction)
@@ -164,7 +168,8 @@ class SupervisorAgent(BaseAgent):
             f"Route: {intent.query_type} ({intent.provenance}), overrides={parameters.overrides or None}"
         )
         return assemble_research_plan(
-            intent, filing, choice, available_years, overrides.notes, requested.note, parameters, remembered,
+            intent=intent, filing=filing, choice=choice, available_years=available_years,
+            parse_notes=overrides.notes, filing_note=requested.note, parameters=parameters, session=remembered,
         )
 
     def run(
@@ -188,7 +193,7 @@ class SupervisorAgent(BaseAgent):
                 messages=messages,
                 session_state=session_state,
             )
-            if plan.query_type == "conversational" and plan.conversational_response:
+            if plan.query_type == CONVERSATIONAL and plan.conversational_response:
                 return AgentOutput(
                     content=plan.conversational_response,
                     sources=[],
