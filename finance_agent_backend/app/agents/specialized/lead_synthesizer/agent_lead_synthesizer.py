@@ -11,7 +11,6 @@ Every filing-backed table row, quote and prose figure carries an inline [[n]](#c
 """
 
 import logging
-import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
@@ -22,24 +21,17 @@ from pydantic import BaseModel
 from app.agents.base import AgentOutput, BaseAgent, StructuredAgent
 from app.agents.pipeline.contract import RunContext, StatusLine, Upstream
 from app.agents.registry import AgentRegistry
-from app.agents.shared.citations import CitationRegistry, SourceRef, strip_markers
-from app.agents.shared.figures import annotate_sentences, build_figure_index
-from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
-from app.agents.specialized.lead_synthesizer.state_lead_synthesizer import (
-    Final10KResearchReport,
-    ThreePillarThesis,
-)
+from app.agents.specialized.lead_synthesizer.state_lead_synthesizer import Final10KResearchReport
 from app.agents.specialized.risk_analyst import RiskAuditOutput
 from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
-from app.agents.specialized.lead_synthesizer.report_citations import (
-    CITATIONS_FAILED_NOTE,
-    EVIDENCE_NOTE,
-    NO_CITATIONS_NOTE,
-    NullCiter,
-    ReportCiter,
+from app.agents.specialized.lead_synthesizer.assemble import (
+    assemble_report,
+    cite_prose,
+    finalize_citations,
+    render_report,
 )
 from app.agents.specialized.lead_synthesizer.modules.report_coverage import assess_report_coverage
 from app.agents.specialized.lead_synthesizer.write import (
@@ -114,43 +106,14 @@ class LeadSynthesizerAgent(BaseAgent):
         prose, removed = screen_prose(raw, context, risk_audit)
         prose = fill_empty_prose(prose, write_fallback_prose(ticker, company_name, fiscal_year, **artifacts))
 
-        citer, cited_prose = self._cite_prose(prose, fiscal_year, artifacts, notes)
-        full_report_md = render_prompt(
-            "lead_synthesizer", f"report/{coverage.layout}.j2",
-            ticker=ticker,
-            company_name=company_name,
-            fiscal_year=fiscal_year,
-            query_type=query_type,
-            year_substituted=year_substituted,
-            p=cited_prose,
-            notes=notes,
-            provenance=provenance,
-            removed_sentences=removed,
-            cite=citer,
-            **artifacts,
+        citer, cited_prose = cite_prose(prose, fiscal_year, artifacts, notes)
+        markdown = render_report(
+            coverage.layout, ticker, company_name, fiscal_year, query_type, year_substituted,
+            cited_prose, notes, provenance, removed, citer, artifacts,
         )
-        full_report_md = re.sub(r"\n{3,}", "\n\n", full_report_md).strip() + "\n"
-        full_report_md, sources = self._finalize_citations(citer, full_report_md)
-
-        val = dcf_valuation
-        return Final10KResearchReport(
-            ticker=ticker,
-            company_name=company_name,
-            fiscal_year=fiscal_year,
-            implied_fair_value_per_share=val.implied_fair_value_per_share if val else None,
-            current_share_price=val.current_share_price if val else None,
-            upside_downside_pct=val.upside_downside_pct if val else None,
-            valuation_stance=val.valuation_stance if val else None,
-            three_pillar_thesis=ThreePillarThesis(
-                pillar_1_business_moat=prose["pillar_1_business_moat"],
-                pillar_2_financial_durability=prose["pillar_2_financial_durability"],
-                pillar_3_valuation_asymmetry=prose["pillar_3_valuation_asymmetry"],
-            ),
-            executive_summary=prose["executive_summary"],
-            synthesis_provenance=provenance,
-            year_substituted=year_substituted,
-            full_markdown_report=full_report_md,
-            sources=sources,
+        markdown, sources = finalize_citations(citer, markdown)
+        return assemble_report(
+            ticker, company_name, fiscal_year, dcf_valuation, prose, provenance, year_substituted, markdown, sources,
         )
 
     # ------------------------------------------------------------------
@@ -183,39 +146,6 @@ class LeadSynthesizerAgent(BaseAgent):
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
-    @staticmethod
-    def _cite_prose(
-        prose: Dict[str, Optional[str]], fiscal_year: int, artifacts: Dict[str, Any], notes: List[str]
-    ) -> Tuple[Any, Dict[str, Optional[str]]]:
-        """Builds the report citer and appends source markers to verified prose; never raises."""
-        try:
-            citer = ReportCiter(CitationRegistry(), fiscal_year, **artifacts)
-            index = build_figure_index(citer.figure_entries())
-            cited = {
-                key: annotate_sentences(text, index, citer.registry.cite_all) if text else text
-                for key, text in prose.items()
-            }
-            return citer, cited
-        except Exception as e:
-            logger.exception(f"Citation build failed ({e!r}); publishing without filing markers.")
-            notes.append("Filing citations could not be built for this report.")
-            return NullCiter(), dict(prose)
-
-    @staticmethod
-    def _finalize_citations(citer: Any, markdown: str) -> Tuple[str, List[SourceRef]]:
-        """Resolves and renumbers markers; on failure strips them, says so, and drops the evidence note."""
-        if not isinstance(citer, ReportCiter):
-            return strip_markers(markdown), []
-        try:
-            markdown, sources = citer.registry.finalize(markdown)
-        except Exception as e:
-            logger.exception(f"Citation finalize failed ({e!r}); publishing without filing markers.")
-            markdown = strip_markers(markdown).replace(EVIDENCE_NOTE, NO_CITATIONS_NOTE)
-            return markdown.rstrip("\n") + "\n\n" + CITATIONS_FAILED_NOTE + "\n", []
-        if not any(s.kind != "market" for s in sources):
-            markdown = markdown.replace(EVIDENCE_NOTE, NO_CITATIONS_NOTE)
-        return markdown, sources
-
     @staticmethod
     def _parse_json_fallback(content: Any) -> Dict[str, Any]:
         """Extracts a JSON object from text content when structured output fails."""

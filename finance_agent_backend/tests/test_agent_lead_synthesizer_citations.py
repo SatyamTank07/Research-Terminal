@@ -81,7 +81,7 @@ class TestSynthesizerCitations(unittest.TestCase):
         self.assertNotIn("#cite-", context)
 
     def test_citation_failure_publishes_report_without_markers(self):
-        target = "app.agents.specialized.lead_synthesizer.agent_lead_synthesizer.ReportCiter.figure_entries"
+        target = "app.agents.specialized.lead_synthesizer.report_citations.ReportCiter.figure_entries"
         with patch(target, side_effect=RuntimeError("boom")):
             report = self._report()
         self.assertNotIn("#cite-", report.full_markdown_report)
