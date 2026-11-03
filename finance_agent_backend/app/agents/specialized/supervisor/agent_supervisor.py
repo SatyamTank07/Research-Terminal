@@ -20,10 +20,8 @@ from app.agents.pipeline.contract import Conversation, RunContext, StatusLine
 from app.agents.query_parameters import SESSION_KEY, parse_valuation_overrides, resolve_session_overrides, resolve_terminal_growth
 from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
+from app.agents.specialized.supervisor.context import active_session, load_filing, load_filing_catalog
 from app.agents.specialized.supervisor.state_supervisor import QueryType, RoutingPlan, TurnResolution
-from app.database import SessionLocal
-
-from app.models import ANNUAL_REPORT_FILING_TYPE, Document
 
 logger = logging.getLogger("finance_agent.agents.supervisor")
 
@@ -32,7 +30,6 @@ CLARIFY_ENTITY_MESSAGE = (
 )
 _EXPLICIT_YEAR = re.compile(r"\b(?:fy|fiscal(?:\s+year)?)\s*'?(\d{4}|\d{2})\b", re.IGNORECASE)
 _BARE_YEAR = re.compile(r"\b((?:19|20)\d{2})\b")
-CATALOG_HINT_LIMIT = 25
 _COMPANY_STOPWORDS = {"inc", "corp", "corporation", "co", "company", "ltd", "plc", "holdings", "group", "the", "com"}
 
 
@@ -183,78 +180,31 @@ class SupervisorAgent(BaseAgent):
         Returns:
             Tuple of (ticker, company_name, fiscal_year, document_id, year_requested, year_substituted, available_fiscal_years)
         """
-        db = SessionLocal()
-        try:
-            resolved_ticker = (ticker or "").strip().upper()
-            year_requested = fiscal_year
+        resolved_ticker = (ticker or "").strip().upper()
+        year_requested = fiscal_year
 
-            # If fiscal year not explicitly provided, attempt extraction from query
-            if not year_requested and user_query:
-                year_requested = extract_fiscal_year(user_query)
+        # If fiscal year not explicitly provided, attempt extraction from query
+        if not year_requested and user_query:
+            year_requested = extract_fiscal_year(user_query)
 
-            if not resolved_ticker:
-                raise ValueError(
-                    f"Could not identify a target stock ticker from the request. {self._catalog_hint(db)}"
-                )
+        available_years = load_filing_catalog(resolved_ticker)
+        year_substituted = False
 
-            # Look up all distinct fiscal years for this ticker in descending order
-            year_records = (
-                db.query(Document.fiscal_year)
-                .filter(Document.ticker == resolved_ticker, Document.filing_type == ANNUAL_REPORT_FILING_TYPE)
-                .distinct()
-                .order_by(Document.fiscal_year.desc())
-                .all()
-            )
-            available_years = [r[0] for r in year_records]
-            if not available_years:
-                raise ValueError(
-                    f"No ingested 10-K filings found for ticker '{resolved_ticker}'. {self._catalog_hint(db)}"
-                )
-
-            query = db.query(Document).filter(
-                Document.ticker == resolved_ticker, Document.filing_type == ANNUAL_REPORT_FILING_TYPE
-            )
-            year_substituted = False
-
-            if year_requested:
-                if year_requested in available_years:
-                    target_year = year_requested
-                else:
-                    target_year = available_years[0]
-                    year_substituted = True
-                    logger.warning(
-                        f"Requested filing FY{year_requested} for '{resolved_ticker}' not found in database. "
-                        f"Substituted with latest audited filing FY{target_year} (year_substituted=True)."
-                    )
+        if year_requested:
+            if year_requested in available_years:
+                target_year = year_requested
             else:
                 target_year = available_years[0]
+                year_substituted = True
+                logger.warning(
+                    f"Requested filing FY{year_requested} for '{resolved_ticker}' not found in database. "
+                    f"Substituted with latest audited filing FY{target_year} (year_substituted=True)."
+                )
+        else:
+            target_year = available_years[0]
 
-            doc = query.filter(Document.fiscal_year == target_year).first()
-            if not doc:
-                doc = query.order_by(Document.fiscal_year.desc()).first()
-
-            return doc.ticker, doc.company_name, doc.fiscal_year, doc.id, year_requested, year_substituted, available_years
-
-        finally:
-            db.close()
-
-    @staticmethod
-    def _catalog_hint(db, limit: int = CATALOG_HINT_LIMIT) -> str:
-        """Short list of ingested tickers (capped so a large catalog never floods the reply)."""
-        tickers = [
-            row[0]
-            for row in db.query(Document.ticker)
-            .filter(Document.filing_type == ANNUAL_REPORT_FILING_TYPE)
-            .distinct()
-            .order_by(Document.ticker)
-            .limit(limit + 1)
-            .all()
-        ]
-        if not tickers:
-            return "No 10-K filings have been ingested yet; upload one to begin."
-        shown = ", ".join(tickers[:limit])
-        more = " and others" if len(tickers) > limit else ""
-        return f"Ingested 10-K tickers include: {shown}{more}."
+        doc = load_filing(resolved_ticker, target_year)
+        return doc.ticker, doc.company_name, doc.fiscal_year, doc.document_id, year_requested, year_substituted, available_years
 
     def classify_intent(self, user_query: str) -> QueryType:
         """Public API returning purely the QueryType."""
@@ -293,7 +243,7 @@ class SupervisorAgent(BaseAgent):
         callbacks: Optional[List[Any]] = None,
     ) -> RoutingPlan:
         """Generates a complete RoutingPlan using database session_state for clean multi-turn context."""
-        active_state = {k: v for k, v in (session_state or {}).items() if k != "pending_action"}
+        active_state = active_session(session_state)
         overrides = parse_valuation_overrides(user_query)
 
         # 1. Intent and entity resolution via LLM with full message history and active session context

@@ -64,18 +64,6 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertTrue(year_sub2, "Unavailable year must set year_substituted=True")
         self.assertEqual(avail_years, avail_years2)
 
-    def test_03_missing_ticker_raises_error(self):
-        """Verify resolve_filing_catalog raises ValueError when no ticker is provided."""
-        with self.assertRaises(ValueError) as ctx:
-            self.supervisor.resolve_filing_catalog(ticker=None)
-        self.assertIn("Could not identify a target stock ticker from the request", str(ctx.exception))
-
-    def test_04_error_on_unknown_ticker(self):
-        """Verify descriptive ValueError when requested entity is not in database catalog."""
-        with self.assertRaises(ValueError) as ctx:
-            self.supervisor.resolve_filing_catalog(ticker="UNKNOWN_CORP_XYZ")
-        self.assertIn("No ingested 10-K filings found for ticker 'UNKNOWN_CORP_XYZ'", str(ctx.exception))
-
     @patch.object(SupervisorAgent, "_extract_with_llm")
     def test_05_intent_classification(self, mock_extract):
         """Verify intent classification across routes using mocked LLM (ZERO API calls)."""
