@@ -20,14 +20,12 @@ from app.agents.query_parameters import SESSION_KEY, parse_valuation_overrides, 
 from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.specialized.supervisor.context import active_session, load_filing, load_filing_catalog
+from app.agents.specialized.supervisor.modules.company_resolution import CLARIFY_ENTITY_MESSAGE, resolve_company
 from app.agents.specialized.supervisor.modules.query_intent import SupervisorExtraction, verify_query_intent
 from app.agents.specialized.supervisor.state_supervisor import RoutingPlan, TurnResolution
 
 logger = logging.getLogger("finance_agent.agents.supervisor")
 
-CLARIFY_ENTITY_MESSAGE = (
-    "I am your Senior Equity Research Director. Which company or stock ticker would you like me to evaluate?"
-)
 _EXPLICIT_YEAR = re.compile(r"\b(?:fy|fiscal(?:\s+year)?)\s*'?(\d{4}|\d{2})\b", re.IGNORECASE)
 _BARE_YEAR = re.compile(r"\b((?:19|20)\d{2})\b")
 _COMPANY_STOPWORDS = {"inc", "corp", "corporation", "co", "company", "ltd", "plc", "holdings", "group", "the", "com"}
@@ -191,12 +189,10 @@ class SupervisorAgent(BaseAgent):
         # 3. Ticker: explicit argument, then the LLM extraction, then the active session (deterministic fallback)
         notes: List[str] = list(overrides.notes)
         session_ticker = (active_state.get("active_ticker") or "").upper() or None
-        resolved_ticker = ticker or (extraction.extracted_ticker if extraction else None)
-        if not resolved_ticker and session_ticker:
-            resolved_ticker = session_ticker
-            logger.info(f"Supervisor: no ticker extracted; continuing with the active session ticker {session_ticker}.")
-        if not resolved_ticker:
+        company = resolve_company(ticker, extraction.extracted_ticker if extraction else None, session_ticker)
+        if company is None:
             return self._conversational_plan(active_state, overrides, CLARIFY_ENTITY_MESSAGE, "deterministic_rule")
+        resolved_ticker = company.ticker
 
         # 4. Year: explicit argument, then the LLM extraction; a follow-up about the active company that names
         #    no year and no company keeps the session's fiscal year instead of jumping to the latest filing.

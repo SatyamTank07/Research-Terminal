@@ -20,7 +20,8 @@ from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.query_parameters import SESSION_KEY
 from app.agents.specialized.supervisor import RoutingPlan, SupervisorAgent, SupervisorExtraction
-from app.agents.specialized.supervisor.agent_supervisor import CLARIFY_ENTITY_MESSAGE, extract_fiscal_year, names_entity
+from app.agents.specialized.supervisor.agent_supervisor import extract_fiscal_year, names_entity
+from app.agents.specialized.supervisor.modules.company_resolution import CLARIFY_ENTITY_MESSAGE
 
 
 class TestAgentSupervisor(unittest.TestCase):
