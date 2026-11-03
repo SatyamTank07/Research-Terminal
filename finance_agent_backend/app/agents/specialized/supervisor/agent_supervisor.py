@@ -1,8 +1,7 @@
-"""Lead Supervisor & Intent Router Agent.
+"""Supervisor: turns a chat message into a route and the facts every agent of the run shares.
 
-Responsible for query triage, filing catalog validation against the PostgreSQL
-`documents` table, session context management, and establishing the execution
-DAG (Fast-Path DCF vs. Full 10-K Equity Research Report vs. Single-Agent ad-hoc query).
+`SupervisorAgent.route` is the checklist: one judge call (`_extract_with_llm`), then the modules in
+`MODULES` order, with the catalog read from `context.py` and the plan built by `assemble.py`.
 """
 
 import json
@@ -14,9 +13,14 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
 from app.agents.base import AgentOutput, BaseAgent
-from app.agents.pipeline.contract import Conversation, RunContext, StatusLine
+from app.agents.pipeline.contract import Conversation, StatusLine
 from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
+from app.agents.specialized.supervisor.assemble import (
+    assemble_conversational_plan,
+    assemble_research_plan,
+    assemble_turn,
+)
 from app.agents.specialized.supervisor.context import FilingCatalogError, active_session, load_filing, load_filing_catalog
 from app.agents.specialized.supervisor.modules.company_resolution import CLARIFY_ENTITY_MESSAGE, resolve_company
 from app.agents.specialized.supervisor.modules.filing_resolution import (
@@ -24,13 +28,16 @@ from app.agents.specialized.supervisor.modules.filing_resolution import (
     explain_missing_filing,
     resolve_requested_year,
 )
-from app.agents.specialized.supervisor.modules.query_intent import SupervisorExtraction, verify_query_intent
+from app.agents.specialized.supervisor.modules.query_intent import (
+    CONVERSATIONAL,
+    SupervisorExtraction,
+    verify_query_intent,
+)
 from app.agents.specialized.supervisor.modules.session_continuity import SessionFiling, remember_turn
 from app.agents.specialized.supervisor.modules.valuation_parameters import (
     SESSION_KEY,
+    ValuationOverrides,
     parse_valuation_overrides,
-    resolve_session_overrides,
-    resolve_terminal_growth,
     resolve_valuation_parameters,
 )
 from app.agents.specialized.supervisor.state_supervisor import RoutingPlan, TurnResolution
@@ -105,121 +112,59 @@ class SupervisorAgent(BaseAgent):
         messages: Optional[List[Dict[str, str]]] = None,
         callbacks: Optional[List[Any]] = None,
     ) -> RoutingPlan:
-        """Generates a complete RoutingPlan using database session_state for clean multi-turn context."""
-        active_state = active_session(session_state)
+        """The Supervisor's checklist: intent -> company -> filing -> valuation parameters -> session -> plan."""
+        session = active_session(session_state)
         overrides = parse_valuation_overrides(user_query)
 
-        # 1. Intent and entity resolution via LLM with full message history and active session context
         extraction: Optional[SupervisorExtraction] = None
         try:
             extraction = self._extract_with_llm(
                 user_query,
                 messages=messages,
-                active_session=active_state,
+                active_session=session,
                 callbacks=callbacks,
             )
         except Exception as e:
             logger.warning(f"LLM supervisor extraction failed ({e})")
-
         intent = verify_query_intent(extraction)
-        query_type, provenance = intent.query_type, intent.provenance
-
-        # 2. Conversational queries are answered directly (single LLM hop)
-        if query_type == "conversational":
-            return self._conversational_plan(
-                active_state, overrides, intent.reply, provenance,
+        if intent.query_type == CONVERSATIONAL:
+            return _reply_in_chat(
+                session, overrides, intent.reply, intent.provenance,
                 ticker=ticker or (extraction.extracted_ticker if extraction else None),
             )
 
-        # 3. Ticker: explicit argument, then the LLM extraction, then the active session (deterministic fallback)
-        notes: List[str] = list(overrides.notes)
-        session_ticker = (active_state.get("active_ticker") or "").upper() or None
+        session_ticker = (session.get("active_ticker") or "").upper() or None
         company = resolve_company(ticker, extraction.extracted_ticker if extraction else None, session_ticker)
         if company is None:
-            return self._conversational_plan(active_state, overrides, CLARIFY_ENTITY_MESSAGE, "deterministic_rule")
-        resolved_ticker = company.ticker
+            return _reply_in_chat(session, overrides, CLARIFY_ENTITY_MESSAGE, "deterministic_rule")
 
-        # 4. Filing: requested year (or the session's on a follow-up), checked against the ingested 10-Ks
         requested = resolve_requested_year(
-            fiscal_year, extraction.extracted_year if extraction else None, user_query, resolved_ticker, active_state,
+            fiscal_year, extraction.extracted_year if extraction else None, user_query, company.ticker, session,
         )
-        if requested.note:
-            notes.append(requested.note)
         try:
-            available_years = load_filing_catalog(resolved_ticker)
+            available_years = load_filing_catalog(company.ticker)
         except FilingCatalogError as err:
-            return self._conversational_plan(
-                active_state, overrides, explain_missing_filing(str(err)), "deterministic_rule",
-            )
-        choice = choose_filing_year(resolved_ticker, requested.year, user_query, available_years)
-        filing = load_filing(resolved_ticker, choice.fiscal_year)
-        doc_ticker, company_name, catalog_year, doc_id = (
-            filing.ticker, filing.company_name, filing.fiscal_year, filing.document_id,
-        )
-        year_req, year_sub, avail_years = choice.year_requested, choice.year_substituted, available_years
+            return _reply_in_chat(session, overrides, explain_missing_filing(str(err)), "deterministic_rule")
+        choice = choose_filing_year(company.ticker, requested.year, user_query, available_years)
+        filing = load_filing(company.ticker, choice.fiscal_year)
 
-        # 5. Valuation overrides: this turn's values, plus remembered ones for the same company
-        parameters = resolve_valuation_parameters(overrides, active_state.get(SESSION_KEY), doc_ticker)
-        valuation_overrides = parameters.overrides
-        if parameters.carry_note:
-            notes.append(parameters.carry_note)
-
-        updated_session = remember_turn(
-            active_state,
-            valuation_overrides,
-            SessionFiling(ticker=doc_ticker, company_name=company_name, fiscal_year=catalog_year,
-                          available_fiscal_years=avail_years),
-            query_type,
+        parameters = resolve_valuation_parameters(overrides, session.get(SESSION_KEY), filing.ticker)
+        remembered = remember_turn(
+            session,
+            parameters.overrides,
+            SessionFiling(ticker=filing.ticker, company_name=filing.company_name, fiscal_year=filing.fiscal_year,
+                          available_fiscal_years=available_years),
+            intent.query_type,
         )
 
         logger.info(
             f"Supervisor routed query '{user_query[:50]}' -> "
-            f"Ticker: {doc_ticker}, FY{catalog_year} (year_substituted={year_sub}, available_years={avail_years}), "
-            f"Route: {query_type} ({provenance}), overrides={valuation_overrides or None}"
+            f"Ticker: {filing.ticker}, FY{filing.fiscal_year} (year_substituted={choice.year_substituted}, "
+            f"available_years={available_years}), "
+            f"Route: {intent.query_type} ({intent.provenance}), overrides={parameters.overrides or None}"
         )
-
-        return RoutingPlan(
-            ticker=doc_ticker,
-            company_name=company_name,
-            fiscal_year=catalog_year,
-            available_fiscal_years=avail_years,
-            year_requested=year_req,
-            year_substituted=year_sub,
-            document_id=doc_id,
-            query_type=query_type,
-            routing_provenance=provenance,
-            conversational_response=None,
-            valuation_overrides=valuation_overrides,
-            parameter_notes=notes,
-            updated_session_state=updated_session,
-        )
-
-    @staticmethod
-    def _conversational_plan(
-        active_state: Dict[str, Any],
-        overrides,
-        response: str,
-        provenance: str,
-        ticker: Optional[str] = None,
-    ) -> RoutingPlan:
-        """Direct reply that keeps the research context; parameters given now are remembered for the next run.
-
-        Values stay bound to the active company, or unbound (attach to the next company named) when none is active.
-        """
-        remembered = resolve_session_overrides(overrides, active_state.get(SESSION_KEY), active_state.get("active_ticker"))
-        session = remember_turn(active_state, remembered)
-        active_ticker = ticker or session.get("active_ticker") or ""
-        return RoutingPlan(
-            ticker=active_ticker,
-            company_name=session.get("active_company") or active_ticker or None,
-            fiscal_year=session.get("active_fiscal_year") or 0,
-            available_fiscal_years=session.get("available_fiscal_years") or [],
-            document_id=None,
-            query_type="conversational",
-            routing_provenance=provenance,
-            conversational_response=response,
-            parameter_notes=list(overrides.notes),
-            updated_session_state=session,
+        return assemble_research_plan(
+            intent, filing, choice, available_years, overrides.notes, requested.note, parameters, remembered,
         )
 
     def run(
@@ -269,6 +214,19 @@ class SupervisorAgent(BaseAgent):
             )
 
 
+def _reply_in_chat(
+    session: Dict[str, Any], overrides: ValuationOverrides, reply: str, provenance: str, ticker: Optional[str] = None,
+) -> RoutingPlan:
+    """A direct reply keeps the research context; parameters given now are remembered for the next run.
+
+    Values stay bound to the active company, or unbound (attach to the next company named) when none is active.
+    """
+    parameters = resolve_valuation_parameters(overrides, session.get(SESSION_KEY), session.get("active_ticker"))
+    return assemble_conversational_plan(
+        remember_turn(session, parameters.overrides), reply, provenance, overrides.notes, ticker=ticker,
+    )
+
+
 def resolve_turn(conversation: Conversation) -> TurnResolution:
     """Routes one chat turn and, for a research route, fixes the facts every agent will share."""
     plan = SupervisorAgent().route(
@@ -279,34 +237,7 @@ def resolve_turn(conversation: Conversation) -> TurnResolution:
         messages=conversation.messages,
         callbacks=conversation.callbacks,
     )
-    logger.info(
-        f"[supervisor] Resolved {plan.ticker} FY{plan.fiscal_year} "
-        f"route={plan.query_type} (year_substituted={plan.year_substituted})"
-    )
-    run_context = None
-    if plan.query_type != "conversational":
-        run_context = RunContext(
-            ticker=plan.ticker,
-            company_name=plan.company_name or plan.ticker,
-            fiscal_year=plan.fiscal_year,
-            available_fiscal_years=tuple(plan.available_fiscal_years),
-            document_id=plan.document_id,
-            user_query=conversation.user_query,
-            route=plan.query_type,
-            year_substituted=plan.year_substituted,
-            valuation_overrides=dict(plan.valuation_overrides),
-            terminal_growth_rate=resolve_terminal_growth(plan.valuation_overrides),
-            valuation_date=conversation.run_date,
-            callbacks=conversation.callbacks,
-        )
-    return TurnResolution(
-        route=plan.query_type,
-        plan=plan,
-        run_context=run_context,
-        conversational_response=plan.conversational_response,
-        session_update=plan.updated_session_state,
-        parameter_notes=tuple(plan.parameter_notes),
-    )
+    return assemble_turn(conversation, plan)
 
 
 def supervisor_milestone(turn: Optional[TurnResolution]) -> StatusLine:
