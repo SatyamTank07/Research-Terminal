@@ -3,21 +3,15 @@
 import unittest
 
 from app.agents.specialized.lead_synthesizer.write import (
-    PROSE_FIELDS,
     _YOY_CLAIM,
+    PROSE_FIELDS,
     drop_sentences,
     fill_empty_prose,
     screen_prose,
     strip_layout,
     write_fallback_prose,
 )
-from tests.test_agent_lead_synthesizer import (
-    _create_mock_audit,
-    _create_mock_dcf,
-    _create_mock_forecast,
-    _create_mock_moat,
-    _create_mock_risk,
-)
+from tests.lead_synthesizer.report_fixtures import mock_audit, mock_dcf, mock_forecast, mock_moat, mock_risk
 
 YOY_TEXT = "Supply risk rose year-over-year. Demand stays strong."
 
@@ -33,8 +27,8 @@ class TestProseScreen(unittest.TestCase):
 
     def test_year_over_year_risk_claims_are_removed_only_without_a_baseline(self):
         raw = {"risk_commentary": YOY_TEXT}
-        with_baseline, _ = screen_prose(raw, "", _create_mock_risk())
-        no_baseline, _ = screen_prose(raw, "", _create_mock_risk().model_copy(update={"disclosure_changes": None}))
+        with_baseline, _ = screen_prose(raw, "", mock_risk())
+        no_baseline, _ = screen_prose(raw, "", mock_risk().model_copy(update={"disclosure_changes": None}))
         self.assertEqual(with_baseline["risk_commentary"], YOY_TEXT)
         self.assertEqual(no_baseline["risk_commentary"], "Demand stays strong.")
 
@@ -51,8 +45,8 @@ class TestProseScreen(unittest.TestCase):
 class TestProseFallback(unittest.TestCase):
     def test_every_field_the_llm_left_empty_takes_its_fallback(self):
         fallback = write_fallback_prose(
-            "AAPL", "Apple Inc.", 2025, business_moat=_create_mock_moat(), financial_audit=_create_mock_audit(),
-            forecast=_create_mock_forecast(), dcf_valuation=_create_mock_dcf(), risk_audit=_create_mock_risk(),
+            "AAPL", "Apple Inc.", 2025, business_moat=mock_moat(), financial_audit=mock_audit(),
+            forecast=mock_forecast(), dcf_valuation=mock_dcf(), risk_audit=mock_risk(),
         )
         prose = fill_empty_prose({"executive_summary": "LLM summary.", "bottom_line": None}, fallback)
         self.assertEqual(set(prose), set(PROSE_FIELDS))

@@ -1,13 +1,10 @@
-"""Lead Synthesizer & Institutional Report Publisher Agent.
+"""Lead Synthesizer: the checklist that turns every research output of the route into its report.
 
-Code-assembled report: the route-specific skeleton and every table (dashboard, audited statements and
-Tables A–F, forecast schedule, WACC, equity bridge, scenarios, sensitivity, risk matrix and evidence) are
-rendered in code from the specialist artifacts (one `report/<route>.j2` layout per route). One structured LLM call writes only
-the analytical prose between them. Prose is screened in code: sentences citing figures absent from the
-verified context are removed, invented dates and unsupported year-over-year risk claims are stripped,
-and every field has a deterministic fallback, so a failed LLM call still yields a complete report.
-Every filing-backed table row, quote and prose figure carries an inline [[n]](#cite-n) marker built in code
-(report_citations.py); the numbered sources ship as Final10KResearchReport.sources.
+report_coverage (which layout, which run notes) -> write (write.py: one structured LLM call writes only the prose
+fields; code screens them and backs each one up) -> assemble (assemble.py: source markers on the verified prose,
+the route's report/<layout>.j2 with every table rendered in code from the artifacts, the numbered sources).
+Every filing-backed table row, quote and prose figure carries an inline [[n]](#cite-n) marker (report_citations.py);
+the numbered sources ship as Final10KResearchReport.sources.
 """
 
 import logging
@@ -24,9 +21,6 @@ from app.agents.registry import AgentRegistry
 from app.agents.specialized.business_strategist.state_business_strategist import BusinessMoatOutput
 from app.agents.specialized.financial_auditor.state_financial_auditor import FinancialAuditOutput
 from app.agents.specialized.forecasting_analyst.state_forecasting_analyst import ForecastOutput
-from app.agents.specialized.lead_synthesizer.state_lead_synthesizer import Final10KResearchReport
-from app.agents.specialized.risk_analyst import RiskAuditOutput
-from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
 from app.agents.specialized.lead_synthesizer.assemble import (
     assemble_report,
     cite_prose,
@@ -34,6 +28,7 @@ from app.agents.specialized.lead_synthesizer.assemble import (
     render_report,
 )
 from app.agents.specialized.lead_synthesizer.modules.report_coverage import assess_report_coverage
+from app.agents.specialized.lead_synthesizer.state_lead_synthesizer import Final10KResearchReport
 from app.agents.specialized.lead_synthesizer.write import (
     ResearchSynthesisPayload,
     SynthesisProvenance,
@@ -42,6 +37,8 @@ from app.agents.specialized.lead_synthesizer.write import (
     screen_prose,
     write_fallback_prose,
 )
+from app.agents.specialized.risk_analyst import RiskAuditOutput
+from app.agents.specialized.valuation_specialist.state_valuation_specialist import DCFValuationOutput
 
 logger = logging.getLogger("finance_agent.agents.lead_synthesizer")
 
@@ -86,7 +83,7 @@ class LeadSynthesizerAgent(BaseAgent):
         pipeline_notes: Optional[List[str]] = None,
         callbacks: Optional[List[Any]] = None,
     ) -> Final10KResearchReport:
-        """Synthesizes all structured agent payloads into a complete Final10KResearchReport."""
+        """The checklist: report coverage -> write the prose -> cite, render and assemble the report."""
         ticker = ticker.upper()
         artifacts = dict(
             business_moat=business_moat,

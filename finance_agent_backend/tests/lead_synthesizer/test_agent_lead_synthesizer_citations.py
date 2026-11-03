@@ -4,17 +4,18 @@ import re
 import unittest
 from unittest.mock import patch
 
-from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import LeadSynthesizerAgent
-from app.agents.shared.prompts import render_prompt
 from app.agents.shared.citations import SourceChunk
-from tests.test_agent_lead_synthesizer import (
+from app.agents.shared.prompts import render_prompt
+from app.agents.specialized.lead_synthesizer.agent_lead_synthesizer import LeadSynthesizerAgent
+from tests.lead_synthesizer.report_fixtures import (
     FULL_PROSE,
-    _create_mock_dcf,
-    _create_mock_forecast,
-    _create_mock_risk,
-    _mock_llm,
+    audit_with_provenance,
+    moat_with_evidence,
+    mock_dcf,
+    mock_forecast,
+    mock_llm,
+    mock_risk,
 )
-from tests.test_report_citations import audit_with_provenance, moat_with_evidence
 
 MARKER = re.compile(r"\[\[(\d+)\]\]\(#cite-\1\)")
 
@@ -37,10 +38,10 @@ class TestSynthesizerCitations(unittest.TestCase):
     def _report(self, **overrides):
         kwargs = dict(
             business_moat=moat_with_evidence(), financial_audit=audit_with_provenance(),
-            forecast=_create_mock_forecast(), dcf_valuation=_create_mock_dcf(), risk_audit=_create_mock_risk(),
+            forecast=mock_forecast(), dcf_valuation=mock_dcf(), risk_audit=mock_risk(),
         )
         kwargs.update(overrides)
-        with patch.object(self.synth, "_get_llm", return_value=_mock_llm(FULL_PROSE)):
+        with patch.object(self.synth, "_get_llm", return_value=mock_llm(FULL_PROSE)):
             return self.synth.synthesize(ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, **kwargs)
 
     def test_markers_and_sources_are_a_bijection(self):
@@ -76,7 +77,7 @@ class TestSynthesizerCitations(unittest.TestCase):
         context = render_prompt(
             "lead_synthesizer", "prompt_lead_synthesizer.j2", ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025,
             query_type="full_10k_report", financial_audit=audit_with_provenance(), business_moat=moat_with_evidence(),
-            risk_audit=_create_mock_risk(), forecast=_create_mock_forecast(), dcf_valuation=_create_mock_dcf(),
+            risk_audit=mock_risk(), forecast=mock_forecast(), dcf_valuation=mock_dcf(),
         )
         self.assertNotIn("#cite-", context)
 
@@ -97,15 +98,15 @@ class TestSynthesizerCitations(unittest.TestCase):
 
     def test_computed_valuation_figures_get_no_misattributed_marker(self):
         # Rounded computed figures that, before unit-aware attribution, collided with unrelated statement rows.
-        dcf, forecast = _create_mock_dcf(), _create_mock_forecast()
+        dcf, forecast = mock_dcf(), mock_forecast()
         sentence = (f"Terminal growth is about {dcf.terminal_growth_rate * 100:.0f}% while revenue compounds "
                     f"at roughly {forecast.revenue_cagr_pct:.0f}%.")
         prose = FULL_PROSE.model_copy(update={"valuation_commentary": sentence})
-        with patch.object(self.synth, "_get_llm", return_value=_mock_llm(prose)):
+        with patch.object(self.synth, "_get_llm", return_value=mock_llm(prose)):
             md = self.synth.synthesize(
                 ticker="AAPL", company_name="Apple Inc.", fiscal_year=2025, business_moat=moat_with_evidence(),
-                financial_audit=audit_with_provenance(), forecast=_create_mock_forecast(), dcf_valuation=dcf,
-                risk_audit=_create_mock_risk(),
+                financial_audit=audit_with_provenance(), forecast=mock_forecast(), dcf_valuation=dcf,
+                risk_audit=mock_risk(),
             ).full_markdown_report
         self.assertIn(sentence, md)
 
