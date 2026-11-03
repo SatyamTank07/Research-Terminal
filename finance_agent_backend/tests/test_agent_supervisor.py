@@ -20,7 +20,6 @@ from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
 from app.agents.query_parameters import SESSION_KEY
 from app.agents.specialized.supervisor import RoutingPlan, SupervisorAgent, SupervisorExtraction
-from app.agents.specialized.supervisor.agent_supervisor import extract_fiscal_year, names_entity
 from app.agents.specialized.supervisor.modules.company_resolution import CLARIFY_ENTITY_MESSAGE
 
 
@@ -40,30 +39,6 @@ class TestAgentSupervisor(unittest.TestCase):
         self.assertIn("Senior Equity Research Director", prompt)
         self.assertIn("full_10k_report", prompt)
         self.assertIn("dcf_valuation_only", prompt)
-
-    def test_02_catalog_resolution_and_substitution_flag(self):
-        """Verify direct ticker resolution and explicit provenance flagging when year is substituted."""
-        # Exact year match (AAPL FY2025) -> year_substituted must be False
-        ticker, cname, year, doc_id, year_req, year_sub, avail_years = self.supervisor.resolve_filing_catalog(
-            ticker="AAPL", fiscal_year=2025
-        )
-        self.assertEqual(ticker, "AAPL")
-        self.assertIn("Apple", cname)
-        self.assertEqual(year, 2025)
-        self.assertEqual(year_req, 2025)
-        self.assertFalse(year_sub, "Exact year match should not be flagged as substituted")
-        self.assertIn(2025, avail_years)
-        self.assertIsInstance(avail_years, list)
-
-        # Unavailable year requested (AAPL FY2020) -> must substitute latest year (2025) and flag True
-        ticker2, _, year2, _, year_req2, year_sub2, avail_years2 = self.supervisor.resolve_filing_catalog(
-            ticker="AAPL", fiscal_year=2020
-        )
-        self.assertEqual(ticker2, "AAPL")
-        self.assertEqual(year2, 2025)
-        self.assertEqual(year_req2, 2020)
-        self.assertTrue(year_sub2, "Unavailable year must set year_substituted=True")
-        self.assertEqual(avail_years, avail_years2)
 
     @patch.object(SupervisorAgent, "_extract_with_llm")
     def test_06_year_not_present_auto_substitutes_latest_without_halting(self, mock_extract):
@@ -315,20 +290,6 @@ class TestSupervisorSessionContinuity(unittest.TestCase):
     def _route(self, query, extraction, session=None, messages=None):
         with patch.object(SupervisorAgent, "_extract_with_llm", return_value=extraction):
             return self.supervisor.route(user_query=query, session_state=session, messages=messages)
-
-    def test_extract_fiscal_year(self):
-        self.assertEqual(extract_fiscal_year("Analyze FY2023 results"), 2023)
-        self.assertEqual(extract_fiscal_year("fiscal year 2024 audit"), 2024)
-        self.assertEqual(extract_fiscal_year("FY'24 margins"), 2024)
-        self.assertEqual(extract_fiscal_year("Analyze the company for 2024"), 2024)
-        self.assertIsNone(extract_fiscal_year("forecast revenue out to 2099"))
-        self.assertIsNone(extract_fiscal_year("terminal growth 2.5%"))
-
-    def test_names_entity(self):
-        self.assertTrue(names_entity("run a dcf on aapl", "AAPL", "Apple Inc."))
-        self.assertTrue(names_entity("Value Apple now", "AAPL", "Apple Inc."))
-        self.assertFalse(names_entity("now run the DCF", "AAPL", "Apple Inc."))
-        self.assertTrue(names_entity("value amazon", "AMZN", "AMAZON.COM, INC."))
 
     def test_research_route_falls_back_to_session_ticker(self):
         plan = self._route("Now show me the risk factors", SupervisorExtraction(query_type="risk_factors_only"), self.SESSION)

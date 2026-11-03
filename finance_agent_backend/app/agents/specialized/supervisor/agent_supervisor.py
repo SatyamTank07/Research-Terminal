@@ -7,9 +7,8 @@ DAG (Fast-Path DCF vs. Full 10-K Equity Research Report vs. Single-Agent ad-hoc 
 
 import json
 import logging
-import re
-from datetime import date
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
+
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
@@ -19,41 +18,17 @@ from app.agents.pipeline.contract import Conversation, RunContext, StatusLine
 from app.agents.query_parameters import SESSION_KEY, parse_valuation_overrides, resolve_session_overrides, resolve_terminal_growth
 from app.agents.registry import AgentRegistry
 from app.agents.shared.prompts import render_prompt
-from app.agents.specialized.supervisor.context import active_session, load_filing, load_filing_catalog
+from app.agents.specialized.supervisor.context import FilingCatalogError, active_session, load_filing, load_filing_catalog
 from app.agents.specialized.supervisor.modules.company_resolution import CLARIFY_ENTITY_MESSAGE, resolve_company
+from app.agents.specialized.supervisor.modules.filing_resolution import (
+    choose_filing_year,
+    explain_missing_filing,
+    resolve_requested_year,
+)
 from app.agents.specialized.supervisor.modules.query_intent import SupervisorExtraction, verify_query_intent
 from app.agents.specialized.supervisor.state_supervisor import RoutingPlan, TurnResolution
 
 logger = logging.getLogger("finance_agent.agents.supervisor")
-
-_EXPLICIT_YEAR = re.compile(r"\b(?:fy|fiscal(?:\s+year)?)\s*'?(\d{4}|\d{2})\b", re.IGNORECASE)
-_BARE_YEAR = re.compile(r"\b((?:19|20)\d{2})\b")
-_COMPANY_STOPWORDS = {"inc", "corp", "corporation", "co", "company", "ltd", "plc", "holdings", "group", "the", "com"}
-
-
-def extract_fiscal_year(text: str) -> Optional[int]:
-    """Fiscal year the user names: 'FY2023' / 'fiscal 2023' / "FY'23" first, else a bare past year.
-
-    A bare year later than the current calendar year ("forecast to 2030") is a horizon, not a filing.
-    """
-    explicit = _EXPLICIT_YEAR.search(text or "")
-    if explicit:
-        raw = explicit.group(1)
-        return int(raw) if len(raw) == 4 else 2000 + int(raw)
-    for match in _BARE_YEAR.finditer(text or ""):
-        year = int(match.group(1))
-        if year <= date.today().year:
-            return year
-    return None
-
-
-def names_entity(text: str, ticker: Optional[str], company_name: Optional[str]) -> bool:
-    """True when the message names the company (ticker or first distinctive word of its name)."""
-    words = set(re.findall(r"[a-z0-9]+", (text or "").lower()))
-    if ticker and ticker.lower() in words:
-        return True
-    name_words = [w for w in re.findall(r"[a-z0-9]+", (company_name or "").lower()) if w not in _COMPANY_STOPWORDS]
-    return bool(name_words) and name_words[0] in words
 
 
 @AgentRegistry.register("supervisor")
@@ -114,43 +89,6 @@ class SupervisorAgent(BaseAgent):
         decision: SupervisorExtraction = structured_llm.invoke(messages_payload, config=llm_config)
         return decision
 
-    def resolve_filing_catalog(
-        self,
-        ticker: Optional[str] = None,
-        fiscal_year: Optional[int] = None,
-        user_query: Optional[str] = None,
-    ) -> Tuple[str, str, int, str, Optional[int], bool, List[int]]:
-        """Resolves target company, filing year, document ID, and available years from database catalog.
-
-        Returns:
-            Tuple of (ticker, company_name, fiscal_year, document_id, year_requested, year_substituted, available_fiscal_years)
-        """
-        resolved_ticker = (ticker or "").strip().upper()
-        year_requested = fiscal_year
-
-        # If fiscal year not explicitly provided, attempt extraction from query
-        if not year_requested and user_query:
-            year_requested = extract_fiscal_year(user_query)
-
-        available_years = load_filing_catalog(resolved_ticker)
-        year_substituted = False
-
-        if year_requested:
-            if year_requested in available_years:
-                target_year = year_requested
-            else:
-                target_year = available_years[0]
-                year_substituted = True
-                logger.warning(
-                    f"Requested filing FY{year_requested} for '{resolved_ticker}' not found in database. "
-                    f"Substituted with latest audited filing FY{target_year} (year_substituted=True)."
-                )
-        else:
-            target_year = available_years[0]
-
-        doc = load_filing(resolved_ticker, target_year)
-        return doc.ticker, doc.company_name, doc.fiscal_year, doc.document_id, year_requested, year_substituted, available_years
-
     def route(
         self,
         user_query: str,
@@ -194,34 +132,24 @@ class SupervisorAgent(BaseAgent):
             return self._conversational_plan(active_state, overrides, CLARIFY_ENTITY_MESSAGE, "deterministic_rule")
         resolved_ticker = company.ticker
 
-        # 4. Year: explicit argument, then the LLM extraction; a follow-up about the active company that names
-        #    no year and no company keeps the session's fiscal year instead of jumping to the latest filing.
-        resolved_year_req = fiscal_year if fiscal_year is not None else (extraction.extracted_year if extraction else None)
-        if (
-            resolved_year_req is None
-            and extract_fiscal_year(user_query) is None
-            and resolved_ticker.upper() == session_ticker
-            and active_state.get("active_fiscal_year")
-            and not names_entity(user_query, session_ticker, active_state.get("active_company"))
-        ):
-            resolved_year_req = int(active_state["active_fiscal_year"])
-            notes.append(f"Continuing with the FY{resolved_year_req} filing from earlier in the conversation.")
-
+        # 4. Filing: requested year (or the session's on a follow-up), checked against the ingested 10-Ks
+        requested = resolve_requested_year(
+            fiscal_year, extraction.extracted_year if extraction else None, user_query, resolved_ticker, active_state,
+        )
+        if requested.note:
+            notes.append(requested.note)
         try:
-            doc_ticker, company_name, catalog_year, doc_id, year_req, year_sub, avail_years = (
-                self.resolve_filing_catalog(
-                    ticker=resolved_ticker,
-                    fiscal_year=resolved_year_req,
-                    user_query=user_query,
-                )
-            )
-        except ValueError as err:
+            available_years = load_filing_catalog(resolved_ticker)
+        except FilingCatalogError as err:
             return self._conversational_plan(
-                active_state, overrides,
-                f"I am your Senior Equity Research Director. {err} "
-                "Please name an ingested company or upload the requested 10-K filing.",
-                "deterministic_rule",
+                active_state, overrides, explain_missing_filing(str(err)), "deterministic_rule",
             )
+        choice = choose_filing_year(resolved_ticker, requested.year, user_query, available_years)
+        filing = load_filing(resolved_ticker, choice.fiscal_year)
+        doc_ticker, company_name, catalog_year, doc_id = (
+            filing.ticker, filing.company_name, filing.fiscal_year, filing.document_id,
+        )
+        year_req, year_sub, avail_years = choice.year_requested, choice.year_substituted, available_years
 
         # 5. Valuation overrides: this turn's values, plus remembered ones for the same company
         stored = active_state.get(SESSION_KEY)
