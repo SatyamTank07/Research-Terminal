@@ -9,7 +9,7 @@ A backend service calling an OpenAI LLM using LangChain's `create_agent` harness
 - [`app/main.py`](app/main.py): FastAPI application entrypoint, lifespan event, CORS configuration, and router setup.
 - [`app/routers/`](app/routers/): Modular HTTP endpoints (`chat.py`, `conversations.py`, `health.py`, `users.py`).
 - [`app/services/`](app/services/): Business orchestration logic (`chat_service.py`).
-- [`app/agents/`](app/agents/): Extensible multi-agent framework (`BaseAgent`, `AgentRegistry`, specialized agents, prompts, and tools).
+- [`app/agents/`](app/agents/): Multi-agent research pipeline (`pipeline/` route table and orchestrator, `specialized/` agents, `shared/` code).
 - [`app/schemas/`](app/schemas/): Pydantic validation schemas.
 - [`app/models.py`](app/models.py): SQLAlchemy models (`User`, `Conversation`, `ChatMessage`).
 - [`app/database.py`](app/database.py): Engine, session generator (`get_db`), table initialization & default user seeding (`init_db`).
