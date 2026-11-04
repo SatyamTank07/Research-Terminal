@@ -21,6 +21,17 @@ async def _events(**kwargs):
     return [event async for event in MultiAgentOrchestrator().astream_run(user_query="audit AAPL", **kwargs)]
 
 
+class TestInitialState(unittest.TestCase):
+    def test_missing_ticker_and_year_reach_the_supervisor_as_none(self):
+        conversation = MultiAgentOrchestrator._initial_state("dcf", None, None, None, None, None)["conversation"]
+        self.assertIsNone(conversation.ticker)
+        self.assertIsNone(conversation.fiscal_year)
+
+    def test_named_ticker_and_year_pass_through(self):
+        conversation = MultiAgentOrchestrator._initial_state("dcf", "aapl", 2024, None, None, None)["conversation"]
+        self.assertEqual((conversation.ticker, conversation.fiscal_year), ("AAPL", 2024))
+
+
 class TestOrchestratorStreaming(unittest.TestCase):
     def test_every_research_agent_failing_ends_with_an_error_event(self):
         with patch("app.agents.pipeline.node.resolve_turn", return_value=_audit_turn()), \

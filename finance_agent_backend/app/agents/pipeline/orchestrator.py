@@ -56,8 +56,8 @@ class MultiAgentOrchestrator:
             user_query=user_query,
             messages=messages,
             session_state=session_state,
-            ticker=ticker.upper() if ticker else "",
-            fiscal_year=fiscal_year or 0,
+            ticker=ticker.upper() if ticker else None,
+            fiscal_year=fiscal_year,
             run_date=date.today(),
             callbacks=callbacks,
         )

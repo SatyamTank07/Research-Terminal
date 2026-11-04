@@ -328,7 +328,7 @@ def _plan(**changes) -> RoutingPlan:
 
 
 def _conversation(query: str = "DCF on AAPL") -> Conversation:
-    return Conversation(user_query=query, messages=None, session_state=None, ticker="", fiscal_year=0,
+    return Conversation(user_query=query, messages=None, session_state=None, ticker=None, fiscal_year=None,
                         run_date=_date(2026, 10, 28))
 
 
@@ -336,7 +336,8 @@ class TestResolveTurn(unittest.TestCase):
     def test_research_turn_builds_the_run_context(self):
         with _patch.object(SupervisorAgent, "route", return_value=_plan()) as route:
             turn = resolve_turn(_conversation())
-        self.assertEqual(route.call_args.kwargs["fiscal_year"], 0)  # today's sentinel, fixed in PR 12
+        self.assertIsNone(route.call_args.kwargs["ticker"])
+        self.assertIsNone(route.call_args.kwargs["fiscal_year"])
         ctx = turn.run_context
         self.assertEqual((ctx.ticker, ctx.fiscal_year, ctx.route), ("AAPL", 2025, "dcf_valuation_only"))
         self.assertEqual(ctx.available_fiscal_years, (2025, 2024))
@@ -363,6 +364,24 @@ class TestResolveTurn(unittest.TestCase):
             turn = resolve_turn(_conversation("what is a DCF?"))
         self.assertIsNone(turn.run_context)
         self.assertEqual(turn.conversational_response, "A DCF discounts cash flows.")
+
+    def test_follow_up_turn_keeps_the_session_year(self):
+        session = {"active_ticker": "AAPL", "active_company": "Apple Inc.", "active_fiscal_year": 2024,
+                   "available_fiscal_years": [2025, 2024], "last_query_type": "full_10k_report"}
+        conversation = Conversation(user_query="Now run the DCF", messages=None, session_state=session, ticker=None,
+                                    fiscal_year=None, run_date=_date(2026, 10, 28))
+        extraction = SupervisorExtraction(query_type="dcf_valuation_only")
+        with _patch.object(SupervisorAgent, "_extract_with_llm", return_value=extraction):
+            turn = resolve_turn(conversation)
+        self.assertEqual((turn.run_context.ticker, turn.run_context.fiscal_year), ("AAPL", 2024))
+        self.assertIn("FY2024", " ".join(turn.parameter_notes))
+
+    def test_extracted_year_is_used_when_the_query_names_none(self):
+        extraction = SupervisorExtraction(query_type="dcf_valuation_only", extracted_ticker="AAPL", extracted_year=2024)
+        with _patch.object(SupervisorAgent, "_extract_with_llm", return_value=extraction):
+            turn = resolve_turn(_conversation("Run a DCF on Apple"))
+        self.assertEqual(turn.run_context.fiscal_year, 2024)
+        self.assertEqual(turn.plan.year_requested, 2024)
 
 
 class TestSupervisorMilestone(unittest.TestCase):

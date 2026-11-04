@@ -116,8 +116,8 @@ def _turn(run_context, notes=(), reply=None):
 
 
 class TestSupervisorNode(unittest.TestCase):
-    STATE = {"conversation": Conversation(user_query="q", messages=None, session_state=None, ticker="",
-                                          fiscal_year=0, run_date=date(2026, 10, 28))}
+    STATE = {"conversation": Conversation(user_query="q", messages=None, session_state=None, ticker=None,
+                                          fiscal_year=None, run_date=date(2026, 10, 28))}
 
     def test_research_turn_records_the_turn_and_parameter_notes(self):
         turn = _turn(make_run_context(), notes=("WACC override 9% applied",))

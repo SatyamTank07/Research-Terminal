@@ -45,8 +45,8 @@ def _research(query_type: str, ticker: Optional[str], year: Optional[int]) -> Di
     }
 
 
-# Pins today's behaviour: the session year (FY2024) is lost because the orchestrator passes fiscal_year=0,
-# so the run uses FY2025. PR 12 fixes this and regenerates the snapshot.
+# The follow-up names neither a year nor the company, so the run stays on the session's FY2024 filing
+# instead of jumping to the latest (FY2025).
 _AAPL_SESSION = {
     "active_ticker": "AAPL",
     "active_company": "Apple Inc.",

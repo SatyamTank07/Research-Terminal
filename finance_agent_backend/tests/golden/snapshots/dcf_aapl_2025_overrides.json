@@ -1856,7 +1856,7 @@
     "ticker": "AAPL",
     "wacc": 0.09
    },
-   "year_requested": null,
+   "year_requested": 2025,
    "year_substituted": false
   },
   "sources": [
