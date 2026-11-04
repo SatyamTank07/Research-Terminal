@@ -675,7 +675,7 @@
     "last_query_type": "risk_factors_only"
    },
    "valuation_overrides": {},
-   "year_requested": null,
+   "year_requested": 2025,
    "year_substituted": false
   },
   "sources": [
