@@ -8,7 +8,7 @@ from app.agents.pipeline.contract import AgentSpec, Conversation
 from app.agents.pipeline.graph import build_graph
 from tests.pipeline.fixtures import make_run_context
 
-CONVERSATION = Conversation(user_query="q", messages=None, session_state=None, ticker="", fiscal_year=0,
+CONVERSATION = Conversation(user_query="q", messages=None, session_state=None, ticker=None, fiscal_year=None,
                             run_date=date(2026, 10, 28))
 
 

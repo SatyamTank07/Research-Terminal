@@ -19,13 +19,13 @@ class RunNote(BaseModel):
 
 @dataclass(frozen=True)
 class Conversation:
-    """The chat turn the Supervisor resolves. `ticker` is "" and `fiscal_year` 0 when the caller named none."""
+    """The chat turn the Supervisor resolves. `ticker` and `fiscal_year` are None when the caller named none."""
 
     user_query: str
     messages: Optional[List[Dict[str, str]]]
     session_state: Optional[Dict[str, Any]]
-    ticker: str
-    fiscal_year: int
+    ticker: Optional[str]
+    fiscal_year: Optional[int]
     run_date: date
     callbacks: Optional[List[Any]] = None
 

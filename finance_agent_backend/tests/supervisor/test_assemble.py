@@ -61,7 +61,7 @@ class TestAssembleConversationalPlan(unittest.TestCase):
 class TestAssembleTurn(unittest.TestCase):
     def test_research_turn_shares_terminal_growth_from_the_overrides(self):
         plan = _research_plan(ValuationParameters(overrides={"ticker": "AAPL", "terminal_growth": 0.03}, carry_note=None))
-        conversation = Conversation(user_query="dcf", messages=None, session_state=None, ticker="", fiscal_year=0,
+        conversation = Conversation(user_query="dcf", messages=None, session_state=None, ticker=None, fiscal_year=None,
                                     run_date=date(2026, 11, 3))
         turn = assemble_turn(conversation, plan)
         self.assertAlmostEqual(turn.run_context.terminal_growth_rate, 0.03)

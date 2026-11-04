@@ -54,9 +54,8 @@ class TestResolveRequestedYear(unittest.TestCase):
     def test_a_year_in_the_query_drops_the_session_year(self):
         self.assertEqual(resolve_requested_year(None, None, "Now the FY2025 DCF", "AAPL", SESSION).year, None)
 
-    def test_year_zero_is_not_missing(self):
-        # The orchestrator's fiscal_year=0 sentinel (fixed in a later change) blocks the follow-up rule today.
-        self.assertEqual(resolve_requested_year(0, None, "Now run the DCF", "AAPL", SESSION), RequestedYear(0, None))
+    def test_no_caller_year_lets_the_extraction_win(self):
+        self.assertEqual(resolve_requested_year(None, 2023, "dcf", "AAPL", SESSION), RequestedYear(2023, None))
 
 
 class TestChooseFilingYear(unittest.TestCase):
@@ -67,7 +66,7 @@ class TestChooseFilingYear(unittest.TestCase):
         self.assertEqual(choose_filing_year("AAPL", 2020, "", AVAILABLE), FilingChoice(2020, 2025, True))
 
     def test_no_request_reads_the_year_from_the_query(self):
-        self.assertEqual(choose_filing_year("AAPL", 0, "audit fiscal 2024", AVAILABLE), FilingChoice(2024, 2024, False))
+        self.assertEqual(choose_filing_year("AAPL", None, "audit fiscal 2024", AVAILABLE), FilingChoice(2024, 2024, False))
 
     def test_no_request_anywhere_means_the_latest_filing(self):
         self.assertEqual(choose_filing_year("AAPL", None, "audit it", AVAILABLE), FilingChoice(None, 2025, False))
